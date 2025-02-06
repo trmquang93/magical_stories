@@ -14,8 +14,8 @@ class StoryList extends StatelessWidget {
     required this.stories,
   });
 
-  Future<void> _speak(String text) async {
-    await flutterTts.setLanguage('en-US');
+  Future<void> _speak(String text, String language) async {
+    await flutterTts.setLanguage(language);
     await flutterTts.setPitch(1.0);
     await flutterTts.speak(text);
   }
@@ -53,9 +53,21 @@ class StoryList extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                subtitle: Text(
-                  'Created on ${story.createdAt.toString().split(' ')[0]}',
-                  style: TextStyle(fontSize: settings.fontSize - 2),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'For ${story.childName} (${story.childAge} years old)',
+                      style: TextStyle(
+                        fontSize: settings.fontSize - 2,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      'Created on ${story.createdAt.toString().split(' ')[0]}',
+                      style: TextStyle(fontSize: settings.fontSize - 2),
+                    ),
+                  ],
                 ),
                 children: [
                   Padding(
@@ -69,7 +81,8 @@ class StoryList extends StatelessWidget {
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.play_arrow),
-                                onPressed: () => _speak(story.content),
+                                onPressed: () =>
+                                    _speak(story.content, story.language),
                               ),
                               IconButton(
                                 icon: const Icon(Icons.stop),

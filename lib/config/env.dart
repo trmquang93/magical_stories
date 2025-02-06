@@ -4,5 +4,5 @@ class Env {
   static String get googleAiApiKey => dotenv.env['GOOGLE_AI_API_KEY'] ?? '';
 
   static const String googleAiEndpoint =
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 }

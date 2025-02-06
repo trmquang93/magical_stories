@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/story_provider.dart';
 import '../widgets/story_form.dart';
-import '../widgets/story_list.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -44,16 +43,15 @@ class HomeScreen extends StatelessWidget {
             );
           }
 
-          return Column(
-            children: [
-              const StoryForm(),
-              const Divider(),
-              Expanded(
-                child: StoryList(
-                  stories: storyProvider.stories,
-                ),
+          return ScrollConfiguration(
+            behavior:
+                ScrollConfiguration.of(context).copyWith(scrollbars: false),
+            child: SingleChildScrollView(
+              child: const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: StoryForm(),
               ),
-            ],
+            ),
           );
         },
       ),
