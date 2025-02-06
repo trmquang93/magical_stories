@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/story_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/form_data_provider.dart';
@@ -9,18 +10,21 @@ import 'screens/main_navigation.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-  runApp(const MyApp());
+  final prefs = await SharedPreferences.getInstance();
+  runApp(MyApp(prefs: prefs));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final SharedPreferences prefs;
+
+  const MyApp({super.key, required this.prefs});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => StoryProvider()),
-        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider(prefs)),
         ChangeNotifierProvider(create: (_) => FormDataProvider()),
       ],
       child: Consumer<SettingsProvider>(

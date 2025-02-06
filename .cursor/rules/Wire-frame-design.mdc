@@ -1,0 +1,140 @@
+---
+description: UI/UX Wireframe Recommendations for AI-Powered Bedtime Story App
+globs: 
+---
+### 🎨 **UI/UX Wireframe Recommendations for AI-Powered Bedtime Story App**
+To ensure a **delightful, engaging, and intuitive** user experience, I have designed a **wireframe concept** and UX recommendations based on best practices from competitor apps and industry trends.
+
+---
+
+## **1️⃣ Core UX Principles**
+✅ **Child-Friendly & Playful UI** → Large buttons, simple navigation, and animated transitions.  
+✅ **Minimal Cognitive Load** → Intuitive onboarding, guided interactions, and easy-to-read typography.  
+✅ **Seamless Personalization** → Effortless story customization with **AI-driven auto-fill suggestions**.  
+✅ **Multi-Sensory Experience** → **Voice narration, interactive sound effects, and AI-generated illustrations**.  
+✅ **Parental Controls** → Safe browsing, reading-time limits, and age-appropriate content filters.  
+
+---
+
+## **2️⃣ Recommended Wireframe Flow**
+### **📌 Home Screen**
+💡 **Purpose:** Provide an **engaging and simple** entry point to access generated stories, browse the library, or create a new personalized story.
+
+#### **Wireframe Concept**
+```
++----------------------------------+
+|  Welcome, [Parent Name]!         |
+|----------------------------------|
+|  [🌟 Generate a New Story]       |
+|  [📚 My Library]                 |
+|  [🎵 Audio Stories]              |
+|  [⚙️ Settings & Parental Control] |
++----------------------------------+
+```
+🔹 **Key Features:**
+- Quick access to **AI-powered story generation**.
+- **Story Library** where parents & kids can revisit past stories.
+- **Audio Narration Section** for listening on-the-go.
+- **Parental Control** button (hidden behind a PIN).
+
+---
+
+### **📌 Personalized Story Generation Screen**
+💡 **Purpose:** Allow parents/kids to **customize bedtime stories** effortlessly using AI.
+
+#### **Wireframe Concept**
+```
++----------------------------------+
+|  ✨ Create Your Story            |
+|----------------------------------|
+|  Child’s Name:  [________]       |
+|  Age:          [ 3 - 10 ]        |
+|  Favorite Animal: [________]     |
+|  Favorite Character: [________]  |
+|  Theme:  [Kindness] [Bravery] [Friendship] |
+|  [📖 Generate Story]             |
++----------------------------------+
+```
+🔹 **Key Features:**
+- Smart AI **auto-suggestions** for themes and characters.
+- Real-time preview of **generated title & summary** before finalizing.
+- **Voice-input support** for kids to interact hands-free.
+
+---
+
+### **📌 Story Display & Reading Mode**
+💡 **Purpose:** Provide a distraction-free, **immersive bedtime reading experience**.
+
+#### **Wireframe Concept**
+```
++----------------------------------+
+|  🌙 [Story Title]                |
+|----------------------------------|
+|  [🖼 AI-Generated Illustration]   |
+|  Once upon a time...             |
+|                                  |
+|  [🎵 Play Narration]  [🔠 Change Font Size] |
+|  [📖 Turn Page]                  |
++----------------------------------+
+```
+🔹 **Key Features:**
+- **AI-generated visuals** based on story elements.
+- **Night Mode** & **Adjustable Text Size** for easy reading.
+- **Read-Aloud Audio Narration** (AI voice or parent’s voice).
+- **Interactive Sound Effects** for engagement.
+
+---
+
+### **📌 My Story Library**
+💡 **Purpose:** Allow parents & kids to **save and revisit** their favorite stories.
+
+#### **Wireframe Concept**
+```
++----------------------------------+
+|  📚 My Stories                   |
+|----------------------------------|
+|  [Story 1 - Title]  [📖 Read]    |
+|  [Story 2 - Title]  [🎧 Listen]  |
+|  [Story 3 - Title]  [🖼 View Art]|
++----------------------------------+
+```
+🔹 **Key Features:**
+- Saved stories with **cover images & AI-generated artwork**.
+- **Sort by Date, Theme, or Favorites**.
+- **Downloadable for offline access**.
+
+---
+
+### **📌 Parental Controls & Settings**
+💡 **Purpose:** Give parents control over **screen time, age filters, and subscriptions**.
+
+#### **Wireframe Concept**
+```
++----------------------------------+
+|  ⚙️ Parental Controls             |
+|----------------------------------|
+|  ⏳ Set Daily Story Limit: [15 min] |
+|  👶 Content Filters: [Ages 3-5]    |
+|  🔕 Notifications: [On/Off]       |
+|  💰 Manage Subscription           |
+|  🔑 Change PIN Code               |
++----------------------------------+
+```
+🔹 **Key Features:**
+- **Daily story-time limits** for healthy screen usage.
+- **Age-appropriate filtering** (3-5, 6-8, 9-10).
+- **Subscription management & cancellation options**.
+- **PIN-protected settings** (so kids can’t alter limits).
+
+---
+
+## **3️⃣ Advanced UX Enhancements**
+🔹 **AI-Powered Voice Interaction** → Kids can say **"Tell me a story about a brave dragon"**, and the app will generate it.  
+🔹 **Choice-Based Stories (Interactive Story Paths)** → Allows kids to **pick the direction** of the story.  
+🔹 **Personalized Audio Bookmarks** → Save and resume narration where the child left off.  
+🔹 **Multilingual Support** → AI-generated translation in **Spanish, French, German, etc.**  
+
+---
+
+## **🚀 Next Steps**
+Would you like **Figma wireframe mockups** or a **clickable prototype**? Let me know how I can refine the design further! 🎯

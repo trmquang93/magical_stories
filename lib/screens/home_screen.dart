@@ -2,82 +2,85 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/story_provider.dart';
 import '../widgets/story_form.dart';
-import 'settings_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatelessWidget {
+  final TabController tabController;
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
+  const HomeScreen({
+    super.key,
+    required this.tabController,
+  });
 
-class _HomeScreenState extends State<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Ensure we don't call setState during build by using a post-frame callback
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<StoryProvider>().refreshStories();
-    });
+  void _navigateToTab(int index) {
+    tabController.animateTo(index);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Magical Stories'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
-              );
-            },
-          ),
-        ],
+        title: const Text(
+          'Magical Stories',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: Consumer<StoryProvider>(
         builder: (context, storyProvider, child) {
           return Stack(
             children: [
               SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (storyProvider.error.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(16.0),
-                        margin: const EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          color: Colors.red.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.red.shade200),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.error_outline,
-                                color: Colors.red.shade700),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                storyProvider.error,
-                                style: TextStyle(color: Colors.red.shade700),
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.refresh),
-                              onPressed: () => storyProvider.refreshStories(),
-                              color: Colors.red.shade700,
-                            ),
-                          ],
-                        ),
+                    const Text(
+                      'Welcome to Magical Stories!',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
-                    const Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: StoryForm(),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    _buildActionButton(
+                      context,
+                      icon: Icons.auto_awesome,
+                      label: 'Generate a New Story',
+                      color: Theme.of(context).colorScheme.primary,
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (context) => const Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: StoryForm(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildActionButton(
+                      context,
+                      icon: Icons.library_books,
+                      label: 'My Library',
+                      color: Theme.of(context).colorScheme.secondary,
+                      onTap: () => _navigateToTab(1),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildActionButton(
+                      context,
+                      icon: Icons.headphones,
+                      label: 'Audio Stories',
+                      color: Theme.of(context).colorScheme.tertiary,
+                      onTap: () => _navigateToTab(2),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildActionButton(
+                      context,
+                      icon: Icons.settings,
+                      label: 'Settings & Parental Control',
+                      color: Colors.grey,
+                      onTap: () => _navigateToTab(3),
                     ),
                   ],
                 ),
@@ -92,6 +95,50 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildActionButton(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 32,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.arrow_forward_ios,
+                color: Colors.white,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

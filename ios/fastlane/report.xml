@@ -5,37 +5,42 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: import_from_git" time="4.142308">
+      <testcase classname="fastlane.lanes" name="0: import_from_git" time="4.321614">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: default_platform" time="0.000235">
+      <testcase classname="fastlane.lanes" name="1: default_platform" time="0.00059">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="2: Switch to ios build lane" time="0.000108">
+      <testcase classname="fastlane.lanes" name="2: Switch to ios build lane" time="0.000138">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="3: increment_build_number" time="0.444803">
+      <testcase classname="fastlane.lanes" name="3: increment_build_number" time="0.422996">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="4: increment_version_number_in_plist" time="0.087593">
+      <testcase classname="fastlane.lanes" name="4: increment_version_number_in_plist" time="0.122391">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="5: increment_version_number_in_xcodeproj" time="0.014179">
+      <testcase classname="fastlane.lanes" name="5: increment_version_number_in_xcodeproj" time="0.01925">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="6: gym" time="63.494523">
+      <testcase classname="fastlane.lanes" name="6: gym" time="118.125059">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="7: firebase_app_distribution" time="10.395897">
         
       </testcase>
     

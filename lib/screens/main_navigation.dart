@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'dart:io' show Platform;
 import 'home_screen.dart';
 import 'stories_screen.dart';
+import 'audio_stories_screen.dart';
+import 'settings_screen.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -20,7 +22,7 @@ class _MainNavigationState extends State<MainNavigation>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         setState(() {
@@ -43,9 +45,11 @@ class _MainNavigationState extends State<MainNavigation>
         bottom: false,
         child: TabBarView(
           controller: _tabController,
-          children: const [
-            HomeScreen(),
-            StoriesScreen(),
+          children: [
+            HomeScreen(tabController: _tabController),
+            const StoriesScreen(),
+            const AudioStoriesScreen(),
+            const SettingsScreen(),
           ],
         ),
       ),
@@ -65,7 +69,15 @@ class _MainNavigationState extends State<MainNavigation>
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(Icons.book),
-                      label: 'Stories',
+                      label: 'Library',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.headphones),
+                      label: 'Audio',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.settings),
+                      label: 'Settings',
                     ),
                   ],
                   onTap: (index) {
@@ -93,7 +105,15 @@ class _MainNavigationState extends State<MainNavigation>
                     ),
                     Tab(
                       icon: Icon(Icons.book),
-                      text: 'Stories',
+                      text: 'Library',
+                    ),
+                    Tab(
+                      icon: Icon(Icons.headphones),
+                      text: 'Audio',
+                    ),
+                    Tab(
+                      icon: Icon(Icons.settings),
+                      text: 'Settings',
                     ),
                   ],
                 ),
