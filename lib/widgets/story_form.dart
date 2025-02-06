@@ -114,6 +114,10 @@ class _StoryFormState extends State<StoryForm> {
     _formDataProvider = context.read<FormDataProvider>();
 
     // Load saved form data
+    _updateFormFields();
+  }
+
+  void _updateFormFields() {
     _childNameController.text = _formDataProvider.childName;
     _ageController.text = _formDataProvider.age;
     _characterController.text = _formDataProvider.favoriteCharacter;
@@ -130,6 +134,8 @@ class _StoryFormState extends State<StoryForm> {
       _storyProvider = context.read<StoryProvider>();
       _formDataProvider = context.read<FormDataProvider>();
       _storyProvider.addListener(_handleError);
+      // Add listener for form data changes
+      _formDataProvider.addListener(_updateFormFields);
     });
   }
 
@@ -157,6 +163,7 @@ class _StoryFormState extends State<StoryForm> {
   @override
   void dispose() {
     _storyProvider.removeListener(_handleError);
+    _formDataProvider.removeListener(_updateFormFields);
     _childNameController.dispose();
     _ageController.dispose();
     _characterController.dispose();
@@ -192,133 +199,152 @@ class _StoryFormState extends State<StoryForm> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _childNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Child\'s Name',
-                  icon: Icon(Icons.person),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the child\'s name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _ageController,
-                decoration: const InputDecoration(
-                  labelText: 'Age',
-                  icon: Icon(Icons.cake),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the child\'s age';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'Please enter a valid age';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _characterController,
-                decoration: const InputDecoration(
-                  labelText: 'Favorite Character/Animal',
-                  icon: Icon(Icons.pets),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a favorite character or animal';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _selectedTheme,
-                decoration: const InputDecoration(
-                  labelText: 'Story Theme',
-                  icon: Icon(Icons.book),
-                ),
-                items: _themes.map((String theme) {
-                  return DropdownMenuItem<String>(
-                    value: theme,
-                    child: Text(theme.substring(0, 1).toUpperCase() +
-                        theme.substring(1)),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    setState(() {
-                      _selectedTheme = newValue;
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              SearchAnchor(
-                builder: (BuildContext context, SearchController controller) {
-                  return SearchBar(
-                    controller: controller,
-                    padding: const WidgetStatePropertyAll<EdgeInsets>(
-                      EdgeInsets.symmetric(horizontal: 16.0),
+          child: Consumer2<StoryProvider, FormDataProvider>(
+            builder: (context, storyProvider, formDataProvider, child) {
+              if (formDataProvider.isLoading) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextFormField(
+                    controller: _childNameController,
+                    enabled: !storyProvider.isLoading,
+                    decoration: const InputDecoration(
+                      labelText: 'Child\'s Name',
+                      icon: Icon(Icons.person),
                     ),
-                    leading: const Icon(Icons.language),
-                    hintText: 'Select Language',
-                    onTap: () {
-                      controller.openView();
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the child\'s name';
+                      }
+                      return null;
                     },
-                    textStyle: const WidgetStatePropertyAll<TextStyle>(
-                      TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _ageController,
+                    enabled: !storyProvider.isLoading,
+                    decoration: const InputDecoration(
+                      labelText: 'Age',
+                      icon: Icon(Icons.cake),
                     ),
-                    surfaceTintColor: WidgetStatePropertyAll<Color>(
-                      Theme.of(context).colorScheme.surface,
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the child\'s age';
+                      }
+                      if (int.tryParse(value) == null) {
+                        return 'Please enter a valid age';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _characterController,
+                    enabled: !storyProvider.isLoading,
+                    decoration: const InputDecoration(
+                      labelText: 'Favorite Character/Animal',
+                      icon: Icon(Icons.pets),
                     ),
-                  );
-                },
-                suggestionsBuilder:
-                    (BuildContext context, SearchController controller) {
-                  final keyword = controller.text.toLowerCase();
-                  return _languages.where((language) {
-                    if (language.toLowerCase().contains(keyword)) return true;
-                    final aliases = _languageAliases[language] ?? [];
-                    return aliases
-                        .any((alias) => alias.toLowerCase().contains(keyword));
-                  }).map((language) => ListTile(
-                        title: Text(language),
-                        onTap: () {
-                          setState(() {
-                            _selectedLanguage = language;
-                          });
-                          controller.closeView(language);
-                        },
-                      ));
-                },
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0, top: 8.0),
-                child: Text(
-                  'Selected Language: $_selectedLanguage',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: _generateStory,
-                icon: const Icon(Icons.auto_stories),
-                label: const Text('Generate Story'),
-              ),
-            ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a favorite character or animal';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: _selectedTheme,
+                    decoration: const InputDecoration(
+                      labelText: 'Story Theme',
+                      icon: Icon(Icons.book),
+                    ),
+                    items: _themes.map((String theme) {
+                      return DropdownMenuItem<String>(
+                        value: theme,
+                        child: Text(theme.substring(0, 1).toUpperCase() +
+                            theme.substring(1)),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          _selectedTheme = newValue;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  SearchAnchor(
+                    builder:
+                        (BuildContext context, SearchController controller) {
+                      return SearchBar(
+                        controller: controller,
+                        padding: const WidgetStatePropertyAll<EdgeInsets>(
+                          EdgeInsets.symmetric(horizontal: 16.0),
+                        ),
+                        leading: const Icon(Icons.language),
+                        hintText: 'Select Language',
+                        onTap: storyProvider.isLoading
+                            ? null
+                            : () {
+                                controller.openView();
+                              },
+                        textStyle: const WidgetStatePropertyAll<TextStyle>(
+                          TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        surfaceTintColor: WidgetStatePropertyAll<Color>(
+                          Theme.of(context).colorScheme.surface,
+                        ),
+                      );
+                    },
+                    suggestionsBuilder:
+                        (BuildContext context, SearchController controller) {
+                      final keyword = controller.text.toLowerCase();
+                      return _languages.where((language) {
+                        if (language.toLowerCase().contains(keyword))
+                          return true;
+                        final aliases = _languageAliases[language] ?? [];
+                        return aliases.any(
+                            (alias) => alias.toLowerCase().contains(keyword));
+                      }).map((language) => ListTile(
+                            title: Text(language),
+                            onTap: () {
+                              setState(() {
+                                _selectedLanguage = language;
+                              });
+                              controller.closeView(language);
+                            },
+                          ));
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0, top: 8.0),
+                    child: Text(
+                      'Selected Language: $_selectedLanguage',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: storyProvider.isLoading ? null : _generateStory,
+                    icon: const Icon(Icons.auto_stories),
+                    label: Text(storyProvider.isLoading
+                        ? 'Generating...'
+                        : 'Generate Story'),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),

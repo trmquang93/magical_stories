@@ -1,0 +1,94 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# Load template
+import_from_git(
+  url: "git@github.com:UNITVN/default-fastfile.git",
+  path: "default-fastfile",
+)
+
+# Replace following lines with your own values from project
+ENV["BUILD_NUMBER"] = "6"
+ENV["VERSION_NUMBER"] = "1.0"
+ENV["SCHEME_NAME"] = "Runner"
+ENV["APP_IDENTIFIER"] = "com.unitvn.magicalStories"
+ENV["FASTLANE_TEAM_NAME"] = "UNIT VIET NAM JOINT STOCK COMPANY"
+ENV["ADHOC_PROVISIONING_PROFILE"] = "unit-adhoc-all"
+ENV["APPSTORE_PROVISIONING_PROFILE"] = "unit-appstore-all"
+
+# Quang password
+ENV["FASTLANE_USER"] = "trmquang3103@gmail.com"
+ENV["FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD"] = "flqr-ksdb-dymx-thka"
+# Trung password
+# ENV["FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD"] = "ymwj-gimw-tknl-uiih"
+# ENV["FASTLANE_USER"] = "vuductrung14293@gmail.com"
+
+default_platform(:ios)
+platform :ios do
+  def set_credentials(username, password)
+    ENV["FASTLANE_USER"] = username
+    ENV["FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD"] = password
+  end
+
+  desc "Set user credentials"
+  lane :set_user do |options|
+    username = options[:username]
+    password = options[:password]
+    
+    unless username && password
+      UI.user_error!("Please provide both username and password parameters")
+    end
+    
+    set_credentials(username, password)
+    UI.success("Credentials set for user: #{username}")
+  end
+
+  desc "Build and upload to firebase"
+  lane :firebase do
+    build(
+      export_method: "ad-hoc",
+    )
+
+    firebase_app_distribution(
+      app: "1:591303847269:ios:53a9dbadf3b7f1665a858c",
+      # groups: "unitmember",
+      testers: ["quang.tranminh@unitvn.com, thotd8x@gmail.com"],
+      release_notes: "close beta",
+      # Quang json
+      service_credentials_file: "/Users/quang.tranminh/Library/Mobile Documents/com~apple~CloudDocs/DevelopmentCertificates/unitvnios-8079edc9e94a.json",
+      # Trung json
+      # service_credentials_file: "/Users/macmini/pdf-converter/unitvnios-a852cc7160ee.json",
+    )
+  end
+
+  desc "Select build from xcode cloud after login to Quang account"
+  lane :quang_xcode_cloud do |options|
+    ENV["BUILD_NUMBER"] = options[:build_number]
+
+    set_user(
+      username: "trmquang3103@gmail.com",
+      password: "flqr-ksdb-dymx-thka",
+    )
+    xcode_cloud
+  end
+
+  desc "Select build from xcode cloud after login to Trung account"
+  lane :trung_xcode_cloud do |options|
+    ENV["BUILD_NUMBER"] = options[:build_number]
+    set_user(
+      username: "vuductrung14293@gmail.com",
+      password: "ymwj-gimw-tknl-uiih",
+    )
+    xcode_cloud
+  end
+end

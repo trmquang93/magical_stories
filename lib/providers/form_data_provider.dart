@@ -7,6 +7,7 @@ class FormDataProvider with ChangeNotifier {
   String _favoriteCharacter = '';
   String _theme = 'friendship';
   String _language = 'English';
+  bool _isLoading = true;
 
   // Map display language names to language codes for text-to-speech
   static const Map<String, String> languageCodes = {
@@ -44,6 +45,8 @@ class FormDataProvider with ChangeNotifier {
     'Bulgarian': 'bg-BG',
   };
 
+  bool get isLoading => _isLoading;
+
   String getLanguageCode() {
     return languageCodes[_language] ?? 'en-US';
   }
@@ -59,13 +62,20 @@ class FormDataProvider with ChangeNotifier {
   String get language => _language;
 
   Future<void> _loadFormData() async {
-    final prefs = await SharedPreferences.getInstance();
-    _childName = prefs.getString('childName') ?? '';
-    _age = prefs.getString('age') ?? '';
-    _favoriteCharacter = prefs.getString('favoriteCharacter') ?? '';
-    _theme = prefs.getString('theme') ?? 'friendship';
-    _language = prefs.getString('language') ?? 'English';
+    _isLoading = true;
     notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _childName = prefs.getString('childName') ?? '';
+      _age = prefs.getString('age') ?? '';
+      _favoriteCharacter = prefs.getString('favoriteCharacter') ?? '';
+      _theme = prefs.getString('theme') ?? 'friendship';
+      _language = prefs.getString('language') ?? 'English';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> saveFormData({

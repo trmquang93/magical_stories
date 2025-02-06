@@ -61,24 +61,69 @@ class StoryProvider with ChangeNotifier {
   }
 
   Future<void> _initDatabase() async {
-    try {
-      _db = DatabaseHelper.instance;
-      await _loadStories();
-    } catch (e) {
-      _error = 'Failed to initialize database: ${e.toString()}';
-      notifyListeners();
+    _isLoading = true;
+    _error = '';
+    notifyListeners();
+
+    int retryCount = 0;
+    const maxRetries = 3;
+
+    while (retryCount < maxRetries) {
+      try {
+        _db = DatabaseHelper.instance;
+        await _loadStories();
+        break; // If successful, exit the retry loop
+      } catch (e) {
+        retryCount++;
+        if (retryCount == maxRetries) {
+          _error =
+              'Failed to initialize database after $maxRetries attempts: ${e.toString()}';
+        } else {
+          // Wait before retrying (exponential backoff)
+          await Future.delayed(Duration(milliseconds: 500 * retryCount));
+          continue;
+        }
+      }
     }
+
+    _isLoading = false;
+    notifyListeners();
   }
 
   Future<void> _loadStories() async {
+    if (_db == null) {
+      throw Exception('Database not initialized');
+    }
+
     try {
-      if (_db == null) {
-        throw Exception('Database not initialized');
+      // First try to get the count to verify database connection
+      final count = await _db!.database
+          .then((db) => db.rawQuery('SELECT COUNT(*) FROM stories'));
+      if (count.isEmpty) {
+        throw Exception('Failed to query database');
       }
+      
       _stories = await _db!.getAllStories();
-      notifyListeners();
+      _stories.sort(
+          (a, b) => b.createdAt.compareTo(a.createdAt)); // Sort by newest first
     } catch (e) {
-      _error = 'Failed to load stories: ${e.toString()}';
+      _stories = [];
+      throw Exception('Failed to load stories: ${e.toString()}');
+    }
+  }
+
+  // Add a method to manually refresh stories
+  Future<void> refreshStories() async {
+    _isLoading = true;
+    _error = '';
+    notifyListeners();
+    
+    try {
+      await _loadStories();
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
