@@ -270,20 +270,31 @@ class StoryProvider with ChangeNotifier {
         final data = json.decode(response.body);
         String generatedText =
             data['candidates'][0]['content']['parts'][0]['text'].trim();
-        // Clean up the response text and try to extract valid JSON
-        if (!generatedText.startsWith('{')) {
-          final startIndex = generatedText.indexOf('{');
-          final endIndex = generatedText.lastIndexOf('}');
-          if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
-            generatedText = generatedText.substring(startIndex, endIndex + 1);
-          }
+
+
+        // Sometimes the AI might return a data with a different format
+        // So we need to handle that
+        // find the text between "title" and "content"
+        final titleMatch =
+            RegExp(r'"title":\s*"(.*?)"').firstMatch(generatedText);
+        final contentMatch =
+            RegExp(r'"content":\s*"(.*?)"').firstMatch(generatedText);
+
+        if (titleMatch != null && contentMatch != null) {
+          generatedText =
+              '{"title": "${titleMatch.group(1)}", "content": "${contentMatch.group(1)}"}';
         }
 
-        // Try to extract the JSON object from the response
-        // Sometimes the AI might include markdown code blocks or extra text
-        final RegExp jsonRegex = RegExp(r'\{[\s\S]*\}');
-        final Match? jsonMatch = jsonRegex.firstMatch(generatedText);
-        
+        //Some times the AI might return a JSON object with a different format
+        //So we need to handle that
+        Match? jsonMatch;
+        if (generatedText.startsWith('{')) {
+          // Try to extract the JSON object from the response
+          // Sometimes the AI might include markdown code blocks or extra text
+          final RegExp jsonRegex = RegExp(r'\{[\s\S]*\}');
+          jsonMatch = jsonRegex.firstMatch(generatedText);
+        }
+
         Map<String, dynamic> storyData;
         try {
           if (jsonMatch != null) {

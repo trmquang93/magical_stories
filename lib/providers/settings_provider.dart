@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
 
 class SettingsProvider with ChangeNotifier {
   final SharedPreferences _prefs;
@@ -11,6 +11,9 @@ class SettingsProvider with ChangeNotifier {
   static const bool _defaultIsDarkMode = false;
   static const double _defaultFontSize = 16.0;
   static const bool _defaultTextToSpeech = false;
+  static const String _darkModeKey = 'darkMode';
+  static const String _fontSizeKey = 'fontSize';
+  static const String _languageCodeKey = 'languageCode';
 
   SettingsProvider(this._prefs) {
     // Load saved settings
@@ -21,6 +24,7 @@ class SettingsProvider with ChangeNotifier {
     _fontSize = _prefs.getDouble('fontSize') ?? _defaultFontSize;
     _isTextToSpeechEnabled =
         _prefs.getBool('textToSpeech') ?? _defaultTextToSpeech;
+    _languageCode = _prefs.getString('languageCode') ?? 'en';
   }
 
   // Daily story time limit in minutes
@@ -46,6 +50,10 @@ class SettingsProvider with ChangeNotifier {
   // Text-to-speech settings
   bool _isTextToSpeechEnabled = _defaultTextToSpeech;
   bool get isTextToSpeechEnabled => _isTextToSpeechEnabled;
+
+  // Language settings
+  String _languageCode = 'en';
+  Locale get locale => Locale(_languageCode);
 
   // Methods to update settings
   Future<void> setDailyLimit(int minutes) async {
@@ -86,24 +94,31 @@ class SettingsProvider with ChangeNotifier {
     _isDarkMode = _defaultIsDarkMode;
     _fontSize = _defaultFontSize;
     _isTextToSpeechEnabled = _defaultTextToSpeech;
+    _languageCode = 'en';
     notifyListeners();
   }
 
   Future<void> toggleDarkMode() async {
     _isDarkMode = !_isDarkMode;
-    await _prefs.setBool('isDarkMode', _isDarkMode);
+    await _prefs.setBool(_darkModeKey, _isDarkMode);
     notifyListeners();
   }
 
   Future<void> setFontSize(double size) async {
     _fontSize = size;
-    await _prefs.setDouble('fontSize', _fontSize);
+    await _prefs.setDouble(_fontSizeKey, _fontSize);
     notifyListeners();
   }
 
   Future<void> toggleTextToSpeech() async {
     _isTextToSpeechEnabled = !_isTextToSpeechEnabled;
     await _prefs.setBool('textToSpeech', _isTextToSpeechEnabled);
+    notifyListeners();
+  }
+
+  void setLanguage(String languageCode) {
+    _languageCode = languageCode;
+    _prefs.setString(_languageCodeKey, languageCode);
     notifyListeners();
   }
 }

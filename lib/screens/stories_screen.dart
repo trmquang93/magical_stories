@@ -133,6 +133,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
               builder: (context) => StoryDisplayScreen(
                 title: story.title,
                 content: story.content,
+                languageCode: story.language,
                 // imageUrl is not implemented in Story model yet
                 imageUrl: null,
               ),

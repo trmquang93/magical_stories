@@ -1,0 +1,38 @@
+{
+    "appTitle": "Magical Stories",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
+    "homeTab": "Home",
+    "@homeTab": {
+        "description": "Label for the home tab"
+    },
+    "storiesTab": "Stories",
+    "@storiesTab": {
+        "description": "Label for the stories tab"
+    },
+    "audioStoriesTab": "Audio Stories",
+    "@audioStoriesTab": {
+        "description": "Label for the audio stories tab"
+    },
+    "settingsTab": "Settings",
+    "@settingsTab": {
+        "description": "Label for the settings tab"
+    },
+    "createStory": "Create Story",
+    "@createStory": {
+        "description": "Button to create a new story"
+    },
+    "darkMode": "Dark Mode",
+    "@darkMode": {
+        "description": "Label for dark mode setting"
+    },
+    "fontSize": "Font Size",
+    "@fontSize": {
+        "description": "Label for font size setting"
+    },
+    "language": "Language",
+    "@language": {
+        "description": "Label for language setting"
+    }
+}

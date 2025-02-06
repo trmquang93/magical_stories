@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:provider/provider.dart';
+import 'package:magical_stories/providers/settings_provider.dart';
 
 class StoryDisplayScreen extends StatefulWidget {
   final String title;
   final String content;
   final String? imageUrl;
+  final String languageCode;
 
   const StoryDisplayScreen({
     super.key,
     required this.title,
     required this.content,
+    required this.languageCode,
     this.imageUrl,
   });
 
@@ -20,6 +25,40 @@ class _StoryDisplayScreenState extends State<StoryDisplayScreen> {
   bool _isNightMode = false;
   double _fontSize = 18;
   bool _isPlaying = false;
+  final FlutterTts _flutterTts = FlutterTts();
+
+  @override
+  void initState() {
+    super.initState();
+    _initTts();
+  }
+
+  Future<void> _initTts() async {
+    final ttsLanguage = widget.languageCode;
+    await _flutterTts.setLanguage(ttsLanguage);
+    await _flutterTts.setSpeechRate(0.5);
+    _flutterTts.setCompletionHandler(() {
+      setState(() {
+        _isPlaying = false;
+      });
+    });
+  }
+
+  Future<void> _toggleReading() async {
+    if (_isPlaying) {
+      await _flutterTts.stop();
+      setState(() => _isPlaying = false);
+    } else {
+      setState(() => _isPlaying = true);
+      await _flutterTts.speak(widget.content);
+    }
+  }
+
+  @override
+  void dispose() {
+    _flutterTts.stop();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,45 +151,7 @@ class _StoryDisplayScreenState extends State<StoryDisplayScreen> {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 onPressed: () {
-                  setState(() {
-                    _isPlaying = !_isPlaying;
-                  });
-                  // TODO: Implement audio playback
-                },
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.skip_previous,
-                  size: 32,
-                ),
-                onPressed: () {
-                  // TODO: Implement previous page
-                },
-              ),
-              Text(
-                'Page 1',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: _isNightMode ? Colors.white : Colors.black,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.skip_next,
-                  size: 32,
-                ),
-                onPressed: () {
-                  // TODO: Implement next page
-                },
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.download,
-                  size: 32,
-                ),
-                onPressed: () {
-                  // TODO: Implement download functionality
+                  _toggleReading();
                 },
               ),
             ],
