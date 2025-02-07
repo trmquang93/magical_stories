@@ -16,7 +16,8 @@ class HomeScreen extends StatelessWidget {
     tabController.animateTo(index);
   }
 
-  Future<void> _showStoryCreatedDialog(BuildContext context) async {
+  Future<void> _showStoryCreatedDialog(
+      BuildContext context, int tabIndex) async {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -35,7 +36,7 @@ class HomeScreen extends StatelessWidget {
               child: const Text('Read Story'),
               onPressed: () {
                 Navigator.of(context).pop(); // Close dialog
-                _navigateToTab(2); // Navigate to stories tab
+                _navigateToTab(tabIndex); // Navigate to stories tab
               },
             ),
           ],
@@ -85,7 +86,7 @@ class HomeScreen extends StatelessWidget {
                             child: StoryForm(
                               onStoryCreated: () {
                                 Navigator.pop(context); // Dismiss form
-                                _showStoryCreatedDialog(context);
+                                _showStoryCreatedDialog(context, 2);
                               },
                             ),
                           ),
@@ -102,7 +103,12 @@ class HomeScreen extends StatelessWidget {
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
-                          builder: (context) => const GrowthStoryForm(),
+                          builder: (context) => GrowthStoryForm(
+                            onStoryCreated: () {
+                              Navigator.pop(context); // Dismiss form
+                              _showStoryCreatedDialog(context, 1);
+                            },
+                          ),
                         );
                       },
                     ),
@@ -117,13 +123,6 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              if (storyProvider.isLoading)
-                Container(
-                  color: Colors.black26,
-                  child: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
             ],
           );
         },
