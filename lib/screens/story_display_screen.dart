@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:provider/provider.dart';
-import 'package:magical_stories/providers/settings_provider.dart';
 
 class StoryDisplayScreen extends StatefulWidget {
   final String title;

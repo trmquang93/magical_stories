@@ -15,6 +15,34 @@ class HomeScreen extends StatelessWidget {
     tabController.animateTo(index);
   }
 
+  Future<void> _showStoryCreatedDialog(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Story Created! 🎉'),
+          content:
+              const Text('Your magical story has been created successfully!'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Stay Here'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+              },
+            ),
+            FilledButton(
+              child: const Text('Read Story'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                _navigateToTab(1); // Navigate to library tab
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,9 +79,14 @@ class HomeScreen extends StatelessWidget {
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
-                          builder: (context) => const Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: StoryForm(),
+                          builder: (context) => Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: StoryForm(
+                              onStoryCreated: () {
+                                Navigator.pop(context); // Dismiss form
+                                _showStoryCreatedDialog(context);
+                              },
+                            ),
                           ),
                         );
                       },

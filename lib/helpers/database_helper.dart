@@ -25,7 +25,7 @@ class DatabaseHelper {
 
       return await openDatabase(
         path,
-        version: 3,
+        version: 4,
         onCreate: _createDB,
         onUpgrade: _onUpgrade,
         onOpen: (db) async {
@@ -48,7 +48,8 @@ class DatabaseHelper {
           createdAt TEXT NOT NULL,
           childName TEXT NOT NULL,
           childAge INTEGER NOT NULL,
-          language TEXT NOT NULL DEFAULT 'en'
+          language TEXT NOT NULL DEFAULT 'en',
+          gender TEXT NOT NULL DEFAULT 'boy'
         )
       ''');
     } catch (e) {
@@ -72,6 +73,12 @@ class DatabaseHelper {
         ALTER TABLE stories ADD COLUMN language TEXT NOT NULL DEFAULT 'en';
       ''');
     }
+    if (oldVersion < 4) {
+      // Add gender column
+      await db.execute('''
+        ALTER TABLE stories ADD COLUMN gender TEXT NOT NULL DEFAULT 'boy';
+      ''');
+    }
   }
 
   Future<int> insertStory(Story story) async {
@@ -84,6 +91,7 @@ class DatabaseHelper {
         'childName': story.childName,
         'childAge': story.childAge,
         'language': story.language,
+        'gender': story.gender,
       });
     } catch (e) {
       throw Exception('Failed to insert story: $e');
@@ -107,6 +115,7 @@ class DatabaseHelper {
                 childName: map['childName'],
                 childAge: map['childAge'],
                 language: map['language'] ?? 'en',
+                gender: map['gender'] ?? 'boy',
               ))
           .toList();
     } catch (e) {

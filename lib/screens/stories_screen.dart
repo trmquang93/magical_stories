@@ -12,13 +12,47 @@ class StoriesScreen extends StatefulWidget {
 
 class _StoriesScreenState extends State<StoriesScreen> {
   String _sortBy = 'date'; // 'date', 'theme', 'favorites'
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     // Refresh stories when screen loads
-    Future.microtask(() =>
-        Provider.of<StoryProvider>(context, listen: false).refreshStories());
+    Future.microtask(() {
+      final provider = Provider.of<StoryProvider>(context, listen: false);
+      provider.refreshStories();
+      provider.setSortBy(_sortBy);
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<bool> _confirmDelete(BuildContext context) async {
+    return await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Delete Story'),
+            content: const Text('Are you sure you want to delete this story?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.red,
+                ),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 
   @override
@@ -36,6 +70,8 @@ class _StoriesScreenState extends State<StoriesScreen> {
               setState(() {
                 _sortBy = value;
               });
+              Provider.of<StoryProvider>(context, listen: false)
+                  .setSortBy(value);
             },
             itemBuilder: (context) => [
               const PopupMenuItem(
@@ -82,7 +118,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
             );
           }
 
-          final stories = List<Story>.from(storyProvider.stories);
+          final stories = storyProvider.stories;
 
           if (stories.isEmpty) {
             return const Center(
@@ -94,18 +130,8 @@ class _StoriesScreenState extends State<StoriesScreen> {
             );
           }
 
-          // Sort stories based on selected criteria
-          switch (_sortBy) {
-            case 'date':
-              stories.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-            case 'theme':
-              stories.sort((a, b) => a.title.compareTo(b.title));
-            // Note: Favorites sorting is commented out as it's not implemented in the Story model yet
-            // case 'favorites':
-            //   stories.sort((a, b) => (b.isFavorite).toString().compareTo(a.isFavorite.toString()));
-          }
-
           return ListView.builder(
+            controller: _scrollController,
             padding: const EdgeInsets.all(16.0),
             itemCount: stories.length,
             itemBuilder: (context, index) {
@@ -213,6 +239,19 @@ class _StoriesScreenState extends State<StoriesScreen> {
                         onPressed: () {
                           // TODO: Implement share functionality
                         },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () async {
+                          if (await _confirmDelete(context)) {
+                            if (story.id != null) {
+                              await Provider.of<StoryProvider>(context,
+                                      listen: false)
+                                  .deleteStory(story.id!);
+                            }
+                          }
+                        },
+                        color: Colors.red,
                       ),
                     ],
                   ),

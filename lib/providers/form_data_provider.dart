@@ -7,6 +7,7 @@ class FormDataProvider with ChangeNotifier {
   String _favoriteCharacter = '';
   String _theme = 'friendship';
   String _language = 'English';
+  String _gender = 'boy';
   bool _isLoading = true;
 
   // Map display language names to language codes for text-to-speech
@@ -60,6 +61,7 @@ class FormDataProvider with ChangeNotifier {
   String get favoriteCharacter => _favoriteCharacter;
   String get theme => _theme;
   String get language => _language;
+  String get gender => _gender;
 
   Future<void> _loadFormData() async {
     _isLoading = true;
@@ -72,6 +74,7 @@ class FormDataProvider with ChangeNotifier {
       _favoriteCharacter = prefs.getString('favoriteCharacter') ?? '';
       _theme = prefs.getString('theme') ?? 'friendship';
       _language = prefs.getString('language') ?? 'English';
+      _gender = prefs.getString('gender') ?? 'boy';
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -84,12 +87,14 @@ class FormDataProvider with ChangeNotifier {
     required String favoriteCharacter,
     required String theme,
     required String language,
+    required String gender,
   }) async {
     _childName = childName;
     _age = age;
     _favoriteCharacter = favoriteCharacter;
     _theme = theme;
     _language = language;
+    _gender = gender;
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('childName', childName);
@@ -97,6 +102,7 @@ class FormDataProvider with ChangeNotifier {
     await prefs.setString('favoriteCharacter', favoriteCharacter);
     await prefs.setString('theme', theme);
     await prefs.setString('language', language);
+    await prefs.setString('gender', gender);
 
     notifyListeners();
   }
@@ -107,6 +113,7 @@ class FormDataProvider with ChangeNotifier {
     _favoriteCharacter = '';
     _theme = 'friendship';
     _language = 'English';
+    _gender = 'boy';
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('childName');
@@ -114,6 +121,7 @@ class FormDataProvider with ChangeNotifier {
     await prefs.remove('favoriteCharacter');
     await prefs.remove('theme');
     await prefs.remove('language');
+    await prefs.remove('gender');
 
     notifyListeners();
   }

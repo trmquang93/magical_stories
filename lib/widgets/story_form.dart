@@ -4,7 +4,12 @@ import '../providers/story_provider.dart';
 import '../providers/form_data_provider.dart';
 
 class StoryForm extends StatefulWidget {
-  const StoryForm({super.key});
+  final VoidCallback? onStoryCreated;
+
+  const StoryForm({
+    super.key,
+    this.onStoryCreated,
+  });
 
   @override
   State<StoryForm> createState() => _StoryFormState();
@@ -17,6 +22,7 @@ class _StoryFormState extends State<StoryForm> {
   final _characterController = TextEditingController();
   String _selectedTheme = 'friendship';
   String _selectedLanguage = 'English';
+  String _selectedGender = 'boy';
   late StoryProvider _storyProvider;
   late FormDataProvider _formDataProvider;
 
@@ -90,6 +96,7 @@ class _StoryFormState extends State<StoryForm> {
     setState(() {
       _selectedTheme = _formDataProvider.theme;
       _selectedLanguage = _formDataProvider.language;
+      _selectedGender = _formDataProvider.gender;
     });
   }
 
@@ -145,6 +152,7 @@ class _StoryFormState extends State<StoryForm> {
         favoriteCharacter: _characterController.text,
         theme: _selectedTheme,
         language: _selectedLanguage,
+        gender: _selectedGender,
       );
 
       _storyProvider.generateStory(
@@ -153,7 +161,13 @@ class _StoryFormState extends State<StoryForm> {
         favoriteCharacter: _characterController.text,
         theme: _selectedTheme,
         language: _selectedLanguage,
-      );
+        gender: _selectedGender,
+      )
+          .then((_) {
+        if (widget.onStoryCreated != null) {
+          widget.onStoryCreated!();
+        }
+      });
     }
   }
 
@@ -202,6 +216,8 @@ class _StoryFormState extends State<StoryForm> {
                       return null;
                     },
                   ),
+                  const SizedBox(height: 16),
+                  _buildGenderSelector(storyProvider.isLoading),
                   const SizedBox(height: 16),
                   _buildInputField(
                     controller: _ageController,
@@ -410,6 +426,61 @@ class _StoryFormState extends State<StoryForm> {
             : (String? newValue) {
                 setState(() {
                   _selectedLanguage = newValue!;
+                });
+              },
+      ),
+    );
+  }
+
+  Widget _buildGenderSelector(bool isLoading) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        value: _selectedGender,
+        decoration: InputDecoration(
+          labelText: 'Gender',
+          prefixIcon: const Icon(Icons.person),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
+        ),
+        items: const [
+          DropdownMenuItem(
+            value: 'boy',
+            child: Text('Boy'),
+          ),
+          DropdownMenuItem(
+            value: 'girl',
+            child: Text('Girl'),
+          ),
+          DropdownMenuItem(
+            value: 'neutral',
+            child: Text('Prefer not to say'),
+          ),
+        ],
+        onChanged: isLoading
+            ? null
+            : (String? newValue) {
+                setState(() {
+                  _selectedGender = newValue!;
                 });
               },
       ),
