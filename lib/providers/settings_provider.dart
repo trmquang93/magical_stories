@@ -14,6 +14,9 @@ class SettingsProvider with ChangeNotifier {
   static const String _darkModeKey = 'darkMode';
   static const String _fontSizeKey = 'fontSize';
   static const String _languageCodeKey = 'languageCode';
+  static const bool _defaultPinEnabled = false;
+  static const bool _defaultAgeFilterEnabled = true;
+  static const bool _defaultTimeLimitEnabled = false;
 
   SettingsProvider(this._prefs) {
     // Load saved settings
@@ -25,6 +28,11 @@ class SettingsProvider with ChangeNotifier {
     _isTextToSpeechEnabled =
         _prefs.getBool('textToSpeech') ?? _defaultTextToSpeech;
     _languageCode = _prefs.getString('languageCode') ?? 'en';
+    _isPinEnabled = _prefs.getBool('isPinEnabled') ?? _defaultPinEnabled;
+    _isAgeFilterEnabled =
+        _prefs.getBool('isAgeFilterEnabled') ?? _defaultAgeFilterEnabled;
+    _isTimeLimitEnabled =
+        _prefs.getBool('isTimeLimitEnabled') ?? _defaultTimeLimitEnabled;
   }
 
   // Daily story time limit in minutes
@@ -54,6 +62,16 @@ class SettingsProvider with ChangeNotifier {
   // Language settings
   String _languageCode = 'en';
   Locale get locale => Locale(_languageCode);
+
+  // Parental Control Settings
+  bool _isPinEnabled = _defaultPinEnabled;
+  bool get isPinEnabled => _isPinEnabled;
+
+  bool _isAgeFilterEnabled = _defaultAgeFilterEnabled;
+  bool get isAgeFilterEnabled => _isAgeFilterEnabled;
+
+  bool _isTimeLimitEnabled = _defaultTimeLimitEnabled;
+  bool get isTimeLimitEnabled => _isTimeLimitEnabled;
 
   // Methods to update settings
   Future<void> setDailyLimit(int minutes) async {
@@ -85,6 +103,24 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setPinEnabled(bool enabled) async {
+    _isPinEnabled = enabled;
+    await _prefs.setBool('isPinEnabled', enabled);
+    notifyListeners();
+  }
+
+  Future<void> setAgeFilterEnabled(bool enabled) async {
+    _isAgeFilterEnabled = enabled;
+    await _prefs.setBool('isAgeFilterEnabled', enabled);
+    notifyListeners();
+  }
+
+  Future<void> setTimeLimitEnabled(bool enabled) async {
+    _isTimeLimitEnabled = enabled;
+    await _prefs.setBool('isTimeLimitEnabled', enabled);
+    notifyListeners();
+  }
+
   // Reset all settings to defaults
   Future<void> resetToDefaults() async {
     await _prefs.clear();
@@ -95,6 +131,9 @@ class SettingsProvider with ChangeNotifier {
     _fontSize = _defaultFontSize;
     _isTextToSpeechEnabled = _defaultTextToSpeech;
     _languageCode = 'en';
+    _isPinEnabled = _defaultPinEnabled;
+    _isAgeFilterEnabled = _defaultAgeFilterEnabled;
+    _isTimeLimitEnabled = _defaultTimeLimitEnabled;
     notifyListeners();
   }
 

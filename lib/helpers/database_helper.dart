@@ -25,7 +25,7 @@ class DatabaseHelper {
 
       return await openDatabase(
         path,
-        version: 4,
+        version: 5,
         onCreate: _createDB,
         onUpgrade: _onUpgrade,
         onOpen: (db) async {
@@ -49,7 +49,8 @@ class DatabaseHelper {
           childName TEXT NOT NULL,
           childAge INTEGER NOT NULL,
           language TEXT NOT NULL DEFAULT 'en',
-          gender TEXT NOT NULL DEFAULT 'boy'
+          gender TEXT NOT NULL DEFAULT 'boy',
+          isFavorite INTEGER NOT NULL DEFAULT 0
         )
       ''');
     } catch (e) {
@@ -79,12 +80,17 @@ class DatabaseHelper {
         ALTER TABLE stories ADD COLUMN gender TEXT NOT NULL DEFAULT 'boy';
       ''');
     }
+    if (oldVersion < 5) {
+      await db.execute('''
+        ALTER TABLE stories ADD COLUMN isFavorite INTEGER NOT NULL DEFAULT 0;
+      ''');
+    }
   }
 
   Future<int> insertStory(Story story) async {
     try {
       final db = await database;
-      return await db.insert('stories', {
+      final Map<String, dynamic> data = {
         'title': story.title,
         'content': story.content,
         'createdAt': story.createdAt.toIso8601String(),
@@ -92,7 +98,9 @@ class DatabaseHelper {
         'childAge': story.childAge,
         'language': story.language,
         'gender': story.gender,
-      });
+        'isFavorite': story.isFavorite ? 1 : 0,
+      };
+      return await db.insert('stories', data);
     } catch (e) {
       throw Exception('Failed to insert story: $e');
     }
@@ -116,10 +124,59 @@ class DatabaseHelper {
                 childAge: map['childAge'],
                 language: map['language'] ?? 'en',
                 gender: map['gender'] ?? 'boy',
+                isFavorite: map['isFavorite'] == 1,
               ))
           .toList();
     } catch (e) {
       throw Exception('Failed to get stories: $e');
+    }
+  }
+
+  Future<List<Story>> getSavedStories() async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> maps = await db.query(
+        'stories',
+        where: 'isFavorite = ?',
+        whereArgs: [1],
+        orderBy: 'createdAt DESC',
+      );
+
+      return maps
+          .map((map) => Story(
+                id: map['id'],
+                title: map['title'],
+                content: map['content'],
+                createdAt: DateTime.parse(map['createdAt']),
+                childName: map['childName'],
+                childAge: map['childAge'],
+                language: map['language'] ?? 'en',
+                gender: map['gender'] ?? 'boy',
+                isFavorite: true,
+              ))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to get saved stories: $e');
+    }
+  }
+
+  Future<void> saveStory(Story story) async {
+    try {
+      final db = await database;
+      if (story.id != null) {
+        await db.update(
+          'stories',
+          {'isFavorite': 1},
+          where: 'id = ?',
+          whereArgs: [story.id],
+        );
+      } else {
+        final storyData = story.toJson();
+        storyData['isFavorite'] = 1;
+        await db.insert('stories', storyData);
+      }
+    } catch (e) {
+      throw Exception('Failed to save story: $e');
     }
   }
 
@@ -133,6 +190,20 @@ class DatabaseHelper {
       );
     } catch (e) {
       throw Exception('Failed to delete story: $e');
+    }
+  }
+
+  Future<void> updateStory(Story story) async {
+    try {
+      final db = await database;
+      await db.update(
+        'stories',
+        story.toJson(),
+        where: 'id = ?',
+        whereArgs: [story.id],
+      );
+    } catch (e) {
+      throw Exception('Failed to update story: $e');
     }
   }
 }

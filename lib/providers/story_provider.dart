@@ -14,6 +14,7 @@ class Story {
   final int childAge;
   final String language; // This is the language code (e.g., 'vi-VN', 'en-US')
   final String gender;
+  final bool isFavorite;
 
   Story({
     this.id,
@@ -24,6 +25,7 @@ class Story {
     required this.childAge,
     required this.language,
     required this.gender,
+    this.isFavorite = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -35,6 +37,7 @@ class Story {
         'childAge': childAge,
         'language': language,
         'gender': gender,
+        'isFavorite': isFavorite ? 1 : 0,
       };
 
   factory Story.fromJson(Map<String, dynamic> json) => Story(
@@ -47,11 +50,36 @@ class Story {
         language:
             json['language'] ?? 'en-US', // Default to 'en-US' instead of 'en'
         gender: json['gender'] ?? 'boy', // Default to 'boy' if not specified
+        isFavorite: json['isFavorite'] == 1,
+      );
+
+  Story copyWith({
+    int? id,
+    String? title,
+    String? content,
+    DateTime? createdAt,
+    String? childName,
+    int? childAge,
+    String? language,
+    String? gender,
+    bool? isFavorite,
+  }) =>
+      Story(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        content: content ?? this.content,
+        createdAt: createdAt ?? this.createdAt,
+        childName: childName ?? this.childName,
+        childAge: childAge ?? this.childAge,
+        language: language ?? this.language,
+        gender: gender ?? this.gender,
+        isFavorite: isFavorite ?? this.isFavorite,
       );
 }
 
 class StoryProvider with ChangeNotifier {
   List<Story> _stories = [];
+  List<Story> _savedStories = [];
   bool _isLoading = false;
   String _error = '';
   DatabaseHelper? _db;
@@ -64,9 +92,31 @@ class StoryProvider with ChangeNotifier {
         sortedStories.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       case 'theme':
         sortedStories.sort((a, b) => a.title.compareTo(b.title));
-      // Note: Favorites sorting is commented out as it's not implemented in the Story model yet
-      // case 'favorites':
-      //   sortedStories.sort((a, b) => (b.isFavorite).toString().compareTo(a.isFavorite.toString()));
+      case 'favorites':
+        sortedStories.sort((a, b) {
+          if (a.isFavorite == b.isFavorite) {
+            return b.createdAt.compareTo(a.createdAt);
+          }
+          return b.isFavorite ? 1 : -1;
+        });
+    }
+    return sortedStories;
+  }
+
+  List<Story> get savedStories {
+    final sortedStories = List<Story>.from(_savedStories);
+    switch (_sortBy) {
+      case 'date':
+        sortedStories.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      case 'theme':
+        sortedStories.sort((a, b) => a.title.compareTo(b.title));
+      case 'favorites':
+        sortedStories.sort((a, b) {
+          if (a.isFavorite == b.isFavorite) {
+            return b.createdAt.compareTo(a.createdAt);
+          }
+          return b.isFavorite ? 1 : -1;
+        });
     }
     return sortedStories;
   }
@@ -95,6 +145,7 @@ class StoryProvider with ChangeNotifier {
       try {
         _db = DatabaseHelper.instance;
         await _loadStories();
+        await _loadSavedStories();
         break; // If successful, exit the retry loop
       } catch (e) {
         retryCount++;
@@ -135,6 +186,50 @@ class StoryProvider with ChangeNotifier {
     }
   }
 
+  Future<void> _loadSavedStories() async {
+    if (_db == null) {
+      throw Exception('Database not initialized');
+    }
+
+    try {
+      _savedStories = await _db!.getSavedStories();
+      _savedStories.sort(
+          (a, b) => b.createdAt.compareTo(a.createdAt)); // Sort by newest first
+    } catch (e) {
+      _savedStories = [];
+      throw Exception('Failed to load saved stories: ${e.toString()}');
+    }
+  }
+
+  Future<void> saveStory(Story story) async {
+    if (_db == null) {
+      throw Exception('Database not initialized');
+    }
+
+    try {
+      final savedStory = story.copyWith(isFavorite: true);
+      await _db!.saveStory(savedStory);
+      _savedStories.add(savedStory);
+      notifyListeners();
+    } catch (e) {
+      throw Exception('Failed to save story: ${e.toString()}');
+    }
+  }
+
+  Future<void> removeFromLibrary(Story story) async {
+    if (_db == null) {
+      throw Exception('Database not initialized');
+    }
+
+    try {
+      await _db!.deleteStory(story.id!);
+      _savedStories.removeWhere((s) => s.id == story.id);
+      notifyListeners();
+    } catch (e) {
+      throw Exception('Failed to remove story from library: ${e.toString()}');
+    }
+  }
+
   // Add a method to manually refresh stories
   Future<void> refreshStories() async {
     _isLoading = true;
@@ -143,6 +238,7 @@ class StoryProvider with ChangeNotifier {
     
     try {
       await _loadStories();
+      await _loadSavedStories();
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -354,6 +450,7 @@ class StoryProvider with ChangeNotifier {
           childAge: childAge,
           language: languageCode,
           gender: gender,
+          isFavorite: false,
         );
 
         await _db!.insertStory(story);
@@ -464,6 +561,22 @@ class StoryProvider with ChangeNotifier {
       _error = 'Failed to delete story: ${e.toString()}';
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> toggleFavorite(int id) async {
+    try {
+      final storyIndex = _stories.indexWhere((s) => s.id == id);
+      if (storyIndex != -1) {
+        final story = _stories[storyIndex];
+        final updatedStory = story.copyWith(isFavorite: !story.isFavorite);
+        await _db!.updateStory(updatedStory);
+        _stories[storyIndex] = updatedStory;
+        notifyListeners();
+      }
+    } catch (e) {
+      _error = 'Failed to update favorite: ${e.toString()}';
       notifyListeners();
     }
   }

@@ -8,10 +8,12 @@ import 'package:flutter_tts/flutter_tts.dart';
 class StoryList extends StatelessWidget {
   final List<Story> stories;
   final FlutterTts flutterTts = FlutterTts();
+  final Function(Story) onStoryTap;
 
   StoryList({
     super.key,
     required this.stories,
+    required this.onStoryTap,
   });
 
   Future<void> _speak(String text, String language) async {

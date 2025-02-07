@@ -3,8 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'dart:io' show Platform;
 import 'home_screen.dart';
 import 'stories_screen.dart';
-import 'audio_stories_screen.dart';
-import 'settings_screen.dart';
+import 'story_generation_screen.dart';
+import 'library_screen.dart';
+import 'parental_controls_screen.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -22,7 +23,7 @@ class _MainNavigationState extends State<MainNavigation>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         setState(() {
@@ -47,9 +48,10 @@ class _MainNavigationState extends State<MainNavigation>
           controller: _tabController,
           children: [
             HomeScreen(tabController: _tabController),
+            const StoryGenerationScreen(),
             const StoriesScreen(),
-            const AudioStoriesScreen(),
-            const SettingsScreen(),
+            const LibraryScreen(),
+            const ParentalControlsScreen(),
           ],
         ),
       ),
@@ -68,16 +70,20 @@ class _MainNavigationState extends State<MainNavigation>
                       label: 'Home',
                     ),
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.book),
+                      icon: Icon(Icons.create),
+                      label: 'Create',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.auto_stories),
+                      label: 'Read',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.library_books),
                       label: 'Library',
                     ),
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.headphones),
-                      label: 'Audio',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.settings),
-                      label: 'Settings',
+                      icon: Icon(Icons.security),
+                      label: 'Controls',
                     ),
                   ],
                   onTap: (index) {
@@ -104,16 +110,20 @@ class _MainNavigationState extends State<MainNavigation>
                       text: 'Home',
                     ),
                     Tab(
-                      icon: Icon(Icons.book),
+                      icon: Icon(Icons.create),
+                      text: 'Create',
+                    ),
+                    Tab(
+                      icon: Icon(Icons.auto_stories),
+                      text: 'Read',
+                    ),
+                    Tab(
+                      icon: Icon(Icons.library_books),
                       text: 'Library',
                     ),
                     Tab(
-                      icon: Icon(Icons.headphones),
-                      text: 'Audio',
-                    ),
-                    Tab(
-                      icon: Icon(Icons.settings),
-                      text: 'Settings',
+                      icon: Icon(Icons.security),
+                      text: 'Controls',
                     ),
                   ],
                 ),

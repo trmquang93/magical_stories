@@ -196,11 +196,18 @@ class _StoriesScreenState extends State<StoriesScreen> {
                           ),
                         ),
                       ),
-                      // Favorite functionality to be implemented
                       IconButton(
-                        icon: const Icon(Icons.favorite_border),
+                        icon: Icon(
+                          story.isFavorite
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: story.isFavorite ? Colors.red : null,
+                        ),
                         onPressed: () {
-                          // TODO: Implement favorite toggle when added to Story model
+                          if (story.id != null) {
+                            Provider.of<StoryProvider>(context, listen: false)
+                                .toggleFavorite(story.id!);
+                          }
                         },
                       ),
                     ],
@@ -225,6 +232,14 @@ class _StoriesScreenState extends State<StoriesScreen> {
                                 .onPrimaryContainer,
                             fontSize: 12,
                           ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _formatDate(story.createdAt),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 12,
                         ),
                       ),
                       const Spacer(),
@@ -262,5 +277,25 @@ class _StoriesScreenState extends State<StoriesScreen> {
         ),
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      if (difference.inHours == 0) {
+        if (difference.inMinutes == 0) {
+          return 'Just now';
+        }
+        return '${difference.inMinutes}m ago';
+      }
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else if (date.year == now.year) {
+      return '${date.day}/${date.month}';
+    }
+    return '${date.day}/${date.month}/${date.year}';
   }
 }
