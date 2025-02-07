@@ -4,8 +4,6 @@ import 'package:magical_stories/screens/growth_stories_screen.dart';
 import 'dart:io' show Platform;
 import 'home_screen.dart';
 import 'stories_screen.dart';
-import 'story_generation_screen.dart';
-import 'library_screen.dart';
 import 'parental_controls_screen.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -24,7 +22,7 @@ class _MainNavigationState extends State<MainNavigation>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         setState(() {
@@ -51,7 +49,6 @@ class _MainNavigationState extends State<MainNavigation>
             HomeScreen(tabController: _tabController),
             const GrowthStoriesScreen(),
             const StoriesScreen(),
-            const LibraryScreen(),
             const ParentalControlsScreen(),
           ],
         ),
@@ -77,10 +74,6 @@ class _MainNavigationState extends State<MainNavigation>
                     BottomNavigationBarItem(
                       icon: Icon(Icons.auto_stories),
                       label: 'Read',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.library_books),
-                      label: 'Library',
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(Icons.security),
@@ -111,16 +104,12 @@ class _MainNavigationState extends State<MainNavigation>
                       text: 'Home',
                     ),
                     Tab(
-                      icon: Icon(Icons.create),
-                      text: 'Create',
+                      icon: Icon(Icons.trending_up),
+                      text: 'Growth',
                     ),
                     Tab(
                       icon: Icon(Icons.auto_stories),
                       text: 'Read',
-                    ),
-                    Tab(
-                      icon: Icon(Icons.library_books),
-                      text: 'Library',
                     ),
                     Tab(
                       icon: Icon(Icons.security),

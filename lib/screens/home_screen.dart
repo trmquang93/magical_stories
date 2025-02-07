@@ -35,7 +35,7 @@ class HomeScreen extends StatelessWidget {
               child: const Text('Read Story'),
               onPressed: () {
                 Navigator.of(context).pop(); // Close dialog
-                _navigateToTab(1); // Navigate to library tab
+                _navigateToTab(2); // Navigate to stories tab
               },
             ),
           ],
@@ -91,14 +91,6 @@ class HomeScreen extends StatelessWidget {
                           ),
                         );
                       },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildActionButton(
-                      context,
-                      icon: Icons.library_books,
-                      label: 'My Library',
-                      color: Theme.of(context).colorScheme.secondary,
-                      onTap: () => _navigateToTab(1),
                     ),
                     const SizedBox(height: 16),
                     _buildActionButton(
