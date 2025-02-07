@@ -55,10 +55,29 @@ class StoryProvider with ChangeNotifier {
   bool _isLoading = false;
   String _error = '';
   DatabaseHelper? _db;
+  String _sortBy = 'date';
 
-  List<Story> get stories => _stories;
+  List<Story> get stories {
+    final sortedStories = List<Story>.from(_stories);
+    switch (_sortBy) {
+      case 'date':
+        sortedStories.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      case 'theme':
+        sortedStories.sort((a, b) => a.title.compareTo(b.title));
+      // Note: Favorites sorting is commented out as it's not implemented in the Story model yet
+      // case 'favorites':
+      //   sortedStories.sort((a, b) => (b.isFavorite).toString().compareTo(a.isFavorite.toString()));
+    }
+    return sortedStories;
+  }
+  
   bool get isLoading => _isLoading;
   String get error => _error;
+
+  void setSortBy(String sortBy) {
+    _sortBy = sortBy;
+    notifyListeners();
+  }
 
   StoryProvider() {
     _initDatabase();
@@ -432,11 +451,20 @@ class StoryProvider with ChangeNotifier {
     };
   }
 
-  Future<void> deleteStory(int index) async {
-    final story = _stories[index];
-    if (story.id != null) {
-      await _db!.deleteStory(story.id!);
-      await _loadStories(); // Reload stories from database
+  Future<void> deleteStory(int id) async {
+    _isLoading = true;
+    _error = '';
+    notifyListeners();
+
+    try {
+      await _db!.deleteStory(id);
+      // Update local list instead of reloading from database
+      _stories.removeWhere((story) => story.id == id);
+    } catch (e) {
+      _error = 'Failed to delete story: ${e.toString()}';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }
