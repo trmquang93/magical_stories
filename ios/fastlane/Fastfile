@@ -67,7 +67,7 @@ platform :ios do
       # Quang json
       service_credentials_file: "/Users/quang.tranminh/Library/Mobile Documents/com~apple~CloudDocs/DevelopmentCertificates/unitvnios-8079edc9e94a.json",
       # Trung json
-      # service_credentials_file: "/Users/macmini/pdf-converter/unitvnios-a852cc7160ee.json",
+      # service_credentials_file: "/Users/macmini/Starlit Stories/unitvnios-a852cc7160ee.json",
     )
   end
 

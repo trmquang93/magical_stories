@@ -580,4 +580,85 @@ class StoryProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> generateStoryCollection(Map<String, dynamic> request) async {
+    _isLoading = true;
+    _error = '';
+    notifyListeners();
+
+    try {
+      final childName = request['childName'] as String;
+      final ageGroup = request['ageGroup'] as String;
+      final gender = request['gender'] as String;
+      final favoriteThings = request['favoriteThings'] as String;
+      final growthFocus = request['growthFocus'] as String;
+
+      // Define themes based on growth focus
+      final List<String> themes = _getThemesForGrowthFocus(growthFocus);
+
+      // Generate 3 stories with different themes
+      for (var theme in themes.take(3)) {
+        await generateStory(
+          childName: childName,
+          childAge: int.parse(ageGroup.split('-')[0]), // Use lower age in range
+          favoriteCharacter: _extractFavoriteCharacter(favoriteThings),
+          theme: theme,
+          language: 'English', // TODO: Make this configurable
+          gender: gender.toLowerCase(),
+        );
+      }
+    } catch (e) {
+      _error = 'Failed to generate story collection: ${e.toString()}';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  String _extractFavoriteCharacter(String favoriteThings) {
+    // Extract the first mentioned character/animal from favorite things
+    final items = favoriteThings.split(',').map((e) => e.trim()).toList();
+    return items.isNotEmpty ? items[0] : 'magical friend';
+  }
+
+  List<String> _getThemesForGrowthFocus(String focus) {
+    switch (focus) {
+      case 'emotional':
+        return [
+          'kindness and helping others',
+          'understanding emotions',
+          'making friends',
+          'sharing and caring',
+          'being patient',
+          'showing empathy'
+        ];
+      case 'cognitive':
+        return [
+          'problem solving',
+          'creative thinking',
+          'curiosity and learning',
+          'trying new things',
+          'persistence',
+          'attention and focus'
+        ];
+      case 'confidence':
+        return [
+          'being brave',
+          'believing in yourself',
+          'leadership',
+          'standing up for others',
+          'trying your best',
+          'overcoming challenges'
+        ];
+      default:
+        return [
+          'kindness',
+          'friendship',
+          'courage',
+          'creativity',
+          'perseverance',
+          'responsibility'
+        ];
+    }
+  }
 }

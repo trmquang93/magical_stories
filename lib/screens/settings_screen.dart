@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:magical_stories/generated/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -9,7 +9,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsProvider>(context);
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(

@@ -1,5 +1,5 @@
 {
-    "appTitle": "Truyện Thần Tiên",
+    "appTitle": "Truyện Thần Kỳ",
     "homeTab": "Trang Chủ",
     "storiesTab": "Truyện",
     "audioStoriesTab": "Truyện Audio",
@@ -7,5 +7,19 @@
     "createStory": "Tạo Truyện",
     "darkMode": "Chế Độ Tối",
     "fontSize": "Cỡ Chữ",
-    "language": "Ngôn Ngữ"
+    "language": "Ngôn Ngữ",
+    "myStories": "Truyện Của Tôi",
+    "sortByDate": "Sắp Xếp Theo Ngày",
+    "sortByTheme": "Sắp Xếp Theo Chủ Đề",
+    "sortByFavorites": "Sắp Xếp Theo Yêu Thích",
+    "deleteStory": "Xóa Truyện",
+    "deleteStoryConfirmation": "Bạn có chắc chắn muốn xóa truyện này không?",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "retry": "Thử Lại",
+    "noStoriesYet": "Chưa có truyện nào.\nHãy tạo truyện đầu tiên của bạn!",
+    "justNow": "Vừa xong",
+    "minutesAgo": "{minutes} phút trước",
+    "hoursAgo": "{hours} giờ trước",
+    "daysAgo": "{days} ngày trước"
 } 

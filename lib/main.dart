@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'generated/l10n/app_localizations.dart';
 import 'providers/story_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/form_data_provider.dart';

@@ -7,5 +7,19 @@
     "createStory": "Créer une Histoire",
     "darkMode": "Mode Sombre",
     "fontSize": "Taille de Police",
-    "language": "Langue"
+    "language": "Langue",
+    "myStories": "Mes Histoires",
+    "sortByDate": "Trier par Date",
+    "sortByTheme": "Trier par Thème",
+    "sortByFavorites": "Trier par Favoris",
+    "deleteStory": "Supprimer l'Histoire",
+    "deleteStoryConfirmation": "Êtes-vous sûr de vouloir supprimer cette histoire ?",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "retry": "Réessayer",
+    "noStoriesYet": "Pas encore d'histoires.\nGénérez votre première histoire !",
+    "justNow": "À l'instant",
+    "minutesAgo": "il y a {minutes}m",
+    "hoursAgo": "il y a {hours}h",
+    "daysAgo": "il y a {days}j"
 }

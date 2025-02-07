@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:magical_stories/screens/growth_stories_screen.dart';
 import 'dart:io' show Platform;
 import 'home_screen.dart';
 import 'stories_screen.dart';
@@ -48,7 +49,7 @@ class _MainNavigationState extends State<MainNavigation>
           controller: _tabController,
           children: [
             HomeScreen(tabController: _tabController),
-            const StoryGenerationScreen(),
+            const GrowthStoriesScreen(),
             const StoriesScreen(),
             const LibraryScreen(),
             const ParentalControlsScreen(),
@@ -70,8 +71,8 @@ class _MainNavigationState extends State<MainNavigation>
                       label: 'Home',
                     ),
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.create),
-                      label: 'Create',
+                      icon: Icon(Icons.trending_up),
+                      label: 'Growth',
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(Icons.auto_stories),

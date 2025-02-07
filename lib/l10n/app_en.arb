@@ -34,5 +34,76 @@
     "language": "Language",
     "@language": {
         "description": "Label for language setting"
+    },
+    "myStories": "My Stories",
+    "@myStories": {
+        "description": "Title for the stories screen"
+    },
+    "sortByDate": "Sort by Date",
+    "@sortByDate": {
+        "description": "Option to sort stories by date"
+    },
+    "sortByTheme": "Sort by Theme",
+    "@sortByTheme": {
+        "description": "Option to sort stories by theme"
+    },
+    "sortByFavorites": "Sort by Favorites",
+    "@sortByFavorites": {
+        "description": "Option to sort stories by favorites"
+    },
+    "deleteStory": "Delete Story",
+    "@deleteStory": {
+        "description": "Title for delete story dialog"
+    },
+    "deleteStoryConfirmation": "Are you sure you want to delete this story?",
+    "@deleteStoryConfirmation": {
+        "description": "Confirmation message for story deletion"
+    },
+    "cancel": "Cancel",
+    "@cancel": {
+        "description": "Cancel button text"
+    },
+    "delete": "Delete",
+    "@delete": {
+        "description": "Delete button text"
+    },
+    "retry": "Retry",
+    "@retry": {
+        "description": "Retry button text"
+    },
+    "noStoriesYet": "No stories yet.\nGenerate your first story!",
+    "@noStoriesYet": {
+        "description": "Message shown when no stories are available"
+    },
+    "justNow": "Just now",
+    "@justNow": {
+        "description": "Time indicator for very recent items"
+    },
+    "minutesAgo": "{minutes}m ago",
+    "@minutesAgo": {
+        "description": "Time indicator for minutes ago",
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
+    "hoursAgo": "{hours}h ago",
+    "@hoursAgo": {
+        "description": "Time indicator for hours ago",
+        "placeholders": {
+            "hours": {
+                "type": "int"
+            }
+        }
+    },
+    "daysAgo": "{days}d ago",
+    "@daysAgo": {
+        "description": "Time indicator for days ago",
+        "placeholders": {
+            "days": {
+                "type": "int"
+            }
+        }
     }
 }

@@ -12,8 +12,7 @@ The app uses a tab-based navigation structure with the following key components:
 - Contains 4 main tabs:
   1. Home Screen
   2. Library (Stories)
-  3. Audio Stories
-  4. Settings
+  3. Settings & Parental Controls
 
 ### **Navigation Patterns**
 ```dart
@@ -26,8 +25,7 @@ void _navigateToTab(BuildContext context, int index) {
     // Fallback to route-based navigation
     switch (index) {
       case 1: Navigator.pushNamed(context, '/library');
-      case 2: Navigator.pushNamed(context, '/audio');
-      case 3: Navigator.pushNamed(context, '/settings');
+      case 2: Navigator.pushNamed(context, '/settings');
     }
   }
 }
@@ -38,17 +36,17 @@ Each main screen follows this hierarchy:
 ```
 MainNavigation
 ├── HomeScreen
-│   └── StoryForm (Modal)
+│   ├── StoryForm (Modal)
+│   └── GrowthStoryForm (Modal)
 ├── StoriesScreen
 │   └── StoryDisplayScreen (Push)
-├── AudioStoriesScreen
-│   └── AudioPlayerScreen (Push)
 └── SettingsScreen
+    └── ParentalControlsScreen
 ```
 
 ## **3️⃣ State Management**
 The app uses Provider pattern with the following providers:
-- `StoryProvider`: Manages story generation and storage
+- `StoryProvider`: Manages story generation, collections, and storage
 - `SettingsProvider`: Handles app settings and preferences
 - `FormDataProvider`: Manages form state and persistence
 
@@ -65,15 +63,15 @@ The app uses Provider pattern with the following providers:
 - Mix tab and stack navigation without proper handling
 - Assume tab controller is always available
 
-### **Modal Sheets**
-For forms and temporary UI, use `showModalBottomSheet`:
+### **Modal Forms**
+For story generation forms, use `showModalBottomSheet`:
 ```dart
 showModalBottomSheet(
   context: context,
   isScrollControlled: true,
   builder: (context) => const Padding(
     padding: EdgeInsets.all(16.0),
-    child: StoryForm(),
+    child: GrowthStoryForm(), // or StoryForm()
   ),
 );
 ```
@@ -109,18 +107,35 @@ MultiProvider(
 Standard route names for consistency:
 - `/`: Home screen (default)
 - `/library`: Stories library
-- `/audio`: Audio stories
 - `/settings`: App settings
 - `/story/:id`: Individual story view
-- `/audio/:id`: Audio story player
+- `/growth-stories`: Growth story collections
 
-## **7️⃣ Error Handling**
-Always implement proper error handling for navigation:
-- Check for null tab controllers
-- Provide fallback navigation options
-- Handle deep linking appropriately
+## **7️⃣ Feature Components**
+
+### **Single Story Generation**
+- Uses `StoryForm` for collecting story parameters
+- Generates individual stories with custom themes
+
+### **Growth Story Collections**
+- Uses `GrowthStoryForm` for collecting child development preferences
+- Generates themed collections based on:
+  - Age group (3-5, 6-8, 9-10)
+  - Growth focus areas:
+    1. Emotional Intelligence
+    2. Cognitive Skills
+    3. Confidence & Leadership
+  - Child's interests and preferences
+
+## **8️⃣ Error Handling**
+Always implement proper error handling for:
+- Navigation errors
+- Story generation failures
+- Form validation
+- Database operations
+- API calls
 - Show appropriate error messages to users
 
 ---
 
-🔍 **Note:** This structure is designed to support the app's core features while maintaining scalability and maintainability. When adding new features, follow these patterns for consistency. 
+🔍 **Note:** This structure supports both individual story creation and personalized growth story collections while maintaining scalability and maintainability. When adding new features, follow these patterns for consistency. 

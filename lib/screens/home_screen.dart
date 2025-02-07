@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/story_provider.dart';
 import '../widgets/story_form.dart';
+import '../widgets/growth_story_form.dart';
 
 class HomeScreen extends StatelessWidget {
   final TabController tabController;
@@ -102,10 +103,16 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     _buildActionButton(
                       context,
-                      icon: Icons.headphones,
-                      label: 'Audio Stories',
+                      icon: Icons.psychology,
+                      label: 'Personalized Growth Stories',
                       color: Theme.of(context).colorScheme.tertiary,
-                      onTap: () => _navigateToTab(2),
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (context) => const GrowthStoryForm(),
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
                     _buildActionButton(
