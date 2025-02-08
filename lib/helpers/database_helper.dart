@@ -25,7 +25,7 @@ class DatabaseHelper {
 
       return await openDatabase(
         path,
-        version: 5,
+        version: 6,
         onCreate: _createDB,
         onUpgrade: _onUpgrade,
         onOpen: (db) async {
@@ -46,6 +46,7 @@ class DatabaseHelper {
           title TEXT NOT NULL,
           content TEXT NOT NULL,
           createdAt TEXT NOT NULL,
+          lastOpenedAt TEXT,
           childName TEXT NOT NULL,
           childAge INTEGER NOT NULL,
           language TEXT NOT NULL DEFAULT 'en',
@@ -83,6 +84,11 @@ class DatabaseHelper {
     if (oldVersion < 5) {
       await db.execute('''
         ALTER TABLE stories ADD COLUMN isFavorite INTEGER NOT NULL DEFAULT 0;
+      ''');
+    }
+    if (oldVersion < 6) {
+      await db.execute('''
+        ALTER TABLE stories ADD COLUMN lastOpenedAt TEXT;
       ''');
     }
   }
@@ -204,6 +210,51 @@ class DatabaseHelper {
       );
     } catch (e) {
       throw Exception('Failed to update story: $e');
+    }
+  }
+
+  Future<void> updateLastOpenedAt(int id) async {
+    try {
+      final db = await database;
+      await db.update(
+        'stories',
+        {'lastOpenedAt': DateTime.now().toIso8601String()},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      throw Exception('Failed to update last opened timestamp: $e');
+    }
+  }
+
+  Future<List<Story>> getRecentlyReadStories({int limit = 5}) async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> maps = await db.query(
+        'stories',
+        where: 'lastOpenedAt IS NOT NULL',
+        orderBy: 'lastOpenedAt DESC',
+        limit: limit,
+      );
+
+      return maps
+          .map((map) => Story(
+                id: map['id'],
+                title: map['title'],
+                content: map['content'],
+                createdAt: DateTime.parse(map['createdAt']),
+                lastOpenedAt: map['lastOpenedAt'] != null
+                    ? DateTime.parse(map['lastOpenedAt'])
+                    : null,
+                childName: map['childName'],
+                childAge: map['childAge'],
+                language: map['language'] ?? 'en',
+                gender: map['gender'] ?? 'boy',
+                isFavorite: map['isFavorite'] == 1,
+              ))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to get recently read stories: $e');
     }
   }
 }

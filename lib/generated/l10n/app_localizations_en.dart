@@ -80,4 +80,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String daysAgo(int days) {
     return '${days}d ago';
   }
+
+  @override
+  String goodEvening(String name) {
+    return 'Good Evening, $name!';
+  }
+
+  @override
+  String get readyForBedtime => 'Ready for tonight\'s bedtime story?';
+
+  @override
+  String get generateNewStory => 'Generate New Story';
+
+  @override
+  String get myLibrary => 'My Library';
+
+  @override
+  String get growthStories => 'Growth Stories';
+
+  @override
+  String get recentStories => 'Recent Stories';
+
+  @override
+  String lastRead(String time) {
+    return 'Last read: $time';
+  }
 }

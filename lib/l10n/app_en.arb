@@ -105,5 +105,43 @@
                 "type": "int"
             }
         }
+    },
+    "goodEvening": "Good Evening, {name}!",
+    "@goodEvening": {
+        "description": "Evening greeting with user name",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "readyForBedtime": "Ready for tonight's bedtime story?",
+    "@readyForBedtime": {
+        "description": "Subtitle asking if ready for bedtime story"
+    },
+    "generateNewStory": "Generate New Story",
+    "@generateNewStory": {
+        "description": "Button to generate a new story"
+    },
+    "myLibrary": "My Library",
+    "@myLibrary": {
+        "description": "Title for my library section"
+    },
+    "growthStories": "Growth Stories",
+    "@growthStories": {
+        "description": "Title for growth stories section"
+    },
+    "recentStories": "Recent Stories",
+    "@recentStories": {
+        "description": "Title for recent stories section"
+    },
+    "lastRead": "Last read: {time}",
+    "@lastRead": {
+        "description": "Last read time indicator",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
     }
 }

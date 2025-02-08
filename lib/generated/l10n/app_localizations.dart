@@ -236,6 +236,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{days}d ago'**
   String daysAgo(int days);
+
+  /// Evening greeting with user name
+  ///
+  /// In en, this message translates to:
+  /// **'Good Evening, {name}!'**
+  String goodEvening(String name);
+
+  /// Subtitle asking if ready for bedtime story
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for tonight\'s bedtime story?'**
+  String get readyForBedtime;
+
+  /// Button to generate a new story
+  ///
+  /// In en, this message translates to:
+  /// **'Generate New Story'**
+  String get generateNewStory;
+
+  /// Title for my library section
+  ///
+  /// In en, this message translates to:
+  /// **'My Library'**
+  String get myLibrary;
+
+  /// Title for growth stories section
+  ///
+  /// In en, this message translates to:
+  /// **'Growth Stories'**
+  String get growthStories;
+
+  /// Title for recent stories section
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Stories'**
+  String get recentStories;
+
+  /// Last read time indicator
+  ///
+  /// In en, this message translates to:
+  /// **'Last read: {time}'**
+  String lastRead(String time);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

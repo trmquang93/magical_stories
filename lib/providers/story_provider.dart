@@ -10,6 +10,7 @@ class Story {
   final String title;
   final String content;
   final DateTime createdAt;
+  final DateTime? lastOpenedAt;
   final String childName;
   final int childAge;
   final String language; // This is the language code (e.g., 'vi-VN', 'en-US')
@@ -21,6 +22,7 @@ class Story {
     required this.title,
     required this.content,
     required this.createdAt,
+    this.lastOpenedAt,
     required this.childName,
     required this.childAge,
     required this.language,
@@ -33,6 +35,7 @@ class Story {
         'title': title,
         'content': content,
         'createdAt': createdAt.toIso8601String(),
+        'lastOpenedAt': lastOpenedAt?.toIso8601String(),
         'childName': childName,
         'childAge': childAge,
         'language': language,
@@ -45,6 +48,9 @@ class Story {
         title: json['title'],
         content: json['content'],
         createdAt: DateTime.parse(json['createdAt']),
+        lastOpenedAt: json['lastOpenedAt'] != null
+            ? DateTime.parse(json['lastOpenedAt'])
+            : null,
         childName: json['childName'],
         childAge: json['childAge'],
         language:
@@ -58,6 +64,7 @@ class Story {
     String? title,
     String? content,
     DateTime? createdAt,
+    DateTime? lastOpenedAt,
     String? childName,
     int? childAge,
     String? language,
@@ -69,6 +76,7 @@ class Story {
         title: title ?? this.title,
         content: content ?? this.content,
         createdAt: createdAt ?? this.createdAt,
+        lastOpenedAt: lastOpenedAt ?? this.lastOpenedAt,
         childName: childName ?? this.childName,
         childAge: childAge ?? this.childAge,
         language: language ?? this.language,
@@ -80,6 +88,7 @@ class Story {
 class StoryProvider with ChangeNotifier {
   List<Story> _stories = [];
   List<Story> _savedStories = [];
+  List<Story> _recentlyReadStories = [];
   bool _isLoading = false;
   String _error = '';
   DatabaseHelper? _db;
@@ -121,6 +130,8 @@ class StoryProvider with ChangeNotifier {
     return sortedStories;
   }
   
+  List<Story> get recentlyReadStories => _recentlyReadStories;
+
   bool get isLoading => _isLoading;
   String get error => _error;
 
@@ -146,14 +157,14 @@ class StoryProvider with ChangeNotifier {
         _db = DatabaseHelper.instance;
         await _loadStories();
         await _loadSavedStories();
-        break; // If successful, exit the retry loop
+        await _loadRecentlyReadStories();
+        break;
       } catch (e) {
         retryCount++;
         if (retryCount == maxRetries) {
           _error =
               'Failed to initialize database after $maxRetries attempts: ${e.toString()}';
         } else {
-          // Wait before retrying (exponential backoff)
           await Future.delayed(Duration(milliseconds: 500 * retryCount));
           continue;
         }
@@ -201,6 +212,19 @@ class StoryProvider with ChangeNotifier {
     }
   }
 
+  Future<void> _loadRecentlyReadStories() async {
+    if (_db == null) {
+      throw Exception('Database not initialized');
+    }
+
+    try {
+      _recentlyReadStories = await _db!.getRecentlyReadStories();
+    } catch (e) {
+      _recentlyReadStories = [];
+      throw Exception('Failed to load recently read stories: ${e.toString()}');
+    }
+  }
+
   Future<void> saveStory(Story story) async {
     if (_db == null) {
       throw Exception('Database not initialized');
@@ -230,7 +254,21 @@ class StoryProvider with ChangeNotifier {
     }
   }
 
-  // Add a method to manually refresh stories
+  Future<void> markStoryAsRead(Story story) async {
+    if (_db == null || story.id == null) {
+      throw Exception('Database not initialized or invalid story');
+    }
+
+    try {
+      await _db!.updateLastOpenedAt(story.id!);
+      await _loadRecentlyReadStories(); // Refresh the recently read list
+      notifyListeners();
+    } catch (e) {
+      throw Exception('Failed to mark story as read: ${e.toString()}');
+    }
+  }
+
+  @override
   Future<void> refreshStories() async {
     _isLoading = true;
     _error = '';
@@ -239,6 +277,7 @@ class StoryProvider with ChangeNotifier {
     try {
       await _loadStories();
       await _loadSavedStories();
+      await _loadRecentlyReadStories();
     } catch (e) {
       _error = e.toString();
     } finally {
