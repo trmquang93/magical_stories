@@ -1,0 +1,14 @@
+{
+    "rules": [
+        {
+            "name": "follow-clinerules",
+            "description": "Enforce adherence to rules defined in .clinerules",
+            "glob": "**/*",
+            "rule": [
+                "1. Follow all documentation update rules defined in .clinerules",
+                "2. Adhere to the review checklist process from .clinerules",
+                "3. Implement memory tracking as specified in .clinerules"
+            ]
+        }
+    ]
+}

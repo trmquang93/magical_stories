@@ -1,7 +1,4 @@
----
-description: Growth Path Stories
-globs: 
----
+
 ### **📚 Growth Path Stories – A Personalized Learning Journey for Kids**  
 
 **Feature Name:** **📖 Growth Path Stories**  
@@ -37,9 +34,15 @@ globs:
 ---
 
 ## **🎨 UI/UX Flow of Growth Path Stories**
-📌 **1. Home Screen:** New button **"📖 Growth Path Stories"** → Opens feature.  
-📌 **2. Story Library Section:** Tracks progress, completed stories, and upcoming lessons.  
-📌 **3. Interactive Badges & Rewards:** Gamified achievements for completing stories.  
+📌 **1. Home View:** New button **"📖 Growth Path Stories"** → Presents growth path creation sheet.  
+📌 **2. Story Library View:** 
+   - List of story collections using SwiftUI `List`
+   - Progress tracking with custom progress views
+   - Completed stories and upcoming lessons in expandable sections
+📌 **3. Interactive Badges & Rewards:** 
+   - Gamified achievements using custom SwiftUI animations
+   - Progress indicators using native iOS progress views
+   - Haptic feedback for achievements
 
 ---
 
@@ -47,4 +50,4 @@ globs:
 ✅ **Encourages Daily Reading Habits** → Structured paths make it engaging.  
 ✅ **Parental Involvement & Insights** → Parents see their child’s progress & focus areas.  
 ✅ **Highly Personalized Learning Experience** → AI adapts story recommendations over time.  
-✅ **Unique Selling Point (USP)** → No major competitor offers a **guided moral & skill-based story journey**.  
+✅ **Unique Selling Point (USP)** → No major competitor offers a **guided moral & skill-based story journey**.

@@ -1,96 +1,152 @@
-# Magical Stories
+# Magical Stories 🌟
 
-A Flutter application that generates personalized bedtime stories for children using AI.
+Magical Stories is an iOS app that uses AI to generate personalized, age-appropriate bedtime stories for children. Built with SwiftUI and leveraging Google's Gemini Pro AI, it creates unique stories that adapt to each child's interests and developmental needs.
 
-## Features
+## Features ✨
 
-- Generate personalized stories based on child's name, age, and interests
-- Customizable themes and moral lessons
-- Text-to-speech functionality for story reading
-- Dark mode and font size customization
-- Save and review previous stories
-- Child-friendly interface
+- **Personalized Story Generation:** AI-powered stories tailored to your child's interests and age
+- **Growth Path Stories:** Story collections designed for specific developmental goals
+- **Text-to-Speech:** Built-in reading with child-friendly voices
+- **Parental Controls:** Age-appropriate content filtering and monitoring
+- **Offline Mode:** Save stories for offline reading
+- **Accessibility:** Full VoiceOver and Dynamic Type support
 
-## Getting Started
+## Getting Started 🚀
 
 ### Prerequisites
-
-- Flutter SDK (^3.6.1)
-- Dart SDK (^3.6.1)
-- iOS/Android development environment set up
-- Google AI Studio API key (Gemini Pro)
+- Xcode 14.0+
+- iOS 16.0+
+- Swift 5.9+
+- Google AI API Key (for development)
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/magical_stories.git
+   cd magical_stories
+   ```
+
+2. **Set up configuration**
+   ```bash
+   cp Config.example.xcconfig Config.xcconfig
+   ```
+   Add your API keys to `Config.xcconfig`:
+   ```
+   GOOGLE_AI_API_KEY = your_api_key_here
+   ```
+
+3. **Open in Xcode**
+   ```bash
+   xed .
+   ```
+
+4. **Build and run**
+   - Select your target device/simulator
+   - Press ⌘R to build and run
+
+## Architecture 🏛️
+
+Magical Stories follows MVVM architecture with Clean Architecture principles:
+
+```
+App
+├── Features/
+│   ├── Story/
+│   │   ├── Views/
+│   │   ├── ViewModels/
+│   │   └── Models/
+│   └── Settings/
+├── Core/
+│   ├── Services/
+│   ├── Repositories/
+│   └── Utilities/
+└── Resources/
+```
+
+Key components:
+- SwiftUI for UI
+- SwiftData for persistence
+- Google AI (Gemini Pro) for story generation
+- StoreKit 2 for in-app purchases
+- AVFoundation for text-to-speech
+
+## Documentation 📚
+
+- [Architecture Overview](documents/technical/architecture-overview.md)
+- [API Integration](documents/api/google-ai-integration.md)
+- [Data Schema](documents/data/swift-data-schema.md)
+- [UI Guidelines](documents/ui/design-system.md)
+- [Security Guidelines](documents/security/security-guidelines.md)
+- [Testing Guidelines](documents/dev/testing-guidelines.md)
+
+## Development 👩‍💻
+
+### Code Style
+We follow Swift style guidelines and use SwiftLint for enforcement. See [Coding Standards](documents/dev/coding-standards.md).
+
+### Testing
+- Unit tests required for business logic (90% coverage for models)
+- UI tests for critical paths (70% coverage for views)
+- Integration tests for services (85% coverage)
+- Overall coverage target: 80%
+
+Run tests using the provided script:
 ```bash
-git clone https://github.com/trmquang3103/magical_stories.git
+./run_tests.sh
 ```
 
-2. Navigate to the project directory:
+This will:
+- Run all tests (unit, integration, UI)
+- Generate coverage reports
+- Create JUnit test reports in TestResults directory
+- Install xcpretty if needed
+
+Or use Xcode: `⌘U` (basic test run without reports)
+
+### Branching
 ```bash
-cd magical_stories
+# Feature branch
+git checkout -b feature/your-feature-name
+
+# Bug fix branch
+git checkout -b bugfix/issue-description
 ```
 
-3. Install dependencies:
-```bash
-flutter pub get
-```
+## Contributing 🤝
 
-### Environment Setup
-
-1. Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
-
-2. Create a `.env` file in the project root:
-```bash
-cp .env.example .env
-```
-
-3. Open `.env` and replace the placeholder with your actual API key:
-```
-GOOGLE_AI_API_KEY=your_actual_api_key_here
-```
-
-Note: The `.env` file is ignored by git to keep your API key secure. Never commit your actual API key to version control.
-
-4. Run the app:
-```bash
-flutter run
-```
-
-## Project Structure
-
-```
-lib/
-  ├── main.dart
-  ├── config/
-  │   └── env.dart
-  ├── screens/
-  │   ├── home_screen.dart
-  │   └── settings_screen.dart
-  ├── widgets/
-  │   ├── story_form.dart
-  │   └── story_list.dart
-  └── providers/
-      ├── story_provider.dart
-      └── settings_provider.dart
-```
-
-## Development
-
-### Environment Files
-- `.env`: Contains your actual API keys and secrets (not committed to git)
-- `.env.example`: Template file showing required environment variables
-- Make sure to update `.env` with your actual API keys before running the app
-
-## Contributing
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md).
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
 5. Open a Pull Request
 
-## License
+## Security 🔒
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+- [Security Guidelines](documents/security/security-guidelines.md)
+- [Privacy Compliance](documents/security/privacy-compliance.md)
+
+Report security vulnerabilities to security@magicalstories.app
+
+## License 📄
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support 💬
+
+- [Documentation](docs/)
+- [Troubleshooting Guide](documents/maintenance/troubleshooting.md)
+- [FAQ](docs/FAQ.md)
+- Email: support@magicalstories.app
+
+## Acknowledgments 🙏
+
+- [Google AI](https://ai.google.dev/) for Gemini Pro
+- Our amazing contributors
+- The children and parents who inspire us
+
+---
+
+Made with ❤️ for children everywhere
