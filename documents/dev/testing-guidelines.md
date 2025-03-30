@@ -53,18 +53,22 @@ func testStoryCreation() {
 }
 ```
 
-### 4. Preview Tests
-Location: Alongside SwiftUI views
+### 4. SwiftUI View Tests
+Location: `magical-storiesTests/Views/`
 ```swift
 @Test("StoryView layout")
-func testStoryViewLayout() {
+func testStoryViewLayout() async throws {
     let story = Story(title: "Test Story")
-    let view = StoryView(story: story)
+    let view = await StoryView(story: story)
     
-    #expect(view.title == "Test Story")
-    #expect(view.body.children.count == 3)
+    // Use Mirror reflection for view inspection
+    let mirror = Mirror(reflecting: view.body)
+    await #expect(mirror.descendant("title") != nil)
+    await #expect(mirror.descendant("content") is VStack<TupleView>)
 }
 ```
+
+For detailed SwiftUI testing patterns and best practices, see [SwiftUI Testing Patterns](./swiftui-testing-patterns.md).
 
 ## Test Organization
 
@@ -181,4 +185,5 @@ func testInputValidation(input: String, expected: Bool) {
 
 - [Swift Testing Documentation](https://developer.apple.com/xcode/swift-testing/)
 - [TDD Guidelines](./tdd-guidelines.md)
+- [SwiftUI Testing Patterns](./swiftui-testing-patterns.md)
 - Project test examples in source code

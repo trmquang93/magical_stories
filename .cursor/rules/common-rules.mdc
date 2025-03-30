@@ -1,43 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
 version: 1.1
 rules:
-  - name: "SwiftUI View Testing Rule"
-    description: "Guidelines for testing SwiftUI views using Swift Testing framework"
-    checkpoints:
-      - type: "view_test_structure"
-        verification:
-          - "Test file named as ViewName_Tests.swift"
-          - "Uses Mirror reflection for view structure testing"
-          - "Tests both view creation and state changes"
-          - "Validates view hierarchy and content"
-          
-      - type: "view_test_organization"
-        files_to_update:
-          - "magical-storiesTests/Views/*.swift"
-        verification:
-          - "Tests organized by view functionality"
-          - "Basic structure tests first"
-          - "State management tests second"
-          - "User interaction tests last"
-          
-    memory_categories:
-      - type: "swiftui_test_patterns"
-        description: "SwiftUI specific testing patterns and best practices"
-        retention: "permanent"
-        memories:
-          - name: "View Testing with Mirror"
-            description: "Use Mirror reflection to inspect SwiftUI view hierarchy and properties"
-            examples:
-              - "Mirror(reflecting: view.body).descendant('content')"
-              - "Mirror(reflecting: view.body).descendant('title')"
-            date_added: "2025-03-31"
-            
-          - name: "Async View Testing"
-            description: "SwiftUI view tests should be async to handle state updates"
-            examples:
-              - "@Test func testViewState() async throws"
-              - "let view = await HomeView()"
-            date_added: "2025-03-31"
-
   - name: "Swift Testing TDD Rule"
     description: "Enforce Test-Driven Development using Swift Testing framework"
     checkpoints:

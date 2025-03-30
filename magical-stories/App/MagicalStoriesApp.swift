@@ -6,7 +6,7 @@ struct MagicalStoriesApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Text("Welcome to SwiftUI!")
+            RootView()
         }
     }
 }

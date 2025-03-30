@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		4DDF1BF82D996FA8005D882A /* GoogleGenerativeAI in Frameworks */ = {isa = PBXBuildFile; productRef = 4DDF1BF72D996FA8005D882A /* GoogleGenerativeAI */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		4DDF1B5A2D98B918005D882A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4DDF1BF82D996FA8005D882A /* GoogleGenerativeAI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = "magical-stories";
 			packageProductDependencies = (
+				4DDF1BF72D996FA8005D882A /* GoogleGenerativeAI */,
 			);
 			productName = "magical-stories";
 			productReference = 4DDF1B472D98B911005D882A /* magical-stories.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = 4DDF1B3E2D98B910005D882A;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				4DDF1BF62D996FA8005D882A /* XCRemoteSwiftPackageReference "generative-ai-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4DDF1B482D98B911005D882A /* Products */;
 			projectDirPath = "";
@@ -558,6 +567,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		4DDF1BF62D996FA8005D882A /* XCRemoteSwiftPackageReference "generative-ai-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/generative-ai-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.5.6;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4DDF1BF72D996FA8005D882A /* GoogleGenerativeAI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4DDF1BF62D996FA8005D882A /* XCRemoteSwiftPackageReference "generative-ai-swift" */;
+			productName = GoogleGenerativeAI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 4DDF1B3F2D98B910005D882A /* Project object */;
 }
