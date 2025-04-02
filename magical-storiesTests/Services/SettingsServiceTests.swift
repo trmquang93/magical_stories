@@ -4,24 +4,45 @@ import Foundation
 
 @MainActor
 struct SettingsServiceTests {
-    var settingsService: SettingsService = SettingsService()
-    var userDefaults: UserDefaults? = UserDefaults(suiteName: #function)
+    var settingsService: SettingsService!
+    var userDefaults: UserDefaults!
+    
+    mutating func setUp() {
+        // Create a unique suite name for each test run
+        let suiteName = "test_suite_\(UUID().uuidString)"
+        userDefaults = UserDefaults(suiteName: suiteName)!
+        
+        // Clear any existing data
+        userDefaults.removePersistentDomain(forName: suiteName)
+        
+        // Create a fresh instance of SettingsService with our test UserDefaults
+        settingsService = SettingsService(userDefaults: userDefaults)
+    }
     
     @Test("Initial settings should have default values")
-    func testInitialSettings() {
-        // Then
+    mutating func testInitialSettings() {
+        // Given
+        setUp()
+        
+        // Then - Verify default values
         #expect(settingsService.parentalControls.contentFiltering == true)
         #expect(settingsService.parentalControls.maxStoriesPerDay == 3)
         #expect(settingsService.parentalControls.allowedThemes == Set(StoryTheme.allCases))
+        #expect(settingsService.parentalControls.minimumAge == 3)
+        #expect(settingsService.parentalControls.maximumAge == 10)
         
         #expect(settingsService.appSettings.textToSpeechEnabled == true)
         #expect(settingsService.appSettings.readingSpeed == 1.0)
         #expect(settingsService.appSettings.fontScale == 1.0)
+        #expect(settingsService.appSettings.hapticFeedbackEnabled == true)
+        #expect(settingsService.appSettings.soundEffectsEnabled == true)
+        #expect(settingsService.appSettings.darkModeEnabled == false)
     }
     
     @Test("Updating parental controls should persist changes")
-    func testUpdateParentalControls() {
+    mutating func testUpdateParentalControls() {
         // Given
+        setUp()
         var controls = settingsService.parentalControls
         controls.contentFiltering = false
         controls.maxStoriesPerDay = 5
@@ -29,14 +50,20 @@ struct SettingsServiceTests {
         // When
         settingsService.updateParentalControls(controls)
         
-        // Then
+        // Then - Verify in-memory changes
         #expect(settingsService.parentalControls.contentFiltering == false)
         #expect(settingsService.parentalControls.maxStoriesPerDay == 5)
+        
+        // Then - Verify persistence
+        let newService = SettingsService(userDefaults: userDefaults)
+        #expect(newService.parentalControls.contentFiltering == false)
+        #expect(newService.parentalControls.maxStoriesPerDay == 5)
     }
     
     @Test("Updating app settings should persist changes")
-    func testUpdateAppSettings() {
+    mutating func testUpdateAppSettings() {
         // Given
+        setUp()
         var settings = settingsService.appSettings
         settings.textToSpeechEnabled = false
         settings.readingSpeed = 1.5
@@ -44,14 +71,20 @@ struct SettingsServiceTests {
         // When
         settingsService.updateAppSettings(settings)
         
-        // Then
+        // Then - Verify in-memory changes
         #expect(settingsService.appSettings.textToSpeechEnabled == false)
         #expect(settingsService.appSettings.readingSpeed == 1.5)
+        
+        // Then - Verify persistence
+        let newService = SettingsService(userDefaults: userDefaults)
+        #expect(newService.appSettings.textToSpeechEnabled == false)
+        #expect(newService.appSettings.readingSpeed == 1.5)
     }
     
     @Test("Story generation validation should respect parental controls")
-    func testStoryGenerationValidation() {
+    mutating func testStoryGenerationValidation() {
         // Given
+        setUp()
         var controls = settingsService.parentalControls
         controls.contentFiltering = true
         controls.allowedThemes = [.adventure, .friendship]
@@ -71,8 +104,9 @@ struct SettingsServiceTests {
     }
     
     @Test("Story count limit should respect screen time settings")
-    func testStoryCountLimit() {
+    mutating func testStoryCountLimit() {
         // Given
+        setUp()
         var controls = settingsService.parentalControls
         controls.screenTimeEnabled = true
         controls.maxStoriesPerDay = 2

@@ -50,30 +50,40 @@ class TextToSpeechService: NSObject, ObservableObject {
 
 // MARK: - AVSpeechSynthesizerDelegate
 extension TextToSpeechService: AVSpeechSynthesizerDelegate {
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance: AVSpeechUtterance) {
-        currentWordRange = characterRange
-    }
-    
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        isPlaying = false
-        currentWordRange = nil
-        
-        if settingsService.appSettings.autoPlayEnabled {
-            // Handle auto-play logic if needed
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance: AVSpeechUtterance) {
+        Task { @MainActor in
+            currentWordRange = characterRange
         }
     }
     
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didPause utterance: AVSpeechUtterance) {
-        isPlaying = false
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        Task { @MainActor in
+            isPlaying = false
+            currentWordRange = nil
+            
+            if settingsService.appSettings.autoPlayEnabled {
+                // Handle auto-play logic if needed
+            }
+        }
     }
     
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didContinue utterance: AVSpeechUtterance) {
-        isPlaying = true
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didPause utterance: AVSpeechUtterance) {
+        Task { @MainActor in
+            isPlaying = false
+        }
     }
     
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
-        isPlaying = false
-        currentWordRange = nil
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didContinue utterance: AVSpeechUtterance) {
+        Task { @MainActor in
+            isPlaying = true
+        }
+    }
+    
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        Task { @MainActor in
+            isPlaying = false
+            currentWordRange = nil
+        }
     }
 }
 

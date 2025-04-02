@@ -35,7 +35,7 @@ struct RootView: View {
     @EnvironmentObject var textToSpeechService: TextToSpeechService
     
     var body: some View {
-        MainTabView()
+        MainTabView(selectedTab: $selectedTab)
             .environmentObject(storyService)
             .environmentObject(settingsService)
             .environmentObject(textToSpeechService)

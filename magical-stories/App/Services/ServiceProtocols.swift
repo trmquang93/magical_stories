@@ -5,7 +5,7 @@ import AVFoundation
 // MARK: - Service Protocols
 
 // Protocol for StoryService
-protocol StoryServiceProtocol: ObservableObject {
+@MainActor protocol StoryServiceProtocol: ObservableObject {
     var stories: [Story] { get }
     var isGenerating: Bool { get }
     
@@ -14,7 +14,7 @@ protocol StoryServiceProtocol: ObservableObject {
 }
 
 // Protocol for SettingsService
-protocol SettingsServiceProtocol: ObservableObject {
+@MainActor protocol SettingsServiceProtocol: ObservableObject {
     var parentalControls: ParentalControls { get }
     var appSettings: AppSettings { get }
     
@@ -26,7 +26,7 @@ protocol SettingsServiceProtocol: ObservableObject {
 }
 
 // Protocol for TextToSpeechService
-protocol TextToSpeechServiceProtocol: ObservableObject {
+@MainActor protocol TextToSpeechServiceProtocol: ObservableObject {
     var isPlaying: Bool { get }
     var currentWordRange: NSRange? { get }
     

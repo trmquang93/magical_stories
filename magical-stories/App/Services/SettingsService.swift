@@ -42,25 +42,29 @@ struct AppSettings: Codable {
 // MARK: - Settings Service
 @MainActor
 class SettingsService: ObservableObject {
-    @AppStorage("parentalControls") private var parentalControlsData: Data?
-    @AppStorage("appSettings") private var appSettingsData: Data?
+    private let userDefaults: UserDefaults
+    private let parentalControlsKey = "parentalControls"
+    private let appSettingsKey = "appSettings"
     
     @Published private(set) var parentalControls: ParentalControls
     @Published private(set) var appSettings: AppSettings
     
-    init() {
-        // Initialize stored properties first
-        let jsonDecoder = JSONDecoder()
+    init(userDefaults: UserDefaults = .standard) {
+        self.userDefaults = userDefaults
+        
+        // Initialize with defaults first
         self.parentalControls = .default
         self.appSettings = .default
         
         // Then try to load from storage
-        if let data = self.parentalControlsData,
+        let jsonDecoder = JSONDecoder()
+        
+        if let data = userDefaults.data(forKey: parentalControlsKey),
            let controls = try? jsonDecoder.decode(ParentalControls.self, from: data) {
             self.parentalControls = controls
         }
         
-        if let data = self.appSettingsData,
+        if let data = userDefaults.data(forKey: appSettingsKey),
            let settings = try? jsonDecoder.decode(AppSettings.self, from: data) {
             self.appSettings = settings
         }
@@ -141,13 +145,13 @@ class SettingsService: ObservableObject {
     private func saveParentalControls() {
         let jsonEncoder = JSONEncoder()
         guard let data = try? jsonEncoder.encode(parentalControls) else { return }
-        parentalControlsData = data
+        userDefaults.set(data, forKey: parentalControlsKey)
     }
     
     private func saveAppSettings() {
         let jsonEncoder = JSONEncoder()
         guard let data = try? jsonEncoder.encode(appSettings) else { return }
-        appSettingsData = data
+        userDefaults.set(data, forKey: appSettingsKey)
     }
 }
 
@@ -165,14 +169,13 @@ extension SettingsService {
     func canGenerateMoreStories() -> Bool {
         guard parentalControls.screenTimeEnabled else { return true }
         
-        let defaults = UserDefaults.standard
-        let count = defaults.storyGenerationCount
-        let lastDate = defaults.lastGenerationDate
+        let count = userDefaults.integer(forKey: "storyGenerationCount")
+        let lastDate = userDefaults.object(forKey: "lastGenerationDate") as? Date
         
         // Reset count if it's a new day
         if let lastDate = lastDate,
            !Calendar.current.isDate(lastDate, inSameDayAs: Date()) {
-            defaults.storyGenerationCount = 0
+            userDefaults.set(0, forKey: "storyGenerationCount")
             return true
         }
         
@@ -182,8 +185,8 @@ extension SettingsService {
     func incrementStoryGenerationCount() {
         guard parentalControls.screenTimeEnabled else { return }
         
-        let defaults = UserDefaults.standard
-        defaults.storyGenerationCount += 1
-        defaults.lastGenerationDate = Date()
+        let count = userDefaults.integer(forKey: "storyGenerationCount")
+        userDefaults.set(count + 1, forKey: "storyGenerationCount")
+        userDefaults.set(Date(), forKey: "lastGenerationDate")
     }
 } 

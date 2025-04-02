@@ -1,144 +1,78 @@
-version: 1.1
-rules:
-  - name: "SwiftUI View Testing Rule"
-    description: "Guidelines for testing SwiftUI views using Swift Testing framework"
-    checkpoints:
-      - type: "view_test_structure"
-        verification:
-          - "Test file named as ViewName_Tests.swift"
-          - "Uses Mirror reflection for view structure testing"
-          - "Tests both view creation and state changes"
-          - "Validates view hierarchy and content"
-          
-      - type: "view_test_organization"
-        files_to_update:
-          - "magical-storiesTests/Views/*.swift"
-        verification:
-          - "Tests organized by view functionality"
-          - "Basic structure tests first"
-          - "State management tests second"
-          - "User interaction tests last"
-          
-    memory_categories:
-      - type: "swiftui_test_patterns"
-        description: "SwiftUI specific testing patterns and best practices"
-        retention: "permanent"
-        memories:
-          - name: "View Testing with Mirror"
-            description: "Use Mirror reflection to inspect SwiftUI view hierarchy and properties"
-            examples:
-              - "Mirror(reflecting: view.body).descendant('content')"
-              - "Mirror(reflecting: view.body).descendant('title')"
-            date_added: "2025-03-31"
-            
-          - name: "Async View Testing"
-            description: "SwiftUI view tests should be async to handle state updates"
-            examples:
-              - "@Test func testViewState() async throws"
-              - "let view = await HomeView()"
-            date_added: "2025-03-31"
+# AI Coding Editor Implementation Rules
 
-  - name: "Swift Testing TDD Rule"
-    description: "Enforce Test-Driven Development using Swift Testing framework"
-    checkpoints:
-      - type: "test_syntax"
-        verification:
-          - "Uses @Test macro appropriately"
-          - "Uses #expect for assertions"
-          - "Uses #require for optional unwrapping"
-          - "Implements parameterized tests where applicable"
-          - "Uses appropriate test traits"
+When implementing code for this project, follow these specific rules:
 
-      - type: "test_organization"
-        verification:
-          - "Tests are properly grouped"
-          - "Uses descriptive test names"
-          - "Applies appropriate tags"
-          - "Handles async tests correctly"
+## 1. SwiftUI View Testing Implementation
 
-      - type: "tdd_workflow"
-        files_to_update:
-          - "magical-storiesTests/*.swift"
-        verification:
-          - "Red: Initial test fails"
-          - "Green: Minimal implementation passes"
-          - "Refactor: Maintains passing tests"
+1. Always name test files as `ViewName_Tests.swift`
+2. Implement Mirror reflection to examine view structure
+3. Create tests for both initial state and state changes
+4. Include validation for view hierarchy and content
+5. Organize tests by view functionality in the magical-storiesTests/Views/*.swift directory
+6. Follow the required test ordering:
+   - Basic structure tests first
+   - State management tests second
+   - User interaction tests last
+7. Use the Mirror Reflection pattern: `Mirror(reflecting: view.body).descendant('content')`
+8. Implement async tests for SwiftUI views using the syntax:
+   ```swift
+   @Test func testViewState() async throws
+   let view = await HomeView()
+   ```
 
-    memory_categories:
-      - type: "test_patterns"
-        description: "Swift Testing patterns and best practices"
-        retention: "permanent"
-        memories:
-          - name: "Test Target Imports"
-            description: "@testable import magical_stories is required in test files since test target and main app target are different targets. Unlike views within the same target, test files need explicit imports to access the main app's code."
-            date_added: "2025-03-30"
-            context: "This was learned during the implementation of RootView_Tests.swift when fixing test file imports."
+## 2. Test-Driven Development Implementation
 
-  - name: "Documentation Update Rule"
-    description: "Ensure documentation is updated when project changes occur"
-    checkpoints:
-      - type: "architecture_changes"
-        files_to_update:
-          - "documents/technical/architecture-overview.md"
-          - "documents/project/technical-roadmap.md"
-          - "documents/development/project-plan.md"
-      
-      - type: "api_changes"
-        files_to_update:
-          - "documents/api/google-ai-integration.md"
-          - "documents/api/storekit-integration.md"
-      
-      - type: "data_model_changes"
-        files_to_update:
-          - "documents/data/swift-data-schema.md"
-          - "documents/data/persistence-guide.md"
-      
-      - type: "security_changes"
-        files_to_update:
-          - "documents/security/security-guidelines.md"
-          - "documents/security/privacy-compliance.md"
-      
-      - type: "ui_changes"
-        files_to_update:
-          - "documents/ui/design-system.md"
-          - "documents/ui/accessibility.md"
-      
-      - type: "feature_changes"
-        files_to_update:
-          - "documents/MVP-requirements.md"
-          - "documents/Growth-Path-Stories.md"
-          - "documents/App-structure.md"
+9. Use the `@Test` macro for all test methods
+10. Implement assertions with `#expect`
+11. Handle optional unwrapping with `#require`
+12. Create parameterized tests where applicable
+13. Use appropriate test traits for all test cases
+14. Group related tests together with descriptive naming
+15. Apply appropriate tags to tests
+16. Properly handle asynchronous tests
+17. Follow the TDD workflow:
+    - Write failing tests first
+    - Create minimal code to pass tests
+    - Refactor while maintaining test integrity
+18. Always include `@testable import magical_stories` in test files
+19. Remember that test target and app target are different and require explicit imports
 
-  - name: "Review Checklist"
-    description: "Ensure all necessary documentation is reviewed and updated"
-    checklist:
-      - "Have you updated all affected documentation?"
-      - "Have you reviewed the changes with the team?"
-      - "Have you updated the version numbers if applicable?"
-      - "Have you validated all code examples in documentation?"
+## 3. Documentation Requirements
 
-  - name: "Memory Tracking Rule"
-    description: "Track and manage system memories and important information"
-    memory_categories:
-      - type: "technical_decisions"
-        description: "Architecture and technical choice rationales"
-        retention: "permanent"
-        
-      - type: "requirements"
-        description: "Project requirements and constraints"
-        retention: "project_duration"
-        
-      - type: "user_preferences"
-        description: "User-specified preferences and configurations"
-        retention: "permanent"
-        
-      - type: "context"
-        description: "Project context and background information"
-        retention: "project_duration"
-        
-    memories:
-      - type: "technical_decisions"
-        name: "iOS Target Imports"
-        description: "Within the same iOS target project, views and components are automatically available without explicit imports. Only need to import external modules/frameworks not in the same target."
-        date_added: "2025-03-30"
-        context: "This was learned during the development of RootView.swift when attempting to unnecessarily import views from the same target."
+20. Update architecture documentation when making architectural changes:
+    - documents/technical/architecture-overview.md
+    - documents/project/technical-roadmap.md
+    - documents/development/project-plan.md
+21. Update API integration documentation when modifying integrations:
+    - documents/api/google-ai-integration.md
+    - documents/api/storekit-integration.md
+22. Update data model documentation when changing data structures:
+    - documents/data/swift-data-schema.md
+    - documents/data/persistence-guide.md
+23. Update security documentation when modifying security aspects:
+    - documents/security/security-guidelines.md
+    - documents/security/privacy-compliance.md
+24. Update UI/UX documentation when changing interface elements:
+    - documents/ui/design-system.md
+    - documents/ui/accessibility.md
+25. Update feature documentation when implementing or modifying features:
+    - documents/MVP-requirements.md
+    - documents/Growth-Path-Stories.md
+    - documents/App-structure.md
+
+## 4. Review Process Rules
+
+26. Verify all affected documentation has been updated
+27. Ensure changes have been reviewed with the team
+28. Update version numbers when applicable
+29. Validate all code examples in documentation
+
+## 5. Technical Implementation Rules
+
+30. Within the same target, do not add unnecessary imports for views and components
+31. Only import external modules/frameworks not in the same target
+32. Do not rely solely on IDE linter errors for validation
+33. Be aware that complex Swift features, generic types, or property wrappers may trigger false linter errors
+34. Always build the project to validate code correctness
+35. Prioritize build errors over linter errors in complex Swift code
+36. Remember that some Swift language features cause false positive linter errors

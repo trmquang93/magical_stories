@@ -67,18 +67,52 @@ enum StoryServiceError: LocalizedError, Equatable {
     }
 }
 
+// MARK: - Response Types
+protocol StoryGenerationResponse {
+    var text: String? { get }
+}
+
+// MARK: - Generative Model Protocol
+protocol GenerativeModelProtocol {
+    func generateContent(_ prompt: String) async throws -> StoryGenerationResponse
+}
+
+// MARK: - Generative Model Wrapper
+class GenerativeModelWrapper: GenerativeModelProtocol {
+    private let model: GenerativeModel
+    
+    init(name: String, apiKey: String) {
+        self.model = GenerativeModel(name: name, apiKey: apiKey)
+    }
+    
+    func generateContent(_ prompt: String) async throws -> StoryGenerationResponse {
+        let response = try await model.generateContent(prompt)
+        return StoryGenerationResponseWrapper(response: response)
+    }
+}
+
+private struct StoryGenerationResponseWrapper: StoryGenerationResponse {
+    let response: GoogleGenerativeAI.GenerateContentResponse
+    
+    var text: String? {
+        return response.text
+    }
+}
+
 // MARK: - Story Service
 @MainActor
 class StoryService: ObservableObject {
-    private let model: GenerativeModel
+    private let model: GenerativeModelProtocol
     private let promptBuilder: PromptBuilder
     private let persistenceService: PersistenceServiceProtocol
     
     @Published private(set) var stories: [Story] = []
     @Published private(set) var isGenerating = false
     
-    init(apiKey: String = ProcessInfo.processInfo.environment["GEMINI_API_KEY"] ?? "", persistenceService: PersistenceServiceProtocol = PersistenceService()) {
-        self.model = GenerativeModel(name: "gemini-pro", apiKey: apiKey)
+    init(apiKey: String = ProcessInfo.processInfo.environment["GEMINI_API_KEY"] ?? "", 
+         persistenceService: PersistenceServiceProtocol = PersistenceService(),
+         model: GenerativeModelProtocol? = nil) {
+        self.model = model ?? GenerativeModelWrapper(name: "gemini-pro", apiKey: apiKey)
         self.promptBuilder = PromptBuilder()
         self.persistenceService = persistenceService
         

@@ -25,14 +25,14 @@ struct SettingsView: View {
                 // Preferences Section
                 Section("Preferences") {
                     Toggle("Dark Mode", isOn: $isDarkMode)
-                        .onChange(of: isDarkMode) { newValue in
+                        .onChange(of: isDarkMode) { _, newValue in
                             var settings = settingsService.appSettings
                             settings.darkModeEnabled = newValue
                             settingsService.updateAppSettings(settings)
                         }
                     
                     Toggle("Text-to-Speech", isOn: $useTextToSpeech)
-                        .onChange(of: useTextToSpeech) { newValue in
+                        .onChange(of: useTextToSpeech) { _, newValue in
                             var settings = settingsService.appSettings
                             settings.textToSpeechEnabled = newValue
                             settingsService.updateAppSettings(settings)
@@ -48,7 +48,7 @@ struct SettingsView: View {
                                 .foregroundColor(Theme.Colors.textSecondary)
                             
                             Slider(value: $readingSpeed, in: 0.5...1.5, step: 0.1)
-                                .onChange(of: readingSpeed) { newValue in
+                                .onChange(of: readingSpeed) { _, newValue in
                                     var settings = settingsService.appSettings
                                     settings.readingSpeed = newValue
                                     settingsService.updateAppSettings(settings)
@@ -64,7 +64,7 @@ struct SettingsView: View {
                 // Parental Controls Section
                 Section("Parental Controls") {
                     Toggle("Content Filtering", isOn: $contentFiltering)
-                        .onChange(of: contentFiltering) { newValue in
+                        .onChange(of: contentFiltering) { _, newValue in
                             var controls = settingsService.parentalControls
                             controls.contentFiltering = newValue
                             settingsService.updateParentalControls(controls)

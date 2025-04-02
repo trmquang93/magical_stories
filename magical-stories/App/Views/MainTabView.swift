@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MainTabView: View {
-    @State private var selectedTab = 0
+    @Binding var selectedTab: TabItem
     @EnvironmentObject private var storyService: StoryService
     @EnvironmentObject private var settingsService: SettingsService
     @EnvironmentObject private var textToSpeechService: TextToSpeechService
@@ -12,32 +12,32 @@ struct MainTabView: View {
                 HomeView()
             }
             .tabItem {
-                Label("Home", systemImage: "house")
+                Label(TabItem.home.title, systemImage: TabItem.home.icon)
             }
-            .tag(0)
+            .tag(TabItem.home)
             
             NavigationStack {
                 LibraryView()
             }
             .tabItem {
-                Label("Library", systemImage: "books.vertical")
+                Label(TabItem.library.title, systemImage: TabItem.library.icon)
             }
-            .tag(1)
+            .tag(TabItem.library)
             
             NavigationStack {
                 SettingsView()
             }
             .tabItem {
-                Label("Settings", systemImage: "gear")
+                Label(TabItem.settings.title, systemImage: TabItem.settings.icon)
             }
-            .tag(2)
+            .tag(TabItem.settings)
         }
         .tint(Theme.Colors.primary)
     }
 }
 
 #Preview {
-    MainTabView()
+    MainTabView(selectedTab: .constant(.home))
         .environmentObject(StoryService())
         .environmentObject(SettingsService())
         .environmentObject(TextToSpeechService(settingsService: SettingsService()))

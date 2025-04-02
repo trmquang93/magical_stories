@@ -1,16 +1,41 @@
 import Testing
 import XCTest
 import Foundation
+import GoogleGenerativeAI
 @testable import magical_stories
+
+// MARK: - Mock GenerativeModel
+class MockGenerativeModel: GenerativeModelProtocol {
+    func generateContent(_ prompt: String) async throws -> StoryGenerationResponse {
+        return MockGenerateContentResponse(text: """
+            Title: The Lion's Adventure
+            
+            Once upon a time, there was a brave lion who loved to explore. The lion made friends with all the animals in the forest and helped them whenever they needed assistance.
+            
+            One day, the lion discovered a magical cave filled with sparkling gems. Instead of keeping the treasure for himself, he decided to share it with all his forest friends.
+            
+            The animals were so grateful for the lion's generosity that they threw a big celebration in his honor. From that day on, the forest was known as the happiest place in all the land.
+            """)
+    }
+}
+
+struct MockGenerateContentResponse: StoryGenerationResponse {
+    var text: String?
+}
 
 struct StoryServiceTests {
     var storyService: StoryService!
     var mockPersistenceService: MockPersistenceService!
-    
+    var mockGenerativeModel: MockGenerativeModel!
     
     init() async throws {
         mockPersistenceService = MockPersistenceService()
-        storyService = await StoryService(apiKey: "mock_key", persistenceService: mockPersistenceService)
+        mockGenerativeModel = MockGenerativeModel()
+        storyService = await StoryService(
+            apiKey: "mock_key",
+            persistenceService: mockPersistenceService,
+            model: mockGenerativeModel
+        )
     }
     
     @Test("Story generation with valid parameters should succeed")

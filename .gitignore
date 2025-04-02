@@ -147,3 +147,4 @@ AuthKey_*.p8
 TestResults.xcresult
 .DS_Store
 TestResults.xml
+magical-stories/App/Configuration.swift
