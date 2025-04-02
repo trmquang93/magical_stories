@@ -1,9 +1,8 @@
 import SwiftUI
 import SwiftData
-
-// Import for API keys
 import Foundation
 
+// Use local Configuration file for API keys
 @main
 struct MagicalStoriesApp: App {
     // Initialize services using StateObject to maintain their state throughout the app lifetime
