@@ -44,6 +44,7 @@ struct StoryParameters {
     let ageGroup: Int
     let favoriteCharacter: String
     let theme: StoryTheme
+    let language: String
 }
 
 // MARK: - Story Service Errors
@@ -136,7 +137,8 @@ class StoryService: ObservableObject {
                 childName: parameters.childName,
                 ageGroup: parameters.ageGroup,
                 favoriteCharacter: parameters.favoriteCharacter,
-                theme: parameters.theme
+                theme: parameters.theme,
+                language: parameters.language
             )
 
             let response = try await model.generateContent(prompt)
@@ -206,7 +208,8 @@ private struct PromptBuilder {
         childName: String,
         ageGroup: Int,
         favoriteCharacter: String,
-        theme: StoryTheme
+        theme: StoryTheme,
+        language: String = "English"
     ) -> String {
         """
         Create a bedtime story for a child with the following parameters:
@@ -214,6 +217,7 @@ private struct PromptBuilder {
         - Age group: \(ageGroup)
         - Favorite character: \(favoriteCharacter)
         - Theme: \(theme.title)
+        - Language: \(language)
 
         Requirements:
         1. The story should be appropriate for the age group

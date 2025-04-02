@@ -3,21 +3,23 @@ import SwiftUI
 struct StoryFormView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var storyService: StoryService
-    
+
     @State private var childName = ""
-    @State private var ageGroup = 6 // Default to middle age group (6-8)
-    @State private var favoriteCharacter = "🦁" // Default to lion
-    @State private var theme: StoryTheme = .adventure // Default theme
-    
+    @State private var ageGroup = 6  // Default to middle age group (6-8)
+    @State private var favoriteCharacter = "🦁"  // Default to lion
+    @State private var theme: StoryTheme = .adventure  // Default theme
+
+    @State private var selectedLanguage: String = "English"  // Default language
+    private let languages = ["English", "Spanish", "French", "German", "Chinese", "Vietnamese"]
     @State private var isGenerating = false
     @State private var error: Error?
     @State private var showError = false
     @State private var generatedStory: Story?
     @State private var navigateToStory = false
-    
+
     // Available age groups
     private let ageGroups = [(3, "3-5"), (6, "6-8"), (9, "9-10")]
-    
+
     // Available character options
     private let characterOptions = [
         ("🦁", "Lion"),
@@ -29,9 +31,9 @@ struct StoryFormView: View {
         ("🐱", "Cat"),
         ("🐵", "Monkey"),
         ("🦄", "Unicorn"),
-        ("🐉", "Dragon")
+        ("🐉", "Dragon"),
     ]
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -41,7 +43,7 @@ struct StoryFormView: View {
                         .font(Theme.Typography.displayMedium)
                         .multilineTextAlignment(.center)
                         .padding(.top, Theme.Spacing.lg)
-                    
+
                     // Form Fields
                     VStack(spacing: Theme.Spacing.md) {
                         // Child's Name
@@ -50,30 +52,37 @@ struct StoryFormView: View {
                             placeholder: "Enter name",
                             text: $childName
                         )
-                        
+
                         // Age Group
                         MagicalSegmentedPicker(
                             title: "Age Group",
                             options: ageGroups,
                             selection: $ageGroup
                         )
-                        
+
                         // Favorite Character
                         MagicalEmojiPicker(
                             title: "Favorite Character",
                             selection: $favoriteCharacter,
                             emojis: characterOptions
                         )
-                        
+
                         // Story Theme
                         MagicalThemePicker(
                             title: "Story Theme",
                             selection: $theme,
                             themes: StoryTheme.allCases
                         )
+
+                        // Language Selection
+                        MagicalSegmentedPicker(
+                            title: "Story Language",
+                            options: languages.map { ($0, $0) },
+                            selection: $selectedLanguage
+                        )
                     }
                     .padding(.horizontal, Theme.Spacing.md)
-                    
+
                     // Generate Button
                     PrimaryButton(title: isGenerating ? "Generating..." : "Generate Story") {
                         generateStory()
@@ -113,21 +122,22 @@ struct StoryFormView: View {
             }
         }
     }
-    
+
     private func generateStory() {
         guard !childName.isEmpty else { return }
-        
+
         // Prepare parameters
         let parameters = StoryParameters(
             childName: childName,
             ageGroup: ageGroup,
             favoriteCharacter: favoriteCharacter,
-            theme: theme
+            theme: theme,
+            language: selectedLanguage
         )
-        
+
         // Start generation
         isGenerating = true
-        
+
         // Generate story using StoryService
         Task {
             do {
