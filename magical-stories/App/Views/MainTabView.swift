@@ -4,6 +4,7 @@ struct MainTabView: View {
     @State private var selectedTab = 0
     @EnvironmentObject private var storyService: StoryService
     @EnvironmentObject private var settingsService: SettingsService
+    @EnvironmentObject private var textToSpeechService: TextToSpeechService
     
     var body: some View {
         TabView(selection: $selectedTab) {

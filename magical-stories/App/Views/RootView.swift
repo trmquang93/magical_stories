@@ -4,7 +4,7 @@ enum TabItem {
     case home
     case library
     case settings
-    
+
     var title: String {
         switch self {
         case .home:
@@ -15,7 +15,7 @@ enum TabItem {
             return "Settings"
         }
     }
-    
+
     var icon: String {
         switch self {
         case .home:
@@ -30,12 +30,21 @@ enum TabItem {
 
 struct RootView: View {
     @State var selectedTab: TabItem = .home
+    @EnvironmentObject var storyService: StoryService
+    @EnvironmentObject var settingsService: SettingsService
+    @EnvironmentObject var textToSpeechService: TextToSpeechService
     
     var body: some View {
         MainTabView()
+            .environmentObject(storyService)
+            .environmentObject(settingsService)
+            .environmentObject(textToSpeechService)
     }
 }
 
 #Preview {
     RootView()
+        .environmentObject(StoryService())
+        .environmentObject(SettingsService())
+        .environmentObject(TextToSpeechService(settingsService: SettingsService()))
 }
