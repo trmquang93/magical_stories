@@ -17,6 +17,9 @@ final class Story: Identifiable {
     public var ageGroup: Int
     public var favoriteCharacter: String
     public var createdAt: Date
+    
+    // Cache for processed pages
+    var _pages: [Page]?
 
     public init(
         id: UUID = UUID(),

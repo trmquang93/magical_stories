@@ -1,78 +1,83 @@
-# AI Coding Editor Implementation Rules
+# Cline's Memory Bank & Implementation Rules
 
-When implementing code for this project, follow these specific rules:
+## Memory Bank Structure
 
-## 1. SwiftUI View Testing Implementation
+The Memory Bank consists of core files and optional context files in Markdown format:
 
-1. Always name test files as `ViewName_Tests.swift`
+### Core Files (Required)
+1. `projectbrief.md` - Foundation document defining core requirements and goals
+2. `productContext.md` - Why this project exists and how it should work
+3. `activeContext.md` - Current work focus and recent changes
+4. `systemPatterns.md` - System architecture and design patterns
+5. `techContext.md` - Technologies used and development setup
+6. `progress.md` - What works and what's left to build
+
+### Core Workflows
+
+#### Plan Mode
+1. Read ALL Memory Bank files
+2. Verify files are complete or create a plan
+3. Develop and present approach
+
+#### Act Mode
+1. Check Memory Bank
+2. Update documentation
+3. Execute task
+4. Document changes
+
+## Documentation Updates
+Memory Bank updates occur when:
+1. Discovering new project patterns
+2. After implementing significant changes
+3. When user requests with **update memory bank** (MUST review ALL files)
+4. When context needs clarification
+
+## IMPLEMENTATION RULES - MUST FOLLOW
+
+### SwiftUI View Testing
+1. Name test files as `ViewName_Tests.swift`
 2. Implement Mirror reflection to examine view structure
 3. Create tests for both initial state and state changes
 4. Include validation for view hierarchy and content
 5. Organize tests by view functionality in the magical-storiesTests/Views/*.swift directory
-6. Follow the required test ordering:
-   - Basic structure tests first
-   - State management tests second
-   - User interaction tests last
-7. Use the Mirror Reflection pattern: `Mirror(reflecting: view.body).descendant('content')`
-8. Implement async tests for SwiftUI views using the syntax:
-   ```swift
-   @Test func testViewState() async throws
-   let view = await HomeView()
-   ```
+6. Order tests: basic structure first, state management second, user interaction last
+7. Use pattern: `Mirror(reflecting: view.body).descendant('content')`
+8. Implement async SwiftUI tests using `@Test func testViewState() async throws`
 
-## 2. Test-Driven Development Implementation
-
+### Test-Driven Development
 9. Use the `@Test` macro for all test methods
 10. Implement assertions with `#expect`
 11. Handle optional unwrapping with `#require`
 12. Create parameterized tests where applicable
 13. Use appropriate test traits for all test cases
-14. Group related tests together with descriptive naming
+14. Group related tests with descriptive naming
 15. Apply appropriate tags to tests
 16. Properly handle asynchronous tests
-17. Follow the TDD workflow:
-    - Write failing tests first
-    - Create minimal code to pass tests
-    - Refactor while maintaining test integrity
-18. Always include `@testable import magical_stories` in test files
-19. Remember that test target and app target are different and require explicit imports
+17. Follow TDD: write failing tests first, create minimal code to pass, refactor while maintaining test integrity. Run test with command `./run_tests.sh`
+18. Include `@testable import magical_stories` in test files
+19. Remember test target and app target are different and require explicit imports
 
-## 3. Documentation Requirements
+### Documentation Requirements
+20. Update architecture documentation when making architectural changes
+21. Update API integration documentation when modifying integrations
+22. Update data model documentation when changing data structures
+23. Update security documentation when modifying security aspects
+24. Update UI/UX documentation when changing interface elements
+25. Update feature documentation when implementing or modifying features
 
-20. Update architecture documentation when making architectural changes:
-    - documents/technical/architecture-overview.md
-    - documents/project/technical-roadmap.md
-    - documents/development/project-plan.md
-21. Update API integration documentation when modifying integrations:
-    - documents/api/google-ai-integration.md
-    - documents/api/storekit-integration.md
-22. Update data model documentation when changing data structures:
-    - documents/data/swift-data-schema.md
-    - documents/data/persistence-guide.md
-23. Update security documentation when modifying security aspects:
-    - documents/security/security-guidelines.md
-    - documents/security/privacy-compliance.md
-24. Update UI/UX documentation when changing interface elements:
-    - documents/ui/design-system.md
-    - documents/ui/accessibility.md
-25. Update feature documentation when implementing or modifying features:
-    - documents/MVP-requirements.md
-    - documents/Growth-Path-Stories.md
-    - documents/App-structure.md
-
-## 4. Review Process Rules
-
+### Review Process Rules
 26. Verify all affected documentation has been updated
 27. Ensure changes have been reviewed with the team
 28. Update version numbers when applicable
 29. Validate all code examples in documentation
 
-## 5. Technical Implementation Rules
-
+### Technical Implementation Rules
 30. Within the same target, do not add unnecessary imports for views and components
 31. Only import external modules/frameworks not in the same target
 32. Do not rely solely on IDE linter errors for validation
-33. Be aware that complex Swift features, generic types, or property wrappers may trigger false linter errors
+33. Be aware that complex Swift features may trigger false linter errors
 34. Always build the project to validate code correctness
 35. Prioritize build errors over linter errors in complex Swift code
-36. Remember that some Swift language features cause false positive linter errors
+36. Remember some Swift language features cause false positive linter errors
+
+REMEMBER: After every memory reset, I begin completely fresh. The Memory Bank is my only link to previous work. It must be maintained with precision and clarity, as my effectiveness depends entirely on its accuracy.

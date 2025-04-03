@@ -45,7 +45,8 @@ struct StoryServiceTests {
             childName: "Alex",
             ageGroup: 6,
             favoriteCharacter: "🦁",
-            theme: .adventure
+            theme: .adventure,
+            language: "English"
         )
         
         // When
@@ -67,7 +68,8 @@ struct StoryServiceTests {
             childName: "",
             ageGroup: 6,
             favoriteCharacter: "🦁",
-            theme: .adventure
+            theme: .adventure,
+            language: "English"
         )
         
         // When/Then
@@ -136,4 +138,4 @@ actor MockPersistenceService: PersistenceServiceProtocol {
     func deleteAllStories() async throws {
         stories.removeAll()
     }
-} 
+}
