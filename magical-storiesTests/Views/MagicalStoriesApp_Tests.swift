@@ -19,9 +19,6 @@ struct MagicalStoriesApp_Tests {
         // Given
         let app = await MagicalStoriesApp()
         
-        // When - Examine the scene structure
-        let mirror = await Mirror(reflecting: app.body)
-        
         // Then - Verify we have a scene
         // The body of the App is the Scene (WindowGroup in this case)
         let scene = await app.body

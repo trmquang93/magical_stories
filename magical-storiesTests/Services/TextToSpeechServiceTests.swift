@@ -87,12 +87,12 @@ struct TextToSpeechServiceTests {
 struct TextHighlightModifierTests {
     @Test("Highlight modifier should handle nil range")
     func testHighlightModifierNilRange() {
-        let text = "Hello, world!"
-        let modifier = TextHighlightModifier(
-            text: text,
-            highlightRange: nil,
-            highlightColor: .blue
-        )
+        // let text = "Hello, world!" // Unused
+        // let modifier = TextHighlightModifier( // Unused
+        //     text: text,
+        //     highlightRange: nil,
+        //     highlightColor: .blue
+        // )
         
         // Note: In a real implementation, we would use ViewInspector
         // to verify the view hierarchy and styling
@@ -100,15 +100,15 @@ struct TextHighlightModifierTests {
     
     @Test("Highlight modifier should handle valid range")
     func testHighlightModifierValidRange() {
-        let text = "Hello, world!"
-        let range = NSRange(location: 0, length: 5) // "Hello"
-        let modifier = TextHighlightModifier(
-            text: text,
-            highlightRange: range,
-            highlightColor: .blue
-        )
+        // let text = "Hello, world!" // Unused
+        // let range = NSRange(location: 0, length: 5) // "Hello" // Unused
+        // let modifier = TextHighlightModifier( // Unused
+        //     text: text,
+        //     highlightRange: range,
+        //     highlightColor: .blue
+        // )
         
         // Note: In a real implementation, we would use ViewInspector
         // to verify the view hierarchy and styling
     }
-} 
+}

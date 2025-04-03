@@ -57,11 +57,13 @@ struct LibraryView: View {
             message: "Your magical stories will appear here once you create them",
             buttonTitle: "Create Story"
         ) {
-            // Navigate to HomeView and show story form
-            // In a real implementation, we would have a navigation coordinator to handle this
+            // TODO: Implement proper navigation to HomeView/StoryForm
+            // This likely requires a shared state or coordinator to switch tabs
+            // and potentially present the form modally or navigate within the Home tab's stack.
+            print("Navigate to Create Story tapped - requires coordinator/state management")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.top, 100)
+        .padding(.top, 100) // Adjust padding as needed
     }
 }
 
