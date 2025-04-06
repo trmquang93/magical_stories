@@ -132,7 +132,7 @@ struct StoryFormView: View {
         // Generate story using StoryService
         Task {
             do {
-                let story = try await storyService.generateStory(parameters: parameters)
+                _ = try await storyService.generateStory(parameters: parameters) // Assign to _ as story is unused
                 await MainActor.run {
                     // On success, dismiss the sheet
                     self.isGenerating = false
@@ -151,5 +151,5 @@ struct StoryFormView: View {
 
 #Preview {
     StoryFormView()
-        .environmentObject(StoryService())
+        .environmentObject(try! StoryService()) // Use try! for preview
 }

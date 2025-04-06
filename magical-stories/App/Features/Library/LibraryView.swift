@@ -112,6 +112,6 @@ struct StoryCard: View {
 #Preview {
     NavigationStack {
         LibraryView()
-            .environmentObject(StoryService())
+            .environmentObject(try! StoryService()) // Use try! for preview
     }
 }

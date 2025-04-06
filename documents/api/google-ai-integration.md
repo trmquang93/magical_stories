@@ -1,7 +1,7 @@
 # Google AI (Gemini Pro) Integration Guide
 
 ## Overview
-This document outlines the integration of Google AI's Gemini Pro model for generating personalized children's stories in the Magical Stories app.
+This document outlines the integration of Google AI's Gemini Pro model for generating personalized children's stories in the Magical Stories app. It also applies to the image generation feature.
 
 ## API Setup
 
@@ -11,21 +11,73 @@ This document outlines the integration of Google AI's Gemini Pro model for gener
 3. Gemini Pro model access
 
 ### Configuration
-```swift
-// Config.xcconfig
-GOOGLE_AI_API_KEY = your_api_key_here
+
+The API key is managed via a `Config.plist` file (NOT `Config.xcconfig` as initially suggested here) which should be added to `.gitignore`. The key is then loaded into the app via `AppConfig.swift`.
+
+```xml
+<!-- Config.plist -->
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>GeminiAPIKey</key>
+    <string>YOUR_API_KEY_HERE</string>
+    <!-- Add other keys like GoogleCloudProjectID if needed -->
+</dict>
+</plist>
 ```
 
 ```swift
-// Environment.swift
-enum Environment {
-    static let googleAIApiKey = Bundle.main.infoDictionary?["GOOGLE_AI_API_KEY"] as? String ?? ""
+// AppConfig.swift (Simplified Example)
+public struct AppConfig {
+    private static func value<T>(forKey key: String) throws -> T { ... } // Implementation details...
+
+    public static var geminiApiKey: String {
+        do { return try value(forKey: "GeminiAPIKey") }
+        catch { fatalError(error.localizedDescription) }
+    }
+    // Add other config properties...
 }
 ```
 
+**Note:** Ensure `Config.plist` is included in the target's "Copy Bundle Resources" build phase.
+
 ## Service Implementation
 
-### GeminiService
+### Text Generation (`StoryService`)
+
+The `StoryService` utilizes the `GoogleGenerativeAI` Swift SDK for text generation, likely using a model like "gemini-pro". (Implementation details omitted for brevity, see `StoryService.swift`).
+
+### Image Generation (`IllustrationService`)
+
+The `IllustrationService` also utilizes the `GoogleGenerativeAI` Swift SDK (assuming it supports image generation with a suitable model like "gemini-1.5-flash" or similar) and the same API key (`AppConfig.geminiApiKey`).
+
+```swift
+// IllustrationService.swift (Simplified Example)
+import GoogleGenerativeAI
+
+public class IllustrationService: IllustrationServiceProtocol {
+    private let apiKey: String
+    private let modelName = "gemini-1.5-flash" // Placeholder - Verify correct model
+    private let generativeModel: GenerativeModel
+
+    public init(apiKey: String = AppConfig.geminiApiKey) throws {
+        // ... initializer logic ...
+        self.apiKey = apiKey
+        self.generativeModel = GenerativeModel(name: modelName, apiKey: apiKey)
+    }
+
+    public func generateIllustration(for pageText: String, theme: String) async throws -> URL? {
+        let combinedPrompt = "..." // Construct prompt
+        let response = try await generativeModel.generateContent(combinedPrompt)
+        // ... parse response for URL ...
+    }
+}
+```
+
+### Error Handling (`IllustrationError`)
+
+Similar error handling patterns are used, mapping SDK errors (`GenerateContentError`) to custom service errors (`IllustrationError`).
 ```swift
 class GeminiService {
     private let apiKey: String
@@ -47,27 +99,7 @@ class GeminiService {
 }
 ```
 
-### Error Handling
-```swift
-enum GeminiError: Error {
-    case invalidURL
-    case apiError(String)
-    case invalidResponse
-    case rateLimitExceeded
-    case contentFiltered
-    
-    var userMessage: String {
-        switch self {
-        case .rateLimitExceeded:
-            return "Too many stories generated. Please try again later."
-        case .contentFiltered:
-            return "Unable to generate story. Please try different parameters."
-        default:
-            return "Something went wrong. Please try again."
-        }
-    }
-}
-```
+<!-- Error Handling section for GeminiService removed as specific implementation is now in IllustrationService -->
 
 ## Prompt Engineering
 
@@ -122,12 +154,7 @@ extension StoryPrompt {
 
 #### Response Filtering
 ```swift
-extension GeminiService {
-    func filterResponse(_ content: String) -> Bool {
-        // Implementation of content safety checks
-        // Returns true if content is safe, false otherwise
-    }
-}
+<!-- Response Filtering section for GeminiService removed -->
 ```
 
 ## Rate Limiting
@@ -176,93 +203,26 @@ class StoryCache {
 
 ### Retry Logic
 ```swift
-extension GeminiService {
-    private func executeWithRetry<T>(
-        maxAttempts: Int = 3,
-        delay: TimeInterval = 1.0,
-        operation: () async throws -> T
-    ) async throws -> T {
-        var attempts = 0
-        var lastError: Error?
-        
-        while attempts < maxAttempts {
-            do {
-                return try await operation()
-            } catch {
-                attempts += 1
-                lastError = error
-                
-                if attempts < maxAttempts {
-                    try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-                }
-            }
-        }
-        
-        throw lastError ?? GeminiError.apiError("Max retry attempts reached")
-    }
-}
+<!-- Retry Logic section for GeminiService removed -->
 ```
 
 ## Testing
 
-### Mock Service
-```swift
-class MockGeminiService: GeminiServiceProtocol {
-    var shouldSucceed = true
-    var mockResponse: String?
-    
-    func generateStory(prompt: String) async throws -> String {
-        guard shouldSucceed else {
-            throw GeminiError.apiError("Mock error")
-        }
-        return mockResponse ?? "Mock story for testing"
-    }
-}
-```
+### Testing (`IllustrationServiceTests`)
 
-### Unit Tests
-```swift
-class GeminiServiceTests: XCTestCase {
-    var service: GeminiService!
-    
-    override func setUp() {
-        super.setUp()
-        service = GeminiService(apiKey: "test_key")
-    }
-    
-    func testStoryGeneration() async throws {
-        let story = try await service.generateStory(prompt: "Test prompt")
-        XCTAssertFalse(story.isEmpty)
-        // Additional assertions...
-    }
-}
-```
+Unit testing `IllustrationService` currently involves initializing the real service. Mocking the network interaction requires further work (e.g., network layer mocking or potentially subclassing `GenerativeModel` if possible, though this was problematic). Tests for specific error conditions (API key invalid, prompt blocked) are implemented but rely on the real API behavior or are skipped.
 
 ## Monitoring
 
 ### Analytics
 ```swift
-extension GeminiService {
-    private func logAPICall(
-        prompt: String,
-        duration: TimeInterval,
-        success: Bool,
-        error: Error?
-    ) {
-        Analytics.logEvent("story_generation", parameters: [
-            "duration": duration,
-            "success": success,
-            "error_type": error?.localizedDescription ?? "",
-            "prompt_length": prompt.count
-        ])
-    }
-}
+<!-- Analytics section for GeminiService removed -->
 ```
 
 ## Best Practices
 
 1. **API Key Security**
-   - Store API key in `Config.xcconfig`
+   - Store API key in `Config.plist` (and add to `.gitignore`)
    - Never commit API key to version control
    - Use different keys for development and production
 
@@ -291,7 +251,7 @@ extension GeminiService {
 ### Common Issues
 
 1. **API Key Invalid**
-   - Verify key in Config.xcconfig
+   - Verify key in `Config.plist`
    - Check API key permissions
    - Ensure key is properly loaded
 

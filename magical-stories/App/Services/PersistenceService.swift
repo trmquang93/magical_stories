@@ -20,11 +20,30 @@ class PersistenceService: PersistenceServiceProtocol {
     
     func saveStories(_ stories: [Story]) throws {
         do {
+            encoder.outputFormatting = .prettyPrinted // Make JSON readable for debugging
             let data = try encoder.encode(stories)
+            // --- TEMPORARY LOGGING ---
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("--- Saving Stories JSON ---")
+                print(jsonString)
+                print("--------------------------")
+            } else {
+                print("--- Failed to convert encoded data to UTF8 string for logging ---")
+            }
+            // --- END TEMPORARY LOGGING ---
             userDefaults.set(data, forKey: storiesKey)
         } catch {
+            // --- TEMPORARY LOGGING ---
+            print("--- Encoding Failed ---")
+            print("Error: \(error)")
+            print("Localized Description: \(error.localizedDescription)")
+            // --- END TEMPORARY LOGGING ---
+            // Restore default formatting if needed, or handle error
+            encoder.outputFormatting = [] // Reset formatting
             throw PersistenceError.encodingFailed(error)
         }
+        // Reset formatting after successful save too
+        encoder.outputFormatting = []
     }
 
     func loadStories() throws -> [Story] {

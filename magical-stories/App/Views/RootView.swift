@@ -42,6 +42,6 @@ struct RootView: View {
 
 #Preview {
     RootView()
-        .environmentObject(StoryService())
+        .environmentObject(try! StoryService()) // Use try! for preview
         .environmentObject(SettingsService())
 }

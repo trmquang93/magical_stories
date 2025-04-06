@@ -17,6 +17,22 @@ struct StoryParameters: Codable, Hashable { // Conform to Codable/Hashable for p
 }
 
 /// Represents a generated story.
+struct Page: Identifiable, Hashable, Codable { // Moved from StoryProcessor & made Codable
+    let id: UUID
+    let content: String // Renamed from text for consistency? Or keep as content? Let's keep 'content' as per the snippet.
+    let pageNumber: Int
+    var illustrationURL: URL? // Stores the URL from IllustrationService
+    var imagePrompt: String?   // Stores the prompt used for generation
+
+    init(id: UUID = UUID(), content: String, pageNumber: Int, illustrationURL: URL? = nil, imagePrompt: String? = nil) {
+        self.id = id
+        self.content = content
+        self.pageNumber = pageNumber
+        self.illustrationURL = illustrationURL
+        self.imagePrompt = imagePrompt
+    }
+}
+
 struct Story: Identifiable, Hashable, Codable { // Conform to Codable for potential saving
     /// Unique identifier for the story.
     let id: UUID
@@ -25,7 +41,8 @@ struct Story: Identifiable, Hashable, Codable { // Conform to Codable for potent
     var title: String
 
     /// The full content/text of the generated story.
-    var content: String
+    /// The individual pages of the story.
+    var pages: [Page]
 
     /// The parameters used to generate this story.
     var parameters: StoryParameters
@@ -33,21 +50,26 @@ struct Story: Identifiable, Hashable, Codable { // Conform to Codable for potent
     /// The date and time when the story was generated or saved.
     var timestamp: Date
 
-    /// Optional URL pointing to a generated illustration for the story/page.
-    var illustrationURL: URL?
-
-    /// Optional text prompt used to generate the illustration.
-    var imagePrompt: String?
 
     /// Initializer for creating a new Story instance.
+    /// Initializer for creating a new Story instance.
+    init(id: UUID = UUID(), title: String, pages: [Page], parameters: StoryParameters, timestamp: Date = Date()) {
+        self.id = id
+        self.title = title
+        self.pages = pages
+        self.parameters = parameters
+        self.timestamp = timestamp
+    }
+
+    /// Compatibility initializer to handle calls expecting content, illustrationURL, and imagePrompt directly.
     init(id: UUID = UUID(), title: String, content: String, parameters: StoryParameters, timestamp: Date = Date(), illustrationURL: URL? = nil, imagePrompt: String? = nil) {
         self.id = id
         self.title = title
-        self.content = content
+        // Create a single page from the provided content and illustration details
+        let singlePage = Page(content: content, pageNumber: 1, illustrationURL: illustrationURL, imagePrompt: imagePrompt)
+        self.pages = [singlePage]
         self.parameters = parameters
         self.timestamp = timestamp
-        self.illustrationURL = illustrationURL
-        self.imagePrompt = imagePrompt
     }
 }
 

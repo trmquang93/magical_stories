@@ -37,6 +37,6 @@ struct MainTabView: View {
 
 #Preview {
     MainTabView(selectedTab: .constant(.home))
-        .environmentObject(StoryService())
+        .environmentObject(try! StoryService()) // Use try! for preview
         .environmentObject(SettingsService())
 }

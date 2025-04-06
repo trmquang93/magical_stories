@@ -7,8 +7,7 @@ struct StoryDetailView: View {
     @State private var currentPageIndex = 0
     @State private var isLoadingPages = true
     @State private var readingProgress: Double = 0.0
-    // Instance of the processor to handle page segmentation and progress
-    private let storyProcessor = StoryProcessor()
+    // StoryProcessor instance removed, calculateReadingProgress is now static
     
     var body: some View {
         VStack(spacing: 0) {
@@ -68,16 +67,9 @@ struct StoryDetailView: View {
     private func loadPages() async {
         isLoadingPages = true
         // Use the processor to segment the story content into pages
-        do {
-            // TODO: Ensure illustrationService is properly injected/set on storyProcessor instance before calling this.
-            // For now, we assume it might be nil, and the processor handles that.
-            pages = try await storyProcessor.processIntoPages(story.content)
-            print("StoryDetailView: Successfully processed \(pages.count) pages.")
-        } catch {
-            print("StoryDetailView: Error processing story pages: \(error)")
-            // Handle error appropriately, e.g., show an alert to the user
-            pages = [] // Set pages to empty on error
-        }
+        // Pages are now directly part of the Story model, no processing needed here.
+        self.pages = story.pages
+        print("StoryDetailView: Loaded \(pages.count) pages directly from story model.")
         isLoadingPages = false
         updateReadingProgress() // Initial progress update
     }
@@ -89,7 +81,8 @@ struct StoryDetailView: View {
             readingProgress = 0.0
             return
         }
-        readingProgress = storyProcessor.calculateReadingProgress(currentPage: currentPageIndex + 1, totalPages: pages.count)
+        // Call the static method directly
+        readingProgress = StoryProcessor.calculateReadingProgress(currentPage: currentPageIndex + 1, totalPages: pages.count)
     }
 }
 
@@ -106,18 +99,18 @@ struct StoryDetailView: View {
                     favoriteCharacter: "🦁"
                 )
                 // Initialize Story with the correct parameters
+                // Create sample pages for the preview
+                let samplePages = [
+                    Page(content: "Once upon a time, there was a brave lion named Leo who lived in the savanna. Leo was known for his courage and kindness to all animals.", pageNumber: 1),
+                    Page(content: "One day, a terrible storm came to the savanna, and all the animals were afraid. But Leo stood tall and helped everyone find shelter.", pageNumber: 2, illustrationURL: URL(string: "https://example.com/placeholder-storm.png")), // Example URL
+                    Page(content: "Thanks to Leo's bravery, all the animals were safe. They cheered for Leo, the hero of the savanna!", pageNumber: 3),
+                    Page(content: "From that day on, Leo continued to watch over his friends, always ready to lend a paw.", pageNumber: 4)
+                ]
+
                 return Story(
                     // id and timestamp will use default values from the initializer
                     title: "The Brave Lion",
-                    content: """
-                    Once upon a time, there was a brave lion named Leo who lived in the savanna. Leo was known for his courage and kindness to all animals.
-                    
-                    One day, a terrible storm came to the savanna, and all the animals were afraid. But Leo stood tall and helped everyone find shelter.
-                    
-                    Thanks to Leo's bravery, all the animals were safe. They cheered for Leo, the hero of the savanna!
-                    
-                    From that day on, Leo continued to watch over his friends, always ready to lend a paw.
-                    """,
+                    pages: samplePages, // Use the pages array
                     parameters: sampleParams
                 )
             }() // Immediately execute the closure to provide the Story instance

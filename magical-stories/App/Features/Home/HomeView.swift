@@ -80,5 +80,5 @@ struct HomeView: View {
 
 #Preview {
     HomeView()
-        .environmentObject(StoryService())
+        .environmentObject(try! StoryService()) // Use try! for preview
 }

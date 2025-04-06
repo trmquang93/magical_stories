@@ -1,24 +1,6 @@
 import Foundation
 import SwiftUI
 
-// MARK: - Page Model
-// Note: Modified Page struct to align with illustration generation task.
-// This intermediate struct now holds the URL and prompt directly.
-struct Page: Identifiable { // Removed Codable temporarily as URL isn't directly Codable without wrappers if needed later
-    let id: UUID
-    let content: String
-    let pageNumber: Int
-    var illustrationURL: URL? // Stores the URL from IllustrationService
-    var imagePrompt: String?   // Stores the prompt used for generation
-
-    init(id: UUID = UUID(), content: String, pageNumber: Int, illustrationURL: URL? = nil, imagePrompt: String? = nil) {
-        self.id = id
-        self.content = content
-        self.pageNumber = pageNumber
-        self.illustrationURL = illustrationURL
-        self.imagePrompt = imagePrompt
-    }
-}
 
 // Removed ImageReference struct as it's replaced by direct URL/prompt storage in Page for now.
 // MARK: - Story Processor
@@ -30,13 +12,17 @@ class StoryProcessor {
     static let maxParagraphsPerPage = 2 // Maximum paragraphs allowed on a single page (Adjusted from 3)
 
     private let formatter = StoryTextFormatter() // For potential future text formatting
-    var illustrationService: IllustrationServiceProtocol? // Injected or set externally
+    let illustrationService: IllustrationServiceProtocol // Injected via initializer
+
+    init(illustrationService: IllustrationServiceProtocol) {
+        self.illustrationService = illustrationService
+    }
 
     // MARK: - Segmentation
 
     /// Process raw story content into structured Page objects.
     /// Process raw story content into structured Page objects and generate illustrations.
-    func processIntoPages(_ content: String) async throws -> [Page] {
+    func processIntoPages(_ content: String, theme: String) async throws -> [Page] {
         let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedContent.isEmpty else {
             return [] // Return empty if content is just whitespace
@@ -51,14 +37,14 @@ class StoryProcessor {
         if trimmedContent.count <= Self.maxPageContentLength && paragraphs.count <= Self.maxParagraphsPerPage {
              var pages = [Page(content: trimmedContent, pageNumber: 1)]
              // Generate illustrations even for single-page stories
-             try await generateIllustrationsForPages(&pages)
+             try await generateIllustrationsForPages(&pages, theme: theme)
              return pages
         }
 
         // Otherwise, build pages paragraph by paragraph
         var pages = buildPagesFromParagraphs(paragraphs)
         // Generate illustrations for multi-page stories
-        try await generateIllustrationsForPages(&pages)
+        try await generateIllustrationsForPages(&pages, theme: theme)
         return pages
     }
 
@@ -198,25 +184,35 @@ class StoryProcessor {
     // MARK: - Illustration Generation
 
     /// Iterates through pages and calls the illustration service.
-    private func generateIllustrationsForPages(_ pages: inout [Page]) async throws {
-        guard let illustrationService = illustrationService else {
-            print("StoryProcessor: IllustrationService not available.")
-            // Decide if this should be an error or just skip illustration
-            return // Skipping for now
-        }
+    private func generateIllustrationsForPages(_ pages: inout [Page], theme: String) async throws {
+        // No need for guard let anymore, illustrationService is non-optional
 
         print("StoryProcessor: Starting illustration generation for \(pages.count) pages...")
 
         for i in pages.indices {
-            let pageContent = pages[i].content
-            // TODO: Refine prompt generation logic. Using full content for now.
-            let prompt = pageContent
-            pages[i].imagePrompt = prompt // Store the prompt used
+            // let pageContent = pages[i].content // This was unused after refactor
+            // Combine page content and theme for the prompt
+            // Use page content directly, pass theme separately
+            let pageText = pages[i].content
+            pages[i].imagePrompt = pageText // Store the page text used for the prompt
 
-            print("StoryProcessor: Generating illustration for page \(pages[i].pageNumber) with prompt: \"\(prompt.prefix(100))...\"")
+            // Introduce a delay before the API call, especially after the first page
+            if i > 0 { // Only delay after the first call
+                do {
+                    // Delay for 1 second (1_000_000_000 nanoseconds)
+                    try await Task.sleep(nanoseconds: 1_000_000_000)
+                    print("--- StoryProcessor: Added 1-second delay before generating illustration for page \(pages[i].pageNumber) ---")
+                } catch {
+                    // Handle potential cancellation or other errors during sleep
+                    print("--- StoryProcessor: Task.sleep failed: \(error.localizedDescription). Proceeding without delay. ---")
+                }
+            }
+
+            print("StoryProcessor: Generating illustration for page \(pages[i].pageNumber) with theme: \(theme), content: \"\(pageText.prefix(80))...\"")
 
             do {
-                let url = try await illustrationService.generateIllustration(prompt: prompt)
+                // Use the updated service method signature
+                let url = try await illustrationService.generateIllustration(for: pageText, theme: theme)
                 pages[i].illustrationURL = url
                 if let url = url {
                     print("StoryProcessor: Successfully generated illustration for page \(pages[i].pageNumber): \(url.absoluteString)")
@@ -236,7 +232,7 @@ class StoryProcessor {
     // MARK: - Reading Progress
 
     /// Calculate reading progress as a value between 0.0 and 1.0.
-    func calculateReadingProgress(currentPage: Int, totalPages: Int) -> Double {
+    static func calculateReadingProgress(currentPage: Int, totalPages: Int) -> Double { // Make static
         guard totalPages > 0, currentPage > 0 else { return 0.0 }
         // Ensure currentPage doesn't exceed totalPages for calculation
         let validCurrentPage = min(currentPage, totalPages)

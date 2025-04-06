@@ -62,7 +62,7 @@ struct SettingsServiceTests {
     mutating func testUpdateAppSettings() {
         // Given
         setUp()
-        var settings = settingsService.appSettings
+        let settings = settingsService.appSettings // Change to let
         
         // When
         settingsService.updateAppSettings(settings)
@@ -70,7 +70,7 @@ struct SettingsServiceTests {
         // Then - Verify in-memory changes
         
         // Then - Verify persistence
-        let newService = SettingsService(userDefaults: userDefaults)
+        _ = SettingsService(userDefaults: userDefaults) // Assign to _
     }
     
     @Test("Story generation validation should respect parental controls")

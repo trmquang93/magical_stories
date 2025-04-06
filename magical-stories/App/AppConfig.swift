@@ -23,7 +23,7 @@ enum ConfigurationError: Error, LocalizedError {
 }
 
 // MARK: - App Configuration
-struct AppConfig {
+public struct AppConfig { // Make struct public
 
     private static let config: [String: Any] = {
         guard let plistPath = Bundle.main.path(forResource: "Config", ofType: "plist") else {
@@ -65,7 +65,7 @@ struct AppConfig {
     }
 
     /// Gemini API Key (Loaded from Config.plist)
-    static var geminiApiKey: String {
+    public static var geminiApiKey: String { // Make property public
          do {
             return try value(forKey: "GeminiAPIKey")
         } catch {

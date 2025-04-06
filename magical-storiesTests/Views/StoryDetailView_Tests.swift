@@ -1,15 +1,16 @@
+import XCTest // Ensure XCTest is imported
 import SwiftUI
-import Testing
+// import Testing // Use XCTest
 
 @testable import magical_stories
 
 import SwiftUI // Add SwiftUI import for AnyView
-import Testing
+// import Testing // Use XCTest
 
 @testable import magical_stories
 
 @MainActor
-struct StoryDetailViewTests {
+final class StoryDetailViewTests: XCTestCase { // Change to class inheriting from XCTestCase
 
     // MARK: - Test Setup
     var mockStory: Story!
@@ -18,7 +19,8 @@ struct StoryDetailViewTests {
     var hostingView: AnyView! // Add a hosting view to inject environment objects
 
     // Create a mock story with multiple paragraphs to ensure pagination
-    mutating func setupTestStory() {
+    // No longer mutating, setup happens in setUpWithError or test functions
+    func setupTestStory() {
         // Create sample parameters matching the Story struct requirements
         let sampleParams = StoryParameters(
             childName: "Tester",
@@ -31,20 +33,19 @@ struct StoryDetailViewTests {
         // Assuming Story has default initializers for id and timestamp if not provided
         mockStory = Story(
             title: "Test Story Title",
-            content: """
-                This is the first paragraph of the test story. It should appear on the first page.
-
-                This is the second paragraph. It might also be on the first page depending on length limits, or start the second page.
-
-                Here comes the third paragraph. This one is definitely intended for a subsequent page to test pagination.
-
-                Finally, the fourth paragraph concludes our simple test story, likely appearing on the last page.
-                """,
+            // Use pages array instead of content string
+            pages: [
+                Page(content: "This is the first paragraph of the test story. It should appear on the first page.", pageNumber: 1),
+                Page(content: "This is the second paragraph. It might also be on the first page depending on length limits, or start the second page.", pageNumber: 2),
+                Page(content: "Here comes the third paragraph. This one is definitely intended for a subsequent page to test pagination.", pageNumber: 3),
+                Page(content: "Finally, the fourth paragraph concludes our simple test story, likely appearing on the last page.", pageNumber: 4)
+            ],
             parameters: sampleParams // Pass the parameters object
         )
     }
 
-    mutating func setupView() {
+    // No longer mutating
+    func setupView() {
         setupTestStory()
         // Create services first
         mockSettingsService = SettingsService() // Initialize SettingsService
@@ -59,12 +60,13 @@ struct StoryDetailViewTests {
 
     // MARK: - Initial State & Loading Tests (Simplified)
 
-    @Test("View initializes without crashing")
-    mutating func testInitialization() async throws {
+    // Removed mutating
+    func testInitialization() async throws {
+    // Removed duplicate declaration
         setupView()
         // Simple check that the view and hosting view can be created
-        #expect(view != nil)
-        #expect(hostingView != nil)
+        XCTAssertNotNil(view)
+        XCTAssertNotNil(hostingView)
         // Access the body of the *hosting* view to trigger computation with environment objects
         _ = hostingView // Accessing the hosting view itself is enough to trigger its body computation implicitly in many test scenarios. Explicitly accessing .body can sometimes cause issues depending on the view complexity. Let's try accessing the variable first.
     }
@@ -75,24 +77,26 @@ struct StoryDetailViewTests {
 
     // MARK: - Page Navigation Tests (Placeholder)
 
-    @Test("View displays correct initial page")
-    mutating func testInitialPageDisplay() async throws {
+    // Removed mutating
+    func testInitialPageDisplay() async throws {
+    // Removed duplicate declaration
         setupView()
         // Wait for pages to load
         try await Task.sleep(nanoseconds: 500_000_000)
         // TODO: Add assertions to verify the content of the first page is displayed
         // This might require ViewInspector or accessibility identifiers.
-        #expect(true) // Placeholder
+        XCTAssertTrue(true) // Placeholder - Requires ViewInspector or UI Testing
     }
 
-    @Test("Swiping changes the current page")
-    mutating func testPageSwipe() async throws {
+    // Removed mutating
+    func testPageSwipe() async throws {
+    // Removed duplicate declaration
         setupView()
         // Wait for pages to load
         try await Task.sleep(nanoseconds: 500_000_000)
         // TODO: Simulate swipe gesture and verify page content changes.
         // This typically requires UI testing frameworks.
-        #expect(true) // Placeholder
+        XCTAssertTrue(true) // Placeholder - Requires UI Testing
     }
 
     // Note: Reading progress tests are removed as they require access to private state.

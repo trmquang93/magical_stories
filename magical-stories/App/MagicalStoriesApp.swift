@@ -13,7 +13,8 @@ struct MagicalStoriesApp: App {
     init() {
         // Initialize services in dependency order
         let settings = SettingsService()
-        let story = StoryService(apiKey: AppConfig.geminiApiKey)
+        // Use try! as StoryService init can throw and is considered essential for app launch
+        let story = try! StoryService(apiKey: AppConfig.geminiApiKey)
         
         // Assign to StateObjects
         _settingsService = StateObject(wrappedValue: settings)

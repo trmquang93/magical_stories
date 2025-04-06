@@ -29,11 +29,13 @@ protocol PersistenceServiceProtocol {
 }
 // Protocol for IllustrationService
 protocol IllustrationServiceProtocol {
-    /// Generates an illustration based on a text prompt.
-    /// - Parameter prompt: The text description to generate an image from.
-    /// - Returns: An optional URL pointing to the generated image, or nil if generation failed.
-    /// - Throws: An error if the generation process encounters an issue (e.g., network error, API error).
-    func generateIllustration(prompt: String) async throws -> URL?
+    /// Generates an illustration URL for the given page text and theme.
+    /// - Parameters:
+    ///   - pageText: The text content of the story page.
+    ///   - theme: The overall theme of the story.
+    /// - Returns: An optional URL pointing to the generated illustration, or `nil` if generation fails gracefully.
+    /// - Throws: `IllustrationError` for configuration, network, or API issues.
+    func generateIllustration(for pageText: String, theme: String) async throws -> URL?
 }
 
 

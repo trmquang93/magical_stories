@@ -1,189 +1,232 @@
 // magical-stories/App/Services/IllustrationService.swift
 import Foundation
-// TODO: Potentially add import for GoogleCloudSwiftClient or another relevant library if used instead of direct REST.
+import GoogleGenerativeAI  // Import the Google AI SDK
 
 /// Errors specific to the IllustrationService.
 enum IllustrationError: Error, LocalizedError {
     case missingConfiguration(String)
     case invalidURL
     case networkError(Error)
-    case apiError(statusCode: Int, message: String?)
+    case apiError(Error)  // General API error from the SDK
     case invalidResponse(String)
-    case tokenError(Error)
+    // case tokenError(Error) // SDK likely handles auth internally with API key
+    case noImageDataFound  // Added case for when the response lacks image data
     case imageProcessingError(String)
+    case generationFailed(String)  // Specific failure like content filtering
+    case unsupportedModel
 
     var errorDescription: String? {
         switch self {
         case .missingConfiguration(let detail):
             return "Configuration error: \(detail)"
         case .invalidURL:
-            return "Failed to create a valid API endpoint URL."
+            // This might still be relevant if constructing URLs from responses
+            return "Invalid URL encountered."
         case .networkError(let underlyingError):
+            // SDK might wrap network errors, map to apiError or keep specific
             return "Network request failed: \(underlyingError.localizedDescription)"
-        case .apiError(let statusCode, let message):
-            return "API request failed with status code \(statusCode). Message: \(message ?? "No details provided.")"
+        case .apiError(let underlyingError):
+            // Provide more context from the underlying SDK error if possible
+            return "Google AI API request failed: \(underlyingError.localizedDescription)"
         case .invalidResponse(let reason):
-            return "Failed to parse API response: \(reason)"
-        case .tokenError(let underlyingError):
-            return "Failed to obtain authentication token: \(underlyingError.localizedDescription)"
+            return "Failed to parse or understand API response: \(reason)"
+        case .noImageDataFound:
+            return "No image data found in the API response."
         case .imageProcessingError(let reason):
             return "Failed to process image data: \(reason)"
+        case .generationFailed(let reason):
+            return "Image generation failed: \(reason)"
+        case .unsupportedModel:
+            return "The configured generative model does not support image generation."
         }
     }
 }
 
-/// Service responsible for generating illustrations based on text prompts using Google Cloud Vertex AI Imagen.
+/// Service responsible for generating illustrations based on text prompts using the Google AI SDK.
 public class IllustrationService: IllustrationServiceProtocol {
 
-    // TODO: Replace "us-central1" with the appropriate Google Cloud region if different.
-    private let region = "us-central1"
-    private let modelId = "imagegeneration@006" // Example Imagen model ID, verify the latest/correct one.
+    private let apiKey: String
+    private let modelName = "imagen-3.0-generate-002" // Keep model name for URL construction
+    private let apiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/"
 
-    public init() {} // Default initializer
+    // Removed generativeModel property as we are using REST API directly
 
-    /// Generates an illustration for the given prompt using Google Cloud Vertex AI Imagen.
-    /// - Parameter prompt: The text prompt to use for image generation.
-    /// - Returns: A URL pointing to the generated illustration (likely a signed GCS URL).
-    public func generateIllustration(prompt: String) async throws -> URL? {
-        print("IllustrationService: Generating illustration for prompt - \"\(prompt)\"")
-
-        // 1. Get Configuration
-        let projectID = AppConfig.googleCloudProjectID
-        guard !projectID.isEmpty, projectID != "YOUR_PROJECT_ID_HERE" else {
-            print("IllustrationService: Error - Google Cloud Project ID not configured in Config.plist. Check AppConfig setup.")
-            throw IllustrationError.missingConfiguration("Google Cloud Project ID is not set.")
+    /// Initializes the service, potentially fetching the API key from configuration.
+    /// - Parameter apiKey: The Google AI API key. Defaults to loading from `AppConfig`.
+    /// - Throws: `ConfigurationError` if the API key is missing.
+    /// Public designated initializer. Creates the real GenerativeModel.
+    public init(apiKey: String = AppConfig.geminiApiKey) throws {
+        guard !apiKey.isEmpty else {
+            // Use the specific error type defined in AppConfig or a general one
+            throw ConfigurationError.keyMissing("GeminiAPIKey")
         }
+        self.apiKey = apiKey
+        // No longer need to initialize generativeModel here
+    }
 
-        // 2. Authentication (OAuth 2.0 Token)
-        // IMPORTANT: Assumes an OAuth 2.0 access token mechanism exists.
-        // The actual implementation of getAccessToken() is needed elsewhere (e.g., in AppConfig.swift or a dedicated Auth service).
-        let accessToken: String
-        do {
-            // This function needs to be implemented to handle the OAuth flow
-            // accessToken = try await APIKeys.getAccessToken()
-            // For now, using a placeholder. Replace with actual token fetching.
-            print("IllustrationService: Warning - Using placeholder access token. Implement token fetching (consider AppConfig or dedicated Auth service).")
-            accessToken = "PLACEHOLDER_ACCESS_TOKEN" // Replace with actual token fetching logic
-            if accessToken == "PLACEHOLDER_ACCESS_TOKEN" {
-                 // Throwing an error here makes it clear this needs implementation
-                 throw IllustrationError.missingConfiguration("Access token generation not implemented.")
-            }
-        } catch {
-            print("IllustrationService: Error getting access token - \(error.localizedDescription)")
-            throw IllustrationError.tokenError(error)
-        }
+    // Internal initializer removed.
 
+    /// Generates an illustration URL for the given page text and theme using the Google AI SDK.
+    /// - Parameters:
+    ///   - pageText: The text content of the story page.
+    ///   - theme: The overall theme of the story.
+    /// - Returns: A URL pointing to the generated illustration, or `nil` if generation fails gracefully.
+    /// - Throws: `IllustrationError` for configuration, network, or API issues.
+    public func generateIllustration(for pageText: String, theme: String) async throws -> URL? {
+        let combinedPrompt =
+            "Generate an illustration for a children's story page based on the following details. Theme: \(theme). Scene Description: \(pageText). Style: Whimsical, colorful, suitable for young children. IMPORTANT: Visualize the scene and characters based on the description, but DO NOT depict animals performing human-like actions (like talking or wearing clothes) even if mentioned in the description. Focus on the environment and the animals' natural appearance."
+        print(
+            "--- IllustrationService: Generating illustration via REST API for prompt - \"\(combinedPrompt.prefix(80))...\" ---"
+        )
 
-        // 3. Construct API Endpoint URL
-        // Reference: https://cloud.google.com/vertex-ai/docs/generative-ai/image/generate-images#rest
-        guard let url = URL(string: "https://\(region)-aiplatform.googleapis.com/v1/projects/\(projectID)/locations/\(region)/publishers/google/models/\(modelId):predict") else {
-            print("IllustrationService: Error - Failed to create API endpoint URL.")
+        // 1. Construct URL
+        let urlString = "\(apiEndpoint)\(modelName):predict?key=\(apiKey)"
+        guard let url = URL(string: urlString) else {
             throw IllustrationError.invalidURL
         }
 
-        // 4. Prepare Request Body (Payload)
-        // Customize parameters as needed (size, aspect ratio, negative prompts, etc.)
-        // Refer to Vertex AI Imagen API documentation for available parameters.
-        let parameters: [String: Any] = [
-            "sampleCount": 1, // Number of images to generate
-            "aspectRatio": "1:1", // Example aspect ratio
-            "outputFormat": "png" // Example output format
-            // "negativePrompt": "text, words, letters", // Example negative prompt
-            // "guidanceScale": 7 // Example guidance scale
-        ]
-        let instances: [[String: Any]] = [
-            ["prompt": prompt]
-        ]
-        let requestBodyDict: [String: Any] = [
-            "instances": instances,
-            "parameters": parameters
-        ]
+        // 2. Prepare Request Body
+        let requestBody = ImagenRequestBody(
+            instances: [ImagenInstance(prompt: combinedPrompt)],
+            parameters: ImagenParameters(sampleCount: 1, aspectRatio: "1:1") // Request 1 image, 1:1 ratio
+        )
 
-        let requestBodyData: Data
-        do {
-            requestBodyData = try JSONSerialization.data(withJSONObject: requestBodyDict)
-        } catch {
-            print("IllustrationService: Error - Failed to serialize request body: \(error)")
-            throw IllustrationError.invalidResponse("Failed to create request JSON.")
-        }
-
-        // 5. Create URLRequest
+        // 3. Prepare URLRequest
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = requestBodyData
 
-        // 6. Perform Network Request
-        let data: Data
-        let response: URLResponse
         do {
-            print("IllustrationService: Sending request to Vertex AI Imagen...")
-            (data, response) = try await URLSession.shared.data(for: request)
-            print("IllustrationService: Received response from Vertex AI Imagen.")
+            request.httpBody = try JSONEncoder().encode(requestBody)
         } catch {
-            print("IllustrationService: Network error - \(error.localizedDescription)")
-            throw IllustrationError.networkError(error)
+            print("--- IllustrationService: Failed to encode request body - \(error.localizedDescription) ---")
+            throw IllustrationError.invalidResponse("Failed to encode request body: \(error.localizedDescription)")
         }
 
-        // 7. Handle Response
-        guard let httpResponse = response as? HTTPURLResponse else {
-            print("IllustrationService: Error - Invalid response type received.")
-            throw IllustrationError.invalidResponse("Did not receive HTTP response.")
-        }
-
-        guard (200...299).contains(httpResponse.statusCode) else {
-            let responseBodyString = String(data: data, encoding: .utf8) ?? "Could not decode error response body."
-            print("IllustrationService: API Error - Status Code \(httpResponse.statusCode). Response: \(responseBodyString)")
-            throw IllustrationError.apiError(statusCode: httpResponse.statusCode, message: responseBodyString)
-        }
-
-        // 8. Parse JSON Response
-        // The exact structure depends on the Imagen API version and parameters.
-        // Assuming it returns a structure like: { "predictions": [ { "bytesBase64Encoded": "...", "mimeType": "..." } ] }
-        // OR potentially { "predictions": [ { "signedUri": "https://..." } ] } if it generates a GCS URL directly.
-        // We need the URL as per the requirement. Let's assume 'signedUri' for now.
+        // 4. Perform Network Request
         do {
-            guard let jsonResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let predictions = jsonResponse["predictions"] as? [[String: Any]],
-                  let firstPrediction = predictions.first else {
-                throw IllustrationError.invalidResponse("Missing 'predictions' array or first prediction object.")
+            let (data, response) = try await URLSession.shared.data(for: request)
+
+            // Check HTTP response status
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw IllustrationError.invalidResponse("Did not receive HTTP response.")
             }
 
-            // --- Attempt to find a signed URL ---
-            if let signedUriString = firstPrediction["signedUri"] as? String,
-               let generatedUrl = URL(string: signedUriString) {
-                print("IllustrationService: Successfully extracted signed URL: \(generatedUrl.absoluteString)")
-                return generatedUrl
+            print("--- IllustrationService: Received HTTP status code: \(httpResponse.statusCode) ---")
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                // Attempt to decode error message from response body if available
+                let errorDetail = String(data: data, encoding: .utf8) ?? "No details available."
+                print("--- IllustrationService: API Error Response Body: \(errorDetail) ---")
+                throw IllustrationError.apiError(
+                    NSError(domain: "HTTPError", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "API request failed with status \(httpResponse.statusCode). Detail: \(errorDetail)"])
+                )
             }
 
-            // --- Fallback: Check for Base64 image data (if URL isn't provided) ---
-            // This part is NOT the primary goal (which is returning a URL), but shows how to handle image data if needed.
-            // If the API returns bytesBase64Encoded, you'd need to decode it, save it locally or to cloud storage,
-            // and then return a URL to *that* location. This is more complex and likely out of scope for this step.
-            /*
-            else if let base64String = firstPrediction["bytesBase64Encoded"] as? String,
-                    let mimeType = firstPrediction["mimeType"] as? String {
-                print("IllustrationService: Received Base64 image data (mimeType: \(mimeType)). Needs processing to generate a URL.")
-                // TODO: Implement logic to decode base64, save image (e.g., to temp dir or cloud storage), and return its URL.
-                // This is a placeholder for that more complex flow.
-                throw IllustrationError.imageProcessingError("Received image data instead of URL, processing not implemented.")
+            // 5. Decode Successful Response
+            let predictionResponse: ImagenPredictionResponse
+            do {
+                predictionResponse = try JSONDecoder().decode(ImagenPredictionResponse.self, from: data)
+            } catch {
+                print("--- IllustrationService: Failed to decode successful response - \(error.localizedDescription) ---")
+                print("--- IllustrationService: Raw Response Data: \(String(data: data, encoding: .utf8) ?? "Unable to decode data") ---")
+                throw IllustrationError.invalidResponse("Failed to decode API response: \(error.localizedDescription)")
             }
-            */
 
-            // If neither URL nor expected image data is found
-            else {
-                 let responseString = String(data: data, encoding: .utf8) ?? "Could not decode response."
-                 print("IllustrationService: Error - Could not find 'signedUri' or 'bytesBase64Encoded' in prediction. Response: \(responseString)")
-                 throw IllustrationError.invalidResponse("Could not find expected image URL or data in the API response.")
+
+            // 6. Extract and Decode Image Data
+            guard let firstPrediction = predictionResponse.predictions.first,
+                  let base64String = firstPrediction.bytesBase64Encoded else {
+                print("--- IllustrationService: No image data found in predictions array. Response: \(predictionResponse) ---")
+                throw IllustrationError.noImageDataFound
             }
+
+            guard let imageData = Data(base64Encoded: base64String) else {
+                print("--- IllustrationService: Failed to decode base64 image string. ---")
+                throw IllustrationError.imageProcessingError("Failed to decode base64 image data.")
+            }
+
+            // 7. Save Image Data
+            print(
+                "--- IllustrationService: Found and decoded image data (\(imageData.count) bytes). Saving to temporary file. ---"
+            )
+            // Assume PNG if mimeType is not provided in the response, or use a default.
+            let mimeType = firstPrediction.mimeType ?? "image/png"
+            let fileURL = try saveImageDataToTemporaryFile(imageData: imageData, mimeType: mimeType)
+            print(
+                "--- IllustrationService: Successfully saved image to temporary file: \(fileURL.absoluteString) ---"
+            )
+            return fileURL
 
         } catch let error as IllustrationError {
-            print("IllustrationService: Error parsing response - \(error.localizedDescription)")
-            throw error // Re-throw specific illustration errors
+             // Re-throw known IllustrationErrors
+             print("--- IllustrationService: Caught known IllustrationError - \(error.localizedDescription) ---")
+             throw error
+        } catch let error as URLError {
+            // Handle URLSession specific errors
+            print("--- IllustrationService: Network Error (URLError) - \(error.localizedDescription) ---")
+            throw IllustrationError.networkError(error)
         } catch {
-            print("IllustrationService: Generic error parsing response - \(error.localizedDescription)")
-            throw IllustrationError.invalidResponse("Failed to decode JSON: \(error.localizedDescription)")
+            // Handle other unexpected errors during the process
+            print("--- IllustrationService: Unexpected error during REST API call - \(error.localizedDescription) ---")
+            // Map to a general API error or a more specific one if identifiable
+            throw IllustrationError.apiError(error)
+        }
+    } // End of generateIllustration method
+
+    /// Saves image data to a temporary file and returns its URL.
+    private func saveImageDataToTemporaryFile(imageData: Data, mimeType: String) throws -> URL {
+        let fileManager = FileManager.default
+        let tempDirectoryURL = fileManager.temporaryDirectory
+        let uniqueID = UUID().uuidString
+        // Determine file extension based on MIME type
+        let fileExtension: String
+        switch mimeType.lowercased() {
+        case "image/png": fileExtension = "png"
+        case "image/jpeg", "image/jpg": fileExtension = "jpg"
+        case "image/webp": fileExtension = "webp"
+        // Add other supported types if needed
+        default: fileExtension = "tmp"  // Default extension if type is unknown
+        }
+        let fileName = "\(uniqueID).\(fileExtension)"
+        let fileURL = tempDirectoryURL.appendingPathComponent(fileName)
+
+        do {
+            try imageData.write(to: fileURL)
+            return fileURL
+        } catch {
+            throw IllustrationError.imageProcessingError(
+                "Failed to save image data to temporary file: \(error.localizedDescription)")
         }
     }
+}  // End of IllustrationService class
+
+// Internal protocol and extension definitions removed.
+
+// MARK: - Codable Structs for REST API
+
+private struct ImagenRequestBody: Codable {
+    let instances: [ImagenInstance]
+    let parameters: ImagenParameters
+}
+
+private struct ImagenInstance: Codable {
+    let prompt: String
+}
+
+private struct ImagenParameters: Codable {
+    let sampleCount: Int
+    let aspectRatio: String
+    // Add other parameters here if needed, matching the API documentation (e.g., negativePrompt, seed)
+}
+
+private struct ImagenPredictionResponse: Codable {
+    let predictions: [ImagenPrediction]
+}
+
+private struct ImagenPrediction: Codable {
+    // Assuming the key for base64 image data is 'bytesBase64Encoded' based on common Google API patterns
+    let bytesBase64Encoded: String?
+    let mimeType: String? // Include if the API provides it
+    // Include other potential fields like safetyAttributes if needed
 }

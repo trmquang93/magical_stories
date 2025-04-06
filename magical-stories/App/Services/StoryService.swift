@@ -65,19 +65,32 @@ class StoryService: ObservableObject {
     private let model: GenerativeModelProtocol
     private let promptBuilder: PromptBuilder
     private let persistenceService: PersistenceServiceProtocol
+    private let storyProcessor: StoryProcessor // Added StoryProcessor
 
     @Published private(set) var stories: [Story] = []
     @Published private(set) var isGenerating = false
 
+    // Updated initializer to accept and initialize StoryProcessor
     init(
         apiKey: String = ProcessInfo.processInfo.environment["GEMINI_API_KEY"] ?? "",
         persistenceService: PersistenceServiceProtocol = PersistenceService(),
-        model: GenerativeModelProtocol? = nil
-    ) {
-        self.model = model ?? GenerativeModelWrapper(name: "gemini-2.0-flash", apiKey: apiKey)
+        model: GenerativeModelProtocol? = nil,
+        storyProcessor: StoryProcessor? = nil // Allow injecting for testing
+    ) throws { // Mark initializer as throwing
+        self.model = model ?? GenerativeModelWrapper(name: "gemini-1.5-flash", apiKey: apiKey) // Updated model name
         self.promptBuilder = PromptBuilder()
         self.persistenceService = persistenceService
 
+        // Initialize StoryProcessor, potentially injecting dependencies like IllustrationService
+        // If storyProcessor is provided (e.g., in tests), use it. Otherwise, create a default one.
+        // This requires IllustrationService to be available or injectable.
+        // For now, let's assume a default IllustrationService can be created.
+        // TODO: Improve dependency injection for IllustrationService if needed.
+        // Use 'try' as IllustrationService() can throw
+        let effectiveIllustrationService = try IllustrationService()
+        self.storyProcessor = storyProcessor ?? StoryProcessor(illustrationService: effectiveIllustrationService)
+
+        // Task must be after all properties are initialized
         Task {
             await loadStories()
         }
@@ -118,10 +131,13 @@ class StoryService: ObservableObject {
             // Extract title and content from the *simulated* response
             let (title, content) = try extractTitleAndContent(from: simulatedApiResponse)
 
-            // Corrected Story initializer call based on StoryModels.swift
+            // Process content into pages using StoryProcessor
+            let pages = try await storyProcessor.processIntoPages(content, theme: parameters.theme)
+
+            // Use the primary Story initializer with the generated pages
             let story = Story(
                 title: title,
-                content: content,
+                pages: pages, // Use the processed pages array
                 parameters: parameters // Pass the whole parameters object
                 // timestamp defaults to Date()
             )
