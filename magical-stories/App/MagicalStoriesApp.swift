@@ -13,7 +13,7 @@ struct MagicalStoriesApp: App {
     init() {
         // Initialize services in dependency order
         let settings = SettingsService()
-        let story = StoryService(apiKey: Configuration.geminiApiKey)
+        let story = StoryService(apiKey: AppConfig.geminiApiKey)
         
         // Assign to StateObjects
         _settingsService = StateObject(wrappedValue: settings)

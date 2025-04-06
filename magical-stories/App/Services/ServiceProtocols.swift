@@ -27,6 +27,15 @@ protocol PersistenceServiceProtocol {
     func updateParentalControls(_ controls: ParentalControls)
     func updateAppSettings(_ settings: AppSettings)
 }
+// Protocol for IllustrationService
+protocol IllustrationServiceProtocol {
+    /// Generates an illustration based on a text prompt.
+    /// - Parameter prompt: The text description to generate an image from.
+    /// - Returns: An optional URL pointing to the generated image, or nil if generation failed.
+    /// - Throws: An error if the generation process encounters an issue (e.g., network error, API error).
+    func generateIllustration(prompt: String) async throws -> URL?
+}
+
 
 // Type extensions to make existing services conform to protocols
 extension StoryService: StoryServiceProtocol {}

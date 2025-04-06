@@ -2,31 +2,25 @@ import Foundation
 import SwiftUI
 
 // MARK: - Page Model
-struct Page: Identifiable, Codable {
+// Note: Modified Page struct to align with illustration generation task.
+// This intermediate struct now holds the URL and prompt directly.
+struct Page: Identifiable { // Removed Codable temporarily as URL isn't directly Codable without wrappers if needed later
     let id: UUID
     let content: String
     let pageNumber: Int
-    var illustration: ImageReference? // Placeholder for future image integration
+    var illustrationURL: URL? // Stores the URL from IllustrationService
+    var imagePrompt: String?   // Stores the prompt used for generation
 
-    init(id: UUID = UUID(), content: String, pageNumber: Int, illustration: ImageReference? = nil) {
+    init(id: UUID = UUID(), content: String, pageNumber: Int, illustrationURL: URL? = nil, imagePrompt: String? = nil) {
         self.id = id
         self.content = content
         self.pageNumber = pageNumber
-        self.illustration = illustration
+        self.illustrationURL = illustrationURL
+        self.imagePrompt = imagePrompt
     }
 }
 
-// MARK: - Image Reference (Placeholder)
-struct ImageReference: Codable {
-    let url: URL // Placeholder for image URL or local identifier
-    let caption: String
-
-    init(url: URL, caption: String = "") {
-        self.url = url
-        self.caption = caption
-    }
-}
-
+// Removed ImageReference struct as it's replaced by direct URL/prompt storage in Page for now.
 // MARK: - Story Processor
 @MainActor
 class StoryProcessor {
@@ -36,11 +30,13 @@ class StoryProcessor {
     static let maxParagraphsPerPage = 2 // Maximum paragraphs allowed on a single page (Adjusted from 3)
 
     private let formatter = StoryTextFormatter() // For potential future text formatting
+    var illustrationService: IllustrationServiceProtocol? // Injected or set externally
 
     // MARK: - Segmentation
 
     /// Process raw story content into structured Page objects.
-    func processIntoPages(_ content: String) -> [Page] {
+    /// Process raw story content into structured Page objects and generate illustrations.
+    func processIntoPages(_ content: String) async throws -> [Page] {
         let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedContent.isEmpty else {
             return [] // Return empty if content is just whitespace
@@ -53,11 +49,17 @@ class StoryProcessor {
 
         // If the entire story is short and fits within limits, return as a single page
         if trimmedContent.count <= Self.maxPageContentLength && paragraphs.count <= Self.maxParagraphsPerPage {
-             return [Page(content: trimmedContent, pageNumber: 1)]
+             var pages = [Page(content: trimmedContent, pageNumber: 1)]
+             // Generate illustrations even for single-page stories
+             try await generateIllustrationsForPages(&pages)
+             return pages
         }
 
         // Otherwise, build pages paragraph by paragraph
-        return buildPagesFromParagraphs(paragraphs)
+        var pages = buildPagesFromParagraphs(paragraphs)
+        // Generate illustrations for multi-page stories
+        try await generateIllustrationsForPages(&pages)
+        return pages
     }
 
     /// Build pages from an array of paragraphs, respecting length and paragraph count limits.
@@ -188,7 +190,47 @@ class StoryProcessor {
             remainingContent = remainingContent.trimmingCharacters(in: .whitespacesAndNewlines)
         }
 
+        // Note: Illustrations for split long paragraphs are handled by the main call
+        // in processIntoPages after buildPagesFromParagraphs returns.
         return pages
+    }
+
+    // MARK: - Illustration Generation
+
+    /// Iterates through pages and calls the illustration service.
+    private func generateIllustrationsForPages(_ pages: inout [Page]) async throws {
+        guard let illustrationService = illustrationService else {
+            print("StoryProcessor: IllustrationService not available.")
+            // Decide if this should be an error or just skip illustration
+            return // Skipping for now
+        }
+
+        print("StoryProcessor: Starting illustration generation for \(pages.count) pages...")
+
+        for i in pages.indices {
+            let pageContent = pages[i].content
+            // TODO: Refine prompt generation logic. Using full content for now.
+            let prompt = pageContent
+            pages[i].imagePrompt = prompt // Store the prompt used
+
+            print("StoryProcessor: Generating illustration for page \(pages[i].pageNumber) with prompt: \"\(prompt.prefix(100))...\"")
+
+            do {
+                let url = try await illustrationService.generateIllustration(prompt: prompt)
+                pages[i].illustrationURL = url
+                if let url = url {
+                    print("StoryProcessor: Successfully generated illustration for page \(pages[i].pageNumber): \(url.absoluteString)")
+                } else {
+                    print("StoryProcessor: Illustration generation returned nil for page \(pages[i].pageNumber).")
+                }
+            } catch {
+                print("StoryProcessor: Error generating illustration for page \(pages[i].pageNumber): \(error)")
+                // Decide how to handle errors - store nil, retry, etc.
+                // Storing nil for now.
+                pages[i].illustrationURL = nil
+            }
+        }
+        print("StoryProcessor: Finished illustration generation.")
     }
 
     // MARK: - Reading Progress

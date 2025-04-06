@@ -33,13 +33,21 @@ struct Story: Identifiable, Hashable, Codable { // Conform to Codable for potent
     /// The date and time when the story was generated or saved.
     var timestamp: Date
 
+    /// Optional URL pointing to a generated illustration for the story/page.
+    var illustrationURL: URL?
+
+    /// Optional text prompt used to generate the illustration.
+    var imagePrompt: String?
+
     /// Initializer for creating a new Story instance.
-    init(id: UUID = UUID(), title: String, content: String, parameters: StoryParameters, timestamp: Date = Date()) {
+    init(id: UUID = UUID(), title: String, content: String, parameters: StoryParameters, timestamp: Date = Date(), illustrationURL: URL? = nil, imagePrompt: String? = nil) {
         self.id = id
         self.title = title
         self.content = content
         self.parameters = parameters
         self.timestamp = timestamp
+        self.illustrationURL = illustrationURL
+        self.imagePrompt = imagePrompt
     }
 }
 

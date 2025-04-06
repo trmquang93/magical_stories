@@ -35,7 +35,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		4DDF1B492D98B911005D882A /* magical-stories */ = {
+		4D5D563E2DA2D7DE001709F0 /* magical-stories */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "magical-stories";
 			sourceTree = "<group>";
@@ -82,7 +82,7 @@
 			isa = PBXGroup;
 			children = (
 				4D51C5502D9D908000D24CF1 /* magical-stories.xctestplan */,
-				4DDF1B492D98B911005D882A /* magical-stories */,
+				4D5D563E2DA2D7DE001709F0 /* magical-stories */,
 				4DDF1B5C2D98B918005D882A /* magical-storiesTests */,
 				4DDF1B662D98B918005D882A /* magical-storiesUITests */,
 				4DDF1B482D98B911005D882A /* Products */,
@@ -115,7 +115,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				4DDF1B492D98B911005D882A /* magical-stories */,
+				4D5D563E2DA2D7DE001709F0 /* magical-stories */,
 			);
 			name = "magical-stories";
 			packageProductDependencies = (

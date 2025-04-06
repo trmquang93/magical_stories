@@ -68,7 +68,16 @@ struct StoryDetailView: View {
     private func loadPages() async {
         isLoadingPages = true
         // Use the processor to segment the story content into pages
-        pages = storyProcessor.processIntoPages(story.content)
+        do {
+            // TODO: Ensure illustrationService is properly injected/set on storyProcessor instance before calling this.
+            // For now, we assume it might be nil, and the processor handles that.
+            pages = try await storyProcessor.processIntoPages(story.content)
+            print("StoryDetailView: Successfully processed \(pages.count) pages.")
+        } catch {
+            print("StoryDetailView: Error processing story pages: \(error)")
+            // Handle error appropriately, e.g., show an alert to the user
+            pages = [] // Set pages to empty on error
+        }
         isLoadingPages = false
         updateReadingProgress() // Initial progress update
     }

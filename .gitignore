@@ -148,3 +148,4 @@ TestResults.xcresult
 .DS_Store
 TestResults.xml
 magical-stories/App/Configuration.swift
+magical-stories/Config.plist

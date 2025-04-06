@@ -6,9 +6,50 @@ struct PageView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Spacing.lg) {
-                // Placeholder for potential illustration (Phase 2)
-                // For now, just the text content
-                
+                // Display illustration if available
+                if let url = page.illustrationURL {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView() // Placeholder while loading
+                                .frame(height: 200) // Consistent height
+                                .frame(maxWidth: .infinity)
+                                .background(Theme.Colors.surfaceSecondary)
+                                .cornerRadius(Theme.Layout.cornerRadiusMedium)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 200) // Consistent height
+                                .frame(maxWidth: .infinity)
+                                .cornerRadius(Theme.Layout.cornerRadiusMedium)
+                        case .failure:
+                            Image(systemName: "photo.artframe") // Error placeholder
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 200) // Consistent height
+                                .frame(maxWidth: .infinity)
+                                .foregroundColor(Theme.Colors.textSecondary)
+                                .background(Theme.Colors.surfaceSecondary)
+                                .cornerRadius(Theme.Layout.cornerRadiusMedium)
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                } else {
+                    // Optional: View to show if illustrationURL is nil
+                    Rectangle() // Placeholder if no URL
+                        .fill(Theme.Colors.surfaceSecondary)
+                        .frame(height: 200) // Consistent height
+                        .frame(maxWidth: .infinity)
+                        .cornerRadius(Theme.Layout.cornerRadiusMedium)
+                        .overlay(
+                            Image(systemName: "photo.on.rectangle.angled")
+                                .foregroundColor(Theme.Colors.textSecondary)
+                                .font(.largeTitle)
+                        )
+                }
+
                 Text(page.content)
                     .font(Theme.Typography.bodyLarge)
                     .lineSpacing(8) // Consistent line spacing
