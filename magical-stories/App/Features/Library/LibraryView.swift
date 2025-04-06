@@ -45,8 +45,8 @@ struct LibraryView: View {
         } else {
             return storyService.stories.filter { story in
                 story.title.localizedCaseInsensitiveContains(searchText) ||
-                story.childName.localizedCaseInsensitiveContains(searchText) ||
-                story.theme.title.localizedCaseInsensitiveContains(searchText)
+                story.parameters.childName.localizedCaseInsensitiveContains(searchText) ||
+                story.parameters.theme.localizedCaseInsensitiveContains(searchText)
             }
         }
     }
@@ -74,10 +74,10 @@ struct StoryCard: View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
             // Theme Icon
             HStack {
-                Image(systemName: story.theme.iconName)
+                Image(systemName: "book.closed") // TODO: Map theme string to icon
                     .foregroundColor(Theme.Colors.primary)
                 Spacer()
-                Text(dateFormatter.string(from: story.createdAt))
+                Text(dateFormatter.string(from: story.timestamp))
                     .font(Theme.Typography.bodySmall)
                     .foregroundColor(Theme.Colors.textSecondary)
             }
@@ -90,7 +90,7 @@ struct StoryCard: View {
                 .lineLimit(2)
             
             // Child name
-            Text("For: \(story.childName)")
+            Text("For: \(story.parameters.childName)")
                 .font(Theme.Typography.bodySmall)
                 .foregroundColor(Theme.Colors.textSecondary)
         }

@@ -1,6 +1,4 @@
 import SwiftUI
-import SwiftData
-import AVFoundation
 
 // MARK: - Service Protocols
 
@@ -13,6 +11,14 @@ import AVFoundation
     func loadStories() async
 }
 
+// Protocol for PersistenceService
+protocol PersistenceServiceProtocol {
+    func saveStories(_ stories: [Story]) throws
+    func loadStories() throws -> [Story]
+    func saveStory(_ story: Story) throws
+    func deleteStory(withId id: UUID) throws
+}
+
 // Protocol for SettingsService
 @MainActor protocol SettingsServiceProtocol: ObservableObject {
     var parentalControls: ParentalControls { get }
@@ -20,23 +26,8 @@ import AVFoundation
     
     func updateParentalControls(_ controls: ParentalControls)
     func updateAppSettings(_ settings: AppSettings)
-    
-    func toggleTextToSpeech()
-    func updateReadingSpeed(_ speed: Double)
-}
-
-// Protocol for TextToSpeechService
-@MainActor protocol TextToSpeechServiceProtocol: ObservableObject {
-    var isPlaying: Bool { get }
-    var currentWordRange: NSRange? { get }
-    
-    func speak(_ text: String, language: String)
-    func stopSpeaking()
-    func pauseSpeaking()
-    func continueSpeaking()
 }
 
 // Type extensions to make existing services conform to protocols
 extension StoryService: StoryServiceProtocol {}
 extension SettingsService: SettingsServiceProtocol {}
-extension TextToSpeechService: TextToSpeechServiceProtocol {}

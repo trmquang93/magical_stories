@@ -3,13 +3,12 @@ import SwiftUI
 struct StoryDetailView: View {
     let story: Story
     
-    @EnvironmentObject private var textToSpeechService: TextToSpeechService
-    @State private var isPlaying = false
-    @State private var highlightedRange: NSRange?
     @State private var pages: [Page] = []
     @State private var currentPageIndex = 0
     @State private var isLoadingPages = true
     @State private var readingProgress: Double = 0.0
+    // Instance of the processor to handle page segmentation and progress
+    private let storyProcessor = StoryProcessor()
     
     var body: some View {
         VStack(spacing: 0) {
@@ -31,20 +30,10 @@ struct StoryDetailView: View {
                     ForEach(pages.indices, id: \.self) { index in
                         PageView(page: pages[index])
                             .tag(index)
-                            // Apply highlighting only to the current page's content
-                            .modifier(
-                                TextHighlightModifier(
-                                    text: pages[index].content,
-                                    highlightRange: currentPageIndex == index ? highlightedRange : nil,
-                                    highlightColor: Theme.Colors.accent
-                                )
-                            )
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never)) // Use page style, hide default index dots
                 .onChange(of: currentPageIndex) { _, newIndex in
-                    // Stop speech when page changes
-                    textToSpeechService.stopSpeaking()
                     updateReadingProgress()
                 }
                 
@@ -55,22 +44,8 @@ struct StoryDetailView: View {
         }
         .navigationTitle(story.title)
         .navigationBarTitleDisplayMode(.inline)
-        .overlay(alignment: .bottom) {
-            if !isLoadingPages && !pages.isEmpty {
-                audioControls
-                    .padding(.bottom, Theme.Spacing.md)
-            }
-        }
         .task { // Use .task for async operations on appear
             await loadPages()
-        }
-        .onReceive(textToSpeechService.$currentWordRange) { range in
-            // Only update highlight range if it's for the current page
-            // (TTS service might still hold range from previous page briefly)
-            highlightedRange = range
-        }
-        .onReceive(textToSpeechService.$isPlaying) { playing in
-            isPlaying = playing
         }
     }
     
@@ -88,92 +63,24 @@ struct StoryDetailView: View {
         }
     }
     
-    private var audioControls: some View {
-        HStack(spacing: Theme.Spacing.lg) {
-            // Previous Page Button
-            Button {
-                if currentPageIndex > 0 {
-                    currentPageIndex -= 1
-                }
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(Theme.Typography.bodyLarge)
-                    .foregroundColor(currentPageIndex > 0 ? Theme.Colors.primary : Theme.Colors.textSecondary.opacity(0.5))
-                    .frame(width: 50, height: 50)
-                    .background(Theme.Colors.surfaceSecondary.opacity(0.8))
-                    .clipShape(Circle())
-            }
-            .disabled(currentPageIndex <= 0)
-            
-            // Play/Pause Button
-            Button {
-                togglePlayPause()
-            } label: {
-                Label(isPlaying ? "Pause" : "Play", systemImage: isPlaying ? "pause.fill" : "play.fill")
-                    .font(Theme.Typography.bodyLarge)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(Theme.Colors.primary)
-                    .cornerRadius(Theme.Layout.cornerRadiusMedium)
-            }
-            
-            // Next Page Button
-            Button {
-                if currentPageIndex < pages.count - 1 {
-                    currentPageIndex += 1
-                }
-            } label: {
-                Image(systemName: "chevron.right")
-                    .font(Theme.Typography.bodyLarge)
-                    .foregroundColor(currentPageIndex < pages.count - 1 ? Theme.Colors.primary : Theme.Colors.textSecondary.opacity(0.5))
-                    .frame(width: 50, height: 50)
-                    .background(Theme.Colors.surfaceSecondary.opacity(0.8))
-                    .clipShape(Circle())
-            }
-            .disabled(currentPageIndex >= pages.count - 1)
-        }
-        .padding(.horizontal, Theme.Spacing.lg)
-        .padding(.vertical, Theme.Spacing.sm) // Add vertical padding
-        .background(
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .edgesIgnoringSafeArea(.bottom)
-        )
-    }
-    
     // MARK: - Helper Functions
     
     private func loadPages() async {
         isLoadingPages = true
-        pages = await story.pages // Use the async property from Story extension
+        // Use the processor to segment the story content into pages
+        pages = storyProcessor.processIntoPages(story.content)
         isLoadingPages = false
         updateReadingProgress() // Initial progress update
     }
     
     private func updateReadingProgress() {
-        Task {
-            readingProgress = await story.readingProgress(currentPage: currentPageIndex + 1)
+        // Calculate progress based on current index and total pages
+        // Ensure pages is not empty to avoid division by zero
+        guard !pages.isEmpty else {
+            readingProgress = 0.0
+            return
         }
-    }
-    
-    private func togglePlayPause() {
-        guard currentPageIndex < pages.count else { return }
-        let currentPageContent = pages[currentPageIndex].content
-        
-        if isPlaying {
-            textToSpeechService.pauseSpeaking()
-        } else {
-            // If TTS was paused on this page, continue; otherwise, start fresh
-            if textToSpeechService.isPlaying { // Should be false if paused, but check just in case
-                 textToSpeechService.continueSpeaking()
-            } else {
-                 // Check if the synthesizer has state from a previous page read
-                 // A more robust solution might involve tracking if the *current* utterance is paused
-                 // For simplicity now, we restart if not actively playing.
-                 textToSpeechService.speak(currentPageContent)
-            }
-        }
+        readingProgress = storyProcessor.calculateReadingProgress(currentPage: currentPageIndex + 1, totalPages: pages.count)
     }
 }
 
@@ -181,23 +88,32 @@ struct StoryDetailView: View {
 #Preview {
     NavigationStack {
         StoryDetailView(
-            story: Story(
-                title: "The Brave Lion",
-                content: """
-                Once upon a time, there was a brave lion named Leo who lived in the savanna. Leo was known for his courage and kindness to all animals.
-                
-                One day, a terrible storm came to the savanna, and all the animals were afraid. But Leo stood tall and helped everyone find shelter.
-                
-                Thanks to Leo's bravery, all the animals were safe. They cheered for Leo, the hero of the savanna!
-                
-                From that day on, Leo continued to watch over his friends, always ready to lend a paw.
-                """,
-                theme: .courage,
-                childName: "Alex",
-                ageGroup: 6,
-                favoriteCharacter: "🦁"
-            )
+            story: {
+                // Create sample parameters matching the Story model
+                let sampleParams = StoryParameters(
+                    childName: "Alex",
+                    childAge: 6, // Using the previous ageGroup value
+                    theme: "Courage", // Using a string representation of the theme
+                    favoriteCharacter: "🦁"
+                )
+                // Initialize Story with the correct parameters
+                return Story(
+                    // id and timestamp will use default values from the initializer
+                    title: "The Brave Lion",
+                    content: """
+                    Once upon a time, there was a brave lion named Leo who lived in the savanna. Leo was known for his courage and kindness to all animals.
+                    
+                    One day, a terrible storm came to the savanna, and all the animals were afraid. But Leo stood tall and helped everyone find shelter.
+                    
+                    Thanks to Leo's bravery, all the animals were safe. They cheered for Leo, the hero of the savanna!
+                    
+                    From that day on, Leo continued to watch over his friends, always ready to lend a paw.
+                    """,
+                    parameters: sampleParams
+                )
+            }() // Immediately execute the closure to provide the Story instance
         )
     }
-    .environmentObject(TextToSpeechService(settingsService: SettingsService()))
+    // TODO: Add SettingsService environment object if needed for previews
+    // .environmentObject(SettingsService())
 }

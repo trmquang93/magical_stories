@@ -1,52 +1,62 @@
 import Foundation
-import SwiftData
 
-// MARK: - Persistence Service Protocol
-protocol PersistenceServiceProtocol {
-    func saveStory(_ story: Story) async throws
-    func loadStories() async throws -> [Story]
-    func deleteStory(_ story: Story) async throws
-    func deleteAllStories() async throws
+// MARK: - Persistence Error
+enum PersistenceError: Error {
+    case encodingFailed(Error)
+    case decodingFailed(Error)
+    case dataNotFound
 }
 
 // MARK: - Persistence Service
-actor PersistenceService: PersistenceServiceProtocol {
-    private let container: ModelContainer
-    private let context: ModelContext
+class PersistenceService: PersistenceServiceProtocol {
+    private let userDefaults: UserDefaults
+    private let storiesKey = "savedStories"
+    private let encoder = JSONEncoder()
+    private let decoder = JSONDecoder()
+
+    init(userDefaults: UserDefaults = .standard) {
+        self.userDefaults = userDefaults
+    }
     
-    init() {
+    func saveStories(_ stories: [Story]) throws {
         do {
-            let schema = Schema([Story.self])
-            let modelConfiguration = ModelConfiguration(schema: schema)
-            container = try ModelContainer(for: schema, configurations: [modelConfiguration])
-            context = ModelContext(container)
+            let data = try encoder.encode(stories)
+            userDefaults.set(data, forKey: storiesKey)
         } catch {
-            fatalError("Failed to initialize SwiftData: \(error)")
+            throw PersistenceError.encodingFailed(error)
         }
     }
-    
-    func saveStory(_ story: Story) async throws {
-        context.insert(story)
-        try context.save()
+
+    func loadStories() throws -> [Story] {
+        guard let data = userDefaults.data(forKey: storiesKey) else {
+            // If no data is found, return an empty array (first launch scenario)
+            return []
+        }
+        do {
+            let stories = try decoder.decode([Story].self, from: data)
+            // Sort stories by creation date, newest first
+            // Corrected sorting: use 'timestamp' and add explicit types
+            return stories.sorted { (story1: Story, story2: Story) in story1.timestamp > story2.timestamp }
+        } catch {
+            throw PersistenceError.decodingFailed(error)
+        }
     }
-    
-    func loadStories() async throws -> [Story] {
-        let descriptor = FetchDescriptor<Story>(
-            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
-        )
-        return try context.fetch(descriptor)
+
+    func saveStory(_ story: Story) throws {
+        var currentStories = try loadStories()
+        // Avoid duplicates if the story already exists (e.g., editing)
+        if let index = currentStories.firstIndex(where: { $0.id == story.id }) {
+            currentStories[index] = story
+        } else {
+            currentStories.append(story)
+        }
+        try saveStories(currentStories)
     }
-    
-    func deleteStory(_ story: Story) async throws {
-        context.delete(story)
-        try context.save()
-    }
-    
-    func deleteAllStories() async throws {
-        let descriptor = FetchDescriptor<Story>()
-        let stories = try context.fetch(descriptor)
-        stories.forEach { context.delete($0) }
-        try context.save()
+
+    func deleteStory(withId id: UUID) throws {
+        var currentStories = try loadStories()
+        currentStories.removeAll { $0.id == id }
+        try saveStories(currentStories)
     }
 }
 

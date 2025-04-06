@@ -124,7 +124,6 @@ Phase 3c: Library & Settings (Week 6)
 | StoryService | ✅ Implemented | Mar 30, 2025 | Apr 2, 2025 | Core API integration with Google Generative AI |
 | PromptBuilder | ✅ Implemented | Mar 30, 2025 | Apr 2, 2025 | Story generation prompts with age-appropriate content |
 | SettingsService | ✅ Implemented | Mar 30, 2025 | Apr 2, 2025 | App settings and parental controls |
-| TextToSpeechService | ✅ Implemented | Mar 30, 2025 | Apr 2, 2025 | Story narration capabilities |
 | PersistenceService | ✅ Implemented | Mar 30, 2025 | Apr 2, 2025 | SwiftData integration for story storage |
 | MainTabView | ✅ Implemented | Mar 30, 2025 | Apr 2, 2025 | Core navigation structure |
 | HomeView | ✅ Implemented | Mar 30, 2025 | Apr 2, 2025 | Main story creation interface |
@@ -201,10 +200,10 @@ Phase 3c: Library & Settings (Week 6)
 ## Next Steps
 ### Immediate Actions
 1. Complete the LibraryView implementation
-2. Finalize the StoryDetailView for reading experience (Integrate StoryProcessor pagination)
+2. Finalize the StoryDetailView for reading experience
 3. Add more comprehensive tests for UI components
-4. Begin planning for the image generation pipeline (Phase 2)
-5. Begin prompt engineering refinements
+4. Begin implementation of the image generation pipeline (Phase 2)
+5. Refine prompt engineering for story generation
 
 ### Planning Horizon
 - Sprint Duration: 1 week

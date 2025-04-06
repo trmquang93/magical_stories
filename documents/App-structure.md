@@ -120,8 +120,8 @@ Initialize services at the app root:
 ```swift
 @main
 struct MagicalStoriesApp: App {
-    @StateObject private var storyService = StoryService()
-    @StateObject private var settingsService = SettingsService()
+    @StateObject private var storyService = StoryService() // Manages stories
+    @StateObject private var settingsService = SettingsService() // Manages app settings
     
     var body: some Scene {
         WindowGroup {

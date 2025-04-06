@@ -31,8 +31,6 @@ struct SettingsServiceTests {
         #expect(settingsService.parentalControls.minimumAge == 3)
         #expect(settingsService.parentalControls.maximumAge == 10)
         
-        #expect(settingsService.appSettings.textToSpeechEnabled == true)
-        #expect(settingsService.appSettings.readingSpeed == 1.0)
         #expect(settingsService.appSettings.fontScale == 1.0)
         #expect(settingsService.appSettings.hapticFeedbackEnabled == true)
         #expect(settingsService.appSettings.soundEffectsEnabled == true)
@@ -65,20 +63,14 @@ struct SettingsServiceTests {
         // Given
         setUp()
         var settings = settingsService.appSettings
-        settings.textToSpeechEnabled = false
-        settings.readingSpeed = 1.5
         
         // When
         settingsService.updateAppSettings(settings)
         
         // Then - Verify in-memory changes
-        #expect(settingsService.appSettings.textToSpeechEnabled == false)
-        #expect(settingsService.appSettings.readingSpeed == 1.5)
         
         // Then - Verify persistence
         let newService = SettingsService(userDefaults: userDefaults)
-        #expect(newService.appSettings.textToSpeechEnabled == false)
-        #expect(newService.appSettings.readingSpeed == 1.5)
     }
     
     @Test("Story generation validation should respect parental controls")

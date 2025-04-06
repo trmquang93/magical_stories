@@ -41,22 +41,24 @@ struct StoryServiceTests {
     @Test("Story generation with valid parameters should succeed")
     func testStoryGenerationWithValidParameters() async throws {
         // Given
+        // Corrected StoryParameters initializer
         let parameters = StoryParameters(
             childName: "Alex",
-            ageGroup: 6,
-            favoriteCharacter: "🦁",
-            theme: .adventure,
-            language: "English"
+            childAge: 6, // Use childAge
+            theme: "adventure", // Use String for theme
+            favoriteCharacter: "🦁"
+            // Removed language parameter
         )
         
         // When
         let story = try await storyService.generateStory(parameters: parameters)
         
         // Then
-        #expect(story.childName == "Alex")
-        #expect(story.ageGroup == 6)
-        #expect(story.favoriteCharacter == "🦁")
-        #expect(story.theme == .adventure)
+        // Corrected property access via parameters
+        #expect(story.parameters.childName == "Alex")
+        #expect(story.parameters.childAge == 6)
+        #expect(story.parameters.favoriteCharacter == "🦁")
+        #expect(story.parameters.theme == "adventure") // Compare with String
         #expect(!story.title.isEmpty)
         #expect(!story.content.isEmpty)
     }
@@ -64,12 +66,13 @@ struct StoryServiceTests {
     @Test("Story generation with empty child name should fail")
     func testStoryGenerationWithEmptyChildName() async {
         // Given
+        // Corrected StoryParameters initializer
         let parameters = StoryParameters(
             childName: "",
-            ageGroup: 6,
-            favoriteCharacter: "🦁",
-            theme: .adventure,
-            language: "English"
+            childAge: 6, // Use childAge
+            theme: "adventure", // Use String for theme
+            favoriteCharacter: "🦁"
+            // Removed language parameter
         )
         
         // When/Then
@@ -85,28 +88,27 @@ struct StoryServiceTests {
     @Test("Loading stories should return sorted by creation date")
     func testLoadStoriesSorting() async throws {
         // Given
+        // Corrected Story initializer
+        let oldParameters = StoryParameters(childName: "Alex", childAge: 6, theme: "adventure", favoriteCharacter: "🦁")
         let oldStory = Story(
             title: "Old Story",
             content: "Content",
-            theme: .adventure,
-            childName: "Alex",
-            ageGroup: 6,
-            favoriteCharacter: "🦁",
-            createdAt: Date().addingTimeInterval(-86400) // 1 day ago
+            parameters: oldParameters, // Pass parameters object
+            timestamp: Date().addingTimeInterval(-86400) // Use timestamp
         )
         
+        // Corrected Story initializer
+        let newParameters = StoryParameters(childName: "Alex", childAge: 6, theme: "adventure", favoriteCharacter: "🦁")
         let newStory = Story(
             title: "New Story",
             content: "Content",
-            theme: .adventure,
-            childName: "Alex",
-            ageGroup: 6,
-            favoriteCharacter: "🦁",
-            createdAt: Date()
+            parameters: newParameters, // Pass parameters object
+            timestamp: Date() // Use timestamp
         )
         
-        try await mockPersistenceService.saveStory(oldStory)
-        try await mockPersistenceService.saveStory(newStory)
+        // Corrected: Mock methods are not async anymore
+        try mockPersistenceService.saveStory(oldStory)
+        try mockPersistenceService.saveStory(newStory)
         
         // When
         await storyService.loadStories()
@@ -120,22 +122,35 @@ struct StoryServiceTests {
 }
 
 // MARK: - Mock Persistence Service
-actor MockPersistenceService: PersistenceServiceProtocol {
+class MockPersistenceService: PersistenceServiceProtocol {
     private var stories: [Story] = []
     
-    func saveStory(_ story: Story) async throws {
-        stories.append(story)
+    func saveStory(_ story: Story) throws {
+        // Ensure no duplicate IDs are added, replace if exists
+        if let index = stories.firstIndex(where: { $0.id == story.id }) {
+            stories[index] = story
+        } else {
+            stories.append(story)
+        }
     }
     
-    func loadStories() async throws -> [Story] {
-        return stories.sorted { $0.createdAt > $1.createdAt }
+    func saveStories(_ storiesToSave: [Story]) throws {
+        self.stories = storiesToSave
+    }
+
+    func loadStories() throws -> [Story] {
+        // Sorting is handled by StoryService, just return the raw array
+        return stories
     }
     
-    func deleteStory(_ story: Story) async throws {
-        stories.removeAll { $0.id == story.id }
+    func deleteStory(withId id: UUID) throws {
+        stories.removeAll { $0.id == id }
     }
-    
-    func deleteAllStories() async throws {
-        stories.removeAll()
+
+    // Optional: Keep deleteAllStories if needed for tests, but it's not part of the protocol
+    // Also mark this nonisolated if kept, though not required by protocol
+    // Removed nonisolated - not needed for class
+    func deleteAllStories() throws {
+         stories.removeAll()
     }
 }

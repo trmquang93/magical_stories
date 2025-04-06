@@ -213,33 +213,3 @@ private class StoryTextFormatter {
     }
 }
 
-// MARK: - Story Extensions
-@MainActor
-extension Story {
-    // Process content into pages asynchronously
-    // Note: This creates a new processor each time. Consider injecting or using a shared instance if needed.
-    func getPages() async -> [Page] {
-        let processor = StoryProcessor()
-        return processor.processIntoPages(content)
-    }
-
-    // Computed property to access cached pages or process them if needed
-    var pages: [Page] {
-        get async {
-            // Check cache first
-            if let cachedPages = _pages {
-                return cachedPages
-            }
-            let newPages = await getPages()
-            self._pages = newPages // Cache the result
-            return newPages
-        }
-    }
-
-    // Reading progress helper, using the async pages property
-    func readingProgress(currentPage: Int) async -> Double {
-        let processor = StoryProcessor()
-        let totalPages = await self.pages.count // Access the async property
-        return processor.calculateReadingProgress(currentPage: currentPage, totalPages: totalPages)
-    }
-}

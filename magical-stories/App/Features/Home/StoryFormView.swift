@@ -14,9 +14,6 @@ struct StoryFormView: View {
     @State private var isGenerating = false
     @State private var error: Error?
     @State private var showError = false
-    @State private var generatedStory: Story?
-    @State private var navigateToStory = false
-
     // Available age groups
     private let ageGroups = [(3, "3-5"), (6, "6-8"), (9, "9-10")]
 
@@ -115,11 +112,6 @@ struct StoryFormView: View {
             } message: { error in
                 Text(error.localizedDescription)
             }
-            .navigationDestination(isPresented: $navigateToStory) {
-                if let story = generatedStory {
-                    StoryDetailView(story: story)
-                }
-            }
         }
     }
 
@@ -129,10 +121,9 @@ struct StoryFormView: View {
         // Prepare parameters
         let parameters = StoryParameters(
             childName: childName,
-            ageGroup: ageGroup,
-            favoriteCharacter: favoriteCharacter,
-            theme: theme,
-            language: selectedLanguage
+            childAge: ageGroup, // Corrected parameter name
+            theme: theme.rawValue, // Corrected type to String using rawValue
+            favoriteCharacter: favoriteCharacter
         )
 
         // Start generation
@@ -143,9 +134,9 @@ struct StoryFormView: View {
             do {
                 let story = try await storyService.generateStory(parameters: parameters)
                 await MainActor.run {
-                    self.generatedStory = story
+                    // On success, dismiss the sheet
                     self.isGenerating = false
-                    self.navigateToStory = true
+                    dismiss()
                 }
             } catch {
                 await MainActor.run {

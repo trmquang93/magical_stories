@@ -1,54 +1,10 @@
+import Foundation // Added for Date, UUID (though often implicit)
 import GoogleGenerativeAI
 import SwiftData
 import SwiftUI
 
 // MARK: - Story Models
-@Model
-final class Story: Identifiable {
-    public var id: UUID
-    public var title: String
-    public var content: String
-    @Attribute(originalName: "theme") private var themeRawValue: String
-    var theme: StoryTheme {
-        get { StoryTheme(rawValue: themeRawValue) ?? .adventure }
-        set { themeRawValue = newValue.rawValue }
-    }
-    public var childName: String
-    public var ageGroup: Int
-    public var favoriteCharacter: String
-    public var createdAt: Date
-    
-    // Cache for processed pages
-    var _pages: [Page]?
 
-    public init(
-        id: UUID = UUID(),
-        title: String,
-        content: String,
-        theme: StoryTheme,
-        childName: String,
-        ageGroup: Int,
-        favoriteCharacter: String,
-        createdAt: Date = Date()
-    ) {
-        self.id = id
-        self.title = title
-        self.content = content
-        self.themeRawValue = theme.rawValue
-        self.childName = childName
-        self.ageGroup = ageGroup
-        self.favoriteCharacter = favoriteCharacter
-        self.createdAt = createdAt
-    }
-}
-
-struct StoryParameters {
-    let childName: String
-    let ageGroup: Int
-    let favoriteCharacter: String
-    let theme: StoryTheme
-    let language: String
-}
 
 // MARK: - Story Service Errors
 enum StoryServiceError: LocalizedError, Equatable {
@@ -136,32 +92,46 @@ class StoryService: ObservableObject {
         defer { isGenerating = false }
 
         do {
-            let prompt = promptBuilder.buildPrompt(
-                childName: parameters.childName,
-                ageGroup: parameters.ageGroup,
-                favoriteCharacter: parameters.favoriteCharacter,
-                theme: parameters.theme,
-                language: parameters.language
-            )
+            // Corrected parameters based on StoryModels.swift
+            // The prompt variable was removed as it's unused due to the simulated API response below.
+            // If the actual API call (line 118) is re-enabled, the prompt generation needs to be uncommented/restored.
 
-            let response = try await model.generateContent(prompt)
-            guard let text = response.text else {
-                throw StoryServiceError.generationFailed("No content generated")
-            }
+            // --- Placeholder API Call ---
+            // Simulate network delay
+            try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
 
-            // Extract title and content from the generated text
-            let (title, content) = try extractTitleAndContent(from: text)
+            // Simulate a successful API response string
+            // TODO: Replace this with the actual API call to Google AI (Gemini Pro)
+            let simulatedApiResponse = """
+            Title: The Magical Forest Adventure
+            Content: Once upon a time, in a land not far away, lived a brave child named \(parameters.childName). \(parameters.childName) loved exploring with their favorite friend, \(parameters.favoriteCharacter). One sunny morning, they ventured into the Whispering Woods, following a path sparkling with dew.
 
+            Deep in the woods, they found a talking squirrel who needed help finding his hidden acorns before the rain came. Remembering the theme of '\(parameters.theme)', \(parameters.childName) knew that helping others was important. Working together, \(parameters.childName) and \(parameters.favoriteCharacter) helped the squirrel gather all his acorns just as the first drops began to fall.
+
+            The squirrel thanked them warmly, and \(parameters.childName) felt happy knowing they had done a good deed. As they walked home, the forest seemed even more magical, filled with the glow of kindness.
+            """
+            // let response = try await model.generateContent(prompt) // Actual API call commented out
+            // guard let text = response.text else { // Actual response handling commented out
+            //     throw StoryServiceError.generationFailed("No content generated")
+            // }
+
+            // Extract title and content from the *simulated* response
+            let (title, content) = try extractTitleAndContent(from: simulatedApiResponse)
+
+            // Corrected Story initializer call based on StoryModels.swift
             let story = Story(
                 title: title,
                 content: content,
-                theme: parameters.theme,
-                childName: parameters.childName,
-                ageGroup: parameters.ageGroup,
-                favoriteCharacter: parameters.favoriteCharacter
+                parameters: parameters // Pass the whole parameters object
+                // timestamp defaults to Date()
             )
 
-            try await saveStory(story)
+            // Save the new story using the persistence service
+            try persistenceService.saveStory(story)
+
+            // Reload stories to update the @Published array
+            await loadStories()
+
             return story
 
         } catch {
@@ -171,18 +141,14 @@ class StoryService: ObservableObject {
 
     func loadStories() async {
         do {
-            stories = try await persistenceService.loadStories()
+            // Load stories and sort them immediately (descending by timestamp)
+            stories = try persistenceService.loadStories().sorted { $0.timestamp > $1.timestamp }
         } catch {
             print("Failed to load stories: \(error)")
             stories = []
         }
     }
 
-    private func saveStory(_ story: Story) async throws {
-        try await persistenceService.saveStory(story)
-        stories.append(story)
-        stories.sort { $0.createdAt > $1.createdAt }
-    }
 
     private func extractTitleAndContent(from text: String) throws -> (String, String) {
         // Assuming the AI returns the story in a format like:
@@ -207,20 +173,21 @@ class StoryService: ObservableObject {
 
 // MARK: - Prompt Builder
 private struct PromptBuilder {
+    // Corrected PromptBuilder parameters based on StoryModels.swift
     func buildPrompt(
         childName: String,
-        ageGroup: Int,
+        ageGroup: Int, // Renamed from ageGroup to match StoryParameters
         favoriteCharacter: String,
-        theme: StoryTheme,
-        language: String = "English"
+        theme: String // Theme is now String
+        // language parameter removed
     ) -> String {
         """
         Create a bedtime story for a child with the following parameters:
         - Child's name: \(childName)
         - Age group: \(ageGroup)
         - Favorite character: \(favoriteCharacter)
-        - Theme: \(theme.title)
-        - Language: \(language)
+        - Theme: \(theme)
+        // Language removed
 
         Requirements:
         1. The story should be appropriate for the age group

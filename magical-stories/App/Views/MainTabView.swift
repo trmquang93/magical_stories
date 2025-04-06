@@ -4,7 +4,6 @@ struct MainTabView: View {
     @Binding var selectedTab: TabItem
     @EnvironmentObject private var storyService: StoryService
     @EnvironmentObject private var settingsService: SettingsService
-    @EnvironmentObject private var textToSpeechService: TextToSpeechService
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -40,5 +39,4 @@ struct MainTabView: View {
     MainTabView(selectedTab: .constant(.home))
         .environmentObject(StoryService())
         .environmentObject(SettingsService())
-        .environmentObject(TextToSpeechService(settingsService: SettingsService()))
-} 
+}

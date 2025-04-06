@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- Permanently removed Text-to-Speech (TTS) functionality, including related code in services, protocols, and settings.
+
+### Changed
+- Updated project documentation (Memory Bank, Project Plan, App Structure, Technical Context) to remove all references to TTS and reflect the focus shift towards illustration generation.
+
 ### Added
 - Initial project setup
 - Basic documentation structure

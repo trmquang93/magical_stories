@@ -16,6 +16,9 @@ final class magical_storiesUITests: XCTestCase {
         continueAfterFailure = false
 
         // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
+
+        // Clear potentially conflicting UserDefaults data before launching the app
+        UserDefaults.standard.removeObject(forKey: "savedStories")
     }
 
     override func tearDownWithError() throws {

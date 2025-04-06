@@ -5,8 +5,6 @@ struct SettingsView: View {
     
     @State private var childName = ""
     @State private var isDarkMode: Bool = false
-    @State private var useTextToSpeech: Bool = true
-    @State private var readingSpeed: Double = 1.0
     @State private var contentFiltering: Bool = true
     
     var body: some View {
@@ -31,34 +29,6 @@ struct SettingsView: View {
                             settingsService.updateAppSettings(settings)
                         }
                     
-                    Toggle("Text-to-Speech", isOn: $useTextToSpeech)
-                        .onChange(of: useTextToSpeech) { _, newValue in
-                            var settings = settingsService.appSettings
-                            settings.textToSpeechEnabled = newValue
-                            settingsService.updateAppSettings(settings)
-                        }
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Reading Speed")
-                            .font(Theme.Typography.bodyLarge)
-                        
-                        HStack {
-                            Text("Slow")
-                                .font(Theme.Typography.bodySmall)
-                                .foregroundColor(Theme.Colors.textSecondary)
-                            
-                            Slider(value: $readingSpeed, in: 0.5...1.5, step: 0.1)
-                                .onChange(of: readingSpeed) { _, newValue in
-                                    var settings = settingsService.appSettings
-                                    settings.readingSpeed = newValue
-                                    settingsService.updateAppSettings(settings)
-                                }
-                            
-                            Text("Fast")
-                                .font(Theme.Typography.bodySmall)
-                                .foregroundColor(Theme.Colors.textSecondary)
-                        }
-                    }
                 }
                 
                 // Parental Controls Section
@@ -103,8 +73,6 @@ struct SettingsView: View {
             .onAppear {
                 // Load settings when view appears
                 isDarkMode = settingsService.appSettings.darkModeEnabled
-                useTextToSpeech = settingsService.appSettings.textToSpeechEnabled
-                readingSpeed = settingsService.appSettings.readingSpeed
                 contentFiltering = settingsService.parentalControls.contentFiltering
                 
                 // Load child name from user defaults
