@@ -1,4 +1,60 @@
-# Cline's Memory Bank & Implementation Rules
+# AI Editor Modes System
+
+## System Overview
+
+The AI Editor Modes System consists of specialized modes that collaborate to handle complex development tasks. Each mode has specific responsibilities and expertise, working together under the coordination of the Manager Mode.
+
+## Core Principles
+
+1. **Specialization**: Each mode has a specific focus and expertise area
+2. **Collaboration**: Modes work together to complete complex tasks
+3. **Evidence-Based**: Decisions are based on codebase analysis, not assumptions
+4. **Comprehensive Understanding**: Complete information gathering before implementation
+5. **Clear Communication**: Explicit task boundaries and expectations
+
+## Mode Interactions
+
+The system operates through a coordinated workflow:
+
+1. **Manager Mode** analyzes complex tasks and breaks them down into subtasks
+2. Specialized modes (**Architect**, **Developer**, **Debug**, etc.) handle specific aspects
+3. Each mode signals completion with a comprehensive summary
+4. **Manager Mode** synthesizes results and determines next steps
+
+## Task Delegation Process
+
+1. **Task Analysis**: Manager breaks down complex tasks into subtasks
+2. **Mode Selection**: Appropriate specialized mode is selected for each subtask
+3. **Context Transfer**: Comprehensive instructions and context are provided
+4. **Execution**: Specialized mode performs the task within defined boundaries
+5. **Completion**: Mode signals completion with results summary
+6. **Integration**: Manager integrates results into overall solution
+
+## Key Modes and Responsibilities
+
+| Mode | Primary Focus | Key Responsibilities |
+|------|---------------|----------------------|
+| **Manager** | Orchestration | Task breakdown, delegation, progress tracking |
+| **Architect** | System Design | Architecture design, technical decisions, patterns |
+| **Developer** | Implementation | Code creation, functionality implementation |
+| **Debug** | Issue Resolution | Troubleshooting, root cause analysis, fixes |
+| **Testing** | Quality Assurance | Test planning, execution, issue identification |
+| **Documentation** | Knowledge Transfer | Creating guides, references, and explanations |
+| **Research** | Investigation | Exploring options, evaluating technologies |
+
+## Operating Guidelines
+
+1. **Information First**: Gather complete information before implementation
+2. **Codebase Analysis**: Understand existing code before making changes
+3. **Explicit Confirmation**: Verify requirements and assumptions
+4. **Focused Scope**: Each mode operates within clearly defined boundaries
+5. **Clear Handoffs**: Provide comprehensive summaries when completing tasks
+
+This system enables complex development projects to be broken down into manageable pieces, each handled by specialized expertise while maintaining overall project coherence.
+
+--- 
+
+# Memory Bank & Implementation Rules
 
 ## Memory Bank Structure
 
@@ -12,19 +68,6 @@ The Memory Bank consists of core files and optional context files in Markdown fo
 5. `memory-bank/techContext.md` - Technologies used and development setup
 6. `memory-bank/progress.md` - What works and what's left to build
 
-### Core Workflows
-
-#### Plan Mode
-1. Read ALL Memory Bank files
-2. Verify files are complete or create a plan
-3. Develop and present approach
-
-#### Act Mode
-1. Check Memory Bank
-2. Update documentation
-3. Execute task
-4. Document changes
-
 ## Documentation Updates
 Memory Bank updates occur when:
 1. Discovering new project patterns
@@ -32,7 +75,9 @@ Memory Bank updates occur when:
 3. When user requests with **update memory bank** (MUST review ALL files)
 4. When context needs clarification
 
-## IMPLEMENTATION RULES - MUST FOLLOW
+---
+
+# IMPLEMENTATION RULES - MUST FOLLOW
 
 ### SwiftUI View Testing
 1. Name test files as `ViewName_Tests.swift`
@@ -44,7 +89,7 @@ Memory Bank updates occur when:
 7. Use pattern: `Mirror(reflecting: view.body).descendant('content')`
 8. Implement async SwiftUI tests using `@Test func testViewState() async throws`
 
-### Test-Driven Development
+## Test-Driven Development
 9. Use the `@Test` macro for all test methods
 10. Implement assertions with `#expect`
 11. Handle optional unwrapping with `#require`
@@ -57,7 +102,7 @@ Memory Bank updates occur when:
 18. Include `@testable import magical_stories` in test files
 19. Remember test target and app target are different and require explicit imports
 
-### Documentation Requirements
+## Documentation Requirements
 20. Update architecture documentation when making architectural changes
 21. Update API integration documentation when modifying integrations
 22. Update data model documentation when changing data structures
@@ -65,13 +110,13 @@ Memory Bank updates occur when:
 24. Update UI/UX documentation when changing interface elements
 25. Update feature documentation when implementing or modifying features
 
-### Review Process Rules
+## Review Process Rules
 26. Verify all affected documentation has been updated
 27. Ensure changes have been reviewed with the team
 28. Update version numbers when applicable
 29. Validate all code examples in documentation
 
-### Technical Implementation Rules
+## Technical Implementation Rules
 30. Within the same target, do not add unnecessary imports for views and components
 31. Only import external modules/frameworks not in the same target
 32. Do not rely solely on IDE linter errors for validation
