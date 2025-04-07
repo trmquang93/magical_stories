@@ -34,6 +34,9 @@ The primary focus is the **integration of the real Google AI Image Generation AP
 *   **UI Updates:**
     *   `StoryDetailView.swift`: Updated `loadPages` to use `story.pages` directly; updated `#Preview` provider for the new `Story` initializer.
     *   `PageView.swift`: Verified that the existing implementation correctly uses `AsyncImage` and displays placeholders based on `page.illustrationURL`. No changes were required.
+*   **`StoryService.swift`:**
+    *   Replaced the simulated API response (hardcoded string and delay) with a real call to the Google Generative AI API.
+    *   Utilizes the `GenerativeModelProtocol` for interacting with the AI model, enabling better testability.
 *   **Unit Testing:**
     *   Updated `IllustrationServiceTests.swift` to remove reliance on protocol injection and mock objects due to difficulties. Tests currently hit the real service (or fail on invalid key) or are skipped. **Further work needed for robust unit testing (e.g., network layer mocking).**
     *   Updated `StoryProcessorTests.swift` mock (`MockIllustrationService`) to match the updated `IllustrationServiceProtocol` signature. Replaced Swift Testing macros with XCTest.

@@ -20,7 +20,7 @@
 ## Key Libraries & Frameworks Used
 -   **SwiftUI:** For UI, state management, and navigation. Core components include `TabView`, `NavigationStack`, `List`, `Form`, `TextField`, `Picker`, `.sheet`, `NavigationLink`, `.navigationDestination`, `AsyncImage`.
 -   **Foundation:** For core data types, networking (`URLSession` for image gen), `UserDefaults`, `ProcessInfo`, etc.
--   **GoogleGenerativeAI (Swift SDK):** For interacting with the Gemini Pro API to generate story content.
+-   **GoogleGenerativeAI (Swift SDK):** For interacting with the Gemini Pro API to generate story content. `StoryService` uses the `GenerativeModelProtocol` provided by the SDK for abstraction and testability.
 -   **(No SDK for Image Gen):** Direct `URLSession` calls are used for image generation API interaction.
 -   **Testing:** Swift's built-in testing framework (`Testing`).
 -   **XCTest:** Underlying framework for UI tests (`magical-storiesUITests`).

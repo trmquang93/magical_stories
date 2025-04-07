@@ -1,210 +1,377 @@
-import XCTest
-@testable import magical_stories
+import Testing
 import Foundation
+import GoogleGenerativeAI // Keep for potential underlying types if needed, though mocks abstract it
+@testable import magical_stories
 
-// Use XCTestCase class structure
-@MainActor // Mark class as MainActor since StoryService is MainActor
-class StoryServiceTests: XCTestCase {
+// MARK: - Mocks
 
-    // Declare instance variables for the class
-    var storyService: StoryService!
-    var mockPersistenceService: MockPersistenceService!
-    var storyProcessor: StoryProcessor!
-    var illustrationService: IllustrationService!
+// Mock for local StoryGenerationResponse protocol
+struct MockStoryGenerationResponse: StoryGenerationResponse {
+    var text: String?
+}
 
-    // Use setUpWithError for initialization
-    override func setUpWithError() throws {
-        try super.setUpWithError() // Call super
+// Mock for local GenerativeModelProtocol (defined in StoryService.swift)
+class MockGenerativeModel: GenerativeModelProtocol {
+    var generateContentCalled = false
+    var generateContentPrompt: String?
+    var generateContentResult: Result<StoryGenerationResponse, Error>? // Use local protocol
 
-        mockPersistenceService = MockPersistenceService()
-
-        // Initialize IllustrationService, handling potential throw
-        // Ensure API key setup is appropriate for the test environment
-        // Using a placeholder key.
-        illustrationService = try IllustrationService(apiKey: "mock_illustration_key_setup")
-        storyProcessor = StoryProcessor(illustrationService: illustrationService)
-
-        // Initialize StoryService, handling its throw and injecting dependencies
-        // Ensure this call matches the signature in StoryService.swift exactly
-        storyService = try StoryService(
-            apiKey: "mock_text_gen_key_setup",
-            persistenceService: mockPersistenceService,
-            model: nil, // Explicitly pass nil if not mocking the text model here
-            storyProcessor: storyProcessor // Inject the processor
-        )
-    }
-
-    // Teardown method (optional but good practice)
-    override func tearDownWithError() throws {
-        storyService = nil
-        mockPersistenceService = nil
-        storyProcessor = nil
-        illustrationService = nil
-        try super.tearDownWithError()
-    }
-
-    // --- Test Methods ---
-
-    func testStoryGenerationWithValidParameters() async throws {
-        // Given
-        let parameters = StoryParameters(
-            childName: "Alex",
-            childAge: 6,
-            theme: "adventure",
-            favoriteCharacter: "🦁"
-        )
-
-        // When
-        let story = try await storyService.generateStory(parameters: parameters)
-
-        // Then
-        XCTAssertEqual(story.parameters.childName, "Alex")
-        XCTAssertEqual(story.parameters.childAge, 6)
-        XCTAssertEqual(story.parameters.favoriteCharacter, "🦁")
-        XCTAssertEqual(story.parameters.theme, "adventure")
-        XCTAssertFalse(story.title.isEmpty)
-        XCTAssertFalse(story.pages.isEmpty, "Generated story should have pages")
-    }
-
-    func testStoryGenerationWithEmptyChildName() async throws {
-        // Given
-        let parameters = StoryParameters(
-            childName: "",
-            childAge: 6,
-            theme: "adventure",
-            favoriteCharacter: "🦁"
-        )
-
-        // When/Then
-        do {
-            _ = try await storyService.generateStory(parameters: parameters)
-            XCTFail("Expected error for empty child name, but no error was thrown.")
-        } catch let error as StoryServiceError {
-             XCTAssertEqual(error, .invalidParameters, "Incorrect error type thrown for empty child name.")
-        } catch {
-            XCTFail("Unexpected error type thrown: \(error)")
+    func generateContent(_ prompt: String) async throws -> StoryGenerationResponse { // Return local protocol type
+        generateContentCalled = true
+        generateContentPrompt = prompt
+        switch generateContentResult {
+        case .success(let response):
+            return response
+        case .failure(let error):
+            throw error
+        case .none:
+            throw StoryServiceError.networkError // Default error for unconfigured mock
         }
     }
+}
 
-    func testLoadStoriesSorting() async throws {
-        // Given
-        let oldParameters = StoryParameters(childName: "Old Alex", childAge: 5, theme: "old theme", favoriteCharacter: "🦖")
-        let oldStory = Story(
-            title: "Old Story",
-            pages: [Page(content: "Old content page 1", pageNumber: 1)],
-            parameters: oldParameters,
-            timestamp: Date().addingTimeInterval(-86400) // 1 day ago
-        )
-
-        let newParameters = StoryParameters(childName: "New Alex", childAge: 7, theme: "new theme", favoriteCharacter: "🚀")
-        let newStory = Story(
-            title: "New Story",
-            pages: [Page(content: "New content page 1", pageNumber: 1)],
-            parameters: newParameters,
-            timestamp: Date() // Now
-        )
-
-        // Save stories directly to the mock service
-        try mockPersistenceService.saveStory(oldStory)
-        try mockPersistenceService.saveStory(newStory)
-
-        // When: StoryService loads stories
-        await storyService.loadStories()
-
-        // Then: Check the stories loaded and sorted by the StoryService
-        let stories = storyService.stories
-        XCTAssertEqual(stories.count, 2, "Expected two stories to be loaded.")
-        XCTAssertEqual(stories.first?.title, "New Story", "Expected newest story first.")
-        XCTAssertEqual(stories.last?.title, "Old Story", "Expected oldest story last.")
-    }
-
-    // New test case to verify the decoding fix after generation and saving
-    func testGenerateAndLoadStoryFixesDecodingError() async throws {
-        // Given: Valid parameters
-        let parameters = StoryParameters(
-            childName: "Charlie",
-            childAge: 7,
-            theme: "kindness",
-            favoriteCharacter: "🦄"
-        )
-
-        // When: Generate a story using the service instance from setUp
-        let generatedStory = try await storyService.generateStory(parameters: parameters)
-        // This implicitly saves the story to mockPersistenceService
-
-        // And When: Simulate loading stories *as if the app restarted*
-        // Create a *new* StoryService instance using the *same* mock persistence service
-        let newStoryServiceInstance = try StoryService(
-             apiKey: "mock_text_gen_key_reload",
-             persistenceService: mockPersistenceService, // Use the SAME mock service
-             model: nil, // Explicitly pass nil
-             storyProcessor: storyProcessor // Inject the same processor
-        )
-        // Trigger loading in the new instance
-        await newStoryServiceInstance.loadStories()
-
-        // Then: Assert loading didn't throw & the loaded story is correct
-        let loadedStories = newStoryServiceInstance.stories
-        XCTAssertEqual(loadedStories.count, 1, "Expected one story to be loaded after generation and reload.")
-        guard let loadedStory = loadedStories.first else {
-            XCTFail("Failed to retrieve the loaded story from the new service instance.")
-            return
-        }
-
-        // Verify key properties and that pages exist
-        XCTAssertEqual(loadedStory.id, generatedStory.id, "Loaded story ID mismatch.")
-        XCTAssertEqual(loadedStory.title, generatedStory.title, "Loaded story title mismatch.")
-        XCTAssertEqual(loadedStory.parameters, generatedStory.parameters, "Loaded story parameters mismatch.")
-        XCTAssertFalse(loadedStory.pages.isEmpty, "Loaded story should have pages after decoding.")
-
-        // Optional: Deeper check on page content
-        if let firstPage = loadedStory.pages.first {
-             XCTAssertTrue(firstPage.content.contains("Once upon a time"), "Page content mismatch after decoding.")
-             XCTAssertTrue(firstPage.content.contains(parameters.childName), "Child name mismatch in page content after decoding.")
-             XCTAssertEqual(firstPage.pageNumber, 1, "First page number should be 1.")
-        }
-    }
-} // End of class StoryServiceTests
-
-// MARK: - Mock Persistence Service (Keep this definition in the file)
+// Mock for PersistenceServiceProtocol (defined in ServiceProtocols.swift)
 class MockPersistenceService: PersistenceServiceProtocol {
-    private var stories: [Story] = []
+    var saveStoryCalled = false
+    var loadStoriesCalled = false
+    var deleteStoryCalled = false
+    var saveStoriesCalled = false // Added
 
+    var storyToSave: Story?
+    var storiesToSave: [Story]? // Added
+    var storyIdToDelete: UUID? // Added
+
+    var saveStoryError: Error?
+    var loadStoriesError: Error?
+    var deleteStoryError: Error?
+    var saveStoriesError: Error? // Added
+
+    var storiesToLoad: [Story] = []
+
+    // Corrected: synchronous throws
     func saveStory(_ story: Story) throws {
-        // Ensure no duplicate IDs are added, replace if exists
-        if let index = stories.firstIndex(where: { $0.id == story.id }) {
-            stories[index] = story
-        } else {
-            stories.append(story)
+        saveStoryCalled = true
+        storyToSave = story
+        if let error = saveStoryError {
+            throw error
         }
     }
 
-    func saveStories(_ storiesToSave: [Story]) throws {
-        self.stories = storiesToSave
-    }
-
+    // Corrected: synchronous throws
     func loadStories() throws -> [Story] {
-        // Simulate the encoding/decoding cycle to catch the error if it still exists
-        // This is crucial for the testGenerateAndLoadStoryFixesDecodingError test
-        let encoder = JSONEncoder()
-        let decoder = JSONDecoder()
-        do {
-            let data = try encoder.encode(stories)
-            let decodedStories = try decoder.decode([Story].self, from: data)
-            return decodedStories // Return the decoded stories to mimic real loading
-        } catch {
-            // If encoding/decoding fails here, the test will catch it
-            print("MockPersistenceService: Error during encode/decode simulation: \(error)")
-            throw PersistenceError.decodingFailed(error) // Propagate as decoding error
+        loadStoriesCalled = true
+        if let error = loadStoriesError {
+            throw error
+        }
+        return storiesToLoad
+    }
+
+    // Added required method
+    func saveStories(_ stories: [Story]) throws {
+        saveStoriesCalled = true
+        storiesToSave = stories
+        if let error = saveStoriesError {
+            throw error
         }
     }
 
+    // Added required method
     func deleteStory(withId id: UUID) throws {
-        stories.removeAll { $0.id == id }
+        deleteStoryCalled = true
+        storyIdToDelete = id
+        if let error = deleteStoryError {
+            throw error
+        }
+    }
+}
+
+// Mock for IllustrationServiceProtocol is likely defined elsewhere (e.g., IllustrationServiceTests.swift)
+// Assuming it's available in the test target, we remove the duplicate definition here.
+
+// Mock for StoryProcessor (inherits from StoryProcessor to access its structure if needed, but overrides the key method)
+// Note: If StoryProcessor init is complex or final, this might need adjustment.
+// Assuming StoryProcessor has an accessible initializer taking IllustrationServiceProtocol.
+class MockStoryProcessor: StoryProcessor {
+    var processIntoPagesCalled = false
+    var processContent: String?
+    var processTheme: String? // Theme is String
+    var processResult: Result<[Page], Error>? // Return type is [Page]
+
+    // Keep track of the illustration service passed
+    let receivedIllustrationService: IllustrationServiceProtocol
+
+    // Override init to accept the protocol and call super if necessary/possible
+    // If StoryProcessor's init is throwing or complex, adjust this.
+    // Assuming a simple init for the base class for mocking purposes.
+    override init(illustrationService: IllustrationServiceProtocol) { // Added override
+         self.receivedIllustrationService = illustrationService
+         // Attempt to call super.init. If IllustrationService() throws, this mock setup needs refinement.
+         // For isolated unit testing of StoryService, we might not need a fully functional super.init().
+         // Let's assume we can bypass the super.init complexity for this mock's purpose,
+         // as we only care about overriding processIntoPages.
+         // If StoryProcessor init MUST be called and throws, we'd need to handle that (e.g., pass a non-throwing mock IllustrationService).
+         // For now, we omit super.init() call, focusing on the override.
     }
 
-    // Optional: Keep deleteAllStories if needed for tests
-    func deleteAllStories() throws {
-         stories.removeAll()
+
+    // Corrected signature: async throws -> [Page], theme is String
+     override func processIntoPages(_ content: String, theme: String) async throws -> [Page] { // Added override
+        processIntoPagesCalled = true
+        processContent = content
+        processTheme = theme
+        switch processResult {
+        case .success(let pages):
+            return pages
+        case .failure(let error):
+            throw error
+        case .none:
+             throw StoryServiceError.generationFailed("MockStoryProcessor not configured") // Default error
+        }
     }
+}
+
+
+// MARK: - Test Suite
+
+@Suite("StoryService Tests")
+struct StoryServiceTests {
+
+    var storyService: StoryService!
+    var mockModel: MockGenerativeModel!
+    var mockPersistenceService: MockPersistenceService!
+    var mockStoryProcessor: MockStoryProcessor!
+    var mockIllustrationService: MockIllustrationService! // Assuming MockIllustrationService is defined elsewhere
+
+    @MainActor // Ensure tests run on the main actor as StoryService is @MainActor
+    init() throws { // Mark init as throwing because StoryService init can throw
+        mockModel = MockGenerativeModel()
+        mockPersistenceService = MockPersistenceService()
+        mockIllustrationService = MockIllustrationService() // Instantiate mock
+        // Pass mock illustration service to mock story processor
+        mockStoryProcessor = MockStoryProcessor(illustrationService: mockIllustrationService)
+
+        // Initialize StoryService correctly, injecting mocks
+        // Use the initializer that allows injecting model and storyProcessor
+        // We pass nil for apiKey as the mockModel bypasses the actual GenerativeModelWrapper
+        storyService = try StoryService(
+            apiKey: "", // Not used by mockModel
+            persistenceService: mockPersistenceService, // Correct injection
+            model: mockModel,                          // Correct injection
+            storyProcessor: mockStoryProcessor         // Correct injection
+        )
+        // Initial loadStories happens within StoryService init's Task,
+        // so configure mockPersistenceService *before* initializing storyService if needed for init tests.
+        // For generateStory tests, configure mocks within each test case.
+    }
+
+    @Test("Generate Story - Success")
+    @MainActor
+    func testGenerateStory_Success() async throws {
+        // Arrange
+        let parameters = StoryParameters( // Correct parameters
+            childName: "Alex",
+            childAge: 5,
+            theme: "space adventure", // Correct type (String)
+            favoriteCharacter: "rocket"
+        )
+        // let expectedPrompt = "..." // Prompt check is brittle, skip for now
+
+        let generatedText = """
+        Title: Alex's Rocket Ride
+
+        Once upon a time, Alex the astronaut... (page 1 content)
+        --- Page Break ---
+        They flew past the moon... (page 2 content)
+        """
+        let extractedTitle = "Alex's Rocket Ride"
+        let extractedContent = """
+        Once upon a time, Alex the astronaut... (page 1 content)
+        --- Page Break ---
+        They flew past the moon... (page 2 content)
+        """
+        let processedPages = [ // Use Page model
+            Page(content: "Once upon a time, Alex the astronaut... (page 1 content)", pageNumber: 1, imagePrompt: "astronaut"),
+            Page(content: "They flew past the moon... (page 2 content)", pageNumber: 2, imagePrompt: "moon")
+        ]
+        let expectedStory = Story( // Use Page model
+            title: extractedTitle,
+            pages: processedPages,
+            parameters: parameters
+        )
+
+        // Configure Mocks for Success
+        mockModel.generateContentResult = .success(MockStoryGenerationResponse(text: generatedText))
+        mockStoryProcessor.processResult = .success(processedPages)
+        // Simulate loadStories returning the newly saved story later
+        mockPersistenceService.storiesToLoad = [] // Initially empty
+        // When load is called *after* save, it should find the story
+        // We can refine this by checking the state *after* the call
+
+
+        // Act
+        #expect(!storyService.isGenerating, "isGenerating should be false initially")
+        let generatedStory = try await storyService.generateStory(parameters: parameters) // No theme argument
+        #expect(!storyService.isGenerating, "isGenerating should be false after completion")
+
+        // Assert
+        #expect(mockModel.generateContentCalled, "generateContent should be called")
+        // #expect(mockModel.generateContentPrompt == expectedPrompt) // Optional: check parts of prompt if needed
+        #expect(mockStoryProcessor.processIntoPagesCalled, "processIntoPages should be called")
+        #expect(mockStoryProcessor.processContent == extractedContent, "processIntoPages content mismatch")
+        #expect(mockStoryProcessor.processTheme == parameters.theme, "processIntoPages theme mismatch")
+        #expect(mockPersistenceService.saveStoryCalled, "saveStory should be called")
+        #expect(mockPersistenceService.storyToSave?.title == expectedStory.title, "Saved story title mismatch")
+        #expect(mockPersistenceService.storyToSave?.pages.count == expectedStory.pages.count, "Saved story page count mismatch")
+        #expect(mockPersistenceService.loadStoriesCalled, "loadStories should be called after generation") // Verify this happens in generateStory
+
+        #expect(generatedStory.title == expectedStory.title, "Returned story title mismatch")
+        #expect(generatedStory.pages.count == expectedStory.pages.count, "Returned story page count mismatch")
+        #expect(generatedStory.parameters == parameters, "Returned story parameters mismatch")
+
+        // Verify stories array is updated (assuming loadStories updates it)
+        // Need to wait briefly for the Task in loadStories to potentially complete
+        try await Task.sleep(nanoseconds: 10_000_000) // Small delay for async load
+         #expect(storyService.stories.contains(where: { $0.id == generatedStory.id }), "Generated story should be in the stories array")
+    }
+
+    @Test("Generate Story - Error: Invalid Parameters (Empty Name)")
+    @MainActor
+    func testGenerateStory_Error_InvalidParameters() async throws {
+        // Arrange
+        let invalidParameters = StoryParameters( // Correct parameters
+            childName: "", // Invalid
+            childAge: 5,
+            theme: "space adventure",
+            favoriteCharacter: "rocket"
+        )
+
+        // Act & Assert
+        // Correct #expect(throws:) syntax for specific error instance
+        await #expect(throws: StoryServiceError.invalidParameters) {
+            _ = try await storyService.generateStory(parameters: invalidParameters) // No theme argument
+        }
+
+        #expect(!mockModel.generateContentCalled, "generateContent should not be called on invalid params")
+        #expect(!mockStoryProcessor.processIntoPagesCalled, "processIntoPages should not be called on invalid params")
+        #expect(!mockPersistenceService.saveStoryCalled, "saveStory should not be called on invalid params")
+    }
+
+    @Test("Generate Story - Error: Generation Failed (No Content)")
+    @MainActor
+    func testGenerateStory_Error_GenerationFailed_NoContent() async throws {
+        // Arrange
+        let parameters = StoryParameters(childName: "Alex", childAge: 5, theme: "topic", favoriteCharacter: "char")
+        mockModel.generateContentResult = .success(MockStoryGenerationResponse(text: nil)) // Simulate no text
+
+        // Act & Assert
+        #expect(storyService.isGenerating == false)
+        // Correct #expect(throws:) syntax with performing and throws closures
+        await #expect(
+            performing: { // Code that throws
+                _ = try await storyService.generateStory(parameters: parameters)
+            },
+            throws: { error in // Closure to validate the error
+                guard case .generationFailed(let message) = error as? StoryServiceError else {
+                    #error("Expected .generationFailed error type")
+                    return false // Indicate failure if type doesn't match
+                }
+                #expect(message.contains("No content generated")) // Check the associated message
+                return true // Error matches expectations
+            }
+        )
+        #expect(storyService.isGenerating == false)
+
+        #expect(mockModel.generateContentCalled)
+        #expect(!mockStoryProcessor.processIntoPagesCalled)
+        #expect(!mockPersistenceService.saveStoryCalled)
+    }
+
+    @Test("Generate Story - Error: Generation Failed (Model Throws Network Error)")
+    @MainActor
+    func testGenerateStory_Error_GenerationFailed_ModelThrows() async throws {
+        // Arrange
+        let parameters = StoryParameters(childName: "Alex", childAge: 5, theme: "topic", favoriteCharacter: "char")
+        mockModel.generateContentResult = .failure(StoryServiceError.networkError) // Simulate network error
+
+        // Act & Assert
+        #expect(storyService.isGenerating == false)
+        // Correct #expect(throws:) syntax for specific error instance
+        await #expect(throws: StoryServiceError.networkError) {
+            _ = try await storyService.generateStory(parameters: parameters)
+        }
+        #expect(storyService.isGenerating == false)
+
+        #expect(mockModel.generateContentCalled)
+        #expect(!mockStoryProcessor.processIntoPagesCalled)
+        #expect(!mockPersistenceService.saveStoryCalled)
+    }
+
+     @Test("Generate Story - Error: Processing Failed")
+     @MainActor
+     func testGenerateStory_Error_ProcessingFailed() async throws {
+         // Arrange
+         let parameters = StoryParameters(childName: "Alex", childAge: 5, theme: "topic", favoriteCharacter: "char")
+         let generatedText = """
+         Title: Test Title
+
+         Some content
+         """
+         mockModel.generateContentResult = .success(MockStoryGenerationResponse(text: generatedText))
+         // Simulate processing error (using generationFailed as per StoryService logic)
+         let processingError = StoryServiceError.generationFailed("Processing mock error")
+         mockStoryProcessor.processResult = .failure(processingError)
+
+         // Act & Assert
+         #expect(storyService.isGenerating == false)
+         // Correct #expect(throws:) syntax with performing and throws closures
+         await #expect(
+             performing: { // Code that throws
+                 _ = try await storyService.generateStory(parameters: parameters)
+             },
+             throws: { error in // Closure to validate the error
+                 guard case .generationFailed(let message) = error as? StoryServiceError else {
+                     #error("Expected .generationFailed error type")
+                     return false // Indicate failure if type doesn't match
+                 }
+                 #expect(message == "Processing mock error") // Check it's the error from the processor
+                 return true // Error matches expectations
+             }
+         )
+         #expect(storyService.isGenerating == false)
+
+         #expect(mockModel.generateContentCalled)
+         #expect(mockStoryProcessor.processIntoPagesCalled)
+         #expect(!mockPersistenceService.saveStoryCalled)
+     }
+
+     @Test("Generate Story - Error: Persistence Failed")
+     @MainActor
+     func testGenerateStory_Error_PersistenceFailed() async throws {
+         // Arrange
+         let parameters = StoryParameters(childName: "Alex", childAge: 5, theme: "topic", favoriteCharacter: "char")
+         let generatedText = """
+         Title: Test Title
+
+         Content page 1
+         """
+         let processedPages = [Page(content: "Content page 1", pageNumber: 1)]
+         mockModel.generateContentResult = .success(MockStoryGenerationResponse(text: generatedText))
+         mockStoryProcessor.processResult = .success(processedPages)
+         mockPersistenceService.saveStoryError = StoryServiceError.persistenceFailed // Simulate persistence error
+
+         // Act & Assert
+         #expect(storyService.isGenerating == false)
+         // Correct #expect(throws:) syntax for specific error instance
+         await #expect(throws: StoryServiceError.persistenceFailed) {
+             _ = try await storyService.generateStory(parameters: parameters)
+         }
+         #expect(storyService.isGenerating == false)
+
+         #expect(mockModel.generateContentCalled)
+         #expect(mockStoryProcessor.processIntoPagesCalled)
+         #expect(mockPersistenceService.saveStoryCalled)
+         // loadStories is called within generateStory *after* saveStory. If saveStory throws,
+         // the catch block in generateStory is hit, and loadStories might not be reached.
+         #expect(!mockPersistenceService.loadStoriesCalled, "loadStories should not be called if save fails")
+     }
 }

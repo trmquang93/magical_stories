@@ -5,7 +5,7 @@
 -   **Core App Structure:** Basic SwiftUI app structure with `TabView` navigation (Home, Library, Settings) is in place.
 -   **Story Generation:**
     -   UI (`StoryFormView`) exists for inputting parameters.
-    -   `StoryService` structured for AI integration (placeholder API call) to generate story content based on parameters.
+    -   `StoryService` uses the **real Google Generative AI API** (via `GenerativeModelProtocol`) to generate story content based on parameters.
 -   **Story Library:**
     -   `LibraryView` displays saved stories.
     -   Stories are persisted locally using `UserDefaults` (MVP) via `PersistenceService`.

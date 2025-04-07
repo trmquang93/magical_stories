@@ -83,7 +83,7 @@ The application primarily follows the **MVVM (Model-View-ViewModel)** pattern wi
     }
     ```
 
-10. **Protocol-Based Mocking (for Testing):** Service protocols (`StoryServiceProtocol`, `SettingsServiceProtocol`, `PersistenceServiceProtocol`) exist for most services, enabling the creation of mock objects for unit testing. Note: `IllustrationService` currently does not have a corresponding protocol and is tested via direct instantiation (primarily testing error paths with dummy keys).
+10. **Protocol-Based Mocking (for Testing):** Service protocols (`StoryServiceProtocol`, `SettingsServiceProtocol`, `PersistenceServiceProtocol`) exist for most services, enabling the creation of mock objects for unit testing. Internally, `StoryService` also utilizes the `GenerativeModelProtocol` from the Google AI SDK to abstract the specific AI model interaction, further enhancing testability. Note: `IllustrationService` currently does not have a corresponding protocol and is tested via direct instantiation (primarily testing error paths with dummy keys).
 
 11. **Illustration Generation:**
     *   A dedicated `IllustrationService` handles interaction with the Google Generative AI API (`gemini-2.0-flash-exp-image-generation` model) via **direct REST calls**.

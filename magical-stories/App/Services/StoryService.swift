@@ -85,7 +85,6 @@ class StoryService: ObservableObject {
         // If storyProcessor is provided (e.g., in tests), use it. Otherwise, create a default one.
         // This requires IllustrationService to be available or injectable.
         // For now, let's assume a default IllustrationService can be created.
-        // TODO: Improve dependency injection for IllustrationService if needed.
         // Use 'try' as IllustrationService() can throw
         let effectiveIllustrationService = try IllustrationService()
         self.storyProcessor = storyProcessor ?? StoryProcessor(illustrationService: effectiveIllustrationService)
@@ -104,32 +103,23 @@ class StoryService: ObservableObject {
         isGenerating = true
         defer { isGenerating = false }
 
+        // Generate the prompt using the builder
+        let prompt = promptBuilder.buildPrompt(
+            childName: parameters.childName,
+            childAge: parameters.childAge, // Corrected parameter name
+            favoriteCharacter: parameters.favoriteCharacter,
+            theme: parameters.theme
+        )
+
         do {
-            // Corrected parameters based on StoryModels.swift
-            // The prompt variable was removed as it's unused due to the simulated API response below.
-            // If the actual API call (line 118) is re-enabled, the prompt generation needs to be uncommented/restored.
+            // --- Actual API Call ---
+            let response = try await model.generateContent(prompt) // Actual API call
+            guard let text = response.text else { // Actual response handling
+                throw StoryServiceError.generationFailed("No content generated")
+            }
 
-            // --- Placeholder API Call ---
-            // Simulate network delay
-            try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
-
-            // Simulate a successful API response string
-            // TODO: Replace this with the actual API call to Google AI (Gemini Pro)
-            let simulatedApiResponse = """
-            Title: The Magical Forest Adventure
-            Content: Once upon a time, in a land not far away, lived a brave child named \(parameters.childName). \(parameters.childName) loved exploring with their favorite friend, \(parameters.favoriteCharacter). One sunny morning, they ventured into the Whispering Woods, following a path sparkling with dew.
-
-            Deep in the woods, they found a talking squirrel who needed help finding his hidden acorns before the rain came. Remembering the theme of '\(parameters.theme)', \(parameters.childName) knew that helping others was important. Working together, \(parameters.childName) and \(parameters.favoriteCharacter) helped the squirrel gather all his acorns just as the first drops began to fall.
-
-            The squirrel thanked them warmly, and \(parameters.childName) felt happy knowing they had done a good deed. As they walked home, the forest seemed even more magical, filled with the glow of kindness.
-            """
-            // let response = try await model.generateContent(prompt) // Actual API call commented out
-            // guard let text = response.text else { // Actual response handling commented out
-            //     throw StoryServiceError.generationFailed("No content generated")
-            // }
-
-            // Extract title and content from the *simulated* response
-            let (title, content) = try extractTitleAndContent(from: simulatedApiResponse)
+            // Extract title and content from the actual response
+            let (title, content) = try extractTitleAndContent(from: text)
 
             // Process content into pages using StoryProcessor
             let pages = try await storyProcessor.processIntoPages(content, theme: parameters.theme)
@@ -151,7 +141,17 @@ class StoryService: ObservableObject {
             return story
 
         } catch {
-            throw StoryServiceError.generationFailed(error.localizedDescription)
+            // Catch specific errors if needed, otherwise rethrow a generic generation failure
+            if let storyError = error as? StoryServiceError {
+                throw storyError // Rethrow known StoryService errors
+            } else if let generativeError = error as? GenerateContentError {
+                 // Handle specific Google AI errors if necessary
+                 // For now, wrap it in a generic failure
+                 throw StoryServiceError.generationFailed("Google AI Error: \(generativeError.localizedDescription)")
+            } else {
+                 // Catch any other errors
+                 throw StoryServiceError.generationFailed(error.localizedDescription)
+            }
         }
     }
 
@@ -176,12 +176,24 @@ class StoryService: ObservableObject {
             let titleLine = components.first,
             titleLine.hasPrefix("Title: ")
         else {
-            throw StoryServiceError.generationFailed("Invalid story format")
+            // If title format is not found, maybe the whole text is the content?
+            // Or handle it as an error. For now, let's assume it's an error.
+            print("Warning: Could not extract title. Raw response: \(text)")
+            throw StoryServiceError.generationFailed("Invalid story format received from AI (missing 'Title: ' prefix)")
         }
 
-        let title = String(titleLine.dropFirst(7))
-        let content = components.dropFirst().joined(separator: "\n").trimmingCharacters(
-            in: .whitespacesAndNewlines)
+        let title = String(titleLine.dropFirst(7)).trimmingCharacters(in: .whitespacesAndNewlines)
+        // Ensure content is not empty after removing title
+        let contentStartIndex = text.index(text.startIndex, offsetBy: titleLine.count)
+        let content = String(text[contentStartIndex...]).trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !title.isEmpty else {
+             throw StoryServiceError.generationFailed("Invalid story format received from AI (empty title)")
+        }
+        guard !content.isEmpty else {
+             throw StoryServiceError.generationFailed("Invalid story format received from AI (empty content)")
+        }
+
 
         return (title, content)
     }
@@ -192,7 +204,7 @@ private struct PromptBuilder {
     // Corrected PromptBuilder parameters based on StoryModels.swift
     func buildPrompt(
         childName: String,
-        ageGroup: Int, // Renamed from ageGroup to match StoryParameters
+        childAge: Int, // Corrected parameter name to match StoryParameters
         favoriteCharacter: String,
         theme: String // Theme is now String
         // language parameter removed
@@ -200,22 +212,27 @@ private struct PromptBuilder {
         """
         Create a bedtime story for a child with the following parameters:
         - Child's name: \(childName)
-        - Age group: \(ageGroup)
+        - Age group: \(childAge)
         - Favorite character: \(favoriteCharacter)
         - Theme: \(theme)
         // Language removed
 
         Requirements:
-        1. The story should be appropriate for the age group
-        2. Include the child's name and favorite character in the story
-        3. Convey a moral lesson related to the theme
-        4. Use simple language and short paragraphs
-        5. Create an engaging and magical atmosphere
-        6. The story should be 3-5 paragraphs long
-        7. Start with "Title: " followed by a creative title
-        8. Skip a line after the title before starting the story
+        1. The story should be appropriate for the age group specified.
+        2. Include the child's name (\(childName)) and favorite character (\(favoriteCharacter)) naturally within the narrative.
+        3. Convey a positive moral lesson or value related to the theme: '\(theme)'.
+        4. Use simple, clear language suitable for the age group. Paragraphs should be relatively short.
+        5. Create an engaging, slightly magical, and comforting atmosphere suitable for bedtime.
+        6. The story should be approximately 3-5 paragraphs long.
+        7. **IMPORTANT FORMATTING:** Start the entire response *immediately* with "Title: " followed by a creative title for the story on the first line.
+        8. After the "Title: " line, skip exactly one line (a single newline character) before starting the main content of the story. Do not add any other text before "Title: " or between the title line and the content.
 
-        Make the story engaging, magical, and appropriate for bedtime reading.
+        Example Output Structure:
+        Title: The Whispering Shell
+        \n
+        Once upon a time... (story content starts here)
+
+        Make the story engaging, magical, and appropriate for bedtime reading. Ensure the formatting requirements (Title line, single blank line, content) are strictly followed.
         """
     }
 }
