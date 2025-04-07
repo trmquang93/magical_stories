@@ -1,128 +1,202 @@
-# AI Editor Modes System
+ai_editor_modes_system:
+  overview:
+    - rule: "The AI Editor Modes System consists of specialized modes that collaborate to handle complex development tasks. Each mode has specific responsibilities and expertise, working together under the coordination of the Manager Mode."
+      enforceability: High
+  core_principles:
+    - rule: "Specialization: Each mode has a specific focus and expertise area."
+      enforceability: High
+    - rule: "Collaboration: Modes work together to complete complex tasks."
+      enforceability: High
+    - rule: "Evidence-Based: Decisions are based on codebase analysis, not assumptions."
+      enforceability: High
+    - rule: "Comprehensive Understanding: Complete information gathering before implementation."
+      enforceability: High
+    - rule: "Clear Communication: Explicit task boundaries and expectations."
+      enforceability: High
+  mode_interactions:
+    - rule: "The system operates through a coordinated workflow."
+      description: "Describes the general flow of interactions."
+      enforceability: High
+    - rule: "Manager Mode analyzes complex tasks and breaks them down into subtasks."
+      enforceability: High
+    - rule: "Specialized modes (Architect, Developer, Debug, etc.) handle specific aspects."
+      enforceability: High
+    - rule: "Each mode signals completion with a comprehensive summary."
+      enforceability: High
+    - rule: "Manager Mode synthesizes results and determines next steps."
+      enforceability: High
+  task_delegation:
+    - rule: "Task Analysis: Manager breaks down complex tasks into subtasks."
+      enforceability: High
+    - rule: "Mode Selection: Appropriate specialized mode is selected for each subtask."
+      enforceability: High
+    - rule: "Context Transfer: Comprehensive instructions and context are provided."
+      enforceability: High
+    - rule: "Execution: Specialized mode performs the task within defined boundaries."
+      enforceability: High
+    - rule: "Completion: Mode signals completion with results summary."
+      enforceability: High
+    - rule: "Integration: Manager integrates results into overall solution."
+      enforceability: High
+  key_modes:
+    - mode: Manager
+      focus: Orchestration
+      responsibilities: Task breakdown, delegation, progress tracking
+      enforceability: High
+    - mode: Architect
+      focus: System Design
+      responsibilities: Architecture design, technical decisions, patterns
+      enforceability: High
+    - mode: Developer
+      focus: Implementation
+      responsibilities: Code creation, functionality implementation
+      enforceability: High
+    - mode: Debug
+      focus: Issue Resolution
+      responsibilities: Troubleshooting, root cause analysis, fixes
+      enforceability: High
+    - mode: Testing
+      focus: Quality Assurance
+      responsibilities: Test planning, execution, issue identification
+      enforceability: High
+    - mode: Documentation
+      focus: Knowledge Transfer
+      responsibilities: Creating guides, references, and explanations
+      enforceability: High
+    - mode: Research
+      focus: Investigation
+      responsibilities: Exploring options, evaluating technologies
+      enforceability: High
+  operating_guidelines:
+    - rule: "Information First: Gather complete information before implementation."
+      enforceability: High
+    - rule: "Codebase Analysis: Understand existing code before making changes."
+      enforceability: High
+    - rule: "Explicit Confirmation: Verify requirements and assumptions."
+      enforceability: High
+    - rule: "Focused Scope: Each mode operates within clearly defined boundaries."
+      enforceability: High
+    - rule: "Clear Handoffs: Provide comprehensive summaries when completing tasks."
+      enforceability: High
+  summary:
+    - rule: "This system enables complex development projects to be broken down into manageable pieces, each handled by specialized expertise while maintaining overall project coherence."
+      enforceability: High
 
-## System Overview
+memory_bank:
+  structure:
+    - rule: "The Memory Bank consists of core files and optional context files in Markdown format."
+      enforceability: High
+    - rule: "`memory-bank/projectbrief.md` - Foundation document defining core requirements and goals."
+      description: "Core File (Required)"
+      enforceability: High
+    - rule: "`memory-bank/productContext.md` - Why this project exists and how it should work."
+      description: "Core File (Required)"
+      enforceability: High
+    - rule: "`memory-bank/activeContext.md` - Current work focus and recent changes."
+      description: "Core File (Required)"
+      enforceability: High
+    - rule: "`memory-bank/systemPatterns.md` - System architecture and design patterns."
+      description: "Core File (Required)"
+      enforceability: High
+    - rule: "`memory-bank/techContext.md` - Technologies used and development setup."
+      description: "Core File (Required)"
+      enforceability: High
+    - rule: "`memory-bank/progress.md` - What works and what's left to build."
+      description: "Core File (Required)"
+      enforceability: High
+  documentation_updates:
+    - rule: "Memory Bank updates occur when discovering new project patterns."
+      enforceability: High
+    - rule: "Memory Bank updates occur after implementing significant changes."
+      enforceability: High
+    - rule: "Memory Bank updates occur when user requests with **update memory bank** (MUST review ALL files)."
+      enforceability: High
+    - rule: "Memory Bank updates occur when context needs clarification."
+      enforceability: High
 
-The AI Editor Modes System consists of specialized modes that collaborate to handle complex development tasks. Each mode has specific responsibilities and expertise, working together under the coordination of the Manager Mode.
+implementation_rules:
+  swiftui_testing:
+    - rule: "Name test files as `ViewName_Tests.swift`."
+      enforceability: High
+    - rule: "Implement Mirror reflection to examine view structure."
+      enforceability: High
+    - rule: "Create tests for both initial state and state changes."
+      enforceability: High
+    - rule: "Include validation for view hierarchy and content."
+      enforceability: High
+    - rule: "Organize tests by view functionality in the magical-storiesTests/Views/*.swift directory."
+      enforceability: High
+    - rule: "Order tests: basic structure first, state management second, user interaction last."
+      enforceability: High
+    - rule: "Use pattern: `Mirror(reflecting: view.body).descendant('content')`."
+      enforceability: High
+    - rule: "Implement async SwiftUI tests using `@Test func testViewState() async throws`."
+      enforceability: High
+  tdd:
+    - rule: "Use the `@Test` macro for all test methods."
+      enforceability: High
+    - rule: "Implement assertions with `#expect`."
+      enforceability: High
+    - rule: "Handle optional unwrapping with `#require`."
+      enforceability: High
+    - rule: "Create parameterized tests where applicable."
+      enforceability: High
+    - rule: "Use appropriate test traits for all test cases."
+      enforceability: High
+    - rule: "Group related tests with descriptive naming."
+      enforceability: High
+    - rule: "Apply appropriate tags to tests."
+      enforceability: High
+    - rule: "Properly handle asynchronous tests."
+      enforceability: High
+    - rule: "Follow TDD: write failing tests first, create minimal code to pass, refactor while maintaining test integrity. Run test with command `./run_tests.sh`."
+      enforceability: High
+    - rule: "Include `@testable import magical_stories` in test files."
+      enforceability: High
+    - rule: "Remember test target and app target are different and require explicit imports."
+      enforceability: High
+  documentation_requirements:
+    - rule: "Update architecture documentation when making architectural changes."
+      enforceability: High
+    - rule: "Update API integration documentation when modifying integrations."
+      enforceability: High
+    - rule: "Update data model documentation when changing data structures."
+      enforceability: High
+    - rule: "Update security documentation when modifying security aspects."
+      enforceability: High
+    - rule: "Update UI/UX documentation when changing interface elements."
+      enforceability: High
+    - rule: "Update feature documentation when implementing or modifying features."
+      enforceability: High
+  review_process:
+    - rule: "Verify all affected documentation has been updated."
+      enforceability: High
+    - rule: "Ensure changes have been reviewed with the team."
+      enforceability: High
+    - rule: "Update version numbers when applicable."
+      enforceability: High
+    - rule: "Validate all code examples in documentation."
+      enforceability: High
+  technical:
+    - rule: "Within the same target, do not add unnecessary imports for views and components."
+      enforceability: High
+    - rule: "Only import external modules/frameworks not in the same target."
+      enforceability: High
+    - rule: "Do not rely solely on IDE linter errors for validation."
+      enforceability: Medium
+    - rule: "Be aware that complex Swift features may trigger false linter errors."
+      enforceability: Medium
+    - rule: "Always build the project to validate code correctness."
+      enforceability: High
+    - rule: "Prioritize build errors over linter errors in complex Swift code."
+      enforceability: High
+    - rule: "Remember some Swift language features cause false positive linter errors."
+      enforceability: Medium
 
-## Core Principles
-
-1. **Specialization**: Each mode has a specific focus and expertise area
-2. **Collaboration**: Modes work together to complete complex tasks
-3. **Evidence-Based**: Decisions are based on codebase analysis, not assumptions
-4. **Comprehensive Understanding**: Complete information gathering before implementation
-5. **Clear Communication**: Explicit task boundaries and expectations
-
-## Mode Interactions
-
-The system operates through a coordinated workflow:
-
-1. **Manager Mode** analyzes complex tasks and breaks them down into subtasks
-2. Specialized modes (**Architect**, **Developer**, **Debug**, etc.) handle specific aspects
-3. Each mode signals completion with a comprehensive summary
-4. **Manager Mode** synthesizes results and determines next steps
-
-## Task Delegation Process
-
-1. **Task Analysis**: Manager breaks down complex tasks into subtasks
-2. **Mode Selection**: Appropriate specialized mode is selected for each subtask
-3. **Context Transfer**: Comprehensive instructions and context are provided
-4. **Execution**: Specialized mode performs the task within defined boundaries
-5. **Completion**: Mode signals completion with results summary
-6. **Integration**: Manager integrates results into overall solution
-
-## Key Modes and Responsibilities
-
-| Mode | Primary Focus | Key Responsibilities |
-|------|---------------|----------------------|
-| **Manager** | Orchestration | Task breakdown, delegation, progress tracking |
-| **Architect** | System Design | Architecture design, technical decisions, patterns |
-| **Developer** | Implementation | Code creation, functionality implementation |
-| **Debug** | Issue Resolution | Troubleshooting, root cause analysis, fixes |
-| **Testing** | Quality Assurance | Test planning, execution, issue identification |
-| **Documentation** | Knowledge Transfer | Creating guides, references, and explanations |
-| **Research** | Investigation | Exploring options, evaluating technologies |
-
-## Operating Guidelines
-
-1. **Information First**: Gather complete information before implementation
-2. **Codebase Analysis**: Understand existing code before making changes
-3. **Explicit Confirmation**: Verify requirements and assumptions
-4. **Focused Scope**: Each mode operates within clearly defined boundaries
-5. **Clear Handoffs**: Provide comprehensive summaries when completing tasks
-
-This system enables complex development projects to be broken down into manageable pieces, each handled by specialized expertise while maintaining overall project coherence.
-
---- 
-
-# Memory Bank & Implementation Rules
-
-## Memory Bank Structure
-
-The Memory Bank consists of core files and optional context files in Markdown format:
-
-### Core Files (Required)
-1. `memory-bank/projectbrief.md` - Foundation document defining core requirements and goals
-2. `memory-bank/productContext.md` - Why this project exists and how it should work
-3. `memory-bank/activeContext.md` - Current work focus and recent changes
-4. `memory-bank/systemPatterns.md` - System architecture and design patterns
-5. `memory-bank/techContext.md` - Technologies used and development setup
-6. `memory-bank/progress.md` - What works and what's left to build
-
-## Documentation Updates
-Memory Bank updates occur when:
-1. Discovering new project patterns
-2. After implementing significant changes
-3. When user requests with **update memory bank** (MUST review ALL files)
-4. When context needs clarification
-
----
-
-# IMPLEMENTATION RULES - MUST FOLLOW
-
-### SwiftUI View Testing
-1. Name test files as `ViewName_Tests.swift`
-2. Implement Mirror reflection to examine view structure
-3. Create tests for both initial state and state changes
-4. Include validation for view hierarchy and content
-5. Organize tests by view functionality in the magical-storiesTests/Views/*.swift directory
-6. Order tests: basic structure first, state management second, user interaction last
-7. Use pattern: `Mirror(reflecting: view.body).descendant('content')`
-8. Implement async SwiftUI tests using `@Test func testViewState() async throws`
-
-## Test-Driven Development
-9. Use the `@Test` macro for all test methods
-10. Implement assertions with `#expect`
-11. Handle optional unwrapping with `#require`
-12. Create parameterized tests where applicable
-13. Use appropriate test traits for all test cases
-14. Group related tests with descriptive naming
-15. Apply appropriate tags to tests
-16. Properly handle asynchronous tests
-17. Follow TDD: write failing tests first, create minimal code to pass, refactor while maintaining test integrity. Run test with command `./run_tests.sh`
-18. Include `@testable import magical_stories` in test files
-19. Remember test target and app target are different and require explicit imports
-
-## Documentation Requirements
-20. Update architecture documentation when making architectural changes
-21. Update API integration documentation when modifying integrations
-22. Update data model documentation when changing data structures
-23. Update security documentation when modifying security aspects
-24. Update UI/UX documentation when changing interface elements
-25. Update feature documentation when implementing or modifying features
-
-## Review Process Rules
-26. Verify all affected documentation has been updated
-27. Ensure changes have been reviewed with the team
-28. Update version numbers when applicable
-29. Validate all code examples in documentation
-
-## Technical Implementation Rules
-30. Within the same target, do not add unnecessary imports for views and components
-31. Only import external modules/frameworks not in the same target
-32. Do not rely solely on IDE linter errors for validation
-33. Be aware that complex Swift features may trigger false linter errors
-34. Always build the project to validate code correctness
-35. Prioritize build errors over linter errors in complex Swift code
-36. Remember some Swift language features cause false positive linter errors
-
-REMEMBER: After every memory reset, I begin completely fresh. The Memory Bank is my only link to previous work. It must be maintained with precision and clarity, as my effectiveness depends entirely on its accuracy.
+general:
+  reminder:
+    - rule: "REMEMBER: After every memory reset, I begin completely fresh. The Memory Bank is my only link to previous work. It must be maintained with precision and clarity, as my effectiveness depends entirely on its accuracy."
+      enforceability: High
+  maintenance: # Added new subsection
+    - rule: "Update this '.roorules' file whenever a new rule or operating guideline is identified during collaboration." # Added new rule
+      enforceability: High
