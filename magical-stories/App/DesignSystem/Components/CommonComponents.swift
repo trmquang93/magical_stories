@@ -70,7 +70,11 @@ struct MagicalLoadingView: View {
             Text(message)
                 .font(Theme.Typography.bodyMedium)
                 .foregroundColor(Theme.Colors.textSecondary)
+                .dynamicTypeSize(...DynamicTypeSize.accessibility5)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Loading")
+        .accessibilityHint(message)
     }
 }
 
@@ -116,17 +120,22 @@ struct MagicalEmptyStateView: View {
                 Text(title)
                     .font(Theme.Typography.headingMedium)
                     .foregroundColor(Theme.Colors.textPrimary)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility5)
                 
                 Text(message)
                     .font(Theme.Typography.bodyMedium)
                     .foregroundColor(Theme.Colors.textSecondary)
                     .multilineTextAlignment(.center)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility5)
             }
             
             PrimaryButton(title: buttonTitle, action: action)
                 .frame(maxWidth: 200)
         }
         .padding()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title)
+        .accessibilityHint(message)
     }
 }
 

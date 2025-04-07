@@ -79,95 +79,56 @@ struct IllustrationServiceIntegrationTests {
 
         // Act: Call the generateIllustration method
         print("--- Integration Test: Calling generateIllustration API... ---")
-        let resultURL: URL?
+        let resultPath: String?
         do {
-            resultURL = try await service.generateIllustration(
+            resultPath = try await service.generateIllustration(
                 for: promptText,
                 theme: storyTheme
             )
             print(
-                "--- Integration Test: API call completed. Result URL: \(resultURL?.absoluteString ?? "nil") ---"
+                "--- Integration Test: API call completed. Result path: \(resultPath ?? "nil") ---"
             )
         } catch {
-            // --- Enhanced Error Logging ---
-            print(
-                "--- Integration Test: ERROR CAUGHT in generateIllustration API call ---"
-            )
-            print(
-                "--- Integration Test: Error Description: \(error.localizedDescription) ---"
-            )
-            // Always log the specific type
+            print("--- Integration Test: ERROR CAUGHT in generateIllustration API call ---")
+            print("--- Integration Test: Error Description: \(error.localizedDescription) ---")
             print("--- Integration Test: Error Type: \(type(of: error)) ---")
-
-            // Provide more context if it's an IllustrationError
             if let illustrationError = error as? IllustrationError {
-                // Print the specific IllustrationError case
-                print(
-                    "--- Integration Test: Caught IllustrationError Type: \(illustrationError) ---"
-                )
-                // Print the detailed description from the error enum
-                print(
-                    "--- Integration Test: IllustrationError Detail: \(illustrationError.errorDescription ?? "No specific description provided") ---"
-                )
+                print("--- Integration Test: Caught IllustrationError Type: \(illustrationError) ---")
+                print("--- Integration Test: IllustrationError Detail: \(illustrationError.errorDescription ?? "No specific description provided") ---")
             } else {
-                // Log that the error is not the expected IllustrationError type
-                // (type logged above)
-                print(
-                    "--- Integration Test: Caught error is NOT an IllustrationError. ---"
-                )
+                print("--- Integration Test: Caught error is NOT an IllustrationError. ---")
             }
-            // --- End Enhanced Error Logging ---
-
-            // Explicitly fail the test AND stop execution by re-throwing
-            throw error  // Re-throw the error to ensure the test fails and
-            // execution stops here
+            throw error
         }
 
-        // Assert: Check if a valid file URL was returned and the file exists
-        let unwrappedURL = try #require(
-            resultURL,
-            "The generateIllustration method should return a non-nil URL on success."
+        let unwrappedPath = try #require(
+            resultPath,
+            "The generateIllustration method should return a non-nil relative path on success."
         )
-        // Add more detailed logging about the unwrapped URL before file checks
-        print(
-            "--- Integration Test: Successfully unwrapped result URL. Path: \(unwrappedURL.path), isFileURL: \(unwrappedURL.isFileURL), Absolute: \(unwrappedURL.absoluteString) ---"
-        )
+        let appSupportURL = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+        let fullURL = appSupportURL.appendingPathComponent(unwrappedPath)
 
-        #expect(
-            unwrappedURL.isFileURL,
-            "The returned URL should be a file URL pointing to the temporary image."
-        )
+        print("--- Integration Test: Full image URL: \(fullURL.path) ---")
 
         let fileManager = FileManager.default
         #expect(
-            fileManager.fileExists(atPath: unwrappedURL.path),
-            "The temporary image file should exist at the returned URL path."
+            fileManager.fileExists(atPath: fullURL.path),
+            "The saved image file should exist at the constructed path."
         )
-        print(
-            "--- Integration Test: Verified temporary file exists at path: \(unwrappedURL.path) ---"
-        )
+        print("--- Integration Test: Verified saved file exists at path: \(fullURL.path) ---")
 
-        // Optional: Check if the file has content and clean up
         do {
-            let fileData = try Data(contentsOf: unwrappedURL)
+            let fileData = try Data(contentsOf: fullURL)
             #expect(
                 !fileData.isEmpty,
-                "The temporary image file should not be empty."
+                "The saved image file should not be empty."
             )
-            print(
-                "--- Integration Test: Verified temporary file is not empty (\(fileData.count) bytes). ---"
-            )
-            // Clean up the temporary file after verification
-            try? fileManager.removeItem(at: unwrappedURL)
-            print("--- Integration Test: Cleaned up temporary file. ---")
+            print("--- Integration Test: Verified saved file is not empty (\(fileData.count) bytes). ---")
+            try? fileManager.removeItem(at: fullURL)
+            print("--- Integration Test: Cleaned up saved file. ---")
         } catch {
-            print(
-                "--- Integration Test: Failed to read or delete temporary file - \(error.localizedDescription) ---"
-            )
-            // Don't necessarily fail the test for cleanup issues, but log it.
-            Issue.record(
-                "Failed to read or clean up temporary file: \(unwrappedURL.path). Error: \(error.localizedDescription)"
-            )
+            print("--- Integration Test: Failed to read or delete saved file - \(error.localizedDescription) ---")
+            Issue.record("Failed to read or clean up saved file: \(fullURL.path). Error: \(error.localizedDescription)")
         }
     }
 }

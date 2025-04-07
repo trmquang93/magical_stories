@@ -17,20 +17,30 @@ struct StoryParameters: Codable, Hashable { // Conform to Codable/Hashable for p
 }
 
 /// Represents a generated story.
-struct Page: Identifiable, Hashable, Codable { // Moved from StoryProcessor & made Codable
+struct Page: Identifiable, Hashable, Codable {
     let id: UUID
-    let content: String // Renamed from text for consistency? Or keep as content? Let's keep 'content' as per the snippet.
+    let content: String
     let pageNumber: Int
-    var illustrationURL: URL? // Stores the URL from IllustrationService
+    var illustrationRelativePath: String?  // Relative path to saved image
+    var illustrationStatus: IllustrationStatus = .pending  // Status of illustration generation
     var imagePrompt: String?   // Stores the prompt used for generation
 
-    init(id: UUID = UUID(), content: String, pageNumber: Int, illustrationURL: URL? = nil, imagePrompt: String? = nil) {
+    init(id: UUID = UUID(), content: String, pageNumber: Int, illustrationRelativePath: String? = nil, illustrationStatus: IllustrationStatus = .pending, imagePrompt: String? = nil) {
         self.id = id
         self.content = content
         self.pageNumber = pageNumber
-        self.illustrationURL = illustrationURL
+        self.illustrationRelativePath = illustrationRelativePath
+        self.illustrationStatus = illustrationStatus
         self.imagePrompt = imagePrompt
     }
+}
+
+/// Status of illustration generation
+enum IllustrationStatus: String, Codable {
+    case pending
+    case success
+    case failed
+    case placeholder
 }
 
 struct Story: Identifiable, Hashable, Codable { // Conform to Codable for potential saving
@@ -66,7 +76,7 @@ struct Story: Identifiable, Hashable, Codable { // Conform to Codable for potent
         self.id = id
         self.title = title
         // Create a single page from the provided content and illustration details
-        let singlePage = Page(content: content, pageNumber: 1, illustrationURL: illustrationURL, imagePrompt: imagePrompt)
+        let singlePage = Page(content: content, pageNumber: 1, illustrationRelativePath: illustrationURL?.path, illustrationStatus: .pending, imagePrompt: imagePrompt)
         self.pages = [singlePage]
         self.parameters = parameters
         self.timestamp = timestamp

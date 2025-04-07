@@ -105,7 +105,7 @@ final class PageViewTests: XCTestCase {
     func testPageViewDisplaysContent() throws {
         // Given
         let testContent = "This is the page text content."
-        let page = Page(content: testContent, pageNumber: 1, illustrationURL: nil)
+        let page = Page(content: testContent, pageNumber: 1, illustrationRelativePath: nil, illustrationStatus: .pending, imagePrompt: nil)
         let view = PageView(page: page)
 
         // When

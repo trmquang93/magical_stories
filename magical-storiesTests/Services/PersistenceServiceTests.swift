@@ -25,8 +25,8 @@ final class PersistenceServiceTests: XCTestCase {
 
     // Helper function to create a sample story with pages
     private func createSampleStory(id: UUID = UUID(), title: String = "Sample Story", includeIllustration: Bool = true) -> Story {
-        let page1 = Page(content: "Page 1 content.", pageNumber: 1, illustrationURL: includeIllustration ? URL(string: "https://test.com/page1.png") : nil, imagePrompt: includeIllustration ? "Prompt 1" : nil)
-        let page2 = Page(content: "Page 2 content.", pageNumber: 2, illustrationURL: includeIllustration ? URL(string: "https://test.com/page2.png") : nil, imagePrompt: includeIllustration ? "Prompt 2" : nil)
+        let page1 = Page(content: "Page 1 content.", pageNumber: 1, illustrationRelativePath: includeIllustration ? "Illustrations/page1.png" : nil, illustrationStatus: includeIllustration ? .success : .failed, imagePrompt: includeIllustration ? "Prompt 1" : nil)
+        let page2 = Page(content: "Page 2 content.", pageNumber: 2, illustrationRelativePath: includeIllustration ? "Illustrations/page2.png" : nil, illustrationStatus: includeIllustration ? .success : .failed, imagePrompt: includeIllustration ? "Prompt 2" : nil)
         let params = StoryParameters(childName: "Test", childAge: 5, theme: "Testing", favoriteCharacter: "Bot")
         return Story(id: id, title: title, pages: [page1, page2], parameters: params, timestamp: Date())
     }
@@ -46,9 +46,11 @@ final class PersistenceServiceTests: XCTestCase {
         XCTAssertEqual(loadedStory.title, story.title)
         XCTAssertEqual(loadedStory.pages.count, story.pages.count)
         XCTAssertEqual(loadedStory.pages[0].content, story.pages[0].content)
-        XCTAssertEqual(loadedStory.pages[0].illustrationURL, story.pages[0].illustrationURL)
+        XCTAssertEqual(loadedStory.pages[0].illustrationRelativePath, story.pages[0].illustrationRelativePath)
+        XCTAssertEqual(loadedStory.pages[0].illustrationStatus, story.pages[0].illustrationStatus)
         XCTAssertEqual(loadedStory.pages[0].imagePrompt, story.pages[0].imagePrompt)
-        XCTAssertEqual(loadedStory.pages[1].illustrationURL, story.pages[1].illustrationURL)
+        XCTAssertEqual(loadedStory.pages[1].illustrationRelativePath, story.pages[1].illustrationRelativePath)
+        XCTAssertEqual(loadedStory.pages[1].illustrationStatus, story.pages[1].illustrationStatus)
     }
 
     func testSaveAndLoadMultipleStories() throws {
@@ -67,9 +69,9 @@ final class PersistenceServiceTests: XCTestCase {
         let loadedStory2 = try XCTUnwrap(loadedStories.first(where: { $0.id == story2.id }))
 
         XCTAssertEqual(loadedStory1.pages.count, 2)
-        XCTAssertNotNil(loadedStory1.pages[0].illustrationURL)
+        XCTAssertNotNil(loadedStory1.pages[0].illustrationRelativePath)
         XCTAssertEqual(loadedStory2.pages.count, 2)
-        XCTAssertNil(loadedStory2.pages[0].illustrationURL) // Verify nil URL is handled
+        XCTAssertNil(loadedStory2.pages[0].illustrationRelativePath) // Verify nil path is handled
     }
 
     func testLoadEmptyStories() throws {
@@ -90,7 +92,8 @@ final class PersistenceServiceTests: XCTestCase {
         // When
         var modifiedStory = originalStory
         modifiedStory.title = "Updated Title"
-        modifiedStory.pages[0].illustrationURL = URL(string: "https://updated.url/new.png") // Modify a page detail
+        modifiedStory.pages[0].illustrationRelativePath = "Illustrations/updated_image.png"
+        modifiedStory.pages[0].illustrationStatus = .success
         try persistenceService.saveStory(modifiedStory) // Save the modified story with the same ID
 
         // Then
@@ -99,7 +102,7 @@ final class PersistenceServiceTests: XCTestCase {
         let loadedStory = try XCTUnwrap(loadedStories.first)
         XCTAssertEqual(loadedStory.id, originalStory.id)
         XCTAssertEqual(loadedStory.title, "Updated Title")
-        XCTAssertEqual(loadedStory.pages[0].illustrationURL?.absoluteString, "https://updated.url/new.png")
+        XCTAssertEqual(loadedStory.pages[0].illustrationRelativePath, "Illustrations/updated_image.png")
     }
 
     func testDeleteStory() throws {

@@ -90,6 +90,7 @@ func saveMockImageToTempFile(data: Data, fileExtension: String = "png") throws -
 // MARK: - TestableIllustrationService
 
 /// A testable version of IllustrationService that allows injecting a URLSession
+@MainActor
 class TestableIllustrationService: IllustrationServiceProtocol {
     private let apiKey: String
     private let urlSession: URLSession
@@ -101,93 +102,78 @@ class TestableIllustrationService: IllustrationServiceProtocol {
         self.urlSession = urlSession
     }
     
-    public func generateIllustration(for pageText: String, theme: String) async throws -> URL? {
+    @MainActor
+    func generateIllustration(for pageText: String, theme: String) async throws -> String? {
         let combinedPrompt = "Generate an illustration for a children's story page based on the following details. Theme: \(theme). Scene Description: \(pageText)."
         
-        // Construct URL
         let urlString = "\(apiEndpoint)\(modelName):predict?key=\(apiKey)"
         guard let url = URL(string: urlString) else {
             throw IllustrationError.invalidURL
         }
         
-        // Create the request body structures 
         struct ImagenRequestBody: Codable {
             let instances: [ImagenInstance]
             let parameters: ImagenParameters
         }
-        
         struct ImagenInstance: Codable {
             let prompt: String
         }
-        
         struct ImagenParameters: Codable {
             let sampleCount: Int
             let aspectRatio: String
         }
-        
-        // Prepare Request Body
         let requestBody = ImagenRequestBody(
             instances: [ImagenInstance(prompt: combinedPrompt)],
             parameters: ImagenParameters(sampleCount: 1, aspectRatio: "1:1")
         )
-        
-        // Prepare URLRequest
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
         do {
             request.httpBody = try JSONEncoder().encode(requestBody)
         } catch {
             throw IllustrationError.invalidResponse("Failed to encode request body: \(error.localizedDescription)")
         }
         
-        // Use injected URLSession
         do {
             let (data, response) = try await urlSession.data(for: request)
-            
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw IllustrationError.invalidResponse("Did not receive HTTP response.")
             }
-            
             guard (200...299).contains(httpResponse.statusCode) else {
                 let errorDetail = String(data: data, encoding: .utf8) ?? "No details available."
                 throw IllustrationError.apiError(
                     NSError(domain: "HTTPError", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "API request failed with status \(httpResponse.statusCode). Detail: \(errorDetail)"])
                 )
             }
-            
-            // Decode the response
             struct ImagenPredictionResponse: Codable {
                 let predictions: [ImagenPrediction]
             }
-            
             struct ImagenPrediction: Codable {
                 let bytesBase64Encoded: String?
                 let mimeType: String?
             }
-            
-            let predictionResponse: ImagenPredictionResponse
-            do {
-                predictionResponse = try JSONDecoder().decode(ImagenPredictionResponse.self, from: data)
-            } catch {
-                throw IllustrationError.invalidResponse("Failed to decode API response: \(error.localizedDescription)")
-            }
-            
-            // Extract and Decode Image Data
+            let predictionResponse = try JSONDecoder().decode(ImagenPredictionResponse.self, from: data)
             guard let firstPrediction = predictionResponse.predictions.first,
                   let base64String = firstPrediction.bytesBase64Encoded else {
                 throw IllustrationError.noImageDataFound
             }
-            
             guard let imageData = Data(base64Encoded: base64String) else {
                 throw IllustrationError.imageProcessingError("Failed to decode base64 image data.")
             }
             
-            // Save Image Data to a temporary file
-            let mimeType = firstPrediction.mimeType ?? "image/png"
-            return try saveMockImageToTempFile(data: imageData, fileExtension: mimeType.split(separator: "/").last.map(String.init) ?? "png")
-            
+            // Save to a fake persistent directory inside Application Support/Illustrations
+            let appSupportURL = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            let illustrationsDir = appSupportURL.appendingPathComponent("Illustrations", isDirectory: true)
+            if !FileManager.default.fileExists(atPath: illustrationsDir.path) {
+                try FileManager.default.createDirectory(at: illustrationsDir, withIntermediateDirectories: true)
+            }
+            let uniqueID = UUID().uuidString
+            let ext = (firstPrediction.mimeType ?? "image/png").split(separator: "/").last.map(String.init) ?? "png"
+            let fileName = "\(uniqueID).\(ext)"
+            let fileURL = illustrationsDir.appendingPathComponent(fileName)
+            try imageData.write(to: fileURL)
+            return "Illustrations/\(fileName)"
         } catch let error as IllustrationError {
             throw error
         } catch let error as URLError {

@@ -141,16 +141,20 @@ class StoryService: ObservableObject {
             return story
 
         } catch {
+            // Log the error
+            AIErrorManager.logError(error, source: "StoryService", additionalInfo: "Error in generateStory")
+            
             // Catch specific errors if needed, otherwise rethrow a generic generation failure
             if let storyError = error as? StoryServiceError {
                 throw storyError // Rethrow known StoryService errors
             } else if let generativeError = error as? GenerateContentError {
                  // Handle specific Google AI errors if necessary
-                 // For now, wrap it in a generic failure
-                 throw StoryServiceError.generationFailed("Google AI Error: \(generativeError.localizedDescription)")
+                 let storyError = StoryServiceError.generationFailed("Google AI Error: \(generativeError.localizedDescription)")
+                 throw storyError
             } else {
                  // Catch any other errors
-                 throw StoryServiceError.generationFailed(error.localizedDescription)
+                 let storyError = StoryServiceError.generationFailed(error.localizedDescription)
+                 throw storyError
             }
         }
     }
@@ -160,7 +164,7 @@ class StoryService: ObservableObject {
             // Load stories and sort them immediately (descending by timestamp)
             stories = try persistenceService.loadStories().sorted { $0.timestamp > $1.timestamp }
         } catch {
-            print("Failed to load stories: \(error)")
+            AIErrorManager.logError(error, source: "StoryService", additionalInfo: "Failed to load stories")
             stories = []
         }
     }
@@ -176,10 +180,12 @@ class StoryService: ObservableObject {
             let titleLine = components.first,
             titleLine.hasPrefix("Title: ")
         else {
-            // If title format is not found, maybe the whole text is the content?
-            // Or handle it as an error. For now, let's assume it's an error.
-            print("Warning: Could not extract title. Raw response: \(text)")
-            throw StoryServiceError.generationFailed("Invalid story format received from AI (missing 'Title: ' prefix)")
+            // If title format is not found, handle it as an error
+            let errorMessage = "Invalid story format received from AI (missing 'Title: ' prefix)"
+            AIErrorManager.logError(StoryServiceError.generationFailed(errorMessage),
+                                   source: "StoryService",
+                                   additionalInfo: "Raw response: \(text.prefix(100))...")
+            throw StoryServiceError.generationFailed(errorMessage)
         }
 
         let title = String(titleLine.dropFirst(7)).trimmingCharacters(in: .whitespacesAndNewlines)
@@ -188,10 +194,14 @@ class StoryService: ObservableObject {
         let content = String(text[contentStartIndex...]).trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !title.isEmpty else {
-             throw StoryServiceError.generationFailed("Invalid story format received from AI (empty title)")
+             let errorMessage = "Invalid story format received from AI (empty title)"
+             AIErrorManager.logError(StoryServiceError.generationFailed(errorMessage), source: "StoryService")
+             throw StoryServiceError.generationFailed(errorMessage)
         }
         guard !content.isEmpty else {
-             throw StoryServiceError.generationFailed("Invalid story format received from AI (empty content)")
+             let errorMessage = "Invalid story format received from AI (empty content)"
+             AIErrorManager.logError(StoryServiceError.generationFailed(errorMessage), source: "StoryService")
+             throw StoryServiceError.generationFailed(errorMessage)
         }
 
 

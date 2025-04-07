@@ -72,107 +72,89 @@ public class IllustrationService: IllustrationServiceProtocol {
     ///   - theme: The overall theme of the story.
     /// - Returns: A URL pointing to the generated illustration, or `nil` if generation fails gracefully.
     /// - Throws: `IllustrationError` for configuration, network, or API issues.
-    public func generateIllustration(for pageText: String, theme: String) async throws -> URL? {
+    public func generateIllustration(for pageText: String, theme: String) async throws -> String? {
         let combinedPrompt =
             "Generate an illustration for a children's story page based on the following details. Theme: \(theme). Scene Description: \(pageText). Style: Whimsical, colorful, suitable for young children. IMPORTANT: Visualize the scene and characters based on the description, but DO NOT depict animals performing human-like actions (like talking or wearing clothes) even if mentioned in the description. Focus on the environment and the animals' natural appearance."
-        print(
-            "--- IllustrationService: Generating illustration via REST API for prompt - \"\(combinedPrompt.prefix(80))...\" ---"
-        )
-
-        // 1. Construct URL
-        let urlString = "\(apiEndpoint)\(modelName):predict?key=\(apiKey)"
-        guard let url = URL(string: urlString) else {
-            throw IllustrationError.invalidURL
-        }
-
-        // 2. Prepare Request Body
-        let requestBody = ImagenRequestBody(
-            instances: [ImagenInstance(prompt: combinedPrompt)],
-            parameters: ImagenParameters(sampleCount: 1, aspectRatio: "1:1") // Request 1 image, 1:1 ratio
-        )
-
-        // 3. Prepare URLRequest
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        do {
-            request.httpBody = try JSONEncoder().encode(requestBody)
-        } catch {
-            print("--- IllustrationService: Failed to encode request body - \(error.localizedDescription) ---")
-            throw IllustrationError.invalidResponse("Failed to encode request body: \(error.localizedDescription)")
-        }
-
-        // 4. Perform Network Request
-        do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-
-            // Check HTTP response status
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw IllustrationError.invalidResponse("Did not receive HTTP response.")
-            }
-
-            print("--- IllustrationService: Received HTTP status code: \(httpResponse.statusCode) ---")
-
-            guard (200...299).contains(httpResponse.statusCode) else {
-                // Attempt to decode error message from response body if available
-                let errorDetail = String(data: data, encoding: .utf8) ?? "No details available."
-                print("--- IllustrationService: API Error Response Body: \(errorDetail) ---")
-                throw IllustrationError.apiError(
-                    NSError(domain: "HTTPError", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "API request failed with status \(httpResponse.statusCode). Detail: \(errorDetail)"])
-                )
-            }
-
-            // 5. Decode Successful Response
-            let predictionResponse: ImagenPredictionResponse
+        
+        var lastError: Error?
+        
+        for attempt in 1...5 {
             do {
-                predictionResponse = try JSONDecoder().decode(ImagenPredictionResponse.self, from: data)
+                print("--- IllustrationService: Attempt \(attempt) to generate illustration ---")
+                
+                // 1. Construct URL
+                let urlString = "\(apiEndpoint)\(modelName):predict?key=\(apiKey)"
+                guard let url = URL(string: urlString) else {
+                    throw IllustrationError.invalidURL
+                }
+                
+                // 2. Prepare Request Body
+                let requestBody = ImagenRequestBody(
+                    instances: [ImagenInstance(prompt: combinedPrompt)],
+                    parameters: ImagenParameters(sampleCount: 1, aspectRatio: "1:1")
+                )
+                
+                // 3. Prepare URLRequest
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                
+                request.httpBody = try JSONEncoder().encode(requestBody)
+                
+                // 4. Perform Network Request
+                let (data, response) = try await URLSession.shared.data(for: request)
+                
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw IllustrationError.invalidResponse("Did not receive HTTP response.")
+                }
+                
+                print("--- IllustrationService: Received HTTP status code: \(httpResponse.statusCode) ---")
+                
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    let errorDetail = String(data: data, encoding: .utf8) ?? "No details available."
+                    print("--- IllustrationService: API Error Response Body: \(errorDetail) ---")
+                    throw IllustrationError.apiError(
+                        NSError(domain: "HTTPError", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "API request failed with status \(httpResponse.statusCode). Detail: \(errorDetail)"])
+                    )
+                }
+                
+                // 5. Decode Successful Response
+                let predictionResponse = try JSONDecoder().decode(ImagenPredictionResponse.self, from: data)
+                
+                guard let firstPrediction = predictionResponse.predictions.first,
+                      let base64String = firstPrediction.bytesBase64Encoded else {
+                    print("--- IllustrationService: No image data found in predictions array. Response: \(predictionResponse) ---")
+                    throw IllustrationError.noImageDataFound
+                }
+                
+                guard let imageData = Data(base64Encoded: base64String) else {
+                    print("--- IllustrationService: Failed to decode base64 image string. ---")
+                    throw IllustrationError.imageProcessingError("Failed to decode base64 image data.")
+                }
+                
+                let mimeType = firstPrediction.mimeType ?? "image/png"
+                let relativePath = try saveImageDataToPersistentDirectory(imageData: imageData, mimeType: mimeType)
+                print("--- IllustrationService: Successfully saved image at relative path: \(relativePath) ---")
+                return relativePath
+                
             } catch {
-                print("--- IllustrationService: Failed to decode successful response - \(error.localizedDescription) ---")
-                print("--- IllustrationService: Raw Response Data: \(String(data: data, encoding: .utf8) ?? "Unable to decode data") ---")
-                throw IllustrationError.invalidResponse("Failed to decode API response: \(error.localizedDescription)")
+                if let decodingError = error as? DecodingError {
+                    lastError = IllustrationError.invalidResponse("Failed to decode API response: \(decodingError.localizedDescription)")
+                } else {
+                    lastError = error
+                }
+                print("--- IllustrationService: Attempt \(attempt) failed with error: \(error.localizedDescription) ---")
+                if attempt < 5 {
+                    try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
+                }
             }
-
-
-            // 6. Extract and Decode Image Data
-            guard let firstPrediction = predictionResponse.predictions.first,
-                  let base64String = firstPrediction.bytesBase64Encoded else {
-                print("--- IllustrationService: No image data found in predictions array. Response: \(predictionResponse) ---")
-                throw IllustrationError.noImageDataFound
-            }
-
-            guard let imageData = Data(base64Encoded: base64String) else {
-                print("--- IllustrationService: Failed to decode base64 image string. ---")
-                throw IllustrationError.imageProcessingError("Failed to decode base64 image data.")
-            }
-
-            // 7. Save Image Data
-            print(
-                "--- IllustrationService: Found and decoded image data (\(imageData.count) bytes). Saving to temporary file. ---"
-            )
-            // Assume PNG if mimeType is not provided in the response, or use a default.
-            let mimeType = firstPrediction.mimeType ?? "image/png"
-            let fileURL = try saveImageDataToTemporaryFile(imageData: imageData, mimeType: mimeType)
-            print(
-                "--- IllustrationService: Successfully saved image to temporary file: \(fileURL.absoluteString) ---"
-            )
-            return fileURL
-
-        } catch let error as IllustrationError {
-             // Re-throw known IllustrationErrors
-             print("--- IllustrationService: Caught known IllustrationError - \(error.localizedDescription) ---")
-             throw error
-        } catch let error as URLError {
-            // Handle URLSession specific errors
-            print("--- IllustrationService: Network Error (URLError) - \(error.localizedDescription) ---")
-            throw IllustrationError.networkError(error)
-        } catch {
-            // Handle other unexpected errors during the process
-            print("--- IllustrationService: Unexpected error during REST API call - \(error.localizedDescription) ---")
-            // Map to a general API error or a more specific one if identifiable
-            throw IllustrationError.apiError(error)
         }
-    } // End of generateIllustration method
+        
+        if let lastError = lastError {
+            AIErrorManager.logError(lastError, source: "IllustrationService", additionalInfo: "All retries failed")
+        }
+        return nil
+    }
 
     /// Saves image data to a temporary file and returns its URL.
     private func saveImageDataToTemporaryFile(imageData: Data, mimeType: String) throws -> URL {
@@ -195,8 +177,44 @@ public class IllustrationService: IllustrationServiceProtocol {
             try imageData.write(to: fileURL)
             return fileURL
         } catch {
-            throw IllustrationError.imageProcessingError(
+            let processingError = IllustrationError.imageProcessingError(
                 "Failed to save image data to temporary file: \(error.localizedDescription)")
+            AIErrorManager.logError(processingError, source: "IllustrationService", additionalInfo: "File write failed")
+            throw processingError
+        }
+    }
+    /// Saves image data to persistent app directory and returns relative path string.
+    private func saveImageDataToPersistentDirectory(imageData: Data, mimeType: String) throws -> String {
+        let fileManager = FileManager.default
+        let appSupportURL = try fileManager.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        let illustrationsDir = appSupportURL.appendingPathComponent("Illustrations", isDirectory: true)
+        
+        // Create Illustrations directory if it doesn't exist
+        if !fileManager.fileExists(atPath: illustrationsDir.path) {
+            try fileManager.createDirectory(at: illustrationsDir, withIntermediateDirectories: true, attributes: nil)
+        }
+        
+        let uniqueID = UUID().uuidString
+        let fileExtension: String
+        switch mimeType.lowercased() {
+        case "image/png": fileExtension = "png"
+        case "image/jpeg", "image/jpg": fileExtension = "jpg"
+        case "image/webp": fileExtension = "webp"
+        default: fileExtension = "tmp"
+        }
+        let fileName = "\(uniqueID).\(fileExtension)"
+        let fileURL = illustrationsDir.appendingPathComponent(fileName)
+        
+        do {
+            try imageData.write(to: fileURL)
+            // Return relative path from Application Support directory
+            let relativePath = "Illustrations/\(fileName)"
+            return relativePath
+        } catch {
+            let processingError = IllustrationError.imageProcessingError(
+                "Failed to save image data to persistent directory: \(error.localizedDescription)")
+            AIErrorManager.logError(processingError, source: "IllustrationService", additionalInfo: "File write failed")
+            throw processingError
         }
     }
 }  // End of IllustrationService class

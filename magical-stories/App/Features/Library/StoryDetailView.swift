@@ -9,11 +9,19 @@ struct StoryDetailView: View {
     @State private var readingProgress: Double = 0.0
     // StoryProcessor instance removed, calculateReadingProgress is now static
     
+    // Accessibility description of the current reading progress
+    private var progressDescription: String {
+        return "Reading progress: \(Int(readingProgress * 100))%"
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             if isLoadingPages {
                 MagicalLoadingView(message: "Preparing your story...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityLabel("Loading story")
+                    .accessibilityHint("Please wait while your story is being prepared")
+                    .accessibilityAddTraits(.updatesFrequently)
             } else if pages.isEmpty {
                 MagicalEmptyStateView(
                     title: "Story Error",
@@ -23,18 +31,26 @@ struct StoryDetailView: View {
                     // In a real app, use Environment(\.dismiss)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .accessibilityLabel("Story Error")
+                .accessibilityHint("Could not load story pages")
             } else {
                 // Page Content using TabView for pagination
                 TabView(selection: $currentPageIndex) {
                     ForEach(pages.indices, id: \.self) { index in
                         PageView(page: pages[index])
                             .tag(index)
+                            .accessibilityLabel("Page \(index + 1)")
+                            .accessibilityHint("Swipe left or right to navigate between pages")
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never)) // Use page style, hide default index dots
                 .onChange(of: currentPageIndex) { _, newIndex in
                     updateReadingProgress()
+                    // Announce page change to VoiceOver
+                    UIAccessibility.post(notification: .pageScrolled, argument: "Page \(newIndex + 1) of \(pages.count)")
                 }
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel("Story pages")
                 
                 // Custom Page Indicator and Progress Bar
                 pageIndicatorAndProgress
@@ -55,11 +71,18 @@ struct StoryDetailView: View {
             ProgressView(value: readingProgress)
                 .tint(Theme.Colors.primary)
                 .padding(.horizontal, Theme.Spacing.lg)
+                .accessibilityLabel(progressDescription)
+                .accessibilityValue(progressDescription)
             
             Text("Page \(currentPageIndex + 1) of \(pages.count)")
                 .font(Theme.Typography.bodySmall)
                 .foregroundColor(Theme.Colors.textSecondary)
+                .dynamicTypeSize(...DynamicTypeSize.accessibility5)
+                .accessibilityLabel("Page \(currentPageIndex + 1) of \(pages.count)")
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Reading progress")
+        .accessibilityHint("Shows your current position in the story")
     }
     
     // MARK: - Helper Functions
@@ -72,6 +95,11 @@ struct StoryDetailView: View {
         print("StoryDetailView: Loaded \(pages.count) pages directly from story model.")
         isLoadingPages = false
         updateReadingProgress() // Initial progress update
+        
+        // Announce when pages are loaded for VoiceOver users
+        if !pages.isEmpty {
+            UIAccessibility.post(notification: .screenChanged, argument: "\(pages.count) pages loaded. Page 1 is now displayed")
+        }
     }
     
     private func updateReadingProgress() {
@@ -84,38 +112,4 @@ struct StoryDetailView: View {
         // Call the static method directly
         readingProgress = StoryProcessor.calculateReadingProgress(currentPage: currentPageIndex + 1, totalPages: pages.count)
     }
-}
-
-// MARK: - Preview
-#Preview {
-    NavigationStack {
-        StoryDetailView(
-            story: {
-                // Create sample parameters matching the Story model
-                let sampleParams = StoryParameters(
-                    childName: "Alex",
-                    childAge: 6, // Using the previous ageGroup value
-                    theme: "Courage", // Using a string representation of the theme
-                    favoriteCharacter: "🦁"
-                )
-                // Initialize Story with the correct parameters
-                // Create sample pages for the preview
-                let samplePages = [
-                    Page(content: "Once upon a time, there was a brave lion named Leo who lived in the savanna. Leo was known for his courage and kindness to all animals.", pageNumber: 1),
-                    Page(content: "One day, a terrible storm came to the savanna, and all the animals were afraid. But Leo stood tall and helped everyone find shelter.", pageNumber: 2, illustrationURL: URL(string: "https://example.com/placeholder-storm.png")), // Example URL
-                    Page(content: "Thanks to Leo's bravery, all the animals were safe. They cheered for Leo, the hero of the savanna!", pageNumber: 3),
-                    Page(content: "From that day on, Leo continued to watch over his friends, always ready to lend a paw.", pageNumber: 4)
-                ]
-
-                return Story(
-                    // id and timestamp will use default values from the initializer
-                    title: "The Brave Lion",
-                    pages: samplePages, // Use the pages array
-                    parameters: sampleParams
-                )
-            }() // Immediately execute the closure to provide the Story instance
-        )
-    }
-    // TODO: Add SettingsService environment object if needed for previews
-    // .environmentObject(SettingsService())
 }

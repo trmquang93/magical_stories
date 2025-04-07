@@ -37,14 +37,14 @@ class StoryProcessor {
         if trimmedContent.count <= Self.maxPageContentLength && paragraphs.count <= Self.maxParagraphsPerPage {
              var pages = [Page(content: trimmedContent, pageNumber: 1)]
              // Generate illustrations even for single-page stories
-             try await generateIllustrationsForPages(&pages, theme: theme)
+             await generateIllustrationsForPages(&pages, theme: theme)
              return pages
         }
 
         // Otherwise, build pages paragraph by paragraph
         var pages = buildPagesFromParagraphs(paragraphs)
         // Generate illustrations for multi-page stories
-        try await generateIllustrationsForPages(&pages, theme: theme)
+        await generateIllustrationsForPages(&pages, theme: theme)
         return pages
     }
 
@@ -183,50 +183,45 @@ class StoryProcessor {
 
     // MARK: - Illustration Generation
 
-    /// Iterates through pages and calls the illustration service.
-    private func generateIllustrationsForPages(_ pages: inout [Page], theme: String) async throws {
-        // No need for guard let anymore, illustrationService is non-optional
-
-        print("StoryProcessor: Starting illustration generation for \(pages.count) pages...")
+    /// Iterates through pages and calls the illustration service. Handles errors with graceful fallbacks.
+    /// This method no longer throws errors but handles them internally with fallbacks.
+    private func generateIllustrationsForPages(_ pages: inout [Page], theme: String) async {
+        AIErrorManager.logError(NSError(domain: "StoryProcessor", code: 0, userInfo: [NSLocalizedDescriptionKey: "Informational: Starting illustration generation for \(pages.count) pages"]),
+                                   source: "StoryProcessor",
+                                   additionalInfo: "Starting illustration generation")
 
         for i in pages.indices {
-            // let pageContent = pages[i].content // This was unused after refactor
-            // Combine page content and theme for the prompt
-            // Use page content directly, pass theme separately
             let pageText = pages[i].content
-            pages[i].imagePrompt = pageText // Store the page text used for the prompt
+            pages[i].imagePrompt = pageText
 
-            // Introduce a delay before the API call, especially after the first page
-            if i > 0 { // Only delay after the first call
+            if i > 0 {
                 do {
-                    // Delay for 1 second (1_000_000_000 nanoseconds)
                     try await Task.sleep(nanoseconds: 1_000_000_000)
-                    print("--- StoryProcessor: Added 1-second delay before generating illustration for page \(pages[i].pageNumber) ---")
                 } catch {
-                    // Handle potential cancellation or other errors during sleep
-                    print("--- StoryProcessor: Task.sleep failed: \(error.localizedDescription). Proceeding without delay. ---")
+                    AIErrorManager.logError(error, source: "StoryProcessor", additionalInfo: "Task.sleep failed")
                 }
             }
-
-            print("StoryProcessor: Generating illustration for page \(pages[i].pageNumber) with theme: \(theme), content: \"\(pageText.prefix(80))...\"")
 
             do {
-                // Use the updated service method signature
-                let url = try await illustrationService.generateIllustration(for: pageText, theme: theme)
-                pages[i].illustrationURL = url
-                if let url = url {
-                    print("StoryProcessor: Successfully generated illustration for page \(pages[i].pageNumber): \(url.absoluteString)")
+                let relativePath = try await illustrationService.generateIllustration(for: pageText, theme: theme)
+                if let relativePath = relativePath {
+                    pages[i].illustrationRelativePath = relativePath
+                    pages[i].illustrationStatus = .success
                 } else {
-                    print("StoryProcessor: Illustration generation returned nil for page \(pages[i].pageNumber).")
+                    AIErrorManager.logError(NSError(domain: "StoryProcessor", code: 1,
+                                                    userInfo: [NSLocalizedDescriptionKey: "Illustration service returned nil"]),
+                                               source: "StoryProcessor",
+                                               additionalInfo: "Marking as failed for page \(pages[i].pageNumber)")
+                    pages[i].illustrationRelativePath = nil
+                    pages[i].illustrationStatus = .failed
                 }
             } catch {
-                print("StoryProcessor: Error generating illustration for page \(pages[i].pageNumber): \(error)")
-                // Decide how to handle errors - store nil, retry, etc.
-                // Storing nil for now.
-                pages[i].illustrationURL = nil
+                AIErrorManager.logError(error, source: "StoryProcessor",
+                                       additionalInfo: "Failed to generate illustration for page \(pages[i].pageNumber)")
+                pages[i].illustrationRelativePath = nil
+                pages[i].illustrationStatus = .failed
             }
         }
-        print("StoryProcessor: Finished illustration generation.")
     }
 
     // MARK: - Reading Progress

@@ -4,6 +4,7 @@ import Foundation
 @testable import magical_stories
 
 // MARK: - Mock Illustration Service
+@MainActor
 class MockIllustrationService: IllustrationServiceProtocol {
     var generateIllustrationCallCount = 0
     // Store the parameters received by the last call
@@ -14,17 +15,19 @@ class MockIllustrationService: IllustrationServiceProtocol {
     var urlToReturn: URL? = URL(string: "https://mock.url/image.png") // Control return value
 
     // Update signature to match protocol
-    func generateIllustration(for pageText: String, theme: String) async throws -> URL? {
+    @MainActor
+    func generateIllustration(for pageText: String, theme: String) async throws -> String? {
         generateIllustrationCallCount += 1
-        lastCallParameters = (pageText, theme) // Store last parameters
-        generateIllustrationPrompts.append((pageText, theme)) // Store all parameters
+        lastCallParameters = (pageText, theme)
+        generateIllustrationPrompts.append((pageText, theme))
 
         if let error = generateIllustrationShouldThrowError {
             print("--- MockIllustrationService: Throwing error for pageText: \(pageText.prefix(50))..., theme: \(theme) ---")
             throw error
         }
-        print("--- MockIllustrationService: Returning URL \(urlToReturn?.absoluteString ?? "nil") for pageText: \(pageText.prefix(50))..., theme: \(theme) ---")
-        return urlToReturn // Use the controllable urlToReturn property
+        let relativePath = urlToReturn?.path.replacingOccurrences(of: "/private/var/mobile/Containers/Data/Application/UUID/Application Support/", with: "")
+        print("--- MockIllustrationService: Returning relative path \(relativePath ?? "nil") for pageText: \(pageText.prefix(50))..., theme: \(theme) ---")
+        return relativePath
     }
 
     func reset() {
@@ -316,7 +319,8 @@ final class StoryProcessorTests: XCTestCase { // Changed to class inheriting fro
 
         // Then
         XCTAssertEqual(pages.count, 1)
-        XCTAssertEqual(pages[0].illustrationURL, expectedURL, "Illustration URL should be set by the mock")
+        XCTAssertEqual(pages[0].illustrationStatus, .success, "Status should be success when mock returns a path")
+        XCTAssertNotNil(pages[0].illustrationRelativePath, "Relative path should be set by the mock")
         XCTAssertNotNil(pages[0].imagePrompt, "Image prompt should be set even on success")
     }
 
@@ -331,7 +335,8 @@ final class StoryProcessorTests: XCTestCase { // Changed to class inheriting fro
 
         // Then
         XCTAssertEqual(pages.count, 1)
-        XCTAssertNil(pages[0].illustrationURL, "Illustration URL should be nil when mock returns nil")
+        XCTAssertNil(pages[0].illustrationRelativePath, "Relative path should be nil when mock returns nil")
+        XCTAssertEqual(pages[0].illustrationStatus, .failed, "Status should be failed when mock returns nil")
         XCTAssertNotNil(pages[0].imagePrompt, "Image prompt should be set even when mock returns nil")
     }
 
@@ -346,7 +351,8 @@ final class StoryProcessorTests: XCTestCase { // Changed to class inheriting fro
 
         // Then
         XCTAssertEqual(pages.count, 1)
-        XCTAssertNil(pages[0].illustrationURL, "Illustration URL should be nil when mock throws error")
+        XCTAssertNil(pages[0].illustrationRelativePath, "Relative path should be nil when mock throws error")
+        XCTAssertEqual(pages[0].illustrationStatus, .failed, "Status should be failed when mock throws error")
         XCTAssertNotNil(pages[0].imagePrompt, "Image prompt should be set even when mock throws error")
     }
 

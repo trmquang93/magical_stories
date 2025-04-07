@@ -40,12 +40,11 @@ final class IllustrationServiceTests: XCTestCase {
     
     // MARK: - Test Cases
 
-    func testGenerateIllustrationSuccess_ReturnsURL() async throws {
+    func testGenerateIllustrationSuccess_ReturnsRelativePath() async throws {
         // Arrange
         let apiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict"
         let urlString = "\(apiEndpoint)?key=\(testApiKey)"
         
-        // Register a successful mock response with our sample image
         MockURLProtocol.registerJSONResponse(
             for: urlString,
             statusCode: 200,
@@ -53,22 +52,24 @@ final class IllustrationServiceTests: XCTestCase {
         )
         
         // Act
-        let resultURL = try await testableService.generateIllustration(for: testPageText, theme: testTheme)
+        let resultPath = try await testableService.generateIllustration(for: testPageText, theme: testTheme)
         
         // Assert
-        XCTAssertNotNil(resultURL, "The generateIllustration method should return a non-nil URL on success.")
-        XCTAssertTrue(resultURL!.isFileURL, "The returned URL should be a file URL.")
+        XCTAssertNotNil(resultPath, "The generateIllustration method should return a non-nil relative path on success.")
+        XCTAssertTrue(resultPath!.hasPrefix("Illustrations/"), "The returned path should be inside Illustrations directory.")
         
-        // Verify file exists
+        // Reconstruct full URL
+        let appSupportURL = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+        let fullURL = appSupportURL.appendingPathComponent(resultPath!)
+        
         let fileManager = FileManager.default
-        XCTAssertTrue(fileManager.fileExists(atPath: resultURL!.path), "The image file should exist at the returned path.")
+        XCTAssertTrue(fileManager.fileExists(atPath: fullURL.path), "The image file should exist at the saved path.")
         
-        // Verify file has content (not empty)
-        let fileData = try Data(contentsOf: resultURL!)
+        let fileData = try Data(contentsOf: fullURL)
         XCTAssertFalse(fileData.isEmpty, "The image file should not be empty.")
         
-        // Clean up temporary file
-        try? fileManager.removeItem(at: resultURL!)
+        // Clean up saved file
+        try? fileManager.removeItem(at: fullURL)
     }
 
     func testGenerateIllustration_WhenSDKReturnsInvalidURLText_ThrowsInvalidResponse() async throws {
@@ -89,8 +90,9 @@ final class IllustrationServiceTests: XCTestCase {
             _ = try await testableService.generateIllustration(for: testPageText, theme: testTheme)
             XCTFail("Expected generateIllustration to throw an error for invalid JSON, but it did not.")
         } catch let error as IllustrationError {
-            guard case .invalidResponse = error else {
-                XCTFail("Expected .invalidResponse error, but got \(error)")
+            guard case .apiError(let underlyingError) = error,
+                  underlyingError is DecodingError else {
+                XCTFail("Expected .apiError wrapping DecodingError, but got \(error)")
                 return
             }
             // Test passed - got expected error type
