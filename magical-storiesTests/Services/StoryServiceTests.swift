@@ -55,6 +55,8 @@ class MockPersistenceService: PersistenceServiceProtocol {
         if let error = saveStoryError {
             throw error
         }
+        // Simulate saving by adding to the list used by loadStories
+        storiesToLoad.append(story)
     }
 
     // Corrected: synchronous throws
@@ -109,8 +111,8 @@ class MockStoryProcessor: StoryProcessor {
          // For isolated unit testing of StoryService, we might not need a fully functional super.init().
          // Let's assume we can bypass the super.init complexity for this mock's purpose,
          // as we only care about overriding processIntoPages.
-         // If StoryProcessor init MUST be called and throws, we'd need to handle that (e.g., pass a non-throwing mock IllustrationService).
-         // For now, we omit super.init() call, focusing on the override.
+         // Call the superclass initializer as required.
+         super.init(illustrationService: illustrationService)
     }
 
 
@@ -272,8 +274,8 @@ struct StoryServiceTests {
             },
             throws: { error in // Closure to validate the error
                 guard case .generationFailed(let message) = error as? StoryServiceError else {
-                    #error("Expected .generationFailed error type")
-                    return false // Indicate failure if type doesn't match
+                    // Error type mismatch, test should fail here naturally.
+                    return false
                 }
                 #expect(message.contains("No content generated")) // Check the associated message
                 return true // Error matches expectations
@@ -330,8 +332,8 @@ struct StoryServiceTests {
              },
              throws: { error in // Closure to validate the error
                  guard case .generationFailed(let message) = error as? StoryServiceError else {
-                     #error("Expected .generationFailed error type")
-                     return false // Indicate failure if type doesn't match
+                     // Error type mismatch, test should fail here naturally.
+                     return false
                  }
                  #expect(message == "Processing mock error") // Check it's the error from the processor
                  return true // Error matches expectations
@@ -360,6 +362,7 @@ struct StoryServiceTests {
          mockPersistenceService.saveStoryError = StoryServiceError.persistenceFailed // Simulate persistence error
 
          // Act & Assert
+         mockPersistenceService.loadStoriesCalled = false // Reset flag to ignore init load
          #expect(storyService.isGenerating == false)
          // Correct #expect(throws:) syntax for specific error instance
          await #expect(throws: StoryServiceError.persistenceFailed) {
