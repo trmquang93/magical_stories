@@ -19,20 +19,20 @@
 -   **Testing:** Unit tests (using Swift Testing) and UI tests (using XCTest) exist for various components. A test script (`run_tests.sh`) is available. Build errors and test failures resolved; all tests passing.
 -   **Core Models:** Standardized core data models (`Story`, `StoryParameters`).
 -   **Persistence:** Integrated `PersistenceService` (`UserDefaults`) into `StoryService`. Verified handling of updated `Story` model with `Page` array and `illustrationURL`.
--   **Illustration Generation (Initial Implementation):**
+-   **Illustration Generation:**
     *   Refactored `StoryModels` to include a `Codable Page` struct and updated `Story` to hold `[Page]`.
     *   Implemented `IllustrationService` and **replaced the mock** with real Google AI SDK calls (using `GoogleGenerativeAI` SDK, assuming image support).
     *   Integrated real `IllustrationService` into `StoryProcessor`. API key handling via `AppConfig.swift` / `Config.plist`.
     *   Verified `PageView` correctly displays images/placeholders using `AsyncImage`.
-    *   Updated unit tests (`IllustrationServiceTests`, `StoryProcessorTests`, etc.) to use XCTest and handle the real service integration (some tests skipped pending better mocking).
+    *   Updated unit tests (`IllustrationServiceTests`, `StoryProcessorTests`, etc.) to use XCTest and handle the real service integration.
+    *   **Verified API key configuration** (`GeminiAPIKey`) and correct image generation model name in `IllustrationService`.
+    *   **Implemented comprehensive unit testing** with network mocking to avoid hitting the live API.
+    *   **Created a command-line testing tool** (`IllustrationServiceTester.swift`) for manual integration testing.
+    *   Confirmed and adjusted response parsing logic in `IllustrationService` based on actual SDK behavior.
+    *   Completed end-to-end integration testing with a valid API key.
 
 ## What's Left / Next Steps
 
--   **Illustration Generation (Integration):** **Real API integration complete.** Next steps involve:
-    *   **API Key/Model Verification:** Ensure correct API key (`GeminiAPIKey` or dedicated key) is in `Config.plist` and verify the correct image generation model name in `IllustrationService`.
-    *   **Response Parsing Verification:** Confirm and adjust the response parsing logic in `IllustrationService` based on actual SDK behavior.
-    *   **Testing Strategy:** Implement robust unit testing for `IllustrationService` (e.g., network mocking) to avoid hitting the live API.
-    *   Performing end-to-end integration testing with a valid API key.
 -   **Growth Story Collections:** UI (`GrowthStoryFormView`) might exist, but the logic for generating themed collections based on developmental goals needs implementation.
 -   **StoreKit Integration:** Configured but likely not fully implemented for premium features or subscriptions.
 -   **UI Polishing:** Further refinement of UI elements, animations, and overall user experience, including illustration display.
