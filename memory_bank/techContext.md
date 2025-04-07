@@ -3,7 +3,8 @@
 ## Core Technologies
 -   **Language:** Swift (latest version preferred)
 -   **UI Framework:** SwiftUI
--   **Platform:** iOS (targeting recent versions)
+-   **Platform:** iOS 16.0+ (Target)
+-   **Device Support:** iPhone and iPad (Basic Universal App support)
 -   **Data Persistence:** `UserDefaults` via `PersistenceService` (MVP implementation). SwiftData is the likely long-term target.
 -   **AI Service:**
     *   **Text Generation:** Google Generative AI (Gemini Pro) via its Swift SDK.
@@ -17,12 +18,26 @@
 -   **Version Control:** Git (repository likely hosted on GitHub, based on `CHANGELOG.md` links).
 
 ## Key Libraries & Frameworks Used
--   **SwiftUI:** For UI, state management, and navigation.
--   **Foundation:** For core data types, networking, `UserDefaults`, etc.
+-   **SwiftUI:** For UI, state management, and navigation. Core components include `TabView`, `NavigationStack`, `List`, `Form`, `TextField`, `Picker`, `.sheet`, `NavigationLink`, `.navigationDestination`, `AsyncImage`.
+-   **Foundation:** For core data types, networking (`URLSession` for image gen), `UserDefaults`, `ProcessInfo`, etc.
 -   **GoogleGenerativeAI (Swift SDK):** For interacting with the Gemini Pro API to generate story content.
 -   **(No SDK for Image Gen):** Direct `URLSession` calls are used for image generation API interaction.
--   **Testing:** Swift's built-in testing framework.
+-   **Testing:** Swift's built-in testing framework (`Testing`).
 -   **XCTest:** Underlying framework for UI tests (`magical-storiesUITests`).
+
+## Core Technical Patterns & Guidelines
+-   **Architecture:** Follows MVVM principles loosely, heavily relying on SwiftUI's state management. See `memory_bank/systemPatterns.md` for details.
+-   **State Management:** Primarily uses `@StateObject` (for services), `@EnvironmentObject` (for service injection), `@State` (for local view state), `@Binding` (for two-way connections), and `@AppStorage` (for user preferences).
+-   **Asynchronous Operations:** `async/await` is mandatory for all network operations (AI calls, potential future data loading). Views use `.task` for initiating async work.
+-   **Error Handling:** Utilize Swift's native `do-catch` mechanism with custom `Error` enums (e.g., `StoryError`). Provide user-friendly feedback via SwiftUI `.alert`. Handle API errors gracefully.
+-   **Navigation:** Use `TabView` for main sections, `NavigationStack` within tabs, `.sheet` for modals, and `NavigationLink` / `.navigationDestination` for push navigation. See `memory_bank/systemPatterns.md`.
+-   **UI Guidelines:**
+    *   Follow Apple Human Interface Guidelines (HIG).
+    *   Use SF Symbols for consistent iconography.
+    *   Use SF Pro Rounded font where appropriate for a child-friendly feel.
+-   **Accessibility:** Implement basic VoiceOver support and ensure Dynamic Type compatibility for adjustable font sizes.
+-   **Personalization:** Support Dark Mode via `.preferredColorScheme`, use `@AppStorage` for preferences.
+-   **Text-to-Speech:** *Initially considered (AVSpeechSynthesizer), but feature was removed.*
 
 ## Build & Test Process
 -   A script `run_tests.sh` exists to clean, build, and run unit and UI tests, likely using `xcodebuild`.

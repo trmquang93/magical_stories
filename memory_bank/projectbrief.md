@@ -1,12 +1,49 @@
 # Project Brief: Magical Stories
 
 ## Core Goal
-To create a mobile application (iOS) that generates personalized, magical stories for children based on user-provided parameters like theme, child's name, age, and favorite characters.
+To create a mobile application (iOS) that generates personalized, magical stories for children based on user-provided parameters like theme, child's name, age, and favorite characters, potentially including features like growth paths and illustrations.
 
-## Key Objectives
+## Overall Key Objectives
 - Provide an engaging and creative storytelling experience for children.
 - Allow users to customize story generation parameters.
 - Offer a library to store and revisit generated stories.
 - Implement parental controls for content and usage management.
 - Ensure a user-friendly and visually appealing interface using SwiftUI.
-- Leverage AI (currently Google Gemini) for dynamic story content generation.
+- Leverage AI (currently Google Gemini) for dynamic story content and illustration generation.
+- Potentially offer structured "Growth Path Stories" for skill development.
+
+## MVP Primary Objectives
+- Validate that parents and children enjoy personalized, AI‑generated bedtime stories.
+- Establish a core revenue model (freemium/subscription or select in‑app purchases) using StoreKit 2 (if applicable during MVP).
+- Keep initial development lean and focused on the core storytelling functionality.
+
+## Core MVP Features
+- **User Input:**
+    - SwiftUI forms (`StoryFormView`) with `TextField` and `Picker` components for parents to enter:
+        - Child's name
+        - Age (using a segmented picker)
+        - Favorite animal/character (with emoji support)
+        - Story theme/moral (using a custom picker with illustrations)
+- **Story Generation:**
+    - Construct prompt from user inputs (potentially using a `PromptBuilder` service).
+    - Call Google AI API (Gemini Pro for text, potentially another model for images) using async/await pattern.
+    - Handle API errors gracefully with user-friendly alerts.
+- **Story Display:**
+    - Clean, child‑friendly SwiftUI interface (`StoryDetailView`, `PageView`) using SF Pro Rounded font.
+    - Support for Dynamic Type and basic accessibility (VoiceOver).
+    - Custom animations for page turns and transitions (optional enhancement).
+- **Basic Personalization:**
+    - Support system-wide Dark Mode using `.preferredColorScheme`.
+    - Dynamic Type support for adjustable font sizes.
+    - Store preferences using `@AppStorage`.
+    - *Note: Text-to-speech (AVSpeechSynthesizer) was initially considered but removed.*
+- **Story Library (Simplified for MVP):**
+    - Save stories using `UserDefaults` via `PersistenceService` for simple storage. (SwiftData is a future goal).
+    - Basic list view (`StoriesView`) with preview cards. Search is optional.
+- **Parental Controls (Basic):**
+    - Basic content filtering through prompt engineering.
+    - Simple toggles in Settings (`SettingsView`) using SwiftUI `Form` views.
+    - Optional Screen Time integration (lower priority).
+- **Illustration Generation (Core):**
+    - Generate illustrations per page using Google AI API via `IllustrationService`.
+    - Display illustrations in `PageView` using `AsyncImage`.
