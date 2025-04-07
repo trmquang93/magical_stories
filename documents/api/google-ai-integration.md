@@ -1,7 +1,7 @@
 # Google AI (Gemini Pro) Integration Guide
 
 ## Overview
-This document outlines the integration of Google AI's Gemini Pro model for generating personalized children's stories in the Magical Stories app. It also applies to the image generation feature.
+This document outlines the integration of Google AI models (Gemini Pro for text, Gemini Flash 2.0 for images) for generating personalized children's stories and illustrations in the Magical Stories app.
 
 ## API Setup
 
@@ -50,30 +50,19 @@ The `StoryService` utilizes the `GoogleGenerativeAI` Swift SDK for text generati
 
 ### Image Generation (`IllustrationService`)
 
-The `IllustrationService` also utilizes the `GoogleGenerativeAI` Swift SDK (assuming it supports image generation with a suitable model like "gemini-1.5-flash" or similar) and the same API key (`AppConfig.geminiApiKey`).
+The `IllustrationService` uses direct REST API calls to the Google Generative Language API for image generation, utilizing the `gemini-2.0-flash-exp-image-generation` model. It does **not** use the `GoogleGenerativeAI` Swift SDK's `GenerativeModel` for this purpose, as the SDK might not directly support this specific model endpoint or the required request structure at the time of implementation.
 
-```swift
-// IllustrationService.swift (Simplified Example)
-import GoogleGenerativeAI
+**Endpoint:**
+`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent`
 
-public class IllustrationService: IllustrationServiceProtocol {
-    private let apiKey: String
-    private let modelName = "gemini-1.5-flash" // Placeholder - Verify correct model
-    private let generativeModel: GenerativeModel
+**Implementation:**
+- The service constructs a `URLRequest` manually.
+- The request body is encoded from custom `Codable` structs (`GeminiImageGenRequest`) matching the API's expected JSON format (using `contents`, `parts`, `generationConfig`).
+- The response is decoded into custom `Codable` structs (`GeminiImageGenResponse`).
+- Image data (base64 encoded) is extracted from the `inlineData` field within the response parts.
+- The same API key (`AppConfig.geminiApiKey`) is used.
 
-    public init(apiKey: String = AppConfig.geminiApiKey) throws {
-        // ... initializer logic ...
-        self.apiKey = apiKey
-        self.generativeModel = GenerativeModel(name: modelName, apiKey: apiKey)
-    }
-
-    public func generateIllustration(for pageText: String, theme: String) async throws -> URL? {
-        let combinedPrompt = "..." // Construct prompt
-        let response = try await generativeModel.generateContent(combinedPrompt)
-        // ... parse response for URL ...
-    }
-}
-```
+*(See `IllustrationService.swift` for detailed implementation)*
 
 ### Error Handling (`IllustrationError`)
 
@@ -210,7 +199,7 @@ class StoryCache {
 
 ### Testing (`IllustrationServiceTests`)
 
-Unit testing `IllustrationService` currently involves initializing the real service. Mocking the network interaction requires further work (e.g., network layer mocking or potentially subclassing `GenerativeModel` if possible, though this was problematic). Tests for specific error conditions (API key invalid, prompt blocked) are implemented but rely on the real API behavior or are skipped.
+Unit testing `IllustrationService` currently involves initializing the real service and making direct REST calls with a dummy API key. This primarily tests the error handling path where the API call fails due to an invalid key (expecting an `IllustrationError.apiError` wrapping an HTTP 4xx error). Mocking the network interaction (e.g., using `URLProtocol`) would be required for comprehensive unit testing of the request construction and response parsing logic without hitting the actual API. Tests for specific error conditions like prompt blocking are currently skipped as they require real API interaction or network mocking.
 
 ## Monitoring
 

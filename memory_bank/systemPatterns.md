@@ -19,13 +19,13 @@ The application primarily follows the **MVVM (Model-View-ViewModel)** pattern wi
     *   `NavigationStack`: Used within each tab for push/pop navigation (e.g., navigating from `LibraryView` to `StoryDetailView`).
     *   `.sheet` / `.fullScreenCover`: Used for presenting modal views (e.g., `StoryFormView`).
 7.  **Asynchronous Operations:** `async/await` is used for handling asynchronous tasks like AI story generation (`StoryService`) and potentially data loading. Views use `.task` modifiers to initiate asynchronous work when they appear.
-8.  **Protocol-Based Mocking (for Testing):** Service protocols (`StoryServiceProtocol`, `SettingsServiceProtocol`) exist, enabling the creation of mock objects for unit and integration testing (as seen with the removed `MockTextToSpeechService`).
-9.  **Illustration Generation (Planned):**
-    *   A dedicated `IllustrationService` will handle interaction with an external AI image generation API (assumed Google AI).
-    *   This service will be injected via `@EnvironmentObject`.
-    *   The `StoryProcessor` (or similar orchestration logic) will invoke the `IllustrationService` *after* story text generation and pagination.
-    *   Generation will occur asynchronously, likely per page, using the page text and story theme as input.
-    *   The resulting image URL (or `nil` on failure) will be stored in the page's data model (`illustrationURL: URL?`).
+8.  **Protocol-Based Mocking (for Testing):** Service protocols (`StoryServiceProtocol`, `SettingsServiceProtocol`, `PersistenceServiceProtocol`) exist for most services, enabling the creation of mock objects for unit testing. Note: `IllustrationService` currently does not have a corresponding protocol and is tested via direct instantiation (primarily testing error paths with dummy keys).
+9.  **Illustration Generation:**
+    *   A dedicated `IllustrationService` handles interaction with the Google Generative AI API (`gemini-2.0-flash-exp-image-generation` model) via **direct REST calls** (not the Swift SDK).
+    *   This service is injected via `@EnvironmentObject`.
+    *   The `StoryProcessor` invokes the `IllustrationService` *after* story text generation and pagination.
+    *   Generation occurs asynchronously, per page, using the page text and story theme as input.
+    *   The resulting image URL (or `nil` on failure), derived from saving the received image data to a temporary file, is stored in the page's data model (`illustrationURL: URL?`).
     *   UI views (`PageView`) will use `AsyncImage` to load and display illustrations from the stored URL.
 
 ## Current Architecture

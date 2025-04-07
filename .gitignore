@@ -149,3 +149,5 @@ TestResults.xcresult
 TestResults.xml
 magical-stories/App/Configuration.swift
 magical-stories/Config.plist
+*.xcresult
+TestResults*
