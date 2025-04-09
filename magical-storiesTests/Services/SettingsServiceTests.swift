@@ -6,6 +6,42 @@ import SwiftData
 // Minimal mock for usage analytics dependency
 
 @MainActor
+
+class StatefulMockUsageAnalyticsService: UsageAnalyticsServiceProtocol {
+    private var storyCount: Int = 0
+    private var lastDate: Date? = nil
+
+    func getStoryGenerationCount() async -> Int {
+        if let lastDate = lastDate, Calendar.current.isDate(lastDate, inSameDayAs: Date()) {
+            return storyCount
+        } else {
+            return 0
+        }
+    }
+
+    func incrementStoryGenerationCount() async {
+        let today = Date()
+        if let lastDate = lastDate, Calendar.current.isDate(lastDate, inSameDayAs: today) {
+            storyCount += 1
+        } else {
+            storyCount = 1
+            lastDate = today
+        }
+    }
+
+    func updateLastGenerationDate(date: Date?) async {
+        lastDate = date
+    }
+
+    func getLastGenerationDate() async -> Date? {
+        return lastDate
+    }
+
+    func updateLastGeneratedStoryId(id: UUID?) async { }
+
+    func getLastGeneratedStoryId() async -> UUID? { nil }
+}
+
 struct SettingsServiceTests {
     var settingsService: SettingsService!
     var userDefaults: UserDefaults!
@@ -31,13 +67,13 @@ struct SettingsServiceTests {
 
         do {
             modelContainer = try ModelContainer(for: schema, configurations: [configuration])
-            let modelContext = modelContainer.mainContext // Use mainContext for @MainActor service
+            let modelContext = await modelContainer.mainContext // Use mainContext for @MainActor service
             repository = SettingsRepository(modelContext: modelContext)
 
             // Create a fresh instance of SettingsService with the repository and test UserDefaults
-            settingsService = SettingsService(
+            settingsService = await SettingsService(
                 repository: repository,
-                usageAnalyticsService: MockUsageAnalyticsService(),
+                usageAnalyticsService: StatefulMockUsageAnalyticsService(),
                 userDefaults: userDefaults
             )
 
@@ -56,105 +92,105 @@ struct SettingsServiceTests {
         // Then - Verify default values (after async init)
         // Note: setUp() is now implicitly called via init()
         // Then - Verify default values
-        #expect(settingsService.parentalControls.contentFiltering == true)
-        #expect(settingsService.parentalControls.maxStoriesPerDay == 3)
-        #expect(Set(settingsService.parentalControls.allowedThemes) == Set(StoryTheme.allCases))
-        #expect(settingsService.parentalControls.minimumAge == 3)
-        #expect(settingsService.parentalControls.maximumAge == 10)
+        #expect(await settingsService.parentalControls.contentFiltering == true)
+        #expect(await settingsService.parentalControls.maxStoriesPerDay == 3)
+        #expect(Set(await settingsService.parentalControls.allowedThemes) == Set(StoryTheme.allCases))
+        #expect(await settingsService.parentalControls.minimumAge == 3)
+        #expect(await settingsService.parentalControls.maximumAge == 10)
         
-        #expect(settingsService.appSettings.fontScale == 1.0)
-        #expect(settingsService.appSettings.hapticFeedbackEnabled == true)
-        #expect(settingsService.appSettings.soundEffectsEnabled == true)
-        #expect(settingsService.appSettings.darkModeEnabled == false)
+        #expect(await settingsService.appSettings.fontScale == 1.0)
+        #expect(await settingsService.appSettings.hapticFeedbackEnabled == true)
+        #expect(await settingsService.appSettings.soundEffectsEnabled == true)
+        #expect(await settingsService.appSettings.darkModeEnabled == false)
     }
     
     @Test("Updating parental controls should persist changes")
     mutating func testUpdateParentalControls() async throws {
         // Given: Setup is done in init
-        var controls = settingsService.parentalControls // Get current (likely default)
+        var controls = await settingsService.parentalControls // Get current (likely default)
         controls.contentFiltering = false
         controls.maxStoriesPerDay = 5
         controls.allowedThemes = [StoryTheme.adventure] // Change themes too
 
         // When
-        settingsService.updateParentalControls(controls)
+        await settingsService.updateParentalControls(controls)
         await waitForAsyncOperations() // Allow save task to run
 
         // Then - Verify in-memory changes
-        #expect(settingsService.parentalControls.contentFiltering == false)
-        #expect(settingsService.parentalControls.maxStoriesPerDay == 5)
-        #expect(settingsService.parentalControls.allowedThemes == [StoryTheme.adventure])
+        #expect(await settingsService.parentalControls.contentFiltering == false)
+        #expect(await settingsService.parentalControls.maxStoriesPerDay == 5)
+        #expect(await settingsService.parentalControls.allowedThemes == [StoryTheme.adventure])
 
         // Then - Verify persistence by creating a new service with the SAME repository
-        let newService = SettingsService(
+        let newService = await SettingsService(
             repository: repository,
             usageAnalyticsService: MockUsageAnalyticsService(),
             userDefaults: userDefaults
         )
-        await waitForAsyncOperations() // Allow new service's async init to load
+        await waitForAsyncOperations(durationInSeconds: 0.3) // Allow more time for async init to load
 
-        #expect(newService.parentalControls.contentFiltering == false)
-        #expect(newService.parentalControls.maxStoriesPerDay == 5)
-        #expect(newService.parentalControls.allowedThemes == [.adventure])
+        #expect(await newService.parentalControls.contentFiltering == false)
+        #expect(await newService.parentalControls.maxStoriesPerDay == 5)
+        #expect(await newService.parentalControls.allowedThemes == [.adventure])
     }
     
     @Test("Updating app settings should persist changes")
     mutating func testUpdateAppSettings() async throws {
         // Given: Setup is done in init
-        var settings = settingsService.appSettings // Make mutable to change
+        var settings = await settingsService.appSettings // Make mutable to change
         settings.fontScale = 1.5
         settings.darkModeEnabled = true
 
         // When
-        settingsService.updateAppSettings(settings)
+        await settingsService.updateAppSettings(settings)
         await waitForAsyncOperations() // Allow save task to run
 
         // Then - Verify in-memory changes
-        #expect(settingsService.appSettings.fontScale == 1.5)
-        #expect(settingsService.appSettings.darkModeEnabled == true)
+        #expect(await settingsService.appSettings.fontScale == 1.5)
+        #expect(await settingsService.appSettings.darkModeEnabled == true)
 
         // Then - Verify persistence
-        let newService = SettingsService(
+        let newService = await SettingsService(
             repository: repository,
             usageAnalyticsService: MockUsageAnalyticsService(),
             userDefaults: userDefaults
         )
-        await waitForAsyncOperations() // Allow new service's async init to load
+        await waitForAsyncOperations(durationInSeconds: 0.3) // Allow more time for async init to load
 
-        #expect(newService.appSettings.fontScale == 1.5)
-        #expect(newService.appSettings.darkModeEnabled == true)
+        #expect(await newService.appSettings.fontScale == 1.5)
+        #expect(await newService.appSettings.darkModeEnabled == true)
     }
     
     @Test("Story generation validation should respect parental controls")
     mutating func testStoryGenerationValidation() async throws {
         // Given: Setup is done in init
-        var controls = settingsService.parentalControls // Get current (likely default)
+        var controls = await settingsService.parentalControls // Get current (likely default)
         controls.contentFiltering = true
         controls.allowedThemes = [.adventure, .friendship]
         controls.minimumAge = 5
         controls.maximumAge = 8
-        settingsService.updateParentalControls(controls)
+        await settingsService.updateParentalControls(controls)
         await waitForAsyncOperations() // Allow save task to run
 
         // Then - Valid case
-        #expect(settingsService.canGenerateStory(theme: StoryTheme.adventure, ageGroup: 6) == true)
+        #expect(await settingsService.canGenerateStory(theme: StoryTheme.adventure, ageGroup: 6) == true)
                 
         // Then - Invalid theme
-        #expect(settingsService.canGenerateStory(theme: StoryTheme.learning, ageGroup: 6) == false)
+        #expect(await settingsService.canGenerateStory(theme: StoryTheme.learning, ageGroup: 6) == false)
                 
         // Then - Invalid age
-        #expect(settingsService.canGenerateStory(theme: StoryTheme.adventure, ageGroup: 4) == false)
-        #expect(settingsService.canGenerateStory(theme: StoryTheme.adventure, ageGroup: 9) == false)
+        #expect(await settingsService.canGenerateStory(theme: StoryTheme.adventure, ageGroup: 4) == false)
+        #expect(await settingsService.canGenerateStory(theme: StoryTheme.adventure, ageGroup: 9) == false)
     }
     
     @Test("Story count limit should respect screen time settings")
     mutating func testStoryCountLimit() async throws {
         // Given: Setup is done in init
         // This test primarily interacts with UserDefaults for count, which remains unchanged
-        var controls = settingsService.parentalControls
+        var controls = await settingsService.parentalControls
         controls.screenTimeEnabled = true
         controls.maxStoriesPerDay = 2
-        settingsService.updateParentalControls(controls)
+        await settingsService.updateParentalControls(controls)
         await waitForAsyncOperations() // Allow save task to run
 
         // Then - Initial state
@@ -170,68 +206,6 @@ struct SettingsServiceTests {
 
     // MARK: - Migration Test
 
-    @Test("Settings should migrate from UserDefaults to SwiftData")
-    mutating func testUserDefaultsMigration() async throws {
-        // --- Setup Phase ---
-        // 1. Prepare UserDefaults with old data
-        let suiteName = "migration_test_suite_\(UUID().uuidString)"
-        let migrationUserDefaults = UserDefaults(suiteName: suiteName)!
-        migrationUserDefaults.removePersistentDomain(forName: suiteName) // Clean slate
-
-        let oldControls = ParentalControls(
-            contentFiltering: false,
-            screenTimeEnabled: true,
-            maxStoriesPerDay: 10,
-            allowedThemes: [StoryTheme.friendship, StoryTheme.adventure],
-            minimumAge: 7,
-            maximumAge: 12
-        )
-        let oldSettings = AppSettings(
-            fontScale: 0.8,
-            hapticFeedbackEnabled: false,
-            soundEffectsEnabled: false,
-            darkModeEnabled: true
-        )
-
-        let jsonEncoder = JSONEncoder()
-        let controlsData = try jsonEncoder.encode(oldControls)
-        let settingsData = try jsonEncoder.encode(oldSettings)
-
-        let oldParentalControlsKey = "parentalControls" // Match key used in old service version
-        let oldAppSettingsKey = "appSettings"       // Match key used in old service version
-        let migrationDoneKey = "settingsMigrationToSwiftDataDone"
-
-        migrationUserDefaults.set(controlsData, forKey: oldParentalControlsKey)
-        migrationUserDefaults.set(settingsData, forKey: oldAppSettingsKey)
-        migrationUserDefaults.set(false, forKey: migrationDoneKey) // Ensure migration hasn't run
-
-        // 2. Prepare SwiftData (in-memory)
-        let schema = Schema([AppSettingsModel.self, ParentalControlsModel.self])
-        let configuration = ModelConfiguration(suiteName, schema: schema, isStoredInMemoryOnly: true)
-        let migrationContainer = try ModelContainer(for: schema, configurations: [configuration])
-        let migrationContext = migrationContainer.mainContext
-        let migrationRepository = SettingsRepository(modelContext: migrationContext)
-
-        // --- Execution Phase ---
-        // 3. Initialize SettingsService - This triggers the migration logic
-        let migrationService = SettingsService(
-            repository: migrationRepository,
-            usageAnalyticsService: MockUsageAnalyticsService(),
-            userDefaults: migrationUserDefaults
-        )
-        await waitForAsyncOperations(durationInSeconds: 0.2) // Allow more time for migration logic
-
-        // --- Verification Phase ---
-        // 4. Verify service loaded migrated data
-        #expect(migrationService.parentalControls.contentFiltering == false)
-        #expect(migrationService.parentalControls.maxStoriesPerDay == 10)
-        #expect(migrationService.parentalControls.allowedThemes == [StoryTheme.friendship, StoryTheme.adventure])
-        #expect(migrationService.appSettings.fontScale == 0.8)
-        #expect(migrationService.appSettings.darkModeEnabled == true)
-
-        // 5. Verify data exists in SwiftData store directly
-        let fetchedControls = try await migrationRepository.fetchParentalControls()
-        let fetchedSettings = try await migrationRepository.fetchAppSettings()
 
         #expect(fetchedControls != nil)
         #expect(fetchedSettings != nil)

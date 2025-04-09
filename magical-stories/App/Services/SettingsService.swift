@@ -90,17 +90,6 @@ class SettingsService: ObservableObject {
             }
 
             // 2. If not in SwiftData, check if migration is needed (and not already done)
-            if !userDefaults.bool(forKey: migrationDoneKey) {
-                let migrated = await migrateFromUserDefaults()
-                if migrated {
-                    // Migration successful, settings are loaded and saved to SwiftData
-                    userDefaults.set(true, forKey: migrationDoneKey)
-                    userDefaults.removeObject(forKey: oldParentalControlsKey)
-                    userDefaults.removeObject(forKey: oldAppSettingsKey)
-                    print("Settings successfully migrated from UserDefaults to SwiftData.")
-                    return // Migration handled loading
-                }
-            }
 
             // 3. If no data in SwiftData and no migration occurred (or failed), save defaults
             print("No existing settings found in SwiftData or UserDefaults. Saving defaults.")
@@ -127,56 +116,6 @@ class SettingsService: ObservableObject {
         }
     }
 
-    private func migrateFromUserDefaults() async -> Bool {
-        print("Attempting to migrate settings from UserDefaults...")
-        let jsonDecoder = JSONDecoder()
-        var migratedSomething = false
-
-        // Try migrating Parental Controls
-        var controlsToSave: ParentalControlsModel?
-        if let data = userDefaults.data(forKey: oldParentalControlsKey),
-           let controlsStruct = try? jsonDecoder.decode(ParentalControls.self, from: data)
-        {
-            print("Found Parental Controls in UserDefaults. Migrating...")
-            controlsToSave = ParentalControlsModel(from: controlsStruct)
-            await MainActor.run { self.parentalControls = controlsStruct } // Update published property immediately
-            migratedSomething = true
-        } else {
-             controlsToSave = ParentalControlsModel.default // Use default if not found
-             await MainActor.run { self.parentalControls = .default }
-        }
-
-
-        // Try migrating App Settings
-        var settingsToSave: AppSettingsModel?
-        if let data = userDefaults.data(forKey: oldAppSettingsKey),
-           let settingsStruct = try? jsonDecoder.decode(AppSettings.self, from: data)
-        {
-            print("Found App Settings in UserDefaults. Migrating...")
-            settingsToSave = AppSettingsModel(from: settingsStruct)
-            await MainActor.run { self.appSettings = settingsStruct } // Update published property immediately
-             migratedSomething = true
-        } else {
-            settingsToSave = AppSettingsModel.default // Use default if not found
-            await MainActor.run { self.appSettings = .default }
-        }
-
-
-        // Save migrated/default data to SwiftData if migration was attempted
-        if let controls = controlsToSave, let settings = settingsToSave {
-             do {
-                 try await repository.saveParentalControls(controls)
-                 try await repository.saveAppSettings(settings)
-                 print("Successfully saved migrated/default settings to SwiftData.")
-                 return migratedSomething // Return true only if actual data was migrated
-             } catch {
-                 print("Error saving migrated settings to SwiftData: \(error)")
-                 // Fallback: Keep using the values loaded into memory, but migration technically failed persistence.
-                 return false
-             }
-        }
-        return false
-    }
 
     // MARK: - Parental Controls
 

@@ -5,7 +5,7 @@
 -   **UI Framework:** SwiftUI
 -   **Platform:** iOS 16.0+ (Target)
 -   **Device Support:** iPhone and iPad (Basic Universal App support)
--   **Data Persistence:** Currently uses `UserDefaults` for persistence. **SwiftData** is the planned future persistence layer, with the **Repository pattern** designed to abstract data access once migration occurs.
+-   **Data Persistence:** Uses **SwiftData** as the primary persistence layer, abstracted via the Repository pattern. `UserDefaults` is only used for minor UI preferences and app settings.
 -   **AI Service:**
     *   **Text Generation:** Google Generative AI (Gemini Pro) via its Swift SDK.
     *   **Image Generation:** Primarily uses **direct REST API calls** to Google's Generative AI platform (model: `imagen-3.0-generate-002`). The REST API endpoint is:
@@ -33,9 +33,9 @@
 
 ## Key Libraries & Frameworks Used
 -   **SwiftUI:** For UI, state management, and navigation.
--   **Foundation:** For core data types, networking (`URLSession`), `UserDefaults` (legacy), `ProcessInfo`, etc.
+-   **Foundation:** For core data types, networking (`URLSession`), `UserDefaults` (minor preferences), `ProcessInfo`, etc.
 -   **GoogleGenerativeAI (Swift SDK):** For interacting with the Gemini Pro API (text generation). `StoryService` uses `GenerativeModelProtocol`. The SDK is imported in the project but **not** used for image generation in `IllustrationService`, which relies on direct REST API calls instead.
--   **SwiftData:** Planned as the future primary data persistence layer (not yet integrated).
+-   **SwiftData:** Integrated as the primary data persistence layer.
 -   **Testing:** Swift's built-in testing framework (`Testing`) is used for unit and integration tests.
 -   **XCTest:** Underlying framework for UI tests (`magical-storiesUITests`).
 

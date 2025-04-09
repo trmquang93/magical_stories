@@ -16,18 +16,20 @@ struct UsageAnalyticsServiceTests {
         let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
         let modelContainer = try ModelContainer(for: schema, configurations: [configuration])
         let userProfileRepository = UserProfileRepository(modelContext: modelContainer.mainContext)
-        let mockUserDefaults = UserDefaults(suiteName: #file)!
-        mockUserDefaults.removePersistentDomain(forName: #file)
+
+        let mockUserDefaults = MockUserDefaults()
+
         let usageAnalyticsService = UsageAnalyticsService(
             userProfileRepository: userProfileRepository,
-            userDefaults: mockUserDefaults
+            userDefaults: mockUserDefaults,
+            startBackgroundMigration: false
         )
         return (modelContainer, userProfileRepository, mockUserDefaults, usageAnalyticsService)
     }
 
     @MainActor
-    private func waitForInitialization() async {
-        try? await Task.sleep(nanoseconds: 100_000_000)
+    private func waitForInitialization(on service: UsageAnalyticsService) async {
+        await service.performMigrationAndLoad()
     }
 
     private enum Keys {
@@ -39,91 +41,8 @@ struct UsageAnalyticsServiceTests {
 
     // MARK: - Migration Tests
 
-    @Test("Migrates UserDefaults to SwiftData when flag not set and no profile exists")
-    @MainActor
-    func testMigration_WhenFlagNotSetAndNoProfile_CreatesProfileFromUserDefaults() async throws {
-        let (_, userProfileRepository, mockUserDefaults, _) = try await setup()
 
-        let testDate = Date()
-        let testUUID = UUID()
-        mockUserDefaults.set(5, forKey: Keys.storyGenerationCount)
-        mockUserDefaults.set(testDate, forKey: Keys.lastGenerationDate)
-        mockUserDefaults.set(testUUID.uuidString, forKey: Keys.lastGeneratedStoryId)
-        mockUserDefaults.set(false, forKey: Keys.migrationFlag)
 
-        let usageAnalyticsService = UsageAnalyticsService(
-            userProfileRepository: userProfileRepository,
-            userDefaults: mockUserDefaults
-        )
-        await waitForInitialization()
-
-        let profile = try await userProfileRepository.fetchUserProfile()
-
-        #expect(profile != nil)
-        #expect(profile?.storyGenerationCount == 5)
-        #expect(profile?.lastGenerationDate == testDate)
-        #expect(profile?.lastGeneratedStoryId == testUUID)
-
-        #expect(mockUserDefaults.bool(forKey: Keys.migrationFlag) == true)
-        #expect(mockUserDefaults.object(forKey: Keys.storyGenerationCount) == nil)
-        #expect(mockUserDefaults.object(forKey: Keys.lastGenerationDate) == nil)
-        #expect(mockUserDefaults.object(forKey: Keys.lastGeneratedStoryId) == nil)
-    }
-
-    @Test("Does not overwrite existing profile during migration, just clears UserDefaults and sets flag")
-    @MainActor
-    func testMigration_WhenFlagNotSetAndProfileExists_SetsFlagAndClearsUserDefaults() async throws {
-        let (_, userProfileRepository, mockUserDefaults, _) = try await setup()
-
-        let existingProfile = UserProfile(childName: "Existing", dateOfBirth: Date())
-        existingProfile.storyGenerationCount = 99
-        try await userProfileRepository.save(existingProfile)
-
-        let testDate = Date()
-        let testUUID = UUID()
-        mockUserDefaults.set(5, forKey: Keys.storyGenerationCount)
-        mockUserDefaults.set(testDate, forKey: Keys.lastGenerationDate)
-        mockUserDefaults.set(testUUID.uuidString, forKey: Keys.lastGeneratedStoryId)
-        mockUserDefaults.set(false, forKey: Keys.migrationFlag)
-
-        let usageAnalyticsService = UsageAnalyticsService(
-            userProfileRepository: userProfileRepository,
-            userDefaults: mockUserDefaults
-        )
-        await waitForInitialization()
-
-        let profile = try await userProfileRepository.fetchUserProfile()
-
-        #expect(profile != nil)
-        #expect(profile?.storyGenerationCount == 99)
-
-        #expect(mockUserDefaults.bool(forKey: Keys.migrationFlag) == true)
-        #expect(mockUserDefaults.object(forKey: Keys.storyGenerationCount) == nil)
-        #expect(mockUserDefaults.object(forKey: Keys.lastGenerationDate) == nil)
-        #expect(mockUserDefaults.object(forKey: Keys.lastGeneratedStoryId) == nil)
-    }
-
-    @Test("Skips migration when migration flag is already set")
-    @MainActor
-    func testMigration_WhenFlagIsSet_DoesNotMigrate() async throws {
-        let (_, userProfileRepository, mockUserDefaults, _) = try await setup()
-
-        mockUserDefaults.set(true, forKey: Keys.migrationFlag)
-        mockUserDefaults.set(5, forKey: Keys.storyGenerationCount)
-        mockUserDefaults.set(Date(), forKey: Keys.lastGenerationDate)
-
-        let usageAnalyticsService = UsageAnalyticsService(
-            userProfileRepository: userProfileRepository,
-            userDefaults: mockUserDefaults
-        )
-        await waitForInitialization()
-
-        let profile = try await userProfileRepository.fetchUserProfile()
-
-        #expect(profile == nil)
-        #expect(mockUserDefaults.integer(forKey: Keys.storyGenerationCount) == 5)
-        #expect(mockUserDefaults.object(forKey: Keys.lastGenerationDate) != nil)
-    }
 
     // MARK: - Service Method Tests
 
@@ -139,9 +58,11 @@ struct UsageAnalyticsServiceTests {
 
         let usageAnalyticsService = UsageAnalyticsService(
             userProfileRepository: userProfileRepository,
-            userDefaults: mockUserDefaults
+            userDefaults: mockUserDefaults,
+            startBackgroundMigration: false
         )
-        await waitForInitialization()
+        await waitForInitialization(on: usageAnalyticsService)
+        await waitForInitialization(on: usageAnalyticsService)
 
         let count = await usageAnalyticsService.getStoryGenerationCount()
 
@@ -160,9 +81,11 @@ struct UsageAnalyticsServiceTests {
 
         let usageAnalyticsService = UsageAnalyticsService(
             userProfileRepository: userProfileRepository,
-            userDefaults: mockUserDefaults
+            userDefaults: mockUserDefaults,
+            startBackgroundMigration: false
         )
-        await waitForInitialization()
+        await waitForInitialization(on: usageAnalyticsService)
+        await waitForInitialization(on: usageAnalyticsService)
 
         await usageAnalyticsService.incrementStoryGenerationCount()
 
@@ -184,9 +107,11 @@ struct UsageAnalyticsServiceTests {
 
         let usageAnalyticsService = UsageAnalyticsService(
             userProfileRepository: userProfileRepository,
-            userDefaults: mockUserDefaults
+            userDefaults: mockUserDefaults,
+            startBackgroundMigration: false
         )
-        await waitForInitialization()
+        await waitForInitialization(on: usageAnalyticsService)
+        await waitForInitialization(on: usageAnalyticsService)
 
         let testDate = Date().addingTimeInterval(-1000)
 
@@ -198,7 +123,7 @@ struct UsageAnalyticsServiceTests {
         #expect(fetchedDate == testDate)
         #expect(profileFromRepo?.lastGenerationDate == testDate)
 
-        await usageAnalyticsService.updateLastGenerationDate(date: nil)
+        await usageAnalyticsService.updateLastGenerationDate(date: nil as Date?)
         let fetchedNilDate = await usageAnalyticsService.getLastGenerationDate()
         #expect(fetchedNilDate == nil)
     }
@@ -214,9 +139,11 @@ struct UsageAnalyticsServiceTests {
 
         let usageAnalyticsService = UsageAnalyticsService(
             userProfileRepository: userProfileRepository,
-            userDefaults: mockUserDefaults
+            userDefaults: mockUserDefaults,
+            startBackgroundMigration: false
         )
-        await waitForInitialization()
+        await waitForInitialization(on: usageAnalyticsService)
+        await waitForInitialization(on: usageAnalyticsService)
 
         let testUUID = UUID()
 
@@ -228,7 +155,7 @@ struct UsageAnalyticsServiceTests {
         #expect(fetchedUUID == testUUID)
         #expect(profileFromRepo?.lastGeneratedStoryId == testUUID)
 
-        await usageAnalyticsService.updateLastGeneratedStoryId(id: nil)
+        await usageAnalyticsService.updateLastGeneratedStoryId(id: nil as UUID?)
         let fetchedNilUUID = await usageAnalyticsService.getLastGeneratedStoryId()
         #expect(fetchedNilUUID == nil)
     }

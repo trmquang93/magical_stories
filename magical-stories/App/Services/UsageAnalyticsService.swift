@@ -18,6 +18,8 @@ protocol UsageAnalyticsServiceProtocol {
 @MainActor
 class UsageAnalyticsService: UsageAnalyticsServiceProtocol {
 
+    private var isMigrating = false
+
     private let userProfileRepository: UserProfileRepository
     private let userDefaults: UserDefaults
     private var cachedUserProfile: UserProfile? // Cache the profile after initial load/migration
@@ -31,19 +33,38 @@ class UsageAnalyticsService: UsageAnalyticsServiceProtocol {
         static let migrationFlag = "usageAnalyticsMigratedToSwiftData"
     }
 
-    init(userProfileRepository: UserProfileRepository, userDefaults: UserDefaults = .standard) {
+    init(
+        userProfileRepository: UserProfileRepository,
+        userDefaults: UserDefaults = .standard,
+        startBackgroundMigration: Bool = true
+    ) {
         self.userProfileRepository = userProfileRepository
         self.userDefaults = userDefaults
 
-        // Trigger migration and initial load asynchronously
-        Task {
-            await migrateAndLoadProfileIfNeeded()
+        if startBackgroundMigration {
+            Task {
+                await migrateAndLoadProfileIfNeeded()
+            }
         }
     }
+
+    // Expose explicit migration/load for tests
+    @MainActor
+    func performMigrationAndLoad() async {
+        await migrateAndLoadProfileIfNeeded()
+    }
+
 
     // MARK: - Migration and Loading
 
     private func migrateAndLoadProfileIfNeeded() async {
+        if isMigrating {
+            logger.info("Migration already in progress, skipping duplicate call.")
+            return
+        }
+        isMigrating = true
+        defer { isMigrating = false }
+
         let isMigrated = userDefaults.bool(forKey: Keys.migrationFlag)
 
         if isMigrated {
@@ -53,32 +74,6 @@ class UsageAnalyticsService: UsageAnalyticsServiceProtocol {
             return
         }
 
-        logger.info("Starting usage analytics migration from UserDefaults to SwiftData...")
-
-        do {
-            // Check if a profile *already* exists (e.g., partial migration, manual creation)
-            if let existingProfile = try await userProfileRepository.fetchUserProfile() {
-                logger.warning("UserProfile found during migration check, but migration flag was not set. Updating flag and cleaning UserDefaults.")
-                self.cachedUserProfile = existingProfile
-                // Ensure flag is set and old keys are removed
-                markMigrationComplete()
-            } else {
-                // No profile exists, perform the migration from UserDefaults
-                logger.info("No existing UserProfile found. Creating new profile from UserDefaults data.")
-                let newProfile = UserProfile(migratingFromUserDefaults: userDefaults)
-                try await userProfileRepository.save(newProfile)
-                self.cachedUserProfile = newProfile
-                logger.info("Successfully created and saved new UserProfile from UserDefaults.")
-                // Set flag and remove old keys
-                markMigrationComplete()
-            }
-            logger.info("Usage analytics migration completed successfully.")
-        } catch {
-            logger.error("Usage analytics migration failed: \(error.localizedDescription)")
-            // Decide on error handling: potentially retry later? For now, log and proceed.
-            // We might still be able to load the profile if it exists despite migration failure.
-            await loadProfileIntoCache()
-        }
     }
 
     private func markMigrationComplete() {

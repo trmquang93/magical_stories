@@ -40,7 +40,7 @@ To create a mobile application (iOS) that generates personalized, magical storie
     - Store preferences using `@AppStorage`.
     - *Note: Text-to-speech (AVSpeechSynthesizer) was initially considered but removed.*
 - **Story Library (Simplified for MVP):**
-    - Save stories using `UserDefaults` via `PersistenceService` for simple storage. **Migration to SwiftData is planned for the future; implementation has not yet begun.**
+    - Persist stories using **SwiftData** as the primary storage solution.
     - Basic list view (`StoriesView`) with preview cards. Search is optional.
 - **Parental Controls (Basic):**
     - Basic content filtering through prompt engineering.
