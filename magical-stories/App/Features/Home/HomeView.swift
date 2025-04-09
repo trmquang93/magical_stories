@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct HomeView: View {
     @State private var showingStoryForm = false
@@ -79,6 +80,8 @@ struct HomeView: View {
 }
 
 #Preview {
+    let container = try! ModelContainer()
     HomeView()
-        .environmentObject(try! StoryService()) // Use try! for preview
+        .environment(\.modelContext, container.mainContext)
+        .environmentObject(try! StoryService(context: container.mainContext))
 }

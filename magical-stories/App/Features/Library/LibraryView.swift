@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct LibraryView: View {
     @EnvironmentObject private var storyService: StoryService
@@ -110,8 +111,10 @@ struct StoryCard: View {
 }
 
 #Preview {
+    let container = try! ModelContainer()
     NavigationStack {
         LibraryView()
-            .environmentObject(try! StoryService()) // Use try! for preview
+            .environment(\.modelContext, container.mainContext)
+            .environmentObject(try! StoryService(context: container.mainContext))
     }
 }

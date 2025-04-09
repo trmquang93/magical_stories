@@ -13,10 +13,10 @@ import SwiftUI
 
 // Protocol for PersistenceService
 protocol PersistenceServiceProtocol {
-    func saveStories(_ stories: [Story]) throws
-    func loadStories() throws -> [Story]
-    func saveStory(_ story: Story) throws
-    func deleteStory(withId id: UUID) throws
+    func saveStories(_ stories: [Story]) async throws
+    func loadStories() async throws -> [Story]
+    func saveStory(_ story: Story) async throws
+    func deleteStory(withId id: UUID) async throws
 }
 
 // Protocol for SettingsService

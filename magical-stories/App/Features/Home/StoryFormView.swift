@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct StoryFormView: View {
     @Environment(\.dismiss) private var dismiss
@@ -150,6 +151,8 @@ struct StoryFormView: View {
 }
 
 #Preview {
+    let container = try! ModelContainer()
     StoryFormView()
-        .environmentObject(try! StoryService()) // Use try! for preview
+        .environment(\.modelContext, container.mainContext)
+        .environmentObject(try! StoryService(context: container.mainContext))
 }

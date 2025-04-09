@@ -73,13 +73,14 @@ class StoryService: ObservableObject {
     // Updated initializer to accept and initialize StoryProcessor
     init(
         apiKey: String = ProcessInfo.processInfo.environment["GEMINI_API_KEY"] ?? "",
-        persistenceService: PersistenceServiceProtocol = PersistenceService(),
+        context: ModelContext,
+        persistenceService: PersistenceServiceProtocol? = nil,
         model: GenerativeModelProtocol? = nil,
         storyProcessor: StoryProcessor? = nil // Allow injecting for testing
     ) throws { // Mark initializer as throwing
         self.model = model ?? GenerativeModelWrapper(name: "gemini-1.5-flash", apiKey: apiKey) // Updated model name
         self.promptBuilder = PromptBuilder()
-        self.persistenceService = persistenceService
+        self.persistenceService = persistenceService ?? PersistenceService(context: context)
 
         // Initialize StoryProcessor, potentially injecting dependencies like IllustrationService
         // If storyProcessor is provided (e.g., in tests), use it. Otherwise, create a default one.
@@ -96,6 +97,8 @@ class StoryService: ObservableObject {
     }
 
     func generateStory(parameters: StoryParameters) async throws -> Story {
+        print("[StoryService] generateStory START (main thread: \(Thread.isMainThread))")
+
         guard !parameters.childName.isEmpty else {
             throw StoryServiceError.invalidParameters
         }
@@ -106,15 +109,15 @@ class StoryService: ObservableObject {
         // Generate the prompt using the builder
         let prompt = promptBuilder.buildPrompt(
             childName: parameters.childName,
-            childAge: parameters.childAge, // Corrected parameter name
+            childAge: parameters.childAge,
             favoriteCharacter: parameters.favoriteCharacter,
             theme: parameters.theme
         )
 
         do {
             // --- Actual API Call ---
-            let response = try await model.generateContent(prompt) // Actual API call
-            guard let text = response.text else { // Actual response handling
+            let response = try await model.generateContent(prompt)
+            guard let text = response.text else {
                 throw StoryServiceError.generationFailed("No content generated")
             }
 
@@ -124,49 +127,52 @@ class StoryService: ObservableObject {
             // Process content into pages using StoryProcessor
             let pages = try await storyProcessor.processIntoPages(content, theme: parameters.theme)
 
-            // Use the primary Story initializer with the generated pages
             let story = Story(
                 title: title,
-                pages: pages, // Use the processed pages array
-                parameters: parameters // Pass the whole parameters object
-                // timestamp defaults to Date()
+                pages: pages,
+                parameters: parameters
             )
 
-            // Save the new story using the persistence service
-            try persistenceService.saveStory(story)
+            print("[StoryService] Before saveStory (main thread: \(Thread.isMainThread))")
+            try await persistenceService.saveStory(story)
+            print("[StoryService] After saveStory (main thread: \(Thread.isMainThread))")
 
-            // Reload stories to update the @Published array
+            print("[StoryService] Before loadStories (main thread: \(Thread.isMainThread))")
             await loadStories()
+            print("[StoryService] After loadStories (main thread: \(Thread.isMainThread))")
 
+            print("[StoryService] generateStory END (main thread: \(Thread.isMainThread))")
             return story
 
         } catch {
-            // Log the error
+            print("[StoryService] generateStory ERROR: \(error.localizedDescription) (main thread: \(Thread.isMainThread))")
             AIErrorManager.logError(error, source: "StoryService", additionalInfo: "Error in generateStory")
-            
-            // Catch specific errors if needed, otherwise rethrow a generic generation failure
+
             if let storyError = error as? StoryServiceError {
-                throw storyError // Rethrow known StoryService errors
+                throw storyError
             } else if let generativeError = error as? GenerateContentError {
-                 // Handle specific Google AI errors if necessary
-                 let storyError = StoryServiceError.generationFailed("Google AI Error: \(generativeError.localizedDescription)")
-                 throw storyError
+                let storyError = StoryServiceError.generationFailed("Google AI Error: \(generativeError.localizedDescription)")
+                throw storyError
             } else {
-                 // Catch any other errors
-                 let storyError = StoryServiceError.generationFailed(error.localizedDescription)
-                 throw storyError
+                let storyError = StoryServiceError.generationFailed(error.localizedDescription)
+                throw storyError
             }
         }
     }
 
     func loadStories() async {
+        print("[StoryService] loadStories START (main thread: \(Thread.isMainThread))")
         do {
-            // Load stories and sort them immediately (descending by timestamp)
-            stories = try persistenceService.loadStories().sorted { $0.timestamp > $1.timestamp }
+            let loadedStories = try await persistenceService.loadStories()
+            let sortedStories = loadedStories.sorted { $0.timestamp > $1.timestamp }
+            print("[StoryService] loadStories loaded \(sortedStories.count) stories (main thread: \(Thread.isMainThread))")
+            stories = sortedStories
         } catch {
+            print("[StoryService] loadStories ERROR: \(error.localizedDescription) (main thread: \(Thread.isMainThread))")
             AIErrorManager.logError(error, source: "StoryService", additionalInfo: "Failed to load stories")
             stories = []
         }
+        print("[StoryService] loadStories END (main thread: \(Thread.isMainThread))")
     }
 
 

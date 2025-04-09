@@ -1,6 +1,8 @@
-// magical-storiesTests/Services/StoryProcessorTests.swift
-import XCTest // Use XCTest
 import Foundation
+// magical-storiesTests/Services/StoryProcessorTests.swift
+// MARK: - Story Processor Tests
+import Testing
+
 @testable import magical_stories
 
 // MARK: - Mock Illustration Service
@@ -9,10 +11,10 @@ class MockIllustrationService: IllustrationServiceProtocol {
     var generateIllustrationCallCount = 0
     // Store the parameters received by the last call
     var lastCallParameters: (pageText: String, theme: String)?
-    var generateIllustrationPrompts: [(pageText: String, theme: String)] = [] // Store all parameters received
-    var generateIllustrationShouldReturnURL: URL? = URL(string: "https://mock.url/image.png") // Default success URL
-    var generateIllustrationShouldThrowError: Error? = nil // Default no error
-    var urlToReturn: URL? = URL(string: "https://mock.url/image.png") // Control return value
+    var generateIllustrationPrompts: [(pageText: String, theme: String)] = []  // Store all parameters received
+    var generateIllustrationShouldReturnURL: URL? = URL(string: "https://mock.url/image.png")  // Default success URL
+    var generateIllustrationShouldThrowError: Error? = nil  // Default no error
+    var urlToReturn: URL? = URL(string: "https://mock.url/image.png")  // Control return value
 
     // Update signature to match protocol
     @MainActor
@@ -22,11 +24,17 @@ class MockIllustrationService: IllustrationServiceProtocol {
         generateIllustrationPrompts.append((pageText, theme))
 
         if let error = generateIllustrationShouldThrowError {
-            print("--- MockIllustrationService: Throwing error for pageText: \(pageText.prefix(50))..., theme: \(theme) ---")
+            print(
+                "--- MockIllustrationService: Throwing error for pageText: \(pageText.prefix(50))..., theme: \(theme) ---"
+            )
             throw error
         }
-        let relativePath = urlToReturn?.path.replacingOccurrences(of: "/private/var/mobile/Containers/Data/Application/UUID/Application Support/", with: "")
-        print("--- MockIllustrationService: Returning relative path \(relativePath ?? "nil") for pageText: \(pageText.prefix(50))..., theme: \(theme) ---")
+        let relativePath = urlToReturn?.path.replacingOccurrences(
+            of: "/private/var/mobile/Containers/Data/Application/UUID/Application Support/",
+            with: "")
+        print(
+            "--- MockIllustrationService: Returning relative path \(relativePath ?? "nil") for pageText: \(pageText.prefix(50))..., theme: \(theme) ---"
+        )
         return relativePath
     }
 
@@ -44,317 +52,308 @@ enum MockError: Error {
     case simulatedError
 }
 
+@Suite("StoryProcessor Tests")
+struct StoryProcessorTests {
 
-// MARK: - Story Processor Tests
-@MainActor
-final class StoryProcessorTests: XCTestCase { // Changed to class inheriting from XCTestCase
-
-    // MARK: - Test Setup
-    var storyProcessor: StoryProcessor!
-    var mockIllustrationService: MockIllustrationService! // Add mock instance variable
-
-    // Use setUpWithError for XCTest
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        mockIllustrationService = MockIllustrationService()
-        storyProcessor = StoryProcessor(illustrationService: mockIllustrationService) // Inject mock
-    }
-
-    // Use tearDownWithError for XCTest
-    override func tearDownWithError() throws {
-        storyProcessor = nil
-        mockIllustrationService = nil
-        try super.tearDownWithError()
-    }
-
-    // MARK: - Basic Text Segmentation Tests (Updated for async and theme)
-
-    // Changed from @Test to func test...() async throws
+    @Test("Short story segmentation")
+    @MainActor
     func testShortStorySegmentation() async throws {
-        // Given
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
+
         let shortContent = "Once upon a time, there was a brave lion."
         let theme = "Bravery"
 
-        // When
-        let pages = try await storyProcessor.processIntoPages(shortContent, theme: theme) // Added await and theme
+        let pages = try await storyProcessor.processIntoPages(shortContent, theme: theme)
 
-        // Then
-        XCTAssertFalse(pages.isEmpty)
-        XCTAssertEqual(pages.count, 1)
-        XCTAssertEqual(pages[0].content, shortContent)
-        XCTAssertEqual(pages[0].pageNumber, 1)
+        #expect(!pages.isEmpty)
+        #expect(pages.count == 1)
+        #expect(pages[0].content == shortContent)
+        #expect(pages[0].pageNumber == 1)
     }
 
+    @Test("Medium story segmentation")
+    @MainActor
     func testMediumStorySegmentation() async throws {
-        // Given
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
+
         let mediumContent = """
-        Once upon a time, there was a brave lion who lived in the forest.
+            Once upon a time, there was a brave lion who lived in the forest.
 
-        The lion was very kind and helped all the animals in need.
+            The lion was very kind and helped all the animals in need.
 
-        One day, the lion found a lost rabbit and helped it find its way home.
+            One day, the lion found a lost rabbit and helped it find its way home.
 
-        The rabbit was very grateful and they became good friends.
-        """
+            The rabbit was very grateful and they became good friends.
+            """
         let theme = "Kindness"
 
-        // When
-        let pages = try await storyProcessor.processIntoPages(mediumContent, theme: theme) // Added await and theme
+        let pages = try await storyProcessor.processIntoPages(mediumContent, theme: theme)
 
-        // Then
-        XCTAssertGreaterThan(pages.count, 1) // Exact count depends on limits, check > 1
-        XCTAssertEqual(pages[0].pageNumber, 1)
-        XCTAssertEqual(pages[1].pageNumber, 2)
-
-        // Verify content is properly segmented by paragraphs (adjust based on limits)
-        // This assumes maxParagraphsPerPage = 2
-        XCTAssertTrue(pages[0].content.contains("Once upon a time"))
-        XCTAssertTrue(pages[0].content.contains("lion was very kind")) // Paragraph 2 might be on page 1
-        XCTAssertTrue(pages[1].content.contains("found a lost rabbit")) // Paragraph 3 might be on page 2
+        #expect(pages.count > 1)
+        #expect(pages[0].pageNumber == 1)
+        #expect(pages[1].pageNumber == 2)
+        #expect(pages[0].content.contains("Once upon a time"))
+        #expect(pages[0].content.contains("lion was very kind"))
+        #expect(pages[1].content.contains("found a lost rabbit"))
     }
 
+    @Test("Long story segmentation")
+    @MainActor
     func testLongStorySegmentation() async throws {
-        // Given
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
+
         let longContent = """
-        Once upon a time, there was a brave lion who lived in the forest.
+            Once upon a time, there was a brave lion who lived in the forest.
 
-        The lion was very kind and helped all the animals in need. The other animals respected him greatly.
+            The lion was very kind and helped all the animals in need. The other animals respected him greatly.
 
-        One day, the lion found a lost rabbit who had wandered too far from home.
+            One day, the lion found a lost rabbit who had wandered too far from home.
 
-        The lion decided to help the little rabbit find its way back to its family.
+            The lion decided to help the little rabbit find its way back to its family.
 
-        They traveled through the forest, meeting many other animals along the way.
+            They traveled through the forest, meeting many other animals along the way.
 
-        The journey was long, but the lion was patient and guided the rabbit carefully.
+            The journey was long, but the lion was patient and guided the rabbit carefully.
 
-        Finally, they reached the rabbit's home, and the rabbit's family was overjoyed.
+            Finally, they reached the rabbit's home, and the rabbit's family was overjoyed.
 
-        They thanked the lion for his kindness and invited him to visit anytime.
+            They thanked the lion for his kindness and invited him to visit anytime.
 
-        The lion and the rabbit remained friends forever after that adventure.
-        """
+            The lion and the rabbit remained friends forever after that adventure.
+            """
         let theme = "Friendship"
 
-        // When
-        let pages = try await storyProcessor.processIntoPages(longContent, theme: theme) // Added await and theme
+        let pages = try await storyProcessor.processIntoPages(longContent, theme: theme)
 
-        // Then
-        XCTAssertGreaterThanOrEqual(pages.count, 3) // Expect multiple pages
+        #expect(pages.count >= 3)
 
-        // Verify page numbers are sequential
         for i in 0..<pages.count {
-            XCTAssertEqual(pages[i].pageNumber, i + 1)
+            #expect(pages[i].pageNumber == i + 1)
         }
 
-        // Verify content distribution (should be somewhat evenly distributed)
         let contentLengths = pages.map { $0.content.count }
         let maxLength = contentLengths.max() ?? 0
         let minLength = contentLengths.min() ?? 0
 
-        // No page should be empty
-        XCTAssertGreaterThan(minLength, 0)
+        #expect(minLength > 0)
 
-        // Pages should have somewhat balanced content (flexible check)
-        if maxLength > 0 { // Avoid division by zero
-             XCTAssertGreaterThan(Double(minLength) / Double(maxLength), 0.3)
+        if maxLength > 0 {
+            #expect(Double(minLength) / Double(maxLength) > 0.3)
         }
     }
 
-    // MARK: - Edge Cases (Updated for async and theme)
-
+    @Test("Empty content returns empty pages")
+    @MainActor
     func testEmptyContent() async throws {
-        // Given
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
+
         let emptyContent = ""
         let theme = "Empty"
 
-        // When
-        let pages = try await storyProcessor.processIntoPages(emptyContent, theme: theme) // Added await and theme
+        let pages = try await storyProcessor.processIntoPages(emptyContent, theme: theme)
 
-        // Then
-        XCTAssertTrue(pages.isEmpty)
+        #expect(pages.isEmpty)
     }
 
+    @Test("Whitespace content returns empty pages")
+    @MainActor
     func testWhitespaceContent() async throws {
-        // Given
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
+
         let whitespaceContent = "   \n   \t   "
         let theme = "Whitespace"
 
-        // When
-        let pages = try await storyProcessor.processIntoPages(whitespaceContent, theme: theme) // Added await and theme
+        let pages = try await storyProcessor.processIntoPages(whitespaceContent, theme: theme)
 
-        // Then
-        XCTAssertTrue(pages.isEmpty)
+        #expect(pages.isEmpty)
     }
 
+    @Test("Very long paragraph is split across pages")
+    @MainActor
     func testVeryLongParagraph() async throws {
-        // Given
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
+
         let sentence = "This is a sentence that will be repeated to create a very long paragraph. "
         var longParagraph = ""
-        for _ in 0..<20 { // Create paragraph > maxPageContentLength * 2
+        for _ in 0..<20 {
             longParagraph += sentence
         }
         let theme = "Long"
 
-        // When
-        let pages = try await storyProcessor.processIntoPages(longParagraph, theme: theme) // Added await and theme
+        let pages = try await storyProcessor.processIntoPages(longParagraph, theme: theme)
 
-        // Then
-        XCTAssertGreaterThan(pages.count, 1) // Should be split
+        #expect(pages.count > 1)
 
-        // Verify each page has reasonable content length
         for page in pages {
-            XCTAssertLessThanOrEqual(page.content.count, StoryProcessor.maxPageContentLength + 100) // Allow some buffer
-            XCTAssertFalse(page.content.isEmpty)
+            #expect(page.content.count <= StoryProcessor.maxPageContentLength + 100)
+            #expect(!page.content.isEmpty)
         }
     }
 
-    // MARK: - Content Formatting Tests (Updated for async and theme)
-
+    @Test("Content formatting preserved")
+    @MainActor
     func testContentFormatting() async throws {
-        // Given
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
+
         let content = """
-        First paragraph with some text.
+            First paragraph with some text.
 
-        Second paragraph with more text.
-        This is still the second paragraph.
+            Second paragraph with more text.
+            This is still the second paragraph.
 
-        Third paragraph.
-        """
+            Third paragraph.
+            """
         let theme = "Formatting"
 
-        // When
-        let pages = try await storyProcessor.processIntoPages(content, theme: theme) // Added await and theme
+        let pages = try await storyProcessor.processIntoPages(content, theme: theme)
 
-        // Then
-        XCTAssertFalse(pages.isEmpty)
+        #expect(!pages.isEmpty)
+        #expect(pages[0].content.contains("First paragraph"))
 
-        // Check that paragraphs are preserved in the segmentation (adjust based on limits)
-        XCTAssertTrue(pages[0].content.contains("First paragraph"))
-
-        // Find the page with "Second paragraph"
         let pageWithSecondParagraph = pages.first { $0.content.contains("Second paragraph") }
-        let unwrappedPage = try XCTUnwrap(pageWithSecondParagraph) // Use XCTUnwrap
+        #expect(pageWithSecondParagraph != nil, "Second paragraph should be found")
+        let unwrappedPage = pageWithSecondParagraph!
 
-        // Ensure paragraph structure is maintained within the page content
-        // This check might need adjustment depending on how splitting interacts with maxParagraphsPerPage
-        XCTAssertTrue(unwrappedPage.content.contains("Second paragraph with more text.\nThis is still the second paragraph.") || unwrappedPage.content == "Second paragraph with more text.\nThis is still the second paragraph.")
+        #expect(
+            unwrappedPage.content.contains(
+                "Second paragraph with more text.\nThis is still the second paragraph.")
+                || unwrappedPage.content
+                    == "Second paragraph with more text.\nThis is still the second paragraph."
+        )
     }
 
-    // MARK: - Reading Progress Tests (Updated for async and theme)
-
+    @Test("Reading progress calculation")
+    @MainActor
     func testReadingProgress() async throws {
-        // Given
         let content = """
-        First paragraph.
+            First paragraph.
 
-        Second paragraph.
+            Second paragraph.
 
-        Third paragraph.
+            Third paragraph.
 
-        Fourth paragraph.
-        """
+            Fourth paragraph.
+            """
         let theme = "Progress"
 
-        // When
-        let pages = try await storyProcessor.processIntoPages(content, theme: theme) // Added await and theme
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
 
-        // Then
-        // Exact page count depends on limits (maxParagraphsPerPage = 2)
+        let pages = try await storyProcessor.processIntoPages(content, theme: theme)
+
         let expectedPageCount = 2
-        XCTAssertEqual(pages.count, expectedPageCount)
+        #expect(pages.count == expectedPageCount)
 
-        // Test progress calculation
         if pages.count == expectedPageCount {
-            XCTAssertEqual(StoryProcessor.calculateReadingProgress(currentPage: 1, totalPages: pages.count), 0.5) // Page 1 of 2 is 50%
-            XCTAssertEqual(StoryProcessor.calculateReadingProgress(currentPage: pages.count, totalPages: pages.count), 1.0) // Last page is 100%
-            XCTAssertEqual(StoryProcessor.calculateReadingProgress(currentPage: 0, totalPages: pages.count), 0.0) // Page 0 is 0%
+            #expect(
+                StoryProcessor.calculateReadingProgress(currentPage: 1, totalPages: pages.count)
+                    == 0.5)
+            #expect(
+                StoryProcessor.calculateReadingProgress(
+                    currentPage: pages.count, totalPages: pages.count) == 1.0)
+            #expect(
+                StoryProcessor.calculateReadingProgress(currentPage: 0, totalPages: pages.count)
+                    == 0.0)
         }
     }
 
-    // MARK: - Illustration Generation Tests (NEW)
-
+    @Test("Illustration service called for each page")
+    @MainActor
     func testIllustrationServiceCalledForEachPage() async throws {
-        // Given
-        let content = "Page 1 content.\n\nPage 2 content.\n\nPage 3 content." // Modified to force 2 pages due to maxParagraphsPerPage = 2
-        let theme = "Testing"
-        mockIllustrationService.urlToReturn = URL(string:"https://test.com/img.png")!
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
 
-        // When
+        let content = "Page 1 content.\n\nPage 2 content.\n\nPage 3 content."
+        let theme = "Testing"
+        mockIllustrationService.urlToReturn = URL(string: "https://test.com/img.png")!
+
         let pages = try await storyProcessor.processIntoPages(content, theme: theme)
 
-        // Then
-        XCTAssertEqual(pages.count, 2)
-        XCTAssertEqual(mockIllustrationService.generateIllustrationCallCount, pages.count) // Service called once per page
+        #expect(pages.count == 2)
+        #expect(mockIllustrationService.generateIllustrationCallCount == pages.count)
     }
 
+    @Test("Correct prompt passed to illustration service")
+    @MainActor
     func testCorrectPromptPassedToIllustrationService() async throws {
-        // Given
-        let shortContent = "Page 1 content." // Define shortContent here
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
+
+        let shortContent = "Page 1 content."
         let theme = "Prompt Test"
-        // let expectedPrompt = "\(content)\n\nStyle: \(theme)" // This format is no longer used
-        mockIllustrationService.urlToReturn = URL(string:"https://test.com/img.png")!
+        mockIllustrationService.urlToReturn = URL(string: "https://test.com/img.png")!
 
-        // When
-        let pages = try await storyProcessor.processIntoPages(shortContent, theme: theme) // Use shortContent
+        let pages = try await storyProcessor.processIntoPages(shortContent, theme: theme)
 
-        // Then
-        XCTAssertEqual(pages.count, 1)
-        XCTAssertEqual(mockIllustrationService.generateIllustrationCallCount, 1)
-        // Verify parameters passed to the mock
-        let lastParams = try XCTUnwrap(mockIllustrationService.lastCallParameters)
-        XCTAssertEqual(lastParams.pageText, shortContent) // Now shortContent is in scope
-        XCTAssertEqual(lastParams.theme, theme) // Use the theme variable defined in the test
+        #expect(pages.count == 1)
+        #expect(mockIllustrationService.generateIllustrationCallCount == 1)
+
+        let lastParams = mockIllustrationService.lastCallParameters
+        #expect(lastParams != nil, "Mock should have received parameters")
+        #expect(lastParams!.pageText == shortContent)
+        #expect(lastParams!.theme == theme)
     }
 
+    @Test("Page illustration URL set on success")
+    @MainActor
     func testPageIllustrationURLSetOnSuccess() async throws {
-        // Given
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
+
         let content = "Success test content."
         let theme = "Success"
         let expectedURL = URL(string: "https://success.url/image.jpg")!
-        mockIllustrationService.urlToReturn = expectedURL // Configure mock for success
+        mockIllustrationService.urlToReturn = expectedURL
 
-        // When
         let pages = try await storyProcessor.processIntoPages(content, theme: theme)
 
-        // Then
-        XCTAssertEqual(pages.count, 1)
-        XCTAssertEqual(pages[0].illustrationStatus, .success, "Status should be success when mock returns a path")
-        XCTAssertNotNil(pages[0].illustrationRelativePath, "Relative path should be set by the mock")
-        XCTAssertNotNil(pages[0].imagePrompt, "Image prompt should be set even on success")
+        #expect(pages.count == 1)
+        #expect(pages[0].illustrationStatus == .success)
+        #expect(pages[0].illustrationRelativePath != nil)
+        #expect(pages[0].imagePrompt != nil)
     }
 
+    @Test("Page illustration URL nil on service nil response")
+    @MainActor
     func testPageIllustrationURLNilOnServiceNilResponse() async throws {
-        // Given
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
+
         let content = "Nil response test."
         let theme = "Nil Response"
-        mockIllustrationService.urlToReturn = nil // Configure mock to return nil
+        mockIllustrationService.urlToReturn = nil
 
-        // When
         let pages = try await storyProcessor.processIntoPages(content, theme: theme)
 
-        // Then
-        XCTAssertEqual(pages.count, 1)
-        XCTAssertNil(pages[0].illustrationRelativePath, "Relative path should be nil when mock returns nil")
-        XCTAssertEqual(pages[0].illustrationStatus, .failed, "Status should be failed when mock returns nil")
-        XCTAssertNotNil(pages[0].imagePrompt, "Image prompt should be set even when mock returns nil")
+        #expect(pages.count == 1)
+        #expect(pages[0].illustrationRelativePath == nil)
+        #expect(pages[0].illustrationStatus == .failed)
+        #expect(pages[0].imagePrompt != nil)
     }
 
+    @Test("Page illustration URL nil on service error")
+    @MainActor
     func testPageIllustrationURLNilOnServiceError() async throws {
-        // Given
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
+
         let content = "Error test content."
         let theme = "Error"
-        mockIllustrationService.generateIllustrationShouldThrowError = IllustrationError.networkError(NSError(domain: "TestError", code: 1)) // Configure mock to throw
+        mockIllustrationService.generateIllustrationShouldThrowError =
+            IllustrationError.networkError(NSError(domain: "TestError", code: 1))
 
-        // When
-        let pages = try await storyProcessor.processIntoPages(content, theme: theme) // Error is caught internally
+        let pages = try await storyProcessor.processIntoPages(content, theme: theme)
 
-        // Then
-        XCTAssertEqual(pages.count, 1)
-        XCTAssertNil(pages[0].illustrationRelativePath, "Relative path should be nil when mock throws error")
-        XCTAssertEqual(pages[0].illustrationStatus, .failed, "Status should be failed when mock throws error")
-        XCTAssertNotNil(pages[0].imagePrompt, "Image prompt should be set even when mock throws error")
+        #expect(pages.count == 1)
+        #expect(pages[0].illustrationRelativePath == nil)
+        #expect(pages[0].illustrationStatus == .failed)
+        #expect(pages[0].imagePrompt != nil)
     }
-
-    // Removed testPageModelInitialization as Page is now in StoryModels
 }

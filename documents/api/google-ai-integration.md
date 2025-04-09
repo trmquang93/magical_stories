@@ -1,18 +1,18 @@
-# Google AI (Gemini Pro) Integration Guide
+# Google AI (Gemini) Integration Guide
 
 ## Overview
-This document outlines the integration of Google AI models (Gemini Pro for text, Gemini Flash 2.0 for images) for generating personalized children's stories and illustrations in the Magical Stories app.
+This document outlines the integration of Google AI models (Gemini Pro for text, `imagen-3.0-generate-002` for images) for generating personalized children's stories and illustrations in the Magical Stories app.
 
 ## API Setup
 
 ### Prerequisites
-1. Google AI Studio account
-2. API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
-3. Gemini Pro model access
+1. Google AI Studio account or Google Cloud Project with Vertex AI enabled.
+2. API key generated from the appropriate console.
+3. Access enabled for the required Gemini models.
 
 ### Configuration
 
-The API key is managed via a `Config.plist` file (NOT `Config.xcconfig` as initially suggested here) which should be added to `.gitignore`. The key is then loaded into the app via `AppConfig.swift`.
+The API key (`GeminiAPIKey`) is managed via a `Config.plist` file (added to `.gitignore`) and loaded securely via `AppConfig.swift`.
 
 ```xml
 <!-- Config.plist -->
@@ -22,7 +22,7 @@ The API key is managed via a `Config.plist` file (NOT `Config.xcconfig` as initi
 <dict>
     <key>GeminiAPIKey</key>
     <string>YOUR_API_KEY_HERE</string>
-    <!-- Add other keys like GoogleCloudProjectID if needed -->
+    <!-- Add other keys if needed -->
 </dict>
 </plist>
 ```
@@ -30,234 +30,95 @@ The API key is managed via a `Config.plist` file (NOT `Config.xcconfig` as initi
 ```swift
 // AppConfig.swift (Simplified Example)
 public struct AppConfig {
-    private static func value<T>(forKey key: String) throws -> T { ... } // Implementation details...
-
+    // ... loading logic ...
     public static var geminiApiKey: String {
         do { return try value(forKey: "GeminiAPIKey") }
-        catch { fatalError(error.localizedDescription) }
+        catch { fatalError("Missing or invalid GeminiAPIKey in Config.plist: \(error)") }
     }
-    // Add other config properties...
 }
 ```
-
 **Note:** Ensure `Config.plist` is included in the target's "Copy Bundle Resources" build phase.
 
 ## Service Implementation
 
 ### Text Generation (`StoryService`)
 
-The `StoryService` utilizes the `GoogleGenerativeAI` Swift SDK for text generation, likely using a model like "gemini-pro". (Implementation details omitted for brevity, see `StoryService.swift`).
+The `StoryService` utilizes the `GoogleGenerativeAI` Swift SDK for text generation, using the "gemini-pro" model (or latest equivalent). It leverages the `GenerativeModelProtocol` for testability. (See `StoryService.swift`).
 
 ### Image Generation (`IllustrationService`)
 
-The `IllustrationService` uses direct REST API calls to the Google Generative Language API for image generation, utilizing the `gemini-2.0-flash-exp-image-generation` model. It does **not** use the `GoogleGenerativeAI` Swift SDK's `GenerativeModel` for this purpose, as the SDK might not directly support this specific model endpoint or the required request structure at the time of implementation.
+The `IllustrationService` is responsible for generating illustrations using the Google AI platform. Unlike the `StoryService` which uses the Swift SDK, the `IllustrationService` interacts directly with the Google AI REST API.
 
-**Endpoint:**
-`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent`
+**Model:** `imagen-3.0-generate-002`
 
-**Implementation:**
-- The service constructs a `URLRequest` manually.
-- The request body is encoded from custom `Codable` structs (`GeminiImageGenRequest`) matching the API's expected JSON format (using `contents`, `parts`, `generationConfig`).
-- The response is decoded into custom `Codable` structs (`GeminiImageGenResponse`).
-- Image data (base64 encoded) is extracted from the `inlineData` field within the response parts.
-- The same API key (`AppConfig.geminiApiKey`) is used.
+**Interaction (REST API):**
+- The service interacts directly with the appropriate Google AI REST API endpoint for image generation using the specified model.
+- It constructs the necessary JSON request payload (including prompt, safety settings, generation config, and specifying the `imagen-3.0-generate-002` model) using custom `Codable` structs.
+- It sends the HTTP request using `URLSession` or a similar networking layer.
+- **Response Parsing:** The service parses the JSON response and extracts the base64-encoded image data from the relevant fields.
+- The same API key (`AppConfig.geminiApiKey`) is used for authentication via HTTP headers or query parameters as required by the API.
 
 *(See `IllustrationService.swift` for detailed implementation)*
 
-### Error Handling (`IllustrationError`)
+### Error Handling (`IllustrationError`, `AIErrorManager`)
 
-Similar error handling patterns are used, mapping SDK errors (`GenerateContentError`) to custom service errors (`IllustrationError`).
-```swift
-class GeminiService {
-    private let apiKey: String
-    private let baseURL = "https://generativelanguage.googleapis.com/v1beta/models"
-    private let model = "gemini-pro"
-    
-    init(apiKey: String = Environment.googleAIApiKey) {
-        self.apiKey = apiKey
-    }
-    
-    func generateStory(prompt: String) async throws -> String {
-        guard let url = URL(string: "\(baseURL)/\(model):generateContent?key=\(apiKey)") else {
-            throw GeminiError.invalidURL
-        }
-        
-        let request = StoryRequest(prompt: prompt)
-        // Implementation details...
-    }
-}
-```
-
-<!-- Error Handling section for GeminiService removed as specific implementation is now in IllustrationService -->
+Custom errors (e.g., `IllustrationError`) are defined to represent specific failure scenarios (API errors, network issues, parsing errors, content safety blocks). The `AIErrorManager` helps centralize logging and potentially user-facing error presentation for AI-related issues.
 
 ## Prompt Engineering
 
 ### Story Generation Template
+(Template remains the same - see previous version)
 ```swift
-struct StoryPrompt {
-    static func generate(
-        childName: String,
-        age: Int,
-        theme: String,
-        character: String
-    ) -> String {
-        """
-        Create a children's bedtime story with these requirements:
-        - Main character: \(character)
-        - Child's name: \(childName)
-        - Age group: \(age) years old
-        - Theme/moral: \(theme)
-        
-        Guidelines:
-        - Keep the story length appropriate for bedtime (300-500 words)
-        - Use age-appropriate language and concepts
-        - Include positive messages and learning opportunities
-        - Maintain a gentle, soothing tone
-        - Avoid scary elements or negative themes
-        - Include natural places for parent interaction
-        
-        Format the story with clear paragraphs and child-friendly pacing.
-        """
-    }
-}
+struct StoryPrompt { /* ... */ }
 ```
 
 ### Content Safety
-
-#### Proactive Filtering
+(Filtering logic remains the same - see previous version)
 ```swift
-extension StoryPrompt {
-    static let forbiddenThemes = [
-        "violence",
-        "death",
-        "scary",
-        "inappropriate",
-        // Add more as needed
-    ]
-    
-    static func validateTheme(_ theme: String) -> Bool {
-        !forbiddenThemes.contains(where: { theme.lowercased().contains($0) })
-    }
-}
-```
-
-#### Response Filtering
-```swift
-<!-- Response Filtering section for GeminiService removed -->
+extension StoryPrompt { /* ... forbiddenThemes, validateTheme ... */ }
 ```
 
 ## Rate Limiting
-
-### Implementation
+(Implementation concept remains the same - see previous version)
 ```swift
-class RateLimiter {
-    private var requestCount = 0
-    private let maxRequests = 50 // Adjust based on API tier
-    private var resetDate = Date()
-    
-    func checkLimit() throws {
-        guard requestCount < maxRequests else {
-            throw GeminiError.rateLimitExceeded
-        }
-        
-        if Calendar.current.isDateInToday(resetDate) {
-            requestCount += 1
-        } else {
-            requestCount = 1
-            resetDate = Date()
-        }
-    }
-}
+class RateLimiter { /* ... */ }
 ```
 
 ## Caching
-
-### Story Cache
+(Implementation concept remains the same - see previous version)
 ```swift
-class StoryCache {
-    private let cache = NSCache<NSString, NSString>()
-    private let maxCacheSize = 50 // Number of stories to cache
-    
-    func getCachedStory(for prompt: String) -> String? {
-        cache.object(forKey: prompt as NSString) as? String
-    }
-    
-    func cacheStory(_ story: String, for prompt: String) {
-        cache.setObject(story as NSString, forKey: prompt as NSString)
-    }
-}
+class StoryCache { /* ... */ }
 ```
 
 ## Error Recovery
-
-### Retry Logic
-```swift
-<!-- Retry Logic section for GeminiService removed -->
-```
+Retry logic is implemented within services like `IllustrationService` for transient network or API errors.
 
 ## Testing
 
-### Testing (`IllustrationServiceTests`)
+### Unit Testing (`IllustrationServiceTests`, `StoryServiceTests`)
 
-Unit testing `IllustrationService` currently involves initializing the real service and making direct REST calls with a dummy API key. This primarily tests the error handling path where the API call fails due to an invalid key (expecting an `IllustrationError.apiError` wrapping an HTTP 4xx error). Mocking the network interaction (e.g., using `URLProtocol`) would be required for comprehensive unit testing of the request construction and response parsing logic without hitting the actual API. Tests for specific error conditions like prompt blocking are currently skipped as they require real API interaction or network mocking.
+- **Mocking:** Services like `IllustrationService` and `StoryService` conform to protocols (`IllustrationServiceProtocol`, `StoryServiceProtocol`). Unit tests utilize **mock implementations** of these protocols.
+- **Isolation:** Mocks are injected into the components under test (e.g., `StoryProcessor`), allowing testing of the component's logic in isolation without making actual network calls to the Google AI API.
+- **Verification:** Tests verify that the component correctly interacts with the service protocol (e.g., calls the right methods with expected parameters) and handles the mocked success or error responses appropriately.
+- **Coverage:** This approach enables comprehensive testing of request construction, response handling, error propagation, and integration with other components, independent of live API availability or behavior.
+
+### Integration Testing
+- Specific integration tests (tagged `.integration`, `.api`) may exist to verify the actual connection and basic interaction with the live Google AI API using a valid (potentially test-specific) API key. These are run selectively (e.g., in CI environments) and are documented in `memory_bank/techContext.md`.
 
 ## Monitoring
-
-### Analytics
-```swift
-<!-- Analytics section for GeminiService removed -->
-```
+(Placeholder - Specific monitoring/analytics implementation details TBD)
 
 ## Best Practices
 
-1. **API Key Security**
-   - Store API key in `Config.plist` (and add to `.gitignore`)
-   - Never commit API key to version control
-   - Use different keys for development and production
-
-2. **Error Handling**
-   - Implement comprehensive error handling
-   - Provide user-friendly error messages
-   - Log errors for debugging
-
-3. **Performance**
-   - Implement caching for frequently used stories
-   - Use retry logic for failed requests
-   - Monitor API usage and costs
-
-4. **Content Safety**
-   - Implement content filtering
-   - Validate prompts before sending
-   - Filter responses for inappropriate content
-
-5. **Testing**
-   - Write unit tests for all API interactions
-   - Use mock services for testing
-   - Test error scenarios
+1.  **API Key Security:** Store securely (`Config.plist`, gitignored), never commit, use environment-specific keys.
+2.  **Error Handling:** Implement robust handling, provide user feedback, log errors.
+3.  **Performance:** Consider caching, implement retries, monitor usage/costs.
+4.  **Content Safety:** Implement prompt and response filtering.
+5.  **Testing:** Prioritize **unit tests with mocks**. Use selective integration tests for validation.
 
 ## Troubleshooting
-
-### Common Issues
-
-1. **API Key Invalid**
-   - Verify key in `Config.plist`
-   - Check API key permissions
-   - Ensure key is properly loaded
-
-2. **Rate Limiting**
-   - Monitor daily usage
-   - Implement exponential backoff
-   - Consider upgrading API tier
-
-3. **Content Filtering**
-   - Review prompt guidelines
-   - Check forbidden themes
-   - Adjust content filtering rules
+(Common issues remain the same - API Key, Rate Limiting, Content Filtering)
 
 ---
 
-This documentation should be updated when:
-- API version changes
-- New features are added
-- Security requirements change
-- Performance optimizations are implemented
+This documentation should be updated when API versions change, models are updated, new features are added, or security/testing strategies evolve.

@@ -1,6 +1,7 @@
 import Testing
 import Foundation
 import GoogleGenerativeAI // Keep for potential underlying types if needed, though mocks abstract it
+import SwiftData
 @testable import magical_stories
 
 // MARK: - Mocks
@@ -154,9 +155,15 @@ struct StoryServiceTests {
 
         // Initialize StoryService correctly, injecting mocks
         // Use the initializer that allows injecting model and storyProcessor
-        // We pass nil for apiKey as the mockModel bypasses the actual GenerativeModelWrapper
+        // We pass empty for apiKey as the mockModel bypasses the actual GenerativeModelWrapper
+        // Create an in-memory model context for testing
+        let schema = Schema([StoryModel.self, PageModel.self])
+        let container = try ModelContainer(for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
+        let testContext = ModelContext(container)
+        
         storyService = try StoryService(
             apiKey: "", // Not used by mockModel
+            context: testContext,
             persistenceService: mockPersistenceService, // Correct injection
             model: mockModel,                          // Correct injection
             storyProcessor: mockStoryProcessor         // Correct injection

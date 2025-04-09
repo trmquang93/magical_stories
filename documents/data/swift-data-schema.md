@@ -1,217 +1,290 @@
 # SwiftData Schema Documentation
 
-## Overview
-This document outlines the data model schema for the Magical Stories app using SwiftData.
+## 1. Overview
+This document outlines the data model schema for the Magical Stories app using SwiftData, designed to store user profiles, stories, pages, collections, and achievements.
 
-## Core Models
+## 2. Core Models
 
-### Story Model
+### 2.1. Story Model
+Represents a single generated story, composed of multiple pages.
+
 ```swift
+import SwiftData
+import Foundation
+
 @Model
 final class Story {
     // Core Properties
-    var id: UUID
+    @Attribute(.unique) var id: UUID
     var title: String
-    var content: String
     var createdAt: Date
     var lastReadAt: Date?
-    
-    // Story Parameters
+
+    // Story Parameters (at time of generation)
     var childName: String?
-    var ageGroup: AgeGroup
+    var ageGroup: AgeGroup // Enum
     var theme: String
     var mainCharacter: String
-    var isGrowthPathStory: Bool
-    
+    // var isGrowthPathStory: Bool // Consider if needed, or managed by Collection relationship
+
+    // Content (Pages)
+    // Cascade delete: If a Story is deleted, its associated Pages are also deleted.
+    @Relationship(deleteRule: .cascade, inverse: \Page.story)
+    var pages: [Page]? = [] // Ordered list of pages
+
     // Optional Properties
-    var audioURL: URL?
     var readCount: Int
     var isFavorite: Bool
     var notes: String?
-    
+
     // Relationships
-    @Relationship(deleteRule: .cascade)
-    var achievements: [Achievement]?
-    
-    @Relationship(inverse: \StoryCollection.stories)
-    var collections: [StoryCollection]?
-    
+    // An Achievement might be linked to a specific Story
+    @Relationship(deleteRule: .nullify) // If Story deleted, link in Achievement becomes nil
+    var achievements: [Achievement]? = []
+
+    // A Story can belong to multiple Collections
+    var collections: [StoryCollection]? = [] // Many-to-Many handled by SwiftData
+
     init(
         id: UUID = UUID(),
         title: String,
-        content: String,
         childName: String? = nil,
         ageGroup: AgeGroup,
         theme: String,
         mainCharacter: String,
-        isGrowthPathStory: Bool = false
+        // isGrowthPathStory: Bool = false,
+        createdAt: Date = Date(),
+        pages: [Page] = []
     ) {
         self.id = id
         self.title = title
-        self.content = content
+        self.createdAt = createdAt
         self.childName = childName
         self.ageGroup = ageGroup
         self.theme = theme
         self.mainCharacter = mainCharacter
-        self.isGrowthPathStory = isGrowthPathStory
-        self.createdAt = Date()
+        // self.isGrowthPathStory = isGrowthPathStory
+        self.pages = pages
         self.readCount = 0
         self.isFavorite = false
+    }
+
+    // Convenience for sorted pages
+    var sortedPages: [Page] {
+        (pages ?? []).sorted { $0.pageNumber < $1.pageNumber }
     }
 }
 ```
 
-### StoryCollection Model
+### 2.2. Page Model
+Represents a single page within a Story, containing text and illustration details.
+
 ```swift
+import SwiftData
+import Foundation
+
+@Model
+final class Page {
+    @Attribute(.unique) var id: UUID
+    var pageNumber: Int       // Order within the story
+    var text: String          // Text content of the page
+    var illustrationRelativePath: String? // Path relative to app support/documents dir
+    var illustrationStatus: IllustrationStatus // Enum: notStarted, generating, generated, failed
+
+    // Relationship back to the owning Story
+    var story: Story?
+
+    init(
+        id: UUID = UUID(),
+        pageNumber: Int,
+        text: String,
+        illustrationRelativePath: String? = nil,
+        illustrationStatus: IllustrationStatus = .notStarted,
+        story: Story? = nil
+    ) {
+        self.id = id
+        self.pageNumber = pageNumber
+        self.text = text
+        self.illustrationRelativePath = illustrationRelativePath
+        self.illustrationStatus = illustrationStatus
+        self.story = story
+    }
+}
+```
+
+### 2.3. StoryCollection Model
+Represents a collection of stories, potentially themed (e.g., Growth Collections).
+
+```swift
+import SwiftData
+import Foundation
+
 @Model
 final class StoryCollection {
     // Core Properties
-    var id: UUID
+    @Attribute(.unique) var id: UUID
     var name: String
     var createdAt: Date
-    var description: String?
-    
-    // Growth Path Properties
-    var growthCategory: GrowthCategory?
-    var targetAgeGroup: AgeGroup?
-    var completionProgress: Double
-    
+    var descriptionText: String? // Renamed from 'description' to avoid conflict
+
+    // Growth Path Properties (Optional)
+    var growthCategory: GrowthCategory? // Enum
+    var targetAgeGroup: AgeGroup?       // Enum
+    var completionProgress: Double      // Calculated or stored progress (0.0 to 1.0)
+
     // Relationships
+    // A collection can contain multiple stories. If a story is deleted,
+    // it's removed from the collection, but the collection remains.
     @Relationship(deleteRule: .nullify)
-    var stories: [Story]
-    
+    var stories: [Story]? = []
+
     init(
         id: UUID = UUID(),
         name: String,
-        description: String? = nil,
+        descriptionText: String? = nil,
         growthCategory: GrowthCategory? = nil,
-        targetAgeGroup: AgeGroup? = nil
+        targetAgeGroup: AgeGroup? = nil,
+        createdAt: Date = Date()
     ) {
         self.id = id
         self.name = name
-        self.description = description
+        self.descriptionText = descriptionText
         self.growthCategory = growthCategory
         self.targetAgeGroup = targetAgeGroup
-        self.createdAt = Date()
+        self.createdAt = createdAt
         self.completionProgress = 0.0
         self.stories = []
     }
 }
 ```
 
-### Achievement Model
+### 2.4. Achievement Model
+Represents an achievement earned by the user.
+
 ```swift
+import SwiftData
+import Foundation
+
 @Model
 final class Achievement {
     // Core Properties
-    var id: UUID
+    @Attribute(.unique) var id: UUID
     var name: String
-    var description: String
+    var descriptionText: String // Renamed from 'description'
     var earnedAt: Date
-    var type: AchievementType
-    
+    var type: AchievementType // Enum
+
     // Optional Properties
-    var iconName: String?
-    var progress: Double?
-    
-    // Relationships
-    @Relationship(inverse: \Story.achievements)
+    var iconName: String? // SF Symbol name or asset name
+    var progress: Double? // For multi-step achievements
+
+    // Relationships (Optional: Link achievement to a specific story or profile)
+    // If the story is deleted, the achievement link becomes nil, but achievement persists.
     var story: Story?
-    
+
+    // Link to UserProfile if achievements are per-profile
+    // var userProfile: UserProfile?
+
     init(
         id: UUID = UUID(),
         name: String,
-        description: String,
-        type: AchievementType
+        descriptionText: String,
+        type: AchievementType,
+        earnedAt: Date = Date(),
+        iconName: String? = nil
     ) {
         self.id = id
         self.name = name
-        self.description = description
+        self.descriptionText = descriptionText
         self.type = type
-        self.earnedAt = Date()
+        self.earnedAt = earnedAt
+        self.iconName = iconName
     }
 }
 ```
 
-### UserProfile Model
+### 2.5. UserProfile Model
+Represents the user's profile, potentially supporting multiple child profiles in the future. (Currently assumes one primary profile).
+
 ```swift
+import SwiftData
+import Foundation
+
 @Model
 final class UserProfile {
     // Core Properties
-    var id: UUID
+    @Attribute(.unique) var id: UUID // Could be a stable identifier
     var createdAt: Date
-    
-    // Child Information
+
+    // Child Information (Consider making this a separate Child model if multi-child support is needed)
     var childName: String
-    var dateOfBirth: Date
-    var interests: [String]
-    
+    var dateOfBirth: Date? // Optional?
+    var interests: [String]? = []
+
     // Preferences
-    var preferredThemes: [String]
-    var favoriteCharacters: [String]
-    
-    // Settings
-    var useTextToSpeech: Bool
-    var preferredVoiceIdentifier: String?
-    var darkModePreference: DarkModePreference
-    
-    // Statistics
-    var totalStoriesRead: Int
-    var totalReadingTime: TimeInterval
-    var lastReadDate: Date?
-    
-    // Relationships
-    @Relationship(deleteRule: .cascade)
-    var achievements: [Achievement]
-    
+    var preferredThemes: [String]? = []
+    var favoriteCharacters: [String]? = []
+
+    // Settings (Could also be stored in UserDefaults or a separate Settings model)
+    // var useTextToSpeech: Bool
+    // var preferredVoiceIdentifier: String?
+    // var darkModePreference: DarkModePreference // Enum
+
+    // Statistics (Consider if these belong here or calculated dynamically)
+    // var totalStoriesRead: Int
+    // var totalReadingTime: TimeInterval
+    // var lastReadDate: Date?
+
+    // Relationships (If achievements are per-profile)
+    // @Relationship(deleteRule: .cascade)
+    // var achievements: [Achievement]? = []
+
     init(
         id: UUID = UUID(),
         childName: String,
-        dateOfBirth: Date
+        dateOfBirth: Date? = nil,
+        createdAt: Date = Date()
     ) {
         self.id = id
         self.childName = childName
         self.dateOfBirth = dateOfBirth
-        self.createdAt = Date()
+        self.createdAt = createdAt
         self.interests = []
         self.preferredThemes = []
         self.favoriteCharacters = []
-        self.useTextToSpeech = true
-        self.darkModePreference = .system
-        self.totalStoriesRead = 0
-        self.totalReadingTime = 0
-        self.achievements = []
+        // Initialize other properties
     }
 }
 ```
 
-## Enums and Supporting Types
+## 3. Enums and Supporting Types
 
-### AgeGroup
+### 3.1. AgeGroup
 ```swift
-enum AgeGroup: Int, Codable {
+enum AgeGroup: Int, Codable, CaseIterable { // Codable for potential storage/transfer
     case preschool = 0    // 3-5 years
     case elementary = 1   // 6-8 years
     case preteen = 2      // 9-10 years
-    
-    var range: ClosedRange<Int> {
+
+    var displayName: String {
         switch self {
-        case .preschool: return 3...5
-        case .elementary: return 6...8
-        case .preteen: return 9...10
+        case .preschool: return "Preschool (3-5)"
+        case .elementary: return "Elementary (6-8)"
+        case .preteen: return "Preteen (9-10)"
         }
     }
 }
 ```
 
-### GrowthCategory
+### 3.2. GrowthCategory
 ```swift
-enum GrowthCategory: String, Codable {
+enum GrowthCategory: String, Codable, CaseIterable { // Codable for potential storage/transfer
     case emotionalIntelligence
     case cognitiveDevelopment
     case confidenceLeadership
     case socialResponsibility
-    
+    // Add more as needed
+
     var displayName: String {
         switch self {
         case .emotionalIntelligence: return "Emotional Intelligence"
@@ -223,144 +296,96 @@ enum GrowthCategory: String, Codable {
 }
 ```
 
-### AchievementType
+### 3.3. AchievementType
 ```swift
-enum AchievementType: String, Codable {
+enum AchievementType: String, Codable, CaseIterable { // Codable for potential storage/transfer
     case readingStreak
     case storiesCompleted
     case themeMastery
-    case growthPathProgress
+    case collectionCompleted // Renamed from growthPathProgress
     case specialMilestone
 }
 ```
 
-### DarkModePreference
+### 3.4. IllustrationStatus
 ```swift
-enum DarkModePreference: String, Codable {
-    case light
-    case dark
-    case system
+enum IllustrationStatus: String, Codable { // Codable for storage
+    case notStarted
+    case generating
+    case generated
+    case failed
 }
 ```
 
-## Data Migration
-
-### Schema Versioning
+### 3.5. DarkModePreference (Example if needed)
 ```swift
-enum SchemaVersion: Int {
-    case v1 = 1
-    case v2 = 2
+// enum DarkModePreference: String, Codable {
+//     case light
+//     case dark
+//     case system
+// }
+```
+
+## 4. Data Migration & Schema Versioning
+SwiftData handles lightweight migrations automatically. For complex migrations requiring data transformation, use `SchemaMigrationPlan`. Define schema versions for explicit control.
+
+```swift
+enum SchemaVersion: Int, SchemaVersionIdentifier {
+    case v1 = 1 // Initial schema with UserDefaults-like structure
+    case v2 = 2 // Schema with Story/Page separation, Collections etc.
     // Add new versions here
 }
-```
 
-### Migration Example
+// Example Migration Plan (if needed for complex changes)
+// struct MyMigrationPlan: SchemaMigrationPlan {
+//     static var schemas: [VersionedSchema.Type] {
+//         [SchemaV1.self, SchemaV2.self] // Define schema versions
+//     }
+//
+//     static var stages: [MigrationStage] {
+//         [migrateV1toV2] // Define migration stages
+//     }
+//
+//     static let migrateV1toV2 = MigrationStage.lightweight(
+//         fromVersion: SchemaV1.self,
+//         toVersion: SchemaV2.self
+//     )
+//     // Or use .custom for complex transformations
+// }
+
+// The ModelContainer needs to be initialized with the migration plan if used:
+// ModelContainer(for: SchemaV2.self, migrationPlan: MyMigrationPlan.self)
+```
+*Note: The migration from UserDefaults to SwiftData is handled separately by the `MigrationManager` described in `persistence-guide.md`, not via SwiftData's schema migration plan.*
+
+## 5. Queries and Predicates
+Use `FetchDescriptor` and `#Predicate` macros for efficient data retrieval.
+
 ```swift
-class DataMigrator {
-    static func migrateToV2(context: ModelContext) {
-        // Example migration code
-        try? context.fetch(FetchDescriptor<Story>()).forEach { story in
-            // Add new properties or modify existing ones
-            story.readCount = 0
-            story.isFavorite = false
-        }
-    }
-}
+// Example Predicates
+// Fetch stories favorited by the user
+// #Predicate<Story> { $0.isFavorite == true }
+
+// Fetch collections for a specific growth category
+// #Predicate<StoryCollection> { $0.growthCategory == .emotionalIntelligence }
 ```
+Define common queries as static methods or properties on the `@Model` classes or within Repositories.
 
-## Queries and Predicates
+## 6. Relationships & Delete Rules
+-   **Story <-> Page:** One-to-Many. Deleting a `Story` cascades to delete its `Pages`.
+-   **Story <-> StoryCollection:** Many-to-Many. SwiftData handles this implicitly. Deleting a `Story` or `StoryCollection` nullifies the link in the other.
+-   **Story <-> Achievement:** One-to-Many (optional). Deleting a `Story` nullifies the link in `Achievement`.
+-   **UserProfile <-> Achievement:** One-to-Many (optional, if achievements are per-profile). Deleting `UserProfile` cascades to delete `Achievements`.
 
-### Common Queries
-```swift
-extension Story {
-    static func recentStories() -> FetchDescriptor<Story> {
-        var descriptor = FetchDescriptor<Story>()
-        descriptor.sortBy = [SortDescriptor(\.createdAt, order: .reverse)]
-        descriptor.fetchLimit = 10
-        return descriptor
-    }
-    
-    static func favoriteStories() -> FetchDescriptor<Story> {
-        var descriptor = FetchDescriptor<Story>()
-        descriptor.predicate = #Predicate<Story> { story in
-            story.isFavorite == true
-        }
-        return descriptor
-    }
-}
-```
+Choose delete rules (`.cascade`, `.nullify`, `.deny`, `.noAction`) carefully based on data integrity requirements.
 
-### Growth Path Queries
-```swift
-extension StoryCollection {
-    static func growthPathCollections(
-        category: GrowthCategory
-    ) -> FetchDescriptor<StoryCollection> {
-        var descriptor = FetchDescriptor<StoryCollection>()
-        descriptor.predicate = #Predicate<StoryCollection> { collection in
-            collection.growthCategory == category
-        }
-        return descriptor
-    }
-}
-```
-
-## Best Practices
-
-### 1. Data Access
-- Use repository pattern to abstract data access
-- Implement CRUD operations through dedicated services
-- Handle errors gracefully with proper error types
-
-### 2. Performance
-- Use appropriate fetch limits
-- Implement pagination for large datasets
-- Cache frequently accessed data
-- Use indexes for common queries
-
-### 3. Data Integrity
-- Validate data before saving
-- Use appropriate delete rules
-- Maintain referential integrity
-- Handle concurrent access
-
-### 4. Testing
-- Create mock data for testing
-- Test all CRUD operations
-- Verify migration paths
-- Test edge cases
-
-## Example Usage
-
-### Repository Pattern
-```swift
-class StoryRepository {
-    private let modelContext: ModelContext
-    
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-    }
-    
-    func save(_ story: Story) throws {
-        modelContext.insert(story)
-        try modelContext.save()
-    }
-    
-    func delete(_ story: Story) throws {
-        modelContext.delete(story)
-        try modelContext.save()
-    }
-    
-    func fetchStories() throws -> [Story] {
-        try modelContext.fetch(Story.recentStories())
-    }
-}
-```
+## 7. Best Practices
+-   Keep models focused.
+-   Use appropriate data types.
+-   Define relationships clearly with correct delete rules.
+-   Use `@Attribute(.unique)` for stable identifiers.
+-   Consider indexing (`@Attribute(originalName: ..., hashModifier: ...)` or via `FetchDescriptor`) for frequently queried properties.
+-   Version your schema for migrations.
 
 ---
-
-This schema should be updated when:
-- Adding new models or properties
-- Modifying relationships
-- Implementing new features
-- Performing migrations
+This schema should be updated when models, properties, or relationships change. Refer to `persistence-guide.md` for implementation details.

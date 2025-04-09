@@ -10,7 +10,9 @@ To create a mobile application (iOS) that generates personalized, magical storie
 - Implement parental controls for content and usage management.
 - Ensure a user-friendly and visually appealing interface using SwiftUI.
 - Leverage AI (currently Google Gemini) for dynamic story content and illustration generation.
-- Potentially offer structured "Growth Path Stories" for skill development.
+- **Planned:** Introduce themed "Growth Collections" to guide development and offer structured content (design completed, implementation not yet started).
+- **Planned:** Implement a monetization strategy using StoreKit (design completed, implementation not yet started).
+- *Initially considered:* Potentially offer structured "Growth Path Stories" for skill development (superseded by Growth Collections).
 
 ## MVP Primary Objectives
 - Validate that parents and children enjoy personalized, AI‑generated bedtime stories.
@@ -26,7 +28,7 @@ To create a mobile application (iOS) that generates personalized, magical storie
         - Story theme/moral (using a custom picker with illustrations)
 - **Story Generation:**
     - Construct prompt from user inputs (potentially using a `PromptBuilder` service).
-    - Call Google AI API (Gemini Pro for text, potentially another model for images) using async/await pattern.
+    - Call Google AI API (Gemini Pro for text, `gemini-2.0-flash-exp-image-generation` for images) using async/await pattern.
     - Handle API errors gracefully with user-friendly alerts.
 - **Story Display:**
     - Clean, child‑friendly SwiftUI interface (`StoryDetailView`, `PageView`) using SF Pro Rounded font.
@@ -38,7 +40,7 @@ To create a mobile application (iOS) that generates personalized, magical storie
     - Store preferences using `@AppStorage`.
     - *Note: Text-to-speech (AVSpeechSynthesizer) was initially considered but removed.*
 - **Story Library (Simplified for MVP):**
-    - Save stories using `UserDefaults` via `PersistenceService` for simple storage. (SwiftData is a future goal).
+    - Save stories using `UserDefaults` via `PersistenceService` for simple storage. **Migration to SwiftData is planned for the future; implementation has not yet begun.**
     - Basic list view (`StoriesView`) with preview cards. Search is optional.
 - **Parental Controls (Basic):**
     - Basic content filtering through prompt engineering.

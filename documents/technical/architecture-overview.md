@@ -1,217 +1,138 @@
-# Architecture Overview
+# Architecture Overview: Magical Stories
 
-## Testing Architecture
+## 1. Application Architecture
 
-### 1. Framework
-We use Swift Testing framework as our primary testing tool, which provides:
-- Declarative test syntax with macros
-- Built-in async/await support
-- Parameterized testing capabilities
-- Test organization with tags and traits
+The Magical Stories application follows a layered architecture, primarily leveraging SwiftUI and MVVM-like principles for structure, state management, and UI.
 
-### 2. Test Organization Structure
-```
-magical-stories/
-├── magical-storiesTests/
-│   ├── Unit/
-│   │   ├── Models/
-│   │   ├── Services/
-│   │   └── Utils/
-│   ├── Integration/
-│   │   ├── NetworkTests/
-│   │   ├── StorageTests/
-│   │   └── SystemTests/
-│   └── Helpers/
-├── magical-storiesUITests/
-│   ├── Flows/
-│   ├── Components/
-│   └── Helpers/
-└── Views/
-    └── [View]_Tests.swift
-```
-
-### 3. Test Categories
-
-#### Unit Tests
-- Test individual components in isolation
-- Mock dependencies using protocols
-- Focus on business logic validation
-- Quick execution time
-
-#### Integration Tests
-- Test component interactions
-- Validate data flow between modules
-- Test external service integration
-- Use real or simulated dependencies
-
-#### UI Tests
-- Test user interface flows
-- Validate UI component behavior
-- Check accessibility compliance
-- Test device-specific features
-
-#### Preview Tests
-- Test SwiftUI view configurations
-- Validate layout and styling
-- Check dynamic content adaptation
-- Test view state transitions
-
-### 4. Test Data Management
-
-#### Test Data Sources
-- In-memory test doubles
-- Local JSON test data
-- Mock network responses
-- Dedicated test databases
-
-#### Data Isolation
-- Separate test environments
-- Clean state between tests
-- Isolated storage paths
-- Controlled network access
-
-### 5. Continuous Integration
-
-#### Test Automation
-- Automated test runs on PR
-- Parallel test execution
-- Device farm integration
-- Coverage reporting
-
-#### Quality Gates
-- Minimum coverage requirements
-- Performance benchmarks
-- UI test stability metrics
-- Memory leak detection
-
-### 6. Testing Tools
-
-#### Development Tools
-- Xcode test navigator
-- Test result bundles
-- Coverage reports
-- Performance metrics
-
-#### Custom Tools
-- Test data generators
-- Mock generators
-- Custom test runners
-- Reporting tools
-
-### 7. Test Process Integration
-
-#### Development Workflow
 ```mermaid
 graph TD
-    A[Feature Branch] --> B[Write Tests]
-    B --> C[Implement Feature]
-    C --> D[Run Tests]
-    D --> E{Tests Pass?}
-    E -->|No| C
-    E -->|Yes| F[Code Review]
-    F --> G[Merge]
+    subgraph "UI Layer (SwiftUI)"
+        direction TB
+        A["Views (e.g., HomeView, LibraryView, StoryDetailView, PaywallView)"] --> B(State Management);
+        B -- Uses --> C["@State, @StateObject, @EnvironmentObject, @Binding"];
+    end
+
+    subgraph "Service Layer"
+        direction TB
+        D[StoryService]
+        E[IllustrationService]
+        F[CollectionService]
+        G[PurchaseService]
+        H[EntitlementManager]
+        I[SettingsService]
+        J[...]
+    end
+
+    subgraph "Repository Layer"
+        direction TB
+        K[StoryRepository]
+        L[SettingsRepository]
+        M[AchievementRepository]
+        N[...]
+    end
+
+    subgraph "Persistence Layer"
+        direction TB
+        O[SwiftData (Primary)]
+        P[UserDefaults (Legacy/Settings)]
+    end
+
+    subgraph "External Services"
+        direction TB
+        Q[Google AI (Text & Image)]
+        R[App Store (StoreKit)]
+    end
+
+    A --> D;
+    A --> E;
+    A --> F;
+    A --> G;
+    A --> H;
+    A --> I;
+
+    D --> Q;
+    E --> Q;
+    F --> K; % CollectionService might use StoryRepository
+    G --> R;
+    H -- Reads Purchase Status --> G; % Or observes transactions
+
+    D --> K; % StoryService uses StoryRepository
+    I --> L; % SettingsService uses SettingsRepository
+
+    K --> O;
+    L --> P; % Settings might still use UserDefaults or migrate
+    M --> O;
+
+    style O fill:#f9f,stroke:#333,stroke-width:2px
+    style P fill:#lightgrey,stroke:#333,stroke-width:1px
 ```
 
-#### Review Process
-```mermaid
-graph LR
-    A[Code Changes] --> B[Automated Tests]
-    B --> C[Coverage Check]
-    C --> D[Performance Check]
-    D --> E[Manual Review]
-    E --> F[Approval]
-```
+### 1.1. Core Principles & Patterns
+-   **SwiftUI:** The UI is built declaratively using SwiftUI. Views are functions of state.
+-   **MVVM-like:** While not strictly enforcing dedicated ViewModels for every view, the architecture separates concerns:
+    -   **Views (V):** SwiftUI Views responsible for layout and presentation.
+    -   **View State (VM-like):** Managed via SwiftUI's state management tools (`@State`, `@StateObject`, `@EnvironmentObject`) often held within the View or in shared Service/Manager objects.
+    -   **Model (M):** Data structures (`Story`, `Page`, `Collection`, `Setting`) and the logic encapsulated within Services and Repositories.
+-   **Service Layer:** Encapsulates business logic, interactions with external APIs, and coordination. Key services include:
+    -   `StoryService`: Handles text generation via Google AI.
+    -   `IllustrationService`: Handles image generation via the Google AI REST API using the `imagen-3.0-generate-002` model.
+    -   `CollectionService`: Manages creation and retrieval of themed "Growth Collections".
+    -   `PurchaseService`: Interacts with StoreKit 2 for IAPs.
+    -   `EntitlementManager`: Determines user access rights based on purchases.
+    -   `SettingsService`: Manages user preferences and parental controls.
+-   **Repository Pattern:** Abstracts data access logic. Repositories (`StoryRepository`, `SettingsRepository`, etc.) provide a clean API for CRUD operations, decoupling services from the specific persistence mechanism.
+-   **Dependency Injection:** Primarily achieved using `@EnvironmentObject` for injecting shared services/repositories down the view hierarchy, and initializer injection for dependencies between services/repositories.
 
-### 8. Test Maintainability
+### 1.2. Key Subsystems
+-   **Persistence (SwiftData):**
+    -   The application is migrating to **SwiftData** as the primary persistence solution for core data like stories, collections, and user progress.
+    -   Repositories interact directly with the SwiftData model context.
+    -   `UserDefaults` may still be used for simple settings via `SettingsRepository` or `@AppStorage`.
+    -   See `documents/data/persistence-guide.md` and `documents/data/swift-data-schema.md`.
+-   **AI Integration (Google AI):**
+    -   Leverages Google AI for text (Gemini Pro via SDK) and image generation (`imagen-3.0-generate-002` via REST API).
+    -   Managed by `StoryService` and `IllustrationService`.
+    -   See `documents/api/google-ai-integration.md`.
+-   **Growth Collections:**
+    -   A core feature providing themed story sets.
+    -   Managed by `CollectionService`, likely interacting with `StoryRepository` and potentially AI services.
+    -   Models define collection structure and content.
+-   **StoreKit Integration (Monetization):**
+    -   Enables premium features via subscriptions or lifetime purchase.
+    -   `PurchaseService` handles StoreKit API interactions (loading products, purchases, transactions).
+    -   `EntitlementManager` tracks purchase status and gates access to premium features (like specific Collections).
+    -   See `documents/api/storekit-integration.md`.
 
-#### Documentation
-- Test purpose and scope
-- Setup requirements
-- Test data dependencies
-- Known limitations
+### 1.3. State Management
+-   Relies heavily on SwiftUI's built-in tools:
+    -   `@StateObject`: For owning service/repository instances at appropriate scopes.
+    -   `@EnvironmentObject`: For accessing shared instances in subviews.
+    -   `@State`: For transient, view-local UI state.
+    -   `@Published`: Within `ObservableObject` classes (Services, Managers) to notify views of changes (e.g., `EntitlementManager.isPremium`).
 
-#### Best Practices
-- Single responsibility
-- Clear naming conventions
-- Minimal setup complexity
-- Regular maintenance
+## 2. Testing Architecture
 
-### 9. Cross-Platform Testing
+A comprehensive testing strategy ensures code quality and stability.
 
-#### Platform-Specific Tests
-- iOS-specific features
-- macOS compatibility
-- watchOS limitations
-- Cross-platform shared code
+### 2.1. Framework & Categories
+-   **Swift Testing:** The primary framework for unit and integration tests.
+-   **XCTest:** Used for UI tests (`magical-storiesUITests`).
+-   **Categories:** Unit, Integration, UI, and SwiftUI View tests are employed.
 
-#### Conditional Testing
-```swift
-@Test("Platform-specific feature")
-func testFeature() {
-    #if os(iOS)
-    // iOS-specific test
-    #elseif os(macOS)
-    // macOS-specific test
-    #endif
-}
-```
+### 2.2. Key Principles
+-   **Mocking:** Protocol-based mocking is crucial for isolating components in unit tests. Services and Repositories have corresponding protocols (e.g., `IllustrationServiceProtocol`, `StoryRepositoryProtocol`) and mock implementations are used extensively.
+-   **Dependency Injection:** Mocks are injected during test setup.
+-   **Test Data:** Managed via mock configurations, local JSON, or `StoreKitConfiguration` files.
+-   **CI/CD:** Automated test execution, coverage reporting, and quality gates are integrated into the development workflow.
 
-### 10. Performance Considerations
+### 2.3. Further Details
+For detailed guidelines, patterns, and examples, refer to:
+-   `documents/dev/testing-guidelines.md`
+-   `documents/dev/swiftui-testing-patterns.md`
+-   `memory_bank/techContext.md` (Swift Integration Testing Guidelines section)
 
-#### Test Optimization
-- Parallel test execution
-- Minimal setup/teardown
-- Efficient test data
-- Resource cleanup
-
-#### Monitoring
-- Execution time tracking
-- Memory usage analysis
-- Network request logging
-- Storage impact measurement
-
-## Integration with Other Architecture Components
-
-### 1. Data Layer
-- Repository pattern testing
-- Data transformation validation
-- Persistence verification
-- Cache behavior testing
-
-### 2. Domain Layer
-- Business logic validation
-- Use case testing
-- Domain event testing
-- Validation rule testing
-
-### 3. Presentation Layer
-- ViewModel testing
-- UI state management
-- User interaction flow
-- Error presentation
-
-### 4. Infrastructure
-- Network layer testing
-- Storage layer testing
-- Security testing
-- Configuration testing
-
-## Future Considerations
-
-### 1. Scalability
-- Test suite optimization
-- Parallel execution strategies
-- Resource management
-- CI/CD pipeline efficiency
-
-### 2. Maintenance
-- Regular test review
-- Dead code removal
-- Performance optimization
-- Documentation updates
-
-### 3. Evolution
-- New testing frameworks
-- Improved tooling
-- Enhanced automation
-- Better reporting
+## 3. Future Considerations
+-   Refining error handling across layers.
+-   Optimizing SwiftData performance and queries.
+-   Expanding analytics and monitoring.
+-   Potential introduction of dedicated ViewModels if view complexity increases significantly.

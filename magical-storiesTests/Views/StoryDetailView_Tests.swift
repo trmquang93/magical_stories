@@ -1,13 +1,20 @@
 import XCTest // Ensure XCTest is imported
 import SwiftUI
-// import Testing // Use XCTest
+import Testing // Use XCTest
 
 @testable import magical_stories
 
 import SwiftUI // Add SwiftUI import for AnyView
-// import Testing // Use XCTest
+import Testing // Use XCTest
 
 @testable import magical_stories
+
+class MockSettingsRepository: SettingsRepositoryProtocol {
+    func fetchAppSettings() async throws -> AppSettingsModel? { nil }
+    func saveAppSettings(_ settings: AppSettingsModel) async throws {}
+    func fetchParentalControls() async throws -> ParentalControlsModel? { nil }
+    func saveParentalControls(_ controls: ParentalControlsModel) async throws {}
+}
 
 @MainActor
 final class StoryDetailViewTests: XCTestCase { // Change to class inheriting from XCTestCase
@@ -48,7 +55,10 @@ final class StoryDetailViewTests: XCTestCase { // Change to class inheriting fro
     func setupView() {
         setupTestStory()
         // Create services first
-        mockSettingsService = SettingsService() // Initialize SettingsService
+        mockSettingsService = SettingsService(
+            repository: MockSettingsRepository(),
+            usageAnalyticsService: MockUsageAnalyticsService()
+        )
         view = StoryDetailView(story: mockStory)
 
         // Create a hosting view and inject environment objects

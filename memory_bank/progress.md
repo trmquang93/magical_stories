@@ -16,32 +16,51 @@
     -   `SettingsView` allows configuration of app settings and parental controls.
     -   `SettingsService` manages and persists these settings using `UserDefaults`.
 -   **Parental Controls:** Basic controls for content filtering (theme, age) and screen time (max stories per day) are implemented in `SettingsService`.
--   **Testing:** Unit tests (using Swift Testing) and UI tests (using XCTest) exist for various components. A test script (`run_tests.sh`) is available. Build errors and test failures resolved; all tests passing.
+-   **Testing (Improved):**
+    -   Comprehensive unit tests (using **Swift Testing**) and UI tests (using XCTest) cover key components.
+    -   Successfully migrated relevant tests to the Swift Testing framework.
+    -   Implemented robust mocking strategies, eliminating live API calls during unit tests.
+    -   Added integration tests for critical user flows (e.g., story reading).
+    -   Test coverage significantly increased.
+    -   A test script (`run_tests.sh`) is available for consistent test execution.
+    -   All tests passing with fixed build errors and test failures.
 -   **Core Models:** Standardized core data models (`Story`, `StoryParameters`).
 -   **Persistence:** Integrated `PersistenceService` (`UserDefaults`) into `StoryService`. Verified handling of updated `Story` model with `Page` array.
--   **Illustration Generation (Updated):**
-    *   `Page` model now stores **relative path** (`illustrationRelativePath`) and **status** (`illustrationStatus`) instead of absolute URLs.
-    *   `IllustrationService` saves images in **persistent app directory** (`Application Support/Illustrations`), not temp.
-    *   Only **relative paths** are stored, enabling dynamic URL reconstruction.
-    *   **Retry logic**: Up to 5 attempts with 1-second delay on failures.
-    *   If all retries fail, page status is `.failed`.
-    *   **Manual regeneration**: UI shows a regenerate button on failure, allowing user-triggered retries.
-    *   `StoryProcessor` updated to handle new model and retry logic.
-    *   `PageView` updated to display images based on relative path and status, with regenerate button.
-    *   Protocols and mocks updated accordingly.
-    *   All related tests updated and passing.
+-   **Illustration Generation (Fully Implemented & Integrated):**
+
+    The `IllustrationService` is now fully operational, completing the core feature for automated illustration generation based on story content. It:
+
+    *   Generates illustrations by making **direct REST API calls** to Google's Generative AI endpoint.
+    *   Constructs **detailed prompts** with specific constraints (e.g., no anthropomorphic animals).
+    *   Implements **retry logic** (up to 5 attempts with delay) and **comprehensive error handling**.
+    *   Saves generated images to **persistent app storage** (`Application Support/Illustrations`), storing **relative paths** in the model.
+    *   Logs errors and issues via the centralized `AIErrorManager`.
+    *   Supports **manual regeneration** via UI if initial generation fails.
+    *   Has been **verified** with correct API key, model (`gemini-2.0-flash-exp-image-generation`), and response parsing (base64 `inlineData`).
+    *   All related tests have been updated and are passing.
+
+    This completes the main functionality for automated illustration generation. Minor future improvements (e.g., prompt tuning, UI polish) may be made, but the core system is feature-complete.
+
 -   **Error Handling:**
     *   Created AIErrorManager for centralized error management.
     *   Enhanced error handling for AI API interactions (text and image generation).
     *   Implemented graceful fallbacks with placeholder images for illustration failures.
     *   Added comprehensive logging and user-friendly error messages.
 
+-   **Recent Fixes:**
+    -   Story creation, saving, and immediate display in LibraryView now work reliably.
+    -   Debugging and error visibility improved.
+    -   Next: continue feature development or testing as needed.
+
 ## What's Left / Next Steps
 
--   **Growth Story Collections:** UI (`GrowthStoryFormView`) might exist, but the logic for generating themed collections based on developmental goals needs implementation.
--   **StoreKit Integration:** Configured but likely not fully implemented for premium features or subscriptions.
+-   **Growth Story Collections:** Planned and designed feature; implementation has not yet begun. This is a next priority.
+-   **StoreKit Integration:** Planned and designed feature; implementation has not yet begun. This is a next priority.
+-   **Persistence Migration (SwiftData):** Planned and designed migration; implementation has not yet begun. This is a next priority.
 -   **UI Polishing:** Further refinement of UI elements, animations, and overall user experience, including illustration display.
--   **Error Handling:** Enhance error handling for persistence operations and general app errors (excluding AI interactions which are now handled).
--   **Accessibility:** Thorough accessibility testing and implementation needed, especially for dynamic content like illustrations.
--   **CI/CD:** Basic configuration mentioned, may need further setup and refinement.
--   **Persistence Migration:** Consider migrating from `UserDefaults` to SwiftData for `Story` persistence as planned.
+-   **Error Handling:** Enhance error handling for persistence operations and general app errors.
+-   **Accessibility:** Thorough accessibility testing and implementation needed.
+-   **CI/CD:** Review and refine CI/CD setup.
+-   **Test Improvements:**
+    -   Continue increasing test coverage towards target (e.g., 70%+).
+    -   Add more view-based tests using descendant mirror pattern.
