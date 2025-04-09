@@ -30,6 +30,7 @@ xcodebuild test \
   -configuration Debug \
   -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2' \
   -enableCodeCoverage YES \
+  -enableAddressSanitizer YES \
   -parallel-testing-enabled NO \
   -allowProvisioningUpdates \
   -resultBundlePath TestResults.xcresult | xcbeautify \
@@ -59,6 +60,63 @@ if [ $TEST_EXIT_CODE -ne 0 ]; then
     # Re-added --legacy flag
     xcrun xcresulttool get --legacy --format json --path TestResults.xcresult
   fi
+
+  echo "----------------------------------------"
+  echo "🔍 Extracting crash diagnostics (if any)..."
+  echo "----------------------------------------"
+
+  if command -v jq &> /dev/null; then
+    # Extract diagnostics array and iterate over potential crash logs
+    xcrun xcresulttool get --legacy --format json --path TestResults.xcresult | jq -r '
+      .actions._values[]?.actionResult.diagnostics._values[]? |
+      select(.identifier._value | test("crash"; "i")) |
+      "\(.identifier._value)::: \(.url._value)"' | while IFS=":::" read -r diag_id diag_url; do
+        if [ -n "$diag_url" ]; then
+          echo ""
+          echo "🔹 Crash Diagnostic: $diag_id"
+          # Attempt to export the crash diagnostic content
+          if xcrun xcresulttool export --path TestResults.xcresult --output-path crash_log.txt --xcresult-path "$diag_url" 2>/dev/null; then
+            echo "----- Crash Log Start ($diag_id) -----"
+            cat crash_log.txt
+            echo "----- Crash Log End ($diag_id) -----"
+            rm -f crash_log.txt
+          else
+            echo "Could not export crash diagnostic at $diag_url"
+          fi
+        fi
+      done
+  else
+    echo "jq not found. Install jq for better crash diagnostics extraction (brew install jq)."
+    echo "Dumping raw diagnostics section:"
+    xcrun xcresulttool get --legacy --format json --path TestResults.xcresult
+  fi
+
+  echo "----------------------------------------"
+  echo "📋 Full Diagnostics Dump"
+  echo "----------------------------------------"
+  xcrun xcresulttool get --legacy --format json --path TestResults.xcresult | jq '.actions._values[].actionResult.diagnostics' || echo "Failed to extract diagnostics JSON"
+
+  echo "----------------------------------------"
+  echo "📋 Extracting Standard Output and Error Logs"
+  echo "----------------------------------------"
+  xcrun xcresulttool get --legacy --format json --path TestResults.xcresult | jq -r '
+    .actions._values[].actionResult.diagnostics._values[]? |
+    select(.identifier._value | test("Standard(Output|Error)"; "i")) |
+    "\(.identifier._value)::: \(.url._value)"' | while IFS=":::" read -r log_id log_url; do
+      if [ -n "$log_url" ]; then
+        echo ""
+        echo "🔹 Log: $log_id"
+        if xcrun xcresulttool export --path TestResults.xcresult --output-path temp_log.txt --xcresult-path "$log_url" 2>/dev/null; then
+          echo "----- Log Start ($log_id) -----"
+          cat temp_log.txt
+          echo "----- Log End ($log_id) -----"
+          rm -f temp_log.txt
+        else
+          echo "Could not export log at $log_url"
+        fi
+      fi
+  done
+
 
   echo "----------------------------------------"
   # Still generate coverage report even on failure for analysis

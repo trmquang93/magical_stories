@@ -21,67 +21,16 @@ class UsageAnalyticsService: UsageAnalyticsServiceProtocol {
     private var isMigrating = false
 
     private let userProfileRepository: UserProfileRepository
-    private let userDefaults: UserDefaults
-    private var cachedUserProfile: UserProfile? // Cache the profile after initial load/migration
+    private var cachedUserProfile: UserProfile? // Cache the profile after initial load
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.example.magicalstories", category: "UsageAnalyticsService")
 
-    // Define keys consistently
-    private enum Keys {
-        static let lastGeneratedStoryId = "lastGeneratedStoryId"
-        static let storyGenerationCount = "storyGenerationCount"
-        static let lastGenerationDate = "lastGenerationDate"
-        static let migrationFlag = "usageAnalyticsMigratedToSwiftData"
-    }
-
     init(
-        userProfileRepository: UserProfileRepository,
-        userDefaults: UserDefaults = .standard,
-        startBackgroundMigration: Bool = true
+        userProfileRepository: UserProfileRepository
     ) {
         self.userProfileRepository = userProfileRepository
-        self.userDefaults = userDefaults
-
-        if startBackgroundMigration {
-            Task {
-                await migrateAndLoadProfileIfNeeded()
-            }
-        }
-    }
-
-    // Expose explicit migration/load for tests
-    @MainActor
-    func performMigrationAndLoad() async {
-        await migrateAndLoadProfileIfNeeded()
-    }
-
-
-    // MARK: - Migration and Loading
-
-    private func migrateAndLoadProfileIfNeeded() async {
-        if isMigrating {
-            logger.info("Migration already in progress, skipping duplicate call.")
-            return
-        }
-        isMigrating = true
-        defer { isMigrating = false }
-
-        let isMigrated = userDefaults.bool(forKey: Keys.migrationFlag)
-
-        if isMigrated {
-            logger.info("Usage analytics already migrated to SwiftData.")
-            // Attempt to load the existing profile into cache
+        Task {
             await loadProfileIntoCache()
-            return
         }
-
-    }
-
-    private func markMigrationComplete() {
-        userDefaults.set(true, forKey: Keys.migrationFlag)
-        userDefaults.removeObject(forKey: Keys.lastGeneratedStoryId)
-        userDefaults.removeObject(forKey: Keys.storyGenerationCount)
-        userDefaults.removeObject(forKey: Keys.lastGenerationDate)
-        logger.info("Migration flag set and old UserDefaults keys removed.")
     }
 
     private func loadProfileIntoCache() async {

@@ -82,9 +82,3 @@ enum DarkModePreference: String, Codable, CaseIterable {
 
 // MARK: - UserDefaults Keys (Internal)
 // Keep these keys consistent with the ones being removed from PersistenceService
-private enum UserDefaultsKeys {
-    static let lastGeneratedStoryId = "lastGeneratedStoryId"
-    static let storyGenerationCount = "storyGenerationCount"
-    static let lastGenerationDate = "lastGenerationDate"
-    static let usageAnalyticsMigrated = "usageAnalyticsMigratedToSwiftData" // New migration flag
-}
