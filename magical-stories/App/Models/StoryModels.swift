@@ -37,10 +37,10 @@ struct Page: Identifiable, Hashable, Codable {
     }
 }
 
-
+/// Represents a generated story.
 struct Story: Identifiable, Hashable, Codable { // Conform to Codable for potential saving
     /// Unique identifier for the story.
-    let id: UUID
+    var id: UUID = UUID()
 
     /// The title of the generated story.
     var title: String
@@ -53,21 +53,31 @@ struct Story: Identifiable, Hashable, Codable { // Conform to Codable for potent
     var parameters: StoryParameters
 
     /// The date and time when the story was generated or saved.
-    var timestamp: Date
+    var timestamp: Date = Date()
 
+    /// Optional: Identifier of the Growth Collection this story belongs to.
+    var collectionId: UUID? = nil
 
     /// Initializer for creating a new Story instance.
-    /// Initializer for creating a new Story instance.
-    init(id: UUID = UUID(), title: String, pages: [Page], parameters: StoryParameters, timestamp: Date = Date()) {
+    init(
+        id: UUID = UUID(),
+        title: String,
+        pages: [Page],
+        parameters: StoryParameters,
+        timestamp: Date = Date(),
+        collectionId: UUID? = nil
+    ) {
         self.id = id
         self.title = title
         self.pages = pages
         self.parameters = parameters
         self.timestamp = timestamp
+        self.collectionId = collectionId
     }
 
     /// Compatibility initializer to handle calls expecting content, illustrationURL, and imagePrompt directly.
-    init(id: UUID = UUID(), title: String, content: String, parameters: StoryParameters, timestamp: Date = Date(), illustrationURL: URL? = nil, imagePrompt: String? = nil) {
+    /// Note: This initializer is primarily for older usage patterns and might not set collectionId.
+    init(id: UUID = UUID(), title: String, content: String, parameters: StoryParameters, timestamp: Date = Date(), illustrationURL: URL? = nil, imagePrompt: String? = nil, collectionId: UUID? = nil) {
         self.id = id
         self.title = title
         // Create a single page from the provided content and illustration details
@@ -75,6 +85,16 @@ struct Story: Identifiable, Hashable, Codable { // Conform to Codable for potent
         self.pages = [singlePage]
         self.parameters = parameters
         self.timestamp = timestamp
+        self.collectionId = collectionId // Added collectionId
+    }
+
+    /// Hashable conformance (based on id)
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
+    static func == (lhs: Story, rhs: Story) -> Bool {
+        lhs.id == rhs.id
     }
 }
 
@@ -100,4 +120,28 @@ enum StoryError: Error, LocalizedError {
             return NSLocalizedString("Failed to save or load the story.", comment: "Story Persistence Error")
         }
     }
+}
+
+// MARK: - Preview Helpers
+
+extension Story {
+    static func previewStory(title: String = "The Magical Forest Adventure") -> Story {
+        let params = StoryParameters(
+            childName: "Alex",
+            childAge: 5,
+            theme: "Friendship",
+            favoriteCharacter: "Brave Bear"
+        )
+        return Story(
+            title: title,
+            pages: [
+                Page(content: "Once upon a time, Alex and Brave Bear went into the forest.", pageNumber: 1, imagePrompt: "A child and a bear entering a forest"),
+                Page(content: "They met a lost squirrel and helped it find its way home.", pageNumber: 2, imagePrompt: "Bear and child helping a squirrel"),
+                Page(content: "They learned that helping friends is important. The end.", pageNumber: 3, imagePrompt: "Bear, child, and squirrel waving goodbye")
+            ],
+            parameters: params
+        )
+    }
+    
+    static var preview: Story { previewStory() }
 }

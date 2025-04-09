@@ -1,13 +1,16 @@
 import SwiftUI
 
 struct StoryDetailView: View {
+    @EnvironmentObject private var collectionService: CollectionService
     let story: Story
     
     @State private var pages: [Page] = []
     @State private var currentPageIndex = 0
     @State private var isLoadingPages = true
     @State private var readingProgress: Double = 0.0
-    // StoryProcessor instance removed, calculateReadingProgress is now static
+    
+    @State private var showCompletionAlert = false
+    @State private var newAchievements: [Achievement] = []
     
     // Accessibility description of the current reading progress
     private var progressDescription: String {
@@ -45,9 +48,7 @@ struct StoryDetailView: View {
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never)) // Use page style, hide default index dots
                 .onChange(of: currentPageIndex) { _, newIndex in
-                    updateReadingProgress()
-                    // Announce page change to VoiceOver
-                    UIAccessibility.post(notification: .pageScrolled, argument: "Page \(newIndex + 1) of \(pages.count)")
+                    updateReadingProgress(newIndex: newIndex)
                 }
                 .accessibilityElement(children: .contain)
                 .accessibilityLabel("Story pages")
@@ -62,6 +63,11 @@ struct StoryDetailView: View {
         .task { // Use .task for async operations on appear
             await loadPages()
         }
+        .alert("Achievement Unlocked!", isPresented: $showCompletionAlert, presenting: newAchievements) { achievements in
+             Button("Awesome!") { }
+         } message: { achievements in
+             Text("You've earned: \(achievements.map { $0.name }.joined(separator: ", "))")
+         }
     }
     
     // MARK: - Subviews
@@ -89,27 +95,83 @@ struct StoryDetailView: View {
     
     private func loadPages() async {
         isLoadingPages = true
-        // Use the processor to segment the story content into pages
-        // Pages are now directly part of the Story model, no processing needed here.
         self.pages = story.pages
         print("StoryDetailView: Loaded \(pages.count) pages directly from story model.")
         isLoadingPages = false
-        updateReadingProgress() // Initial progress update
+        if !pages.isEmpty {
+             readingProgress = StoryProcessor.calculateReadingProgress(currentPage: currentPageIndex + 1, totalPages: pages.count)
+        } else {
+             readingProgress = 0.0
+        }
         
-        // Announce when pages are loaded for VoiceOver users
         if !pages.isEmpty {
             UIAccessibility.post(notification: .screenChanged, argument: "\(pages.count) pages loaded. Page 1 is now displayed")
         }
     }
     
-    private func updateReadingProgress() {
-        // Calculate progress based on current index and total pages
-        // Ensure pages is not empty to avoid division by zero
+    private func updateReadingProgress(newIndex: Int) {
         guard !pages.isEmpty else {
             readingProgress = 0.0
             return
         }
-        // Call the static method directly
-        readingProgress = StoryProcessor.calculateReadingProgress(currentPage: currentPageIndex + 1, totalPages: pages.count)
+        readingProgress = StoryProcessor.calculateReadingProgress(currentPage: newIndex + 1, totalPages: pages.count)
+        
+        UIAccessibility.post(notification: .pageScrolled, argument: "Page \(newIndex + 1) of \(pages.count)")
+        
+        if newIndex == pages.count - 1 { 
+            Task {
+                await handleStoryCompletion()
+            }
+        }
     }
+    
+    private func handleStoryCompletion() async {
+        print("[StoryDetailView] Story completed: \(story.title)")
+        
+        guard let collectionId = story.collectionId else {
+            print("[StoryDetailView] Story \"\(story.title)\" does not belong to a collection.")
+            return
+        }
+        
+        guard let collection = collectionService.collections.first(where: { $0.id == collectionId }) else {
+            print("[StoryDetailView] Could not find parent collection with ID: \(collectionId)")
+            return
+        }
+        
+        let totalStories = Float(collection.stories.count)
+        guard totalStories > 0 else { 
+            print("[StoryDetailView] Collection has no stories, cannot calculate progress.")
+            return 
+        }
+        let progressPerStory = 1.0 / totalStories
+        let potentialNewProgress = min(collection.progress + progressPerStory, 1.0)
+        
+        guard potentialNewProgress > collection.progress else {
+            print("[StoryDetailView] Calculated progress (\(potentialNewProgress)) did not increase from current (\(collection.progress)). No update needed.")
+            return
+        }
+        
+        let finalProgress = potentialNewProgress
+        
+        print("[StoryDetailView] Updating collection \(collectionId) progress from \(collection.progress) to \(finalProgress)")
+        
+        do {
+            try await collectionService.updateProgress(for: collectionId, progress: finalProgress)
+            
+            let earnedAchievements = try await collectionService.checkAchievements(for: collectionId)
+            
+            if !earnedAchievements.isEmpty {
+                print("[StoryDetailView] New achievements earned: \(earnedAchievements.map { $0.name }.joined(separator: ", "))")
+                self.newAchievements = earnedAchievements
+                self.showCompletionAlert = true 
+            }
+        } catch {
+            print("[StoryDetailView] Error updating progress or checking achievements for collection \(collectionId): \(error)")
+        }
+    }
+}
+
+#Preview {
+    StoryDetailView(story: Story.preview)
+        .environmentObject(CollectionService.preview)
 }

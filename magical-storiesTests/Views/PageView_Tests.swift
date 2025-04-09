@@ -101,38 +101,82 @@ private func findView(in mirror: Mirror?, matching predicate: (Mirror) -> Bool) 
     return false
 }
 
-final class PageViewTests: XCTestCase {
-    func testPageViewDisplaysContent() throws {
-        // Given
-        let testContent = "This is the page text content."
-        let page = Page(content: testContent, pageNumber: 1, illustrationRelativePath: nil, illustrationStatus: .pending, imagePrompt: nil)
-        let view = PageView(page: page)
-
-        // When
-        let mirror = Mirror(reflecting: view.body)
-
-        // Then
-        // Check if a Text view containing the content exists
-        // This requires finding the Text view within the hierarchy
-        var foundText = false
-        func findText(_ mirror: Mirror?) {
-            guard let mirror = mirror else { return }
-            if mirror.subjectType is Text.Type {  // Check type without binding unused variable
-                // Getting the actual string from a Text view via Mirror is often not possible.
-                // We might have to rely on finding *a* Text view within the expected container.
-                // A more robust test might use accessibility identifiers if set.
-                foundText = true  // Assume finding any Text view in the right place is sufficient
-                return
-            }
-            for child in mirror.children {
-                if foundText { break }
-                findText(Mirror(reflecting: child.value))
+final class PageView_Tests: XCTestCase {
+    // Helper function to find views of a specific type within a view hierarchy
+    func findView<V: View>(ofType type: V.Type, in view: Any) -> V? {
+        if let view = view as? V {
+            return view
+        }
+        
+        let mirror = Mirror(reflecting: view)
+        for child in mirror.children {
+            if let found = findView(ofType: type, in: child.value) {
+                return found
             }
         }
-
-        findText(mirror)  // Start search from the body
-
-        XCTAssertTrue(foundText, "PageView should contain a Text view to display the page content")
-        // Note: Verifying the *exact* string content is difficult with Mirror.
+        return nil
+    }
+    
+    // Test basic content display
+    func testPageViewDisplaysContent() throws {
+        let content = "Test content"
+        let page = Page(content: content, pageNumber: 1)
+        let view = PageView(page: page)
+        
+        let text = try XCTUnwrap(findView(ofType: Text.self, in: view))
+        XCTAssertEqual(text.storage.key.base as? String, content)
+    }
+    
+    // Test illustration loading states
+    func testPageViewIllustrationStates() {
+        // Success state
+        let successPage = Page(content: "Content", pageNumber: 1, illustrationStatus: .success, illustrationRelativePath: "test.jpg")
+        let successView = PageView(page: successPage)
+        XCTAssertNotNil(findView(ofType: AsyncImage<AnyView>.self, in: successView))
+        
+        // Failed state
+        let failedPage = Page(content: "Content", pageNumber: 1, illustrationStatus: .failed)
+        let failedView = PageView(page: failedPage)
+        let button = findView(ofType: Button<Text>.self, in: failedView)
+        XCTAssertNotNil(button)
+        
+        // Initial state
+        let initialPage = Page(content: "Content", pageNumber: 1)
+        let initialView = PageView(page: initialPage)
+        let placeholder = findView(ofType: Image.self, in: initialView)
+        XCTAssertNotNil(placeholder)
+    }
+    
+    // Test regenerate action
+    func testRegenerateAction() {
+        var actionCalled = false
+        let page = Page(content: "Content", pageNumber: 1, illustrationStatus: .failed)
+        let view = PageView(page: page, regenerateAction: { actionCalled = true })
+        
+        // Simulate button tap
+        if let button = findView(ofType: Button<Text>.self, in: view) {
+            button.action()
+            XCTAssertTrue(actionCalled)
+        } else {
+            XCTFail("Regenerate button not found")
+        }
+    }
+    
+    // Test accessibility
+    func testAccessibility() {
+        let page = Page(content: "Test content", pageNumber: 1, imagePrompt: "Test prompt")
+        let view = PageView(page: page)
+        
+        // Test page label
+        XCTAssertTrue(view.accessibilityLabel?.contains("Page 1") == true)
+        
+        // Test illustration description
+        let description = view.illustrationDescription
+        XCTAssertEqual(description, "Illustration showing: Test prompt")
+        
+        // Test without image prompt
+        let noPromptPage = Page(content: "Test content", pageNumber: 2)
+        let noPromptView = PageView(page: noPromptPage)
+        XCTAssertEqual(noPromptView.illustrationDescription, "Illustration for page 2")
     }
 }

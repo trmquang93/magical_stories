@@ -7,22 +7,26 @@ enum PersistenceError: Error {
     case decodingFailed(Error)
     case dataNotFound
     case migrationFailed(Error)
+    case repositoryError(Error)
 }
 
 @MainActor
 class PersistenceService: PersistenceServiceProtocol {
-    private let context: ModelContext // Keep for migration & repository init
+    private let context: ModelContext
     private let storyRepository: StoryRepository
-    private let achievementRepository: AchievementRepository // Added
+    private let swiftDataAchievementRepository: AchievementRepository
+    private let userDefaultsAchievementRepository: UserDefaultsAchievementRepository
     private let userDefaults: UserDefaults
     private let migrationKey = "storiesMigratedToSwiftData"
+    private let achievementsMigrationKey = "achievementsMigratedToSwiftData"
     private let legacyStoriesKey = "savedStories"
     private let decoder = JSONDecoder()
     
     init(context: ModelContext, userDefaults: UserDefaults = .standard) {
-        self.context = context // Keep for migration & repository init
+        self.context = context
         self.storyRepository = StoryRepository(modelContext: context)
-        self.achievementRepository = AchievementRepository(modelContext: context) // Added
+        self.swiftDataAchievementRepository = AchievementRepository(modelContext: context)
+        self.userDefaultsAchievementRepository = UserDefaultsAchievementRepository(userDefaults: userDefaults)
         self.userDefaults = userDefaults
         Task {
             await migrateIfNeeded()
@@ -121,57 +125,145 @@ class PersistenceService: PersistenceServiceProtocol {
     
     // MARK: - Achievement Management -
     
-    /// Saves a standalone achievement or updates an existing one.
-    /// - Parameter achievement: The AchievementModel to save.
-    func saveAchievement(_ achievement: AchievementModel) async throws {
-        // Check if it exists to decide between save (insert) and update
-        if let _ = try? await achievementRepository.fetchAchievement(withId: achievement.id) {
-            try await achievementRepository.update(achievement)
+    /// Saves an achievement using the appropriate repository based on migration status
+    /// - Parameter achievement: The Achievement to save
+    func saveAchievement(_ achievement: Achievement) async throws {
+        if userDefaults.bool(forKey: achievementsMigrationKey) {
+            // Convert Achievement to AchievementModel and save using SwiftData
+            let achievementModel = AchievementModel(from: achievement)
+            try await swiftDataAchievementRepository.save(achievementModel)
         } else {
-            try await achievementRepository.save(achievement)
+            // Save using UserDefaults
+            try userDefaultsAchievementRepository.saveAchievement(achievement)
         }
     }
     
-    /// Fetches all achievements associated with a specific story.
-    /// - Parameter storyId: The ID of the story.
-    /// - Returns: An array of AchievementModel objects.
-    func getAchievements(for storyId: UUID) async throws -> [AchievementModel] {
-        try await achievementRepository.fetchAchievements(for: storyId)
+    /// Fetches an achievement by ID using the appropriate repository
+    /// - Parameter id: The UUID of the achievement
+    /// - Returns: The Achievement if found
+    func fetchAchievement(id: UUID) async throws -> Achievement? {
+        if userDefaults.bool(forKey: achievementsMigrationKey) {
+            let model = try await swiftDataAchievementRepository.fetchAchievement(withId: id)
+            return model?.toDomainModel()
+        } else {
+            return try userDefaultsAchievementRepository.fetchAchievement(id: id)
+        }
     }
     
-    /// Fetches all achievements of a specific type.
-    /// - Parameter type: The AchievementType to fetch.
-    /// - Returns: An array of AchievementModel objects.
-    func getAchievements(ofType type: AchievementType) async throws -> [AchievementModel] {
-        try await achievementRepository.fetchAchievements(ofType: type)
+    /// Fetches all achievements using the appropriate repository
+    /// - Returns: Array of Achievement objects
+    func fetchAllAchievements() async throws -> [Achievement] {
+        if userDefaults.bool(forKey: achievementsMigrationKey) {
+            let models = try await swiftDataAchievementRepository.fetchAllAchievements()
+            return models.map { $0.toDomainModel() }
+        } else {
+            return try userDefaultsAchievementRepository.fetchAllAchievements()
+        }
     }
     
-    /// Adds an achievement to a story, ensuring the achievement is saved first.
+    /// Fetches earned achievements using the appropriate repository
+    /// - Returns: Array of earned Achievement objects
+    func fetchEarnedAchievements() async throws -> [Achievement] {
+        if userDefaults.bool(forKey: achievementsMigrationKey) {
+            let models = try await swiftDataAchievementRepository.fetchEarnedAchievements()
+            return models.map { $0.toDomainModel() }
+        } else {
+            return try userDefaultsAchievementRepository.fetchEarnedAchievements()
+        }
+    }
+    
+    /// Fetches achievements for a specific collection using the appropriate repository
+    /// - Parameter collectionId: The UUID of the collection
+    /// - Returns: Array of Achievement objects associated with the collection
+    func fetchAchievements(forCollection collectionId: UUID) async throws -> [Achievement] {
+        if userDefaults.bool(forKey: achievementsMigrationKey) {
+            let models = try await swiftDataAchievementRepository.fetchAchievements(for: collectionId)
+            return models.map { $0.toDomainModel() }
+        } else {
+            return try userDefaultsAchievementRepository.fetchAchievements(forCollection: collectionId)
+        }
+    }
+    
+    /// Updates achievement status using the appropriate repository
     /// - Parameters:
-    ///   - achievement: The AchievementModel to add.
-    ///   - storyId: The ID of the story to link the achievement to.
-    func addAchievement(_ achievement: AchievementModel, to storyId: UUID) async throws {
-        // 1. Ensure the achievement itself is saved/updated in the context
-        try await saveAchievement(achievement)
-        
-        // 2. Link it to the story via the StoryRepository
-        try await storyRepository.addAchievement(achievement, to: storyId)
+    ///   - id: The UUID of the achievement
+    ///   - isEarned: Whether the achievement is earned
+    ///   - earnedDate: The date when earned (if applicable)
+    func updateAchievementStatus(id: UUID, isEarned: Bool, earnedDate: Date?) async throws {
+        if userDefaults.bool(forKey: achievementsMigrationKey) {
+            guard let model = try await swiftDataAchievementRepository.fetchAchievement(withId: id) else {
+                throw PersistenceError.dataNotFound
+            }
+            model.dateEarned = isEarned ? (earnedDate ?? Date()) : nil
+            try await swiftDataAchievementRepository.update(model)
+        } else {
+            try userDefaultsAchievementRepository.updateAchievementStatus(id: id, isEarned: isEarned, earnedDate: earnedDate)
+        }
     }
     
-    /// Removes the link between an achievement and a story.
-    /// Does not delete the achievement itself.
+    /// Deletes an achievement using the appropriate repository
+    /// - Parameter id: The UUID of the achievement to delete
+    func deleteAchievement(withId id: UUID) async throws {
+        if userDefaults.bool(forKey: achievementsMigrationKey) {
+            guard let model = try await swiftDataAchievementRepository.fetchAchievement(withId: id) else {
+                return // Already deleted or doesn't exist
+            }
+            try await swiftDataAchievementRepository.delete(model)
+        } else {
+            try userDefaultsAchievementRepository.deleteAchievement(id: id)
+        }
+    }
+    
+    /// Associates an achievement with a collection using the appropriate repository
     /// - Parameters:
-    ///   - achievement: The AchievementModel to unlink.
-    ///   - storyId: The ID of the story to unlink from.
-    func removeAchievement(_ achievement: AchievementModel, from storyId: UUID) async throws {
-        try await storyRepository.removeAchievement(achievement, from: storyId)
-        // If the achievement should also be deleted, call deleteAchievement here
+    ///   - achievementId: The ID of the achievement
+    ///   - collectionId: The UUID of the collection
+    func associateAchievement(_ achievementId: String, withCollection collectionId: UUID) async throws {
+        if userDefaults.bool(forKey: achievementsMigrationKey) {
+            // Implement SwiftData association logic here when needed
+            throw PersistenceError.repositoryError(NSError(domain: "Not implemented for SwiftData yet", code: -1))
+        } else {
+            try userDefaultsAchievementRepository.associateAchievement(achievementId, withCollection: collectionId)
+        }
     }
     
-    /// Deletes an achievement permanently.
-    /// - Parameter achievement: The AchievementModel to delete.
-    func deleteAchievement(_ achievement: AchievementModel) async throws {
-        try await achievementRepository.delete(achievement)
+    /// Removes an achievement's association with a collection using the appropriate repository
+    /// - Parameters:
+    ///   - achievementId: The ID of the achievement
+    ///   - collectionId: The UUID of the collection
+    func removeAchievementAssociation(_ achievementId: String, fromCollection collectionId: UUID) async throws {
+        if userDefaults.bool(forKey: achievementsMigrationKey) {
+            // Implement SwiftData disassociation logic here when needed
+            throw PersistenceError.repositoryError(NSError(domain: "Not implemented for SwiftData yet", code: -1))
+        } else {
+            try userDefaultsAchievementRepository.removeAchievementAssociation(achievementId, fromCollection: collectionId)
+        }
+    }
+}
+
+// MARK: - Model Conversions
+
+extension AchievementModel {
+    convenience init(from achievement: Achievement) {
+        self.init(
+            id: UUID(uuidString: achievement.id) ?? UUID(),
+            name: achievement.name,
+            description: achievement.description,
+            iconName: achievement.iconName,
+            unlockCriteriaDescription: achievement.unlockCriteriaDescription,
+            dateEarned: achievement.dateEarned
+        )
+    }
+    
+    func toDomainModel() -> Achievement {
+        Achievement(
+            id: id.uuidString,
+            name: name,
+            description: description,
+            iconName: iconName,
+            unlockCriteriaDescription: unlockCriteriaDescription,
+            dateEarned: dateEarned
+        )
     }
 }
 
