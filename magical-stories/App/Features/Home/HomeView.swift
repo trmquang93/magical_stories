@@ -78,10 +78,26 @@ struct HomeView: View {
         }
     }
 }
+extension HomeView {
+    static func makePreview() -> some View {
+        let container: ModelContainer
+        do {
+            container = try ModelContainer()
+        } catch {
+            fatalError("Failed to create ModelContainer: \(error)")
+        }
+        let storyService: StoryService
+        do {
+            storyService = try StoryService(context: container.mainContext)
+        } catch {
+            fatalError("Failed to create StoryService: \(error)")
+        }
+        return HomeView()
+            .environment(\.modelContext, container.mainContext)
+            .environmentObject(storyService)
+    }
+}
 
 #Preview {
-    let container = try! ModelContainer()
-    HomeView()
-        .environment(\.modelContext, container.mainContext)
-        .environmentObject(try! StoryService(context: container.mainContext))
+    HomeView.makePreview()
 }

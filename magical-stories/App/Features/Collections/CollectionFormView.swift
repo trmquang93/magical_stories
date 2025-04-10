@@ -130,7 +130,12 @@ struct CollectionFormView: View {
         
         do {
             print("[CollectionFormView] Generating collection with parameters: \(parameters)")
-            _ = try await collectionService.generateCollection(parameters: parameters)
+            _ = try await collectionService.createCollection(
+                title: "Untitled Collection",
+                theme: parameters.developmentalFocus,
+                ageGroup: parameters.childAgeGroup,
+                focusArea: parameters.developmentalFocus
+            )
             // Success!
             isGenerating = false
             dismiss() // Dismiss the form on success

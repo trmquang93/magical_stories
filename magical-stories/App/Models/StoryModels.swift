@@ -1,33 +1,32 @@
 import Foundation
 import SwiftData
-import magical_stories
 
 /// Represents the input parameters provided by the user to generate a story.
-struct StoryParameters: Codable, Hashable { // Conform to Codable/Hashable for potential saving/diffing
-    /// The name of the child the story is for.
+struct StoryParameters: Codable, Hashable {
     var childName: String
-
-    /// The age of the child. Kept as Int for MVP simplicity.
-    /// Consider Enum for specific age ranges post-MVP (e.g., based on Growth-Path-Stories.md).
     var childAge: Int
-
-    /// The desired theme or moral for the story.
     var theme: String
-
-    /// The favorite character or animal to feature in the story.
     var favoriteCharacter: String
 }
 
-/// Represents a generated story.
-struct Page: Identifiable, Hashable, Codable {
-    let id: UUID
-    let content: String
-    let pageNumber: Int
-    var illustrationRelativePath: String?  // Relative path to saved image
-    var illustrationStatus: IllustrationStatus = IllustrationStatus.pending  // Status of illustration generation
-    var imagePrompt: String?   // Stores the prompt used for generation
-
-    init(id: UUID = UUID(), content: String, pageNumber: Int, illustrationRelativePath: String? = nil, illustrationStatus: IllustrationStatus = IllustrationStatus.pending, imagePrompt: String? = nil) {
+/// Represents a page in a story.
+@Model
+final class Page: Identifiable, Codable {
+    @Attribute(.unique) var id: UUID
+    var content: String
+    var pageNumber: Int
+    var illustrationRelativePath: String?
+    var illustrationStatus: IllustrationStatus
+    var imagePrompt: String?
+    
+    init(
+        id: UUID = UUID(),
+        content: String,
+        pageNumber: Int,
+        illustrationRelativePath: String? = nil,
+        illustrationStatus: IllustrationStatus = .pending,
+        imagePrompt: String? = nil
+    ) {
         self.id = id
         self.content = content
         self.pageNumber = pageNumber
@@ -35,66 +34,112 @@ struct Page: Identifiable, Hashable, Codable {
         self.illustrationStatus = illustrationStatus
         self.imagePrompt = imagePrompt
     }
+
+    enum CodingKeys: String, CodingKey {
+        case id, content, pageNumber, illustrationRelativePath, illustrationStatus, imagePrompt
+    }
+
+    convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let id = try container.decode(UUID.self, forKey: .id)
+        let content = try container.decode(String.self, forKey: .content)
+        let pageNumber = try container.decode(Int.self, forKey: .pageNumber)
+        let illustrationRelativePath = try container.decodeIfPresent(String.self, forKey: .illustrationRelativePath)
+        let illustrationStatus = try container.decode(IllustrationStatus.self, forKey: .illustrationStatus)
+        let imagePrompt = try container.decodeIfPresent(String.self, forKey: .imagePrompt)
+        self.init(id: id, content: content, pageNumber: pageNumber, illustrationRelativePath: illustrationRelativePath, illustrationStatus: illustrationStatus, imagePrompt: imagePrompt)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(content, forKey: .content)
+        try container.encode(pageNumber, forKey: .pageNumber)
+        try container.encodeIfPresent(illustrationRelativePath, forKey: .illustrationRelativePath)
+        try container.encode(illustrationStatus, forKey: .illustrationStatus)
+        try container.encodeIfPresent(imagePrompt, forKey: .imagePrompt)
+    }
 }
 
 /// Represents a generated story.
-struct Story: Identifiable, Hashable, Codable { // Conform to Codable for potential saving
-    /// Unique identifier for the story.
-    var id: UUID = UUID()
-
-    /// The title of the generated story.
+@Model
+final class Story: Identifiable, Codable {
+    @Attribute(.unique) var id: UUID
     var title: String
-
-    /// The full content/text of the generated story.
-    /// The individual pages of the story.
     var pages: [Page]
-
-    /// The parameters used to generate this story.
     var parameters: StoryParameters
-
-    /// The date and time when the story was generated or saved.
-    var timestamp: Date = Date()
-
-    /// Optional: Identifier of the Growth Collection this story belongs to.
-    var collectionId: UUID? = nil
-
-    /// Initializer for creating a new Story instance.
+    var timestamp: Date
+    var isCompleted: Bool = false
+    var collections: [StoryCollection]
+    
     init(
         id: UUID = UUID(),
         title: String,
         pages: [Page],
         parameters: StoryParameters,
         timestamp: Date = Date(),
-        collectionId: UUID? = nil
+        isCompleted: Bool = false,
+        collections: [StoryCollection] = []
     ) {
         self.id = id
         self.title = title
         self.pages = pages
         self.parameters = parameters
         self.timestamp = timestamp
-        self.collectionId = collectionId
+        self.isCompleted = isCompleted
+        self.collections = collections
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id, title, pages, parameters, timestamp, isCompleted, collections
     }
 
-    /// Compatibility initializer to handle calls expecting content, illustrationURL, and imagePrompt directly.
-    /// Note: This initializer is primarily for older usage patterns and might not set collectionId.
-    init(id: UUID = UUID(), title: String, content: String, parameters: StoryParameters, timestamp: Date = Date(), illustrationURL: URL? = nil, imagePrompt: String? = nil, collectionId: UUID? = nil) {
-        self.id = id
-        self.title = title
-        // Create a single page from the provided content and illustration details
-        let singlePage = Page(content: content, pageNumber: 1, illustrationRelativePath: illustrationURL?.path, illustrationStatus: IllustrationStatus.pending, imagePrompt: imagePrompt)
-        self.pages = [singlePage]
-        self.parameters = parameters
-        self.timestamp = timestamp
-        self.collectionId = collectionId // Added collectionId
+    convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let id = try container.decode(UUID.self, forKey: .id)
+        let title = try container.decode(String.self, forKey: .title)
+        let pages = try container.decode([Page].self, forKey: .pages)
+        let parameters = try container.decode(StoryParameters.self, forKey: .parameters)
+        let timestamp = try container.decode(Date.self, forKey: .timestamp)
+        let isCompleted = try container.decode(Bool.self, forKey: .isCompleted)
+        let collections = try container.decode([StoryCollection].self, forKey: .collections)
+        self.init(id: id, title: title, pages: pages, parameters: parameters, timestamp: timestamp, isCompleted: isCompleted, collections: collections)
     }
 
-    /// Hashable conformance (based on id)
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encode(pages, forKey: .pages)
+        try container.encode(parameters, forKey: .parameters)
+        try container.encode(timestamp, forKey: .timestamp)
+        try container.encode(isCompleted, forKey: .isCompleted)
+        try container.encode(collections, forKey: .collections)
     }
-
-    static func == (lhs: Story, rhs: Story) -> Bool {
-        lhs.id == rhs.id
+    
+    // Compatibility initializer
+    convenience init(
+        id: UUID = UUID(),
+        title: String,
+        content: String,
+        parameters: StoryParameters,
+        timestamp: Date = Date(),
+        illustrationURL: URL? = nil,
+        imagePrompt: String? = nil
+    ) {
+        let singlePage = Page(
+            content: content,
+            pageNumber: 1,
+            illustrationRelativePath: illustrationURL?.path,
+            imagePrompt: imagePrompt
+        )
+        self.init(
+            id: id,
+            title: title,
+            pages: [singlePage],
+            parameters: parameters,
+            timestamp: timestamp
+        )
     }
 }
 

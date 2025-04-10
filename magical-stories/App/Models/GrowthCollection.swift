@@ -1,7 +1,7 @@
 import Foundation
 
 /// Represents a themed collection of stories focused on a specific developmental goal.
-struct GrowthCollection: Identifiable, Codable {
+struct GrowthCollection: Identifiable, Codable, Hashable {
     /// Unique identifier for the collection.
     let id: UUID
 
@@ -39,17 +39,16 @@ struct GrowthCollection: Identifiable, Codable {
         self.progress = progress
         self.associatedBadgeIds = associatedBadgeIds
     }
-}
 
-// MARK: - Example Usage (for previews or testing)
-extension GrowthCollection {
-    static var example: GrowthCollection {
+    static var previewExample: GrowthCollection {
         GrowthCollection(
             title: "The Forest of Friendship",
             description: "Learn about making friends and being kind.",
             theme: "Social Skills",
             targetAgeGroup: "4-6",
-            stories: [Story.example, Story.example] // Using example stories
+            stories: [Story.preview, Story.preview],
+            progress: 0.5,
+            associatedBadgeIds: ["badge1", "badge2"]
         )
     }
-} 
+}

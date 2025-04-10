@@ -8,7 +8,7 @@ struct CollectionsListView: View {
     // TODO: Add filtering logic based on searchText if needed
     private var filteredCollections: [GrowthCollection] {
         // For now, just return all collections
-        collectionService.collections
+        [] // TODO: Implement fetching collections from service or view model
     }
     
     var body: some View {

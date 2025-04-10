@@ -19,15 +19,15 @@ struct CollectionCardView: View {
                 Spacer()
                 
                 // Optional: Display badge icon if relevant
-                if let firstBadgeId = collection.associatedBadges?.first {
+                if (collection.associatedBadgeIds?.first) != nil {
                     // TODO: Map badge ID to an actual icon/image
                     Image(systemName: "seal.fill")
                         .foregroundColor(.orange) // Example color
                 }
             }
             
-            Text(collection.description ?? "No description provided.")
-                .font(Theme.Typography.body)
+            Text(collection.description)
+                .font(.body)
                 .foregroundColor(Theme.Colors.textSecondary)
                 .lineLimit(3)
             
@@ -38,7 +38,7 @@ struct CollectionCardView: View {
                         .tint(Theme.Colors.primary) // Use theme color
                         
                     Text(String(format: "%.0f%% Complete", collection.progress * 100))
-                        .font(Theme.Typography.caption)
+                        .font(.caption)
                         .foregroundColor(Theme.Colors.textSecondary)
                 }
                 .padding(.top, Theme.Spacing.xs)

@@ -4,10 +4,6 @@ import Testing
 
 @testable import magical_stories
 
-// Define a custom tag for integration tests
-extension Tag {
-    @Tag static var integration: Self
-}
 
 /// Integration tests for the IllustrationService, interacting with the actual
 /// Google AI API.

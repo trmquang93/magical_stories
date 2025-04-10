@@ -112,11 +112,28 @@ struct StoryCard: View {
     }
 }
 
-#Preview {
-    let container = try! ModelContainer()
-    NavigationStack {
-        LibraryView()
-            .environment(\.modelContext, container.mainContext)
-            .environmentObject(try! StoryService(context: container.mainContext))
+extension LibraryView {
+    static func makePreview() -> some View {
+        let container: ModelContainer
+        do {
+            container = try ModelContainer()
+        } catch {
+            fatalError("Failed to create ModelContainer: \(error)")
+        }
+        let storyService: StoryService
+        do {
+            storyService = try StoryService(context: container.mainContext)
+        } catch {
+            fatalError("Failed to create StoryService: \(error)")
+        }
+        return NavigationStack {
+            LibraryView()
+                .environment(\.modelContext, container.mainContext)
+                .environmentObject(storyService)
+        }
     }
+}
+
+#Preview {
+    LibraryView.makePreview()
 }

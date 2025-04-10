@@ -83,7 +83,7 @@ final class UserDefaultsAchievementRepository: AchievementRepositoryProtocol {
     func updateAchievementStatus(id: UUID, isEarned: Bool, earnedDate: Date?) throws {
         var achievements = try loadAllAchievements()
         guard let index = achievements.firstIndex(where: { $0.id == id.uuidString }) else {
-            throw PersistenceError.itemNotFound
+            throw PersistenceError.dataNotFound
         }
         
         var achievement = achievements[index]

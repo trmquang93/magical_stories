@@ -43,7 +43,7 @@ class UserDefaultsCollectionRepository: CollectionRepositoryProtocol {
         var collections = try fetchAllCollectionsInternal()
 
         guard let index = collections.firstIndex(where: { $0.id == id }) else {
-            throw PersistenceError.itemNotFound
+            throw PersistenceError.dataNotFound
         }
 
         // Ensure progress is clamped between 0.0 and 1.0

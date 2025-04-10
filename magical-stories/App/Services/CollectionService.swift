@@ -5,7 +5,7 @@ protocol MockAIServiceProtocol {
     func generateStories(for theme: String, ageGroup: String) async throws -> [StoryModel]
 }
 
-class CollectionService {
+class CollectionService: ObservableObject {
     private let aiService: MockAIServiceProtocol
     private let repository: CollectionRepository
 
@@ -22,11 +22,11 @@ class CollectionService {
     ) async throws -> StoryCollection {
         var attempts = 0
         let maxRetries = 2
-        var stories: [StoryModel] = []
+        var storyModels: [StoryModel] = []
 
         while attempts <= maxRetries {
             do {
-                stories = try await aiService.generateStories(for: theme, ageGroup: ageGroup)
+                storyModels = try await aiService.generateStories(for: theme, ageGroup: ageGroup)
                 break
             } catch {
                 attempts += 1
@@ -37,15 +37,14 @@ class CollectionService {
         }
 
         let collection = StoryCollection(
-            id: UUID().uuidString,
+            id: UUID(),
             title: title,
-            theme: theme,
-            ageGroup: ageGroup,
-            focusArea: focusArea,
-            createdDate: Date(),
-            stories: stories,
-            progress: 0.0,
-            achievements: []
+            descriptionText: nil,
+            growthCategory: theme,
+            targetAgeGroup: ageGroup,
+            stories: storyModels.map { $0.toStory() },
+            achievements: [],
+            completionProgress: 0.0
         )
 
         try await repository.create(collection)
@@ -57,19 +56,50 @@ class CollectionService {
         return try await repository.fetch(descriptor)
     }
 
-    func updateProgress(for collectionId: String, progress: Double) async throws {
+    func updateProgress(for collectionId: UUID, progress: Double) async throws {
         guard let collection = try await repository.get(byId: collectionId) else { return }
-        collection.progress = progress
+        collection.completionProgress = progress
 
         if progress >= 1.0 {
-            let achievement = AchievementModel(
+            let achievement = Achievement(
+                id: UUID().uuidString,
                 name: "Completed Collection",
-                achievementDescription: "Finished all stories in the collection",
-                type: .specialMilestone
+                description: "Finished all stories in the collection",
+                iconName: "star.fill",
+                unlockCriteriaDescription: "Complete all stories in this collection"
             )
-            collection.achievements.append(achievement)
+            if collection.achievements == nil {
+                collection.achievements = []
+            }
+            collection.achievements?.append(achievement)
         }
 
         try await repository.update(collection)
+    }
+}
+
+// MARK: - Preview Support
+
+extension CollectionService {
+    static var preview: CollectionService {
+        CollectionService(
+            aiService: PreviewAIService(),
+            repository: CollectionRepository(
+                context: {
+                    do {
+                        return try ModelContext(ModelContainer(for: StoryCollection.self))
+                    } catch {
+                        fatalError("Failed to create ModelContext/ModelContainer: \\(error)")
+                    }
+                }()
+            )
+        )
+    }
+}
+
+// Dummy preview AI service for previews
+class PreviewAIService: MockAIServiceProtocol {
+    func generateStories(for theme: String, ageGroup: String) async throws -> [StoryModel] {
+        return []
     }
 }

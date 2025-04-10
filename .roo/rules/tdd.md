@@ -127,34 +127,6 @@ The TDD cycle in our system involves collaboration between multiple specialized 
    - Maintain clear links between requirements, tests, and implementations
    - Document key decisions and design considerations
 
-## Mode-Specific Responsibilities
-
-### Testing Mode
-- Write comprehensive test cases before implementation
-- Verify test failures before implementation
-- Confirm test passes after implementation
-- Maintain and evolve test suites
-
-### Code Mode
-- Implement minimal code to pass tests
-- Focus on satisfying requirements before optimization
-- Collaborate with Testing Mode to clarify test intentions
-
-### Debug Mode
-- Perform rigorous refactoring while preserving test passing status
-- Apply best practices and design patterns
-- Ensure code quality meets project standards
-
-### Architect Mode
-- Provide guidance on system design implications
-- Ensure tests and implementations align with overall architecture
-- Review for consistency with architectural principles
-
-### Manager Mode
-- Coordinate the TDD workflow across modes
-- Ensure requirements are clearly defined for test writing
-- Verify cycle completion before starting new cycles
-
 ## Metrics and Evaluation
 
 The effectiveness of the TDD workflow should be evaluated using:

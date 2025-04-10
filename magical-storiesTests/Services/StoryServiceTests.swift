@@ -6,94 +6,7 @@ import SwiftData
 
 // MARK: - Mocks
 
-// Mock for local StoryGenerationResponse protocol
-struct MockStoryGenerationResponse: StoryGenerationResponse {
-    var text: String?
-}
 
-// Mock for local GenerativeModelProtocol (defined in StoryService.swift)
-class MockGenerativeModel: GenerativeModelProtocol {
-    var generateContentCalled = false
-    var generateContentPrompt: String?
-    var generateContentResult: Result<StoryGenerationResponse, Error>? // Use local protocol
-
-    func generateContent(_ prompt: String) async throws -> StoryGenerationResponse { // Return local protocol type
-        generateContentCalled = true
-        generateContentPrompt = prompt
-        switch generateContentResult {
-        case .success(let response):
-            return response
-        case .failure(let error):
-            throw error
-        case .none:
-            throw StoryServiceError.networkError // Default error for unconfigured mock
-        }
-    }
-}
-
-// Mock for PersistenceServiceProtocol (defined in ServiceProtocols.swift)
-class MockPersistenceService: PersistenceServiceProtocol {
-    var saveStoryCalled = false
-    var loadStoriesCalled = false
-    var deleteStoryCalled = false
-    var saveStoriesCalled = false // Added
-
-    var storyToSave: Story?
-    var storiesToSave: [Story]? // Added
-    var storyIdToDelete: UUID? // Added
-
-    var saveStoryError: Error?
-    var loadStoriesError: Error?
-    var deleteStoryError: Error?
-    var saveStoriesError: Error? // Added
-
-    var storiesToLoad: [Story] = []
-
-    // Corrected: synchronous throws
-    func saveStory(_ story: Story) throws {
-        saveStoryCalled = true
-        storyToSave = story
-        if let error = saveStoryError {
-            throw error
-        }
-        // Simulate saving by adding to the list used by loadStories
-        storiesToLoad.append(story)
-    }
-
-    // Corrected: synchronous throws
-    func loadStories() throws -> [Story] {
-        loadStoriesCalled = true
-        if let error = loadStoriesError {
-            throw error
-        }
-        return storiesToLoad
-    }
-
-    // Added required method
-    func saveStories(_ stories: [Story]) throws {
-        saveStoriesCalled = true
-        storiesToSave = stories
-        if let error = saveStoriesError {
-            throw error
-        }
-    }
-
-    // Added required method
-    func deleteStory(withId id: UUID) throws {
-        deleteStoryCalled = true
-        storyIdToDelete = id
-        if let error = deleteStoryError {
-            throw error
-        }
-    }
-}
-
-// Mock for IllustrationServiceProtocol is likely defined elsewhere (e.g., IllustrationServiceTests.swift)
-// Assuming it's available in the test target, we remove the duplicate definition here.
-
-// Mock for StoryProcessor (inherits from StoryProcessor to access its structure if needed, but overrides the key method)
-// Note: If StoryProcessor init is complex or final, this might need adjustment.
-// Assuming StoryProcessor has an accessible initializer taking IllustrationServiceProtocol.
 class MockStoryProcessor: StoryProcessor {
     var processIntoPagesCalled = false
     var processContent: String?
@@ -141,14 +54,14 @@ struct StoryServiceTests {
 
     var storyService: StoryService!
     var mockModel: MockGenerativeModel!
-    var mockPersistenceService: MockPersistenceService!
+   var mockPersistenceService: MockPersistenceService!
     var mockStoryProcessor: MockStoryProcessor!
     var mockIllustrationService: MockIllustrationService! // Assuming MockIllustrationService is defined elsewhere
 
     @MainActor // Ensure tests run on the main actor as StoryService is @MainActor
     init() throws { // Mark init as throwing because StoryService init can throw
         mockModel = MockGenerativeModel()
-        mockPersistenceService = MockPersistenceService()
+       mockPersistenceService = MockPersistenceService()
         mockIllustrationService = MockIllustrationService() // Instantiate mock
         // Pass mock illustration service to mock story processor
         mockStoryProcessor = MockStoryProcessor(illustrationService: mockIllustrationService)
@@ -209,10 +122,12 @@ struct StoryServiceTests {
         )
 
         // Configure Mocks for Success
-        mockModel.generateContentResult = .success(MockStoryGenerationResponse(text: generatedText))
+        mockModel.generateContentHandler = { _ in
+            MockStoryGenerationResponse(text: generatedText)
+        }
         mockStoryProcessor.processResult = .success(processedPages)
         // Simulate loadStories returning the newly saved story later
-        mockPersistenceService.storiesToLoad = [] // Initially empty
+       mockPersistenceService.storiesToLoad = [] // Initially empty
         // When load is called *after* save, it should find the story
         // We can refine this by checking the state *after* the call
 
@@ -270,7 +185,9 @@ struct StoryServiceTests {
     func testGenerateStory_Error_GenerationFailed_NoContent() async throws {
         // Arrange
         let parameters = StoryParameters(childName: "Alex", childAge: 5, theme: "topic", favoriteCharacter: "char")
-        mockModel.generateContentResult = .success(MockStoryGenerationResponse(text: nil)) // Simulate no text
+        mockModel.generateContentHandler = { _ in
+            MockStoryGenerationResponse(text: nil)
+        }
 
         // Act & Assert
         #expect(storyService.isGenerating == false)
@@ -300,7 +217,9 @@ struct StoryServiceTests {
     func testGenerateStory_Error_GenerationFailed_ModelThrows() async throws {
         // Arrange
         let parameters = StoryParameters(childName: "Alex", childAge: 5, theme: "topic", favoriteCharacter: "char")
-        mockModel.generateContentResult = .failure(StoryServiceError.networkError) // Simulate network error
+        mockModel.generateContentHandler = { _ in
+            throw StoryServiceError.networkError
+        }
 
         // Act & Assert
         #expect(storyService.isGenerating == false)
@@ -325,7 +244,9 @@ struct StoryServiceTests {
 
          Some content
          """
-         mockModel.generateContentResult = .success(MockStoryGenerationResponse(text: generatedText))
+         mockModel.generateContentHandler = { _ in
+             MockStoryGenerationResponse(text: generatedText)
+         }
          // Simulate processing error (using generationFailed as per StoryService logic)
          let processingError = StoryServiceError.generationFailed("Processing mock error")
          mockStoryProcessor.processResult = .failure(processingError)
@@ -364,12 +285,14 @@ struct StoryServiceTests {
          Content page 1
          """
          let processedPages = [Page(content: "Content page 1", pageNumber: 1)]
-         mockModel.generateContentResult = .success(MockStoryGenerationResponse(text: generatedText))
+         mockModel.generateContentHandler = { _ in
+             MockStoryGenerationResponse(text: generatedText)
+         }
          mockStoryProcessor.processResult = .success(processedPages)
          mockPersistenceService.saveStoryError = StoryServiceError.persistenceFailed // Simulate persistence error
 
          // Act & Assert
-         mockPersistenceService.loadStoriesCalled = false // Reset flag to ignore init load
+       mockPersistenceService.loadStoriesCalled = false // Reset flag to ignore init load
          #expect(storyService.isGenerating == false)
          // Correct #expect(throws:) syntax for specific error instance
          await #expect(throws: StoryServiceError.persistenceFailed) {
@@ -392,14 +315,14 @@ import Testing
 struct StoryServiceStoryListTests {
     var storyService: StoryService!
     var mockModel: MockGenerativeModel!
-    var mockPersistenceService: MockPersistenceService!
+   var mockPersistenceService: MockPersistenceService!
     var mockStoryProcessor: MockStoryProcessor!
     var mockIllustrationService: MockIllustrationService!
 
     @MainActor
     init() throws {
         mockModel = MockGenerativeModel()
-        mockPersistenceService = MockPersistenceService()
+       mockPersistenceService = MockPersistenceService()
         mockIllustrationService = MockIllustrationService()
         mockStoryProcessor = MockStoryProcessor(illustrationService: mockIllustrationService)
 
@@ -419,8 +342,8 @@ struct StoryServiceStoryListTests {
     @Test("Initial stories list is empty")
     @MainActor
     func testInitialStoriesListIsEmpty() async throws {
-        mockPersistenceService.storiesToLoad = []
-        try await Task.sleep(nanoseconds: 10_000_000)
+       mockPersistenceService.storiesToLoad = []
+       try await Task.sleep(nanoseconds: 10_000_000)
         #expect(storyService.stories.isEmpty, "Stories list should be empty initially")
     }
 
@@ -439,9 +362,11 @@ struct StoryServiceStoryListTests {
             Page(content: "Once upon a time... (page 1)", pageNumber: 1, imagePrompt: "jungle"),
             Page(content: "The lion roared... (page 2)", pageNumber: 2, imagePrompt: "lion")
         ]
-        mockModel.generateContentResult = .success(MockStoryGenerationResponse(text: generatedText))
+        mockModel.generateContentHandler = { _ in
+            MockStoryGenerationResponse(text: generatedText)
+        }
         mockStoryProcessor.processResult = .success(pages)
-        mockPersistenceService.storiesToLoad = []
+       mockPersistenceService.storiesToLoad = []
 
         let story = try await storyService.generateStory(parameters: parameters)
 
@@ -452,7 +377,7 @@ struct StoryServiceStoryListTests {
     @Test("Multiple created stories appear in stories list")
     @MainActor
     func testMultipleStoriesAppear() async throws {
-        mockPersistenceService.storiesToLoad = []
+       mockPersistenceService.storiesToLoad = []
 
         let params1 = StoryParameters(childName: "A", childAge: 5, theme: "sea", favoriteCharacter: "fish")
         let params2 = StoryParameters(childName: "B", childAge: 7, theme: "mountain", favoriteCharacter: "bear")
@@ -462,7 +387,9 @@ struct StoryServiceStoryListTests {
 
         let story1 = try await storyService.generateStory(parameters: params1)
 
-        mockModel.generateContentResult = .success(MockStoryGenerationResponse(text: "Title: B's Mountain\nContent"))
+        mockModel.generateContentHandler = { _ in
+            MockStoryGenerationResponse(text: "Title: B's Mountain\nContent")
+        }
         mockStoryProcessor.processResult = .success([Page(content: "Content", pageNumber: 1)])
 
         let story2 = try await storyService.generateStory(parameters: params2)

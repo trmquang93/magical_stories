@@ -149,10 +149,3 @@ struct StoryFormView: View {
         }
     }
 }
-
-#Preview {
-    let container = try! ModelContainer()
-    StoryFormView()
-        .environment(\.modelContext, container.mainContext)
-        .environmentObject(try! StoryService(context: container.mainContext))
-}

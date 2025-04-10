@@ -2,11 +2,12 @@ import Foundation
 import SwiftData
 
 enum CollectionFilter {
-    case theme(String)
+    case growthCategory(String)
+    case targetAgeGroup(String)
 }
 
 enum CollectionSort {
-    case createdDateDescending
+    case createdAtDescending
 }
 
 class CollectionRepository: BaseRepository<StoryCollection> {
@@ -18,7 +19,7 @@ class CollectionRepository: BaseRepository<StoryCollection> {
         try await save(collection)
     }
 
-    func get(byId id: String) async throws -> StoryCollection? {
+    func get(byId id: UUID) async throws -> StoryCollection? {
         let descriptor = FetchDescriptor<StoryCollection>(
             predicate: #Predicate { $0.id == id }
         )
@@ -30,7 +31,7 @@ class CollectionRepository: BaseRepository<StoryCollection> {
         try await super.update(collection)
     }
 
-    func delete(byId id: String) async throws {
+    func delete(byId id: UUID) async throws {
         if let collection = try await get(byId: id) {
             try await delete(collection)
         }
@@ -38,9 +39,14 @@ class CollectionRepository: BaseRepository<StoryCollection> {
 
     func fetch(filter: CollectionFilter) async throws -> [StoryCollection] {
         switch filter {
-        case .theme(let theme):
+        case .growthCategory(let category):
             let descriptor = FetchDescriptor<StoryCollection>(
-                predicate: #Predicate { $0.theme == theme }
+                predicate: #Predicate { $0.growthCategory == category }
+            )
+            return try await fetch(descriptor)
+        case .targetAgeGroup(let ageGroup):
+            let descriptor = FetchDescriptor<StoryCollection>(
+                predicate: #Predicate { $0.targetAgeGroup == ageGroup }
             )
             return try await fetch(descriptor)
         }
@@ -48,15 +54,15 @@ class CollectionRepository: BaseRepository<StoryCollection> {
 
     func fetchSorted(by sort: CollectionSort) async throws -> [StoryCollection] {
         switch sort {
-        case .createdDateDescending:
+        case .createdAtDescending:
             let descriptor = FetchDescriptor<StoryCollection>(
-                sortBy: [SortDescriptor(\.createdDate, order: .reverse)]
+                sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
             )
             return try await fetch(descriptor)
         }
     }
 
-    func addStory(_ story: StoryModel, toCollectionId id: String) async throws {
+    func addStory(_ story: Story, toCollectionId id: UUID) async throws {
         guard let collection = try await get(byId: id) else { return }
         if !collection.stories.contains(where: { $0.id == story.id }) {
             collection.stories.append(story)
@@ -64,10 +70,9 @@ class CollectionRepository: BaseRepository<StoryCollection> {
         }
     }
 
-    func removeStory(storyId: String, fromCollectionId id: String) async throws {
+    func removeStory(storyId: UUID, fromCollectionId id: UUID) async throws {
         guard let collection = try await get(byId: id) else { return }
-        guard let uuid = UUID(uuidString: storyId) else { return }
-        collection.stories.removeAll { $0.id == uuid }
+        collection.stories.removeAll { $0.id == storyId }
         try await update(collection)
     }
 }

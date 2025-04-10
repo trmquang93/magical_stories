@@ -47,11 +47,6 @@ class MockIllustrationService: IllustrationServiceProtocol {
     }
 }
 
-// Simple error for mocking
-enum MockError: Error {
-    case simulatedError
-}
-
 @Suite("StoryProcessor Tests")
 struct StoryProcessorTests {
 

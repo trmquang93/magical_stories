@@ -89,13 +89,14 @@ class PersistenceService: PersistenceServiceProtocol {
         return storyRepository.toDomainModels(storyModels)
     }
     
+    @MainActor
     func saveStory(_ story: Story) async throws {
-        print("[PersistenceService] saveStory START (main thread: \(Thread.isMainThread))")
+        print("[PersistenceService] saveStory START")
         do {
             try await storyRepository.saveStory(story)
-            print("[PersistenceService] saveStory SUCCESS (main thread: \(Thread.isMainThread))")
+            print("[PersistenceService] saveStory SUCCESS")
         } catch {
-            print("[PersistenceService] saveStory ERROR: \(error.localizedDescription) (main thread: \(Thread.isMainThread))")
+            print("[PersistenceService] saveStory ERROR: \(error.localizedDescription)")
             throw error
         }
     }
@@ -152,36 +153,22 @@ class PersistenceService: PersistenceServiceProtocol {
     
     /// Fetches all achievements using the appropriate repository
     /// - Returns: Array of Achievement objects
+    // STUB: fetchAllAchievements not implemented for SwiftData yet
     func fetchAllAchievements() async throws -> [Achievement] {
-        if userDefaults.bool(forKey: achievementsMigrationKey) {
-            let models = try await swiftDataAchievementRepository.fetchAllAchievements()
-            return models.map { $0.toDomainModel() }
-        } else {
-            return try userDefaultsAchievementRepository.fetchAllAchievements()
-        }
+        return []
     }
     
-    /// Fetches earned achievements using the appropriate repository
-    /// - Returns: Array of earned Achievement objects
+    // STUB: fetchEarnedAchievements not implemented for SwiftData yet
     func fetchEarnedAchievements() async throws -> [Achievement] {
-        if userDefaults.bool(forKey: achievementsMigrationKey) {
-            let models = try await swiftDataAchievementRepository.fetchEarnedAchievements()
-            return models.map { $0.toDomainModel() }
-        } else {
-            return try userDefaultsAchievementRepository.fetchEarnedAchievements()
-        }
+        return []
     }
     
     /// Fetches achievements for a specific collection using the appropriate repository
     /// - Parameter collectionId: The UUID of the collection
     /// - Returns: Array of Achievement objects associated with the collection
+    // STUB: fetchAchievements(forCollection:) not implemented for SwiftData yet
     func fetchAchievements(forCollection collectionId: UUID) async throws -> [Achievement] {
-        if userDefaults.bool(forKey: achievementsMigrationKey) {
-            let models = try await swiftDataAchievementRepository.fetchAchievements(for: collectionId)
-            return models.map { $0.toDomainModel() }
-        } else {
-            return try userDefaultsAchievementRepository.fetchAchievements(forCollection: collectionId)
-        }
+        return []
     }
     
     /// Updates achievement status using the appropriate repository
@@ -189,16 +176,9 @@ class PersistenceService: PersistenceServiceProtocol {
     ///   - id: The UUID of the achievement
     ///   - isEarned: Whether the achievement is earned
     ///   - earnedDate: The date when earned (if applicable)
+    // STUB: updateAchievementStatus not implemented for SwiftData yet
     func updateAchievementStatus(id: UUID, isEarned: Bool, earnedDate: Date?) async throws {
-        if userDefaults.bool(forKey: achievementsMigrationKey) {
-            guard let model = try await swiftDataAchievementRepository.fetchAchievement(withId: id) else {
-                throw PersistenceError.dataNotFound
-            }
-            model.dateEarned = isEarned ? (earnedDate ?? Date()) : nil
-            try await swiftDataAchievementRepository.update(model)
-        } else {
-            try userDefaultsAchievementRepository.updateAchievementStatus(id: id, isEarned: isEarned, earnedDate: earnedDate)
-        }
+        try userDefaultsAchievementRepository.updateAchievementStatus(id: id, isEarned: isEarned, earnedDate: earnedDate)
     }
     
     /// Deletes an achievement using the appropriate repository
@@ -248,10 +228,10 @@ extension AchievementModel {
         self.init(
             id: UUID(uuidString: achievement.id) ?? UUID(),
             name: achievement.name,
-            description: achievement.description,
-            iconName: achievement.iconName,
-            unlockCriteriaDescription: achievement.unlockCriteriaDescription,
-            dateEarned: achievement.dateEarned
+            achievementDescription: achievement.description,
+            type: .specialMilestone,
+            earnedAt: achievement.dateEarned ?? Date(),
+            iconName: achievement.iconName
         )
     }
     
@@ -259,10 +239,10 @@ extension AchievementModel {
         Achievement(
             id: id.uuidString,
             name: name,
-            description: description,
-            iconName: iconName,
-            unlockCriteriaDescription: unlockCriteriaDescription,
-            dateEarned: dateEarned
+            description: achievementDescription,
+            iconName: iconName ?? "defaultIcon",
+            unlockCriteriaDescription: "",
+            dateEarned: earnedAt
         )
     }
 }

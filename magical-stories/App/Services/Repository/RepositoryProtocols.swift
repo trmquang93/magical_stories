@@ -77,24 +77,3 @@ protocol AchievementRepositoryProtocol {
 // Add other repository protocols as needed (e.g., SettingsRepositoryProtocol)
 
 /// Defines potential errors during persistence operations.
-enum PersistenceError: Error, LocalizedError {
-    case encodingFailed(Error?)
-    case decodingFailed(Error?)
-    case saveFailed(Error?)
-    case fetchFailed(Error?)
-    case deleteFailed(Error?)
-    case updateFailed(Error?)
-    case itemNotFound
-
-    var errorDescription: String? {
-        switch self {
-        case .encodingFailed: return "Failed to encode data for saving."
-        case .decodingFailed: return "Failed to decode data during fetch."
-        case .saveFailed: return "Failed to save data."
-        case .fetchFailed: return "Failed to fetch data."
-        case .deleteFailed: return "Failed to delete data."
-        case .updateFailed: return "Failed to update data."
-        case .itemNotFound: return "The requested item was not found."
-        }
-    }
-} 

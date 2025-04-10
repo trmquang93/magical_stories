@@ -14,10 +14,15 @@ struct MagicalStoriesApp: App {
     // Initialization to handle dependencies between services
     init() {
         // Initialize SwiftData container with schema
-        let container = try! ModelContainer(
-            for: StoryModel.self, PageModel.self, AchievementModel.self,
-            configurations: ModelConfiguration()
-        )
+        let container: ModelContainer
+        do {
+            container = try ModelContainer(
+                for: StoryModel.self, PageModel.self, AchievementModel.self,
+                configurations: ModelConfiguration()
+            )
+        } catch {
+            fatalError("Failed to create ModelContainer: \\(error)")
+        }
         let context = container.mainContext
 
         // Initialize services in dependency order
@@ -28,7 +33,12 @@ struct MagicalStoriesApp: App {
         // 2. Services that depend on repositories
         let usageAnalyticsService = UsageAnalyticsService(userProfileRepository: userProfileRepository)
         let settings = SettingsService(repository: settingsRepository, usageAnalyticsService: usageAnalyticsService)
-        let story = try! StoryService(apiKey: AppConfig.geminiApiKey, context: context) // Assuming StoryService init is correct
+        let story: StoryService
+        do {
+            story = try StoryService(apiKey: AppConfig.geminiApiKey, context: context)
+        } catch {
+            fatalError("Failed to create StoryService: \\(error)")
+        }
 
         // Assign to StateObjects
         _settingsService = StateObject(wrappedValue: settings)

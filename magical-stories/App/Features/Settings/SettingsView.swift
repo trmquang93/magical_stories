@@ -1,14 +1,6 @@
 import SwiftUI
 import SwiftData
-@testable import magical_stories
-// Add necessary imports
 import Foundation
-// Assuming direct access to these modules/files based on project structure
-// Adjust paths or use `@_exported import ModuleName` in App file if needed
-// import Models // If models are in a separate module
-// import Services
-// import Repositories
-// import DesignSystem
 
 struct SettingsView: View {
     @EnvironmentObject private var settingsService: SettingsService // Keep this, assuming it will resolve
