@@ -32,8 +32,8 @@ The application primarily follows the **MVVM (Model-View-ViewModel)** pattern wi
 
 5.  **Data Persistence & Repository Pattern:**
     *   The **Repository Pattern** is used to abstract data access logic. Concrete repositories (`StoryRepository`, `SettingsRepository`, `AchievementRepository`, etc.) encapsulate CRUD operations for specific data models.
-    *   The application **currently uses `UserDefaults`** for persistence. Migration to **SwiftData** is **planned as a future goal**. Repositories are designed to interact with SwiftData once integrated.
-    *   `PersistenceService` (legacy, interacting with `UserDefaults`) remains in use until the planned migration to SwiftData occurs.
+    *   The application now uses **SwiftData** as the primary persistence layer for stories, settings, and user data.
+    *   Legacy `UserDefaults` persistence and migration logic have been removed.
 
 6.  **Navigation:**
     *   **Main Navigation:** `TabView` manages the top-level navigation.
@@ -118,6 +118,5 @@ The application primarily follows the **MVVM (Model-View-ViewModel)** pattern wi
 
 ## Current Architecture Notes
 - The system leverages standard SwiftUI patterns and MVVM concepts.
-- Key additions include Growth Collections, StoreKit monetization, and a migration to SwiftData using the Repository pattern.
+- Key additions include Growth Collections and StoreKit monetization.
 - `TextToSpeechService` remains removed.
-- The next major features—Growth Collections, StoreKit monetization, and SwiftData migration—are **planned and designed, but implementation has not yet begun**.

@@ -10,7 +10,7 @@ A key differentiator and Unique Selling Point (USP) is the **planned and designe
 ### Core User Flow (Single Story Generation)
 1.  **Story Generation Input:** Users (likely parents) input parameters (theme, child's name, age, favorite character) into a form (`StoryFormView`).
 2.  **AI Generation:** The app uses these parameters to generate a unique story via an AI service (Google Gemini).
-3.  **Story Library:** Generated stories are saved locally (using `PersistenceService` - **currently `UserDefaults`**; migration to SwiftData is **planned for the future**) and displayed in a library view (`LibraryView` or `StoriesView`).
+3.  **Story Library:** Generated stories are saved locally using **SwiftData** as the primary persistence layer and displayed in a library view (`LibraryView` or `StoriesView`).
 4.  **Story Reading:** Users can select a story from the library to read. The story is presented page by page (`PageView` within `StoryDetailView`).
 5.  **Settings & Parental Controls:** Users can configure app settings and parental controls via `SettingsView`.
 
@@ -39,4 +39,4 @@ A key differentiator and Unique Selling Point (USP) is the **planned and designe
 ### Future Enhancements (Beyond Core Features)
 -   Enhanced accessibility features (beyond basic VoiceOver).
 -   More sophisticated parental controls and reporting.
--   **Persistence Migration:** Planned migration from `UserDefaults` to SwiftData for robust persistence; implementation has not yet begun.
+-   **Persistence:** The app now uses SwiftData as the primary storage solution for stories and user data.

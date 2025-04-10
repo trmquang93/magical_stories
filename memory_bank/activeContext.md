@@ -1,10 +1,11 @@
-# Active Context (as of 2025-04-08)
+# Active Context (as of 2025-04-10)
 
 ## Current Focus
 The primary focus is on **finalizing designs and preparing for implementation** of the next major features, which are **planned and designed but not yet started**:
 1.  **Growth Collections:** Planned feature to add themed story collections; implementation has not yet begun.
 2.  **StoreKit Integration:** Planned monetization strategy; implementation has not yet begun.
-3.  **Persistence Migration:** Planned migration from `UserDefaults` to `SwiftData`; implementation has not yet begun.
+3.  **UI/UX Refinement:** Upcoming focus on refining the story reading interface and overall user experience.
+4.  **Accessibility Improvements:** Upcoming focus on enhancing accessibility features.
 
 ## Recent Changes (Completion & Verification)
 
@@ -26,15 +27,18 @@ The primary focus is on **finalizing designs and preparing for implementation** 
     *   Migrated relevant tests to use Swift Testing framework.
     *   Increased overall test coverage, including integration tests.
 *   **Design Phase Completed:**
-    *   Finalized architectural designs for Growth Collections, StoreKit integration, and SwiftData persistence migration.
+    *   Finalized architectural designs for Growth Collections and StoreKit integration.
 *   **Story Saving & UI Refresh Fixes:**
     *   Fixed async timing and UI refresh bug in story saving flow.
     *   Implemented debug logging and error handling in `StoryService`.
     *   Stories now appear immediately after creation in LibraryView.
+*   **Migration Cleanup:**
+    *   Removed all UserDefaults to SwiftData migration logic.
+    *   Deleted all related migration tests.
+    *   Persistence now solely relies on SwiftData.
 
 ## Next Steps
 1.  **Growth Collections:** Planned implementation of models and `CollectionService`.
 2.  **StoreKit Integration:** Planned implementation of `PurchaseService`, `EntitlementManager`, and related UI.
-3.  **SwiftData Migration:** Planned schema definition and initial integration.
-4.  **UI/UX Refinement:** Upcoming focus on refining the story reading interface and overall user experience.
-5.  **Accessibility Improvements:** Upcoming focus on enhancing accessibility features.
+3.  **UI/UX Refinement:** Improve story reading interface and overall user experience.
+4.  **Accessibility Improvements:** Enhance accessibility features.

@@ -34,13 +34,15 @@ class SettingsRepository: SettingsRepositoryProtocol {
     }
 
     func saveAppSettings(_ settings: AppSettingsModel) async throws {
-        // Check if an instance already exists to avoid duplicates.
-        // If it exists, SwiftData tracks changes automatically.
-        // If not, insert the new one.
-        if try await fetchAppSettings() == nil {
+        if let existing = try await fetchAppSettings() {
+            // Update existing instance's properties
+            existing.fontScale = settings.fontScale
+            existing.hapticFeedbackEnabled = settings.hapticFeedbackEnabled
+            existing.soundEffectsEnabled = settings.soundEffectsEnabled
+            existing.darkModeEnabled = settings.darkModeEnabled
+        } else {
             modelContext.insert(settings)
         }
-        // Save changes (either insert or update modifications)
         try modelContext.save()
     }
 
@@ -54,11 +56,16 @@ class SettingsRepository: SettingsRepositoryProtocol {
     }
 
     func saveParentalControls(_ controls: ParentalControlsModel) async throws {
-        // Check if an instance already exists.
-        if try await fetchParentalControls() == nil {
+        if let existing = try await fetchParentalControls() {
+            existing.contentFiltering = controls.contentFiltering
+            existing.screenTimeEnabled = controls.screenTimeEnabled
+            existing.maxStoriesPerDay = controls.maxStoriesPerDay
+            existing.allowedThemes = controls.allowedThemes
+            existing.minimumAge = controls.minimumAge
+            existing.maximumAge = controls.maximumAge
+        } else {
             modelContext.insert(controls)
         }
-        // Save changes (either insert or update modifications)
         try modelContext.save()
     }
 }

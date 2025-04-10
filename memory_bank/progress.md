@@ -1,4 +1,4 @@
-# Project Progress: Magical Stories (as of 2025-04-08)
+# Project Progress: Magical Stories (as of 2025-04-10)
 
 ## What Works / Implemented Features
 
@@ -8,13 +8,13 @@
     -   `StoryService` uses the **real Google Generative AI API** (via `GenerativeModelProtocol`) to generate story content based on parameters.
 -   **Story Library:**
     -   `LibraryView` displays saved stories.
-    -   Stories are persisted locally using `UserDefaults` (MVP) via `PersistenceService`.
+    -   Stories are persisted locally using **SwiftData** as the primary storage.
 -   **Story Reading:**
     -   `StoryDetailView` displays story content, paginated using `TabView`.
     -   Page indicator and progress bar are functional.
 -   **Settings:**
     -   `SettingsView` allows configuration of app settings and parental controls.
-    -   `SettingsService` manages and persists these settings using `UserDefaults`.
+    -   `SettingsService` manages and persists these settings using **SwiftData**.
 -   **Parental Controls:** Basic controls for content filtering (theme, age) and screen time (max stories per day) are implemented in `SettingsService`.
 -   **Testing (Improved):**
     -   Comprehensive unit tests (using **Swift Testing**) and UI tests (using XCTest) cover key components.
@@ -25,7 +25,7 @@
     -   A test script (`run_tests.sh`) is available for consistent test execution.
     -   All tests passing with fixed build errors and test failures.
 -   **Core Models:** Standardized core data models (`Story`, `StoryParameters`).
--   **Persistence:** Integrated `PersistenceService` (`UserDefaults`) into `StoryService`. Verified handling of updated `Story` model with `Page` array.
+-   **Persistence:** Fully integrated **SwiftData** as the primary persistence layer. Legacy UserDefaults migration code and tests have been removed.
 -   **Illustration Generation (Fully Implemented & Integrated):**
 
     The `IllustrationService` is now fully operational, completing the core feature for automated illustration generation based on story content. It:
@@ -56,7 +56,6 @@
 
 -   **Growth Story Collections:** Planned and designed feature; implementation has not yet begun. This is a next priority.
 -   **StoreKit Integration:** Planned and designed feature; implementation has not yet begun. This is a next priority.
--   **Persistence Migration (SwiftData):** Planned and designed migration; implementation has not yet begun. This is a next priority.
 -   **UI Polishing:** Further refinement of UI elements, animations, and overall user experience, including illustration display.
 -   **Error Handling:** Enhance error handling for persistence operations and general app errors.
 -   **Accessibility:** Thorough accessibility testing and implementation needed.

@@ -70,23 +70,6 @@ final class UserProfile {
     }
 
     // Convenience initializer for migration
-    convenience init(
-        migratingFromUserDefaults defaults: UserDefaults,
-        id: UUID = UUID(),
-        childName: String = "Adventurer",
-        dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -5, to: Date()) ?? Date()
-    ) {
-        self.init(id: id, childName: childName, dateOfBirth: dateOfBirth) // Call designated initializer
-
-        // Populate analytics from UserDefaults
-        self.storyGenerationCount = defaults.integer(forKey: UserDefaultsKeys.storyGenerationCount)
-        self.lastGenerationDate = defaults.object(forKey: UserDefaultsKeys.lastGenerationDate) as? Date
-        if let uuidString = defaults.string(forKey: UserDefaultsKeys.lastGeneratedStoryId) {
-            self.lastGeneratedStoryId = UUID(uuidString: uuidString)
-        } else {
-            self.lastGeneratedStoryId = nil
-        }
-    }
 }
 
 // MARK: - Supporting Enums (Copied from Schema for completeness)
@@ -99,9 +82,3 @@ enum DarkModePreference: String, Codable, CaseIterable {
 
 // MARK: - UserDefaults Keys (Internal)
 // Keep these keys consistent with the ones being removed from PersistenceService
-private enum UserDefaultsKeys {
-    static let lastGeneratedStoryId = "lastGeneratedStoryId"
-    static let storyGenerationCount = "storyGenerationCount"
-    static let lastGenerationDate = "lastGenerationDate"
-    static let usageAnalyticsMigrated = "usageAnalyticsMigratedToSwiftData" // New migration flag
-}

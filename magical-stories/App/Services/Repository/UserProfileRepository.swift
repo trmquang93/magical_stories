@@ -42,4 +42,13 @@ class UserProfileRepository: BaseRepository<UserProfile> {
             return newProfile
         }
     }
+    /// Deletes all UserProfile entities to enforce singleton pattern.
+    func deleteAllProfiles() async throws {
+        var descriptor = FetchDescriptor<UserProfile>()
+        let allProfiles = try await fetch(descriptor)
+        for profile in allProfiles {
+            try await delete(profile)
+        }
+        try modelContext.save()
+    }
 }

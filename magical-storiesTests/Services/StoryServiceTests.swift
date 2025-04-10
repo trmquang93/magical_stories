@@ -385,3 +385,91 @@ struct StoryServiceTests {
          #expect(!mockPersistenceService.loadStoriesCalled, "loadStories should not be called if save fails")
      }
 }
+import Testing
+@testable import magical_stories
+
+@Suite("StoryService Story List Tests")
+struct StoryServiceStoryListTests {
+    var storyService: StoryService!
+    var mockModel: MockGenerativeModel!
+    var mockPersistenceService: MockPersistenceService!
+    var mockStoryProcessor: MockStoryProcessor!
+    var mockIllustrationService: MockIllustrationService!
+
+    @MainActor
+    init() throws {
+        mockModel = MockGenerativeModel()
+        mockPersistenceService = MockPersistenceService()
+        mockIllustrationService = MockIllustrationService()
+        mockStoryProcessor = MockStoryProcessor(illustrationService: mockIllustrationService)
+
+        let schema = Schema([StoryModel.self, PageModel.self])
+        let container = try ModelContainer(for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
+        let testContext = ModelContext(container)
+
+        storyService = try StoryService(
+            apiKey: "",
+            context: testContext,
+            persistenceService: mockPersistenceService,
+            model: mockModel,
+            storyProcessor: mockStoryProcessor
+        )
+    }
+
+    @Test("Initial stories list is empty")
+    @MainActor
+    func testInitialStoriesListIsEmpty() async throws {
+        mockPersistenceService.storiesToLoad = []
+        try await Task.sleep(nanoseconds: 10_000_000)
+        #expect(storyService.stories.isEmpty, "Stories list should be empty initially")
+    }
+
+    @Test("Story appears in stories list after creation")
+    @MainActor
+    func testStoryAppearsAfterCreation() async throws {
+        let parameters = StoryParameters(childName: "Sam", childAge: 6, theme: "jungle", favoriteCharacter: "lion")
+        let generatedText = """
+        Title: Sam's Jungle Adventure
+
+        Once upon a time... (page 1)
+        --- Page Break ---
+        The lion roared... (page 2)
+        """
+        let pages = [
+            Page(content: "Once upon a time... (page 1)", pageNumber: 1, imagePrompt: "jungle"),
+            Page(content: "The lion roared... (page 2)", pageNumber: 2, imagePrompt: "lion")
+        ]
+        mockModel.generateContentResult = .success(MockStoryGenerationResponse(text: generatedText))
+        mockStoryProcessor.processResult = .success(pages)
+        mockPersistenceService.storiesToLoad = []
+
+        let story = try await storyService.generateStory(parameters: parameters)
+
+        try await Task.sleep(nanoseconds: 10_000_000)
+        #expect(storyService.stories.contains(where: { $0.id == story.id }), "Created story should be in stories list")
+    }
+
+    @Test("Multiple created stories appear in stories list")
+    @MainActor
+    func testMultipleStoriesAppear() async throws {
+        mockPersistenceService.storiesToLoad = []
+
+        let params1 = StoryParameters(childName: "A", childAge: 5, theme: "sea", favoriteCharacter: "fish")
+        let params2 = StoryParameters(childName: "B", childAge: 7, theme: "mountain", favoriteCharacter: "bear")
+
+        mockModel.generateContentResult = .success(MockStoryGenerationResponse(text: "Title: A's Sea\nContent"))
+        mockStoryProcessor.processResult = .success([Page(content: "Content", pageNumber: 1)])
+
+        let story1 = try await storyService.generateStory(parameters: params1)
+
+        mockModel.generateContentResult = .success(MockStoryGenerationResponse(text: "Title: B's Mountain\nContent"))
+        mockStoryProcessor.processResult = .success([Page(content: "Content", pageNumber: 1)])
+
+        let story2 = try await storyService.generateStory(parameters: params2)
+
+        try await Task.sleep(nanoseconds: 10_000_000)
+        #expect(storyService.stories.contains(where: { $0.id == story1.id }), "First story should be in list")
+        #expect(storyService.stories.contains(where: { $0.id == story2.id }), "Second story should be in list")
+        #expect(storyService.stories.count >= 2, "At least two stories should be present")
+    }
+}
