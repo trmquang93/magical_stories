@@ -132,16 +132,8 @@ class StoryService: ObservableObject {
                 pages: pages,
                 parameters: parameters
             )
-
-            print("[StoryService] Before saveStory (main thread: \(Thread.isMainThread))")
             try await persistenceService.saveStory(story)
-            print("[StoryService] After saveStory (main thread: \(Thread.isMainThread))")
-
-            print("[StoryService] Before loadStories (main thread: \(Thread.isMainThread))")
             await loadStories()
-            print("[StoryService] After loadStories (main thread: \(Thread.isMainThread))")
-
-            print("[StoryService] generateStory END (main thread: \(Thread.isMainThread))")
             return story
 
         } catch {

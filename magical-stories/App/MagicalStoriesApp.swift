@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import Foundation
 
+
 // Use local Configuration file for API keys
 @main
 struct MagicalStoriesApp: App {
@@ -12,8 +13,11 @@ struct MagicalStoriesApp: App {
     
     // Initialization to handle dependencies between services
     init() {
-        // Initialize SwiftData container
-        let container = try! ModelContainer()
+        // Initialize SwiftData container with schema
+        let container = try! ModelContainer(
+            for: StoryModel.self, PageModel.self, AchievementModel.self,
+            configurations: ModelConfiguration()
+        )
         let context = container.mainContext
 
         // Initialize services in dependency order

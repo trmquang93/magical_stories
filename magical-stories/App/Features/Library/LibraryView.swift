@@ -65,6 +65,7 @@ struct LibraryView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.top, 100) // Adjust padding as needed
+        .accessibilityIdentifier("LibraryEmptyState")
     }
 }
 
@@ -88,6 +89,7 @@ struct StoryCard: View {
             Text(story.title)
                 .font(Theme.Typography.headingSmall)
                 .foregroundColor(Theme.Colors.textPrimary)
+                .accessibilityIdentifier("StoryTitle_\(story.title)")
                 .lineLimit(2)
             
             // Child name
