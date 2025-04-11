@@ -79,7 +79,7 @@ struct StoryCollectionTests {
             id: UUID(),
             title: "Test Story",
             content: "Once upon a time...",
-            isCompleted: false
+            parameters: StoryParameters(childName: "Test", childAge: 7, theme: "Adventure", favoriteCharacter: "Hero")
         )
         var collection = StoryCollection(
             id: UUID(),
@@ -98,9 +98,11 @@ struct StoryCollectionTests {
     func testAddAchievements() throws {
         // Arrange
         let achievement = Achievement(
-            id: UUID(),
+            id: UUID().uuidString,
             name: "Test Achievement",
-            type: .specialMilestone
+            description: "Earned for testing",
+            iconName: "star.fill",
+            unlockCriteriaDescription: "Complete a test"
         )
         var collection = StoryCollection(
             id: UUID(),
@@ -122,14 +124,15 @@ struct StoryCollectionTests {
         let story1 = Story(
             id: UUID(),
             title: "Story 1",
-            content: "Content 1",
+            pages: [Page(content: "Content 1", pageNumber: 1)],
+            parameters: StoryParameters(childName: "Test", childAge: 7, theme: "Adventure", favoriteCharacter: "Hero"),
             isCompleted: true
         )
         let story2 = Story(
             id: UUID(),
             title: "Story 2",
-            content: "Content 2",
-            isCompleted: false
+            pages: [Page(content: "Content 2", pageNumber: 1)],
+            parameters: StoryParameters(childName: "Test", childAge: 7, theme: "Adventure", favoriteCharacter: "Hero")
         )
         var collection = StoryCollection(
             id: UUID(),

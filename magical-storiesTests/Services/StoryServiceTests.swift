@@ -53,9 +53,9 @@ class MockStoryProcessor: StoryProcessor {
 struct StoryServiceTests {
 
     var storyService: StoryService!
-    var mockModel: MockGenerativeModel!
-   var mockPersistenceService: MockPersistenceService!
-    var mockStoryProcessor: MockStoryProcessor!
+    var mockModel: GenerativeModelProtocol!
+    var mockPersistenceService: PersistenceServiceProtocol!
+    var mockStoryProcessor: StoryProcessor!
     var mockIllustrationService: MockIllustrationService! // Assuming MockIllustrationService is defined elsewhere
 
     @MainActor // Ensure tests run on the main actor as StoryService is @MainActor
@@ -74,7 +74,7 @@ struct StoryServiceTests {
         let container = try ModelContainer(for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let testContext = ModelContext(container)
         
-        storyService = try StoryService(
+        let storyService: StoryService = try StoryService(
             apiKey: "", // Not used by mockModel
             context: testContext,
             persistenceService: mockPersistenceService, // Correct injection
@@ -122,12 +122,12 @@ struct StoryServiceTests {
         )
 
         // Configure Mocks for Success
-        mockModel.generateContentHandler = { _ in
+        (mockModel as! MockGenerativeModel).generateContentHandler = { _ in
             MockStoryGenerationResponse(text: generatedText)
         }
-        mockStoryProcessor.processResult = .success(processedPages)
+        (mockStoryProcessor as! MockStoryProcessor).processResult = Result.success(processedPages)
         // Simulate loadStories returning the newly saved story later
-       mockPersistenceService.storiesToLoad = [] // Initially empty
+       (mockPersistenceService as! MockPersistenceService).storiesToLoad = [] // Initially empty
         // When load is called *after* save, it should find the story
         // We can refine this by checking the state *after* the call
 
@@ -138,15 +138,15 @@ struct StoryServiceTests {
         #expect(!storyService.isGenerating, "isGenerating should be false after completion")
 
         // Assert
-        #expect(mockModel.generateContentCalled, "generateContent should be called")
-        // #expect(mockModel.generateContentPrompt == expectedPrompt) // Optional: check parts of prompt if needed
-        #expect(mockStoryProcessor.processIntoPagesCalled, "processIntoPages should be called")
-        #expect(mockStoryProcessor.processContent == extractedContent, "processIntoPages content mismatch")
-        #expect(mockStoryProcessor.processTheme == parameters.theme, "processIntoPages theme mismatch")
-        #expect(mockPersistenceService.saveStoryCalled, "saveStory should be called")
-        #expect(mockPersistenceService.storyToSave?.title == expectedStory.title, "Saved story title mismatch")
-        #expect(mockPersistenceService.storyToSave?.pages.count == expectedStory.pages.count, "Saved story page count mismatch")
-        #expect(mockPersistenceService.loadStoriesCalled, "loadStories should be called after generation") // Verify this happens in generateStory
+        #expect((mockModel as! MockGenerativeModel).generateContentCalled, "generateContent should be called")
+        // #expect((mockModel as! MockGenerativeModel).generateContentPrompt == expectedPrompt) // Optional: check parts of prompt if needed
+        #expect((mockStoryProcessor as! MockStoryProcessor).processIntoPagesCalled, "processIntoPages should be called")
+        #expect((mockStoryProcessor as! MockStoryProcessor).processContent == extractedContent, "processIntoPages content mismatch")
+        #expect((mockStoryProcessor as! MockStoryProcessor).processTheme == parameters.theme, "processIntoPages theme mismatch")
+        #expect((mockPersistenceService as! MockPersistenceService).saveStoryCalled, "saveStory should be called")
+        #expect((mockPersistenceService as! MockPersistenceService).storyToSave?.title == expectedStory.title, "Saved story title mismatch")
+        #expect((mockPersistenceService as! MockPersistenceService).storyToSave?.pages.count == expectedStory.pages.count, "Saved story page count mismatch")
+        #expect((mockPersistenceService as! MockPersistenceService).loadStoriesCalled, "loadStories should be called after generation") // Verify this happens in generateStory
 
         #expect(generatedStory.title == expectedStory.title, "Returned story title mismatch")
         #expect(generatedStory.pages.count == expectedStory.pages.count, "Returned story page count mismatch")
@@ -175,9 +175,9 @@ struct StoryServiceTests {
             _ = try await storyService.generateStory(parameters: invalidParameters) // No theme argument
         }
 
-        #expect(!mockModel.generateContentCalled, "generateContent should not be called on invalid params")
-        #expect(!mockStoryProcessor.processIntoPagesCalled, "processIntoPages should not be called on invalid params")
-        #expect(!mockPersistenceService.saveStoryCalled, "saveStory should not be called on invalid params")
+        #expect(!(mockModel as! MockGenerativeModel).generateContentCalled, "generateContent should not be called on invalid params")
+        #expect(!(mockStoryProcessor as! MockStoryProcessor).processIntoPagesCalled, "processIntoPages should not be called on invalid params")
+        #expect(!(mockPersistenceService as! MockPersistenceService).saveStoryCalled, "saveStory should not be called on invalid params")
     }
 
     @Test("Generate Story - Error: Generation Failed (No Content)")
@@ -185,7 +185,7 @@ struct StoryServiceTests {
     func testGenerateStory_Error_GenerationFailed_NoContent() async throws {
         // Arrange
         let parameters = StoryParameters(childName: "Alex", childAge: 5, theme: "topic", favoriteCharacter: "char")
-        mockModel.generateContentHandler = { _ in
+        (mockModel as! MockGenerativeModel).generateContentHandler = { _ in
             MockStoryGenerationResponse(text: nil)
         }
 
@@ -207,9 +207,9 @@ struct StoryServiceTests {
         )
         #expect(storyService.isGenerating == false)
 
-        #expect(mockModel.generateContentCalled)
-        #expect(!mockStoryProcessor.processIntoPagesCalled)
-        #expect(!mockPersistenceService.saveStoryCalled)
+        #expect((mockModel as! MockGenerativeModel).generateContentCalled)
+        #expect(!(mockStoryProcessor as! MockStoryProcessor).processIntoPagesCalled)
+        #expect(!(mockPersistenceService as! MockPersistenceService).saveStoryCalled)
     }
 
     @Test("Generate Story - Error: Generation Failed (Model Throws Network Error)")
@@ -217,8 +217,8 @@ struct StoryServiceTests {
     func testGenerateStory_Error_GenerationFailed_ModelThrows() async throws {
         // Arrange
         let parameters = StoryParameters(childName: "Alex", childAge: 5, theme: "topic", favoriteCharacter: "char")
-        mockModel.generateContentHandler = { _ in
-            throw StoryServiceError.networkError
+        (mockModel as! MockGenerativeModel).generateContentHandler = { _ in
+            fatalError("Simulated network error")
         }
 
         // Act & Assert
@@ -229,9 +229,9 @@ struct StoryServiceTests {
         }
         #expect(storyService.isGenerating == false)
 
-        #expect(mockModel.generateContentCalled)
-        #expect(!mockStoryProcessor.processIntoPagesCalled)
-        #expect(!mockPersistenceService.saveStoryCalled)
+        #expect((mockModel as! MockGenerativeModel).generateContentCalled)
+        #expect(!(mockStoryProcessor as! MockStoryProcessor).processIntoPagesCalled)
+        #expect(!(mockPersistenceService as! MockPersistenceService).saveStoryCalled)
     }
 
      @Test("Generate Story - Error: Processing Failed")
@@ -244,12 +244,12 @@ struct StoryServiceTests {
 
          Some content
          """
-         mockModel.generateContentHandler = { _ in
+         (mockModel as! MockGenerativeModel).generateContentHandler = { _ in
              MockStoryGenerationResponse(text: generatedText)
          }
          // Simulate processing error (using generationFailed as per StoryService logic)
          let processingError = StoryServiceError.generationFailed("Processing mock error")
-         mockStoryProcessor.processResult = .failure(processingError)
+         (mockStoryProcessor as! MockStoryProcessor).processResult = .failure(processingError)
 
          // Act & Assert
          #expect(storyService.isGenerating == false)
@@ -269,9 +269,9 @@ struct StoryServiceTests {
          )
          #expect(storyService.isGenerating == false)
 
-         #expect(mockModel.generateContentCalled)
-         #expect(mockStoryProcessor.processIntoPagesCalled)
-         #expect(!mockPersistenceService.saveStoryCalled)
+         #expect((mockModel as! MockGenerativeModel).generateContentCalled)
+         #expect((mockStoryProcessor as! MockStoryProcessor).processIntoPagesCalled)
+         #expect(!(mockPersistenceService as! MockPersistenceService).saveStoryCalled)
      }
 
      @Test("Generate Story - Error: Persistence Failed")
@@ -285,14 +285,14 @@ struct StoryServiceTests {
          Content page 1
          """
          let processedPages = [Page(content: "Content page 1", pageNumber: 1)]
-         mockModel.generateContentHandler = { _ in
+         (mockModel as! MockGenerativeModel).generateContentHandler = { _ in
              MockStoryGenerationResponse(text: generatedText)
          }
-         mockStoryProcessor.processResult = .success(processedPages)
-         mockPersistenceService.saveStoryError = StoryServiceError.persistenceFailed // Simulate persistence error
+         (mockStoryProcessor as! MockStoryProcessor).processResult = Result.success(processedPages)
+         (mockPersistenceService as! MockPersistenceService).saveStoryError = StoryServiceError.persistenceFailed // Simulate persistence error
 
          // Act & Assert
-       mockPersistenceService.loadStoriesCalled = false // Reset flag to ignore init load
+       (mockPersistenceService as! MockPersistenceService).loadStoriesCalled = false // Reset flag to ignore init load
          #expect(storyService.isGenerating == false)
          // Correct #expect(throws:) syntax for specific error instance
          await #expect(throws: StoryServiceError.persistenceFailed) {
@@ -300,12 +300,12 @@ struct StoryServiceTests {
          }
          #expect(storyService.isGenerating == false)
 
-         #expect(mockModel.generateContentCalled)
-         #expect(mockStoryProcessor.processIntoPagesCalled)
-         #expect(mockPersistenceService.saveStoryCalled)
+         #expect((mockModel as! MockGenerativeModel).generateContentCalled)
+         #expect((mockStoryProcessor as! MockStoryProcessor).processIntoPagesCalled)
+         #expect((mockPersistenceService as! MockPersistenceService).saveStoryCalled)
          // loadStories is called within generateStory *after* saveStory. If saveStory throws,
          // the catch block in generateStory is hit, and loadStories might not be reached.
-         #expect(!mockPersistenceService.loadStoriesCalled, "loadStories should not be called if save fails")
+         #expect(!(mockPersistenceService as! MockPersistenceService).loadStoriesCalled, "loadStories should not be called if save fails")
      }
 }
 import Testing
@@ -314,9 +314,9 @@ import Testing
 @Suite("StoryService Story List Tests")
 struct StoryServiceStoryListTests {
     var storyService: StoryService!
-    var mockModel: MockGenerativeModel!
-   var mockPersistenceService: MockPersistenceService!
-    var mockStoryProcessor: MockStoryProcessor!
+    var mockModel: GenerativeModelProtocol!
+    var mockPersistenceService: PersistenceServiceProtocol!
+    var mockStoryProcessor: StoryProcessor!
     var mockIllustrationService: MockIllustrationService!
 
     @MainActor
@@ -342,7 +342,7 @@ struct StoryServiceStoryListTests {
     @Test("Initial stories list is empty")
     @MainActor
     func testInitialStoriesListIsEmpty() async throws {
-       mockPersistenceService.storiesToLoad = []
+       (mockPersistenceService as! MockPersistenceService).storiesToLoad = []
        try await Task.sleep(nanoseconds: 10_000_000)
         #expect(storyService.stories.isEmpty, "Stories list should be empty initially")
     }
@@ -362,11 +362,11 @@ struct StoryServiceStoryListTests {
             Page(content: "Once upon a time... (page 1)", pageNumber: 1, imagePrompt: "jungle"),
             Page(content: "The lion roared... (page 2)", pageNumber: 2, imagePrompt: "lion")
         ]
-        mockModel.generateContentHandler = { _ in
+        (mockModel as! MockGenerativeModel).generateContentHandler = { _ in
             MockStoryGenerationResponse(text: generatedText)
         }
-        mockStoryProcessor.processResult = .success(pages)
-       mockPersistenceService.storiesToLoad = []
+        (mockStoryProcessor as! MockStoryProcessor).processResult = Result.success(pages)
+       (mockPersistenceService as! MockPersistenceService).storiesToLoad = []
 
         let story = try await storyService.generateStory(parameters: parameters)
 
@@ -377,20 +377,20 @@ struct StoryServiceStoryListTests {
     @Test("Multiple created stories appear in stories list")
     @MainActor
     func testMultipleStoriesAppear() async throws {
-       mockPersistenceService.storiesToLoad = []
+       (mockPersistenceService as! MockPersistenceService).storiesToLoad = []
 
         let params1 = StoryParameters(childName: "A", childAge: 5, theme: "sea", favoriteCharacter: "fish")
         let params2 = StoryParameters(childName: "B", childAge: 7, theme: "mountain", favoriteCharacter: "bear")
 
-        mockModel.generateContentResult = .success(MockStoryGenerationResponse(text: "Title: A's Sea\nContent"))
-        mockStoryProcessor.processResult = .success([Page(content: "Content", pageNumber: 1)])
+        (mockModel as! MockGenerativeModel).generateContentResult = Result<MockStoryGenerationResponse, Error>.success(MockStoryGenerationResponse(text: "Title: A's Sea\nContent"))
+        (mockStoryProcessor as! MockStoryProcessor).processResult = Result<[Page], Error>.success([Page(content: "Content", pageNumber: 1)])
 
         let story1 = try await storyService.generateStory(parameters: params1)
 
-        mockModel.generateContentHandler = { _ in
+        (mockModel as! MockGenerativeModel).generateContentHandler = { _ in
             MockStoryGenerationResponse(text: "Title: B's Mountain\nContent")
         }
-        mockStoryProcessor.processResult = .success([Page(content: "Content", pageNumber: 1)])
+        (mockStoryProcessor as! MockStoryProcessor).processResult = Result<[Page], Error>.success([Page(content: "Content", pageNumber: 1)])
 
         let story2 = try await storyService.generateStory(parameters: params2)
 

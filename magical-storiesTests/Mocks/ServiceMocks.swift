@@ -69,20 +69,39 @@ actor InMemoryCollectionRepository {
 // MARK: - MockStoryGenerationResponse
 
 /// Minimal mock for story generation response used in tests.
-struct MockStoryGenerationResponse {
+struct MockStoryGenerationResponse: StoryGenerationResponse {
     let text: String?
 }
 
 // MARK: - MockGenerativeModel
 
 /// Mock generative model for simulating AI content generation.
-class MockGenerativeModel {
+class MockGenerativeModel: GenerativeModelProtocol {
     /// Handler to control the output of generateContent.
     var generateContentHandler: ((String) -> MockStoryGenerationResponse)?
     /// Optional result for alternate test patterns.
     var generateContentResult: Result<MockStoryGenerationResponse, Error>?
+    /// Tracks if generateContent was called
+    var generateContentCalled: Bool = false
 
+    // Protocol requirement: async throws -> StoryGenerationResponse
+    func generateContent(_ prompt: String) async throws -> StoryGenerationResponse {
+        generateContentCalled = true
+        if let handler = generateContentHandler {
+            return handler(prompt)
+        }
+        if let result = generateContentResult {
+            switch result {
+            case let .success(response): return response
+            case let .failure(error): throw error
+            }
+        }
+        return MockStoryGenerationResponse(text: nil)
+    }
+
+    // For legacy sync test usage (if any)
     func generateContent(prompt: String) -> MockStoryGenerationResponse {
+        generateContentCalled = true
         if let handler = generateContentHandler {
             return handler(prompt)
         }
@@ -104,15 +123,27 @@ class MockPersistenceService: PersistenceServiceProtocol {
     var savedStories: [Story] = []
     var deletedStoryIds: [UUID] = []
 
+    // Properties for test tracking
+    var saveStoryCalled: Bool = false
+    var storyToSave: Story?
+    var loadStoriesCalled: Bool = false
+    var saveStoryError: Error?
+
     func saveStories(_ stories: [Story]) async throws {
         savedStories = stories
     }
 
     func loadStories() async throws -> [Story] {
+        loadStoriesCalled = true
         return storiesToLoad
     }
 
     func saveStory(_ story: Story) async throws {
+        saveStoryCalled = true
+        storyToSave = story
+        if let error = saveStoryError {
+            throw error
+        }
         savedStories.append(story)
     }
 

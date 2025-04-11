@@ -134,7 +134,7 @@ final class PageView_Tests: XCTestCase {
         // Success state
         let successPage = Page(content: "Content", pageNumber: 1, illustrationRelativePath: "test.jpg", illustrationStatus: .success)
         let successView = PageView(page: successPage)
-        XCTAssertNotNil(findView(ofType: AsyncImage<AnyView>.self, in: successView))
+        XCTAssertNotNil(findView(ofType: AsyncImage<Image>.self, in: successView))
         
         // Failed state
         let failedPage = Page(content: "Content", pageNumber: 1, illustrationStatus: .failed)
