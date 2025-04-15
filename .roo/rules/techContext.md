@@ -1,3 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
 # Technical Context: Magical Stories
 
 ## Core Technologies

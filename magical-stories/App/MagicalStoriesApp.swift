@@ -9,6 +9,7 @@ struct MagicalStoriesApp: App {
     // Initialize services using StateObject to maintain their state throughout the app lifetime
     @StateObject private var settingsService: SettingsService
     @StateObject private var storyService: StoryService
+    @StateObject private var collectionService: CollectionService
     private let container: ModelContainer
     
     // Initialization to handle dependencies between services
@@ -21,7 +22,7 @@ struct MagicalStoriesApp: App {
                 configurations: ModelConfiguration()
             )
         } catch {
-            fatalError("Failed to create ModelContainer: \\(error)")
+            fatalError("Failed to create ModelContainer: \(error)")
         }
         let context = container.mainContext
 
@@ -29,20 +30,23 @@ struct MagicalStoriesApp: App {
         // 1. Repositories first (need context)
         let userProfileRepository = UserProfileRepository(modelContext: context)
         let settingsRepository = SettingsRepository(modelContext: context)
+        let collectionRepository = CollectionRepository(modelContext: context)
 
         // 2. Services that depend on repositories
         let usageAnalyticsService = UsageAnalyticsService(userProfileRepository: userProfileRepository)
         let settings = SettingsService(repository: settingsRepository, usageAnalyticsService: usageAnalyticsService)
+        let collectionService = CollectionService(repository: collectionRepository)
         let story: StoryService
         do {
             story = try StoryService(apiKey: AppConfig.geminiApiKey, context: context)
         } catch {
-            fatalError("Failed to create StoryService: \\(error)")
+            fatalError("Failed to create StoryService: \(error)")
         }
 
         // Assign to StateObjects
         _settingsService = StateObject(wrappedValue: settings)
         _storyService = StateObject(wrappedValue: story)
+        _collectionService = StateObject(wrappedValue: collectionService)
 
         // Store container for environment injection
         self.container = container
@@ -54,6 +58,7 @@ struct MagicalStoriesApp: App {
             RootView()
                 .environmentObject(settingsService)
                 .environmentObject(storyService)
+                .environmentObject(collectionService)
                 .modelContainer(container)
         }
     }

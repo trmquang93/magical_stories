@@ -1,4 +1,9 @@
-# Project Progress: Magical Stories (as of 2025-04-10)
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Project Progress: Magical Stories (as of 2025-04-15)
 
 ## What Works / Implemented Features
 
@@ -48,18 +53,47 @@
     *   Added comprehensive logging and user-friendly error messages.
 
 -   **Recent Fixes:**
-    -   Story creation, saving, and immediate display in LibraryView now work reliably.
-    -   Debugging and error visibility improved.
-    -   Next: continue feature development or testing as needed.
+    *   Story creation, saving, and immediate display in LibraryView now work reliably.
+    *   Debugging and error visibility improved.
+
+-   **Growth Collections (Implementation In Progress):**
+    *   Core models implemented:
+        *   Created `StoryCollection` data model with SwiftData annotations and relationship to `Story` model.
+        *   Implemented `GrowthCategory` enum to represent developmental categories.
+    *   Basic service layer:
+        *   Created `CollectionService` with CRUD operations.
+        *   Set up repository pattern for data access.
+    *   Testing:
+        *   Started creating unit tests for models and service layer.
+        *   Integration tests for validating collection creation and fetching functionality.
+    *   Remaining work:
+        *   Complete UI implementation (`CollectionsView`, `CollectionDetailView`, `CollectionFormView`).
+        *   Implement progress tracking and achievement system.
+        *   Integrate with existing story reading flow.
+        *   Add additional service methods for generating content and tracking progress.
 
 ## What's Left / Next Steps
 
--   **Growth Story Collections:** Planned and designed feature; implementation has not yet begun. This is a next priority.
--   **StoreKit Integration:** Planned and designed feature; implementation has not yet begun. This is a next priority.
+-   **Growth Story Collections:** Continue implementation with the following:
+    *   UI components: Collections list, detail view, form for creating collections.
+    *   Progress tracking and achievement integration.
+    *   Integration with existing story generation and reading flows.
+    *   Advanced features like personalized collection generation.
+
+-   **StoreKit Integration:** Planned and designed feature; implementation has not yet begun. This is a next priority after Growth Collections is more mature.
+    *   Implement `PurchaseService` for handling in-app purchases and subscriptions.
+    *   Create `EntitlementManager` for tracking user access to premium features.
+    *   Design and implement paywall UI for upgrading to premium.
+    *   Integrate with Growth Collections for premium content.
+
 -   **UI Polishing:** Further refinement of UI elements, animations, and overall user experience, including illustration display.
--   **Error Handling:** Enhance error handling for persistence operations and general app errors.
+
+-   **Error Handling:** Continue enhancing error handling for persistence operations and general app errors.
+
 -   **Accessibility:** Thorough accessibility testing and implementation needed.
+
 -   **CI/CD:** Review and refine CI/CD setup.
+
 -   **Test Improvements:**
-    -   Continue increasing test coverage towards target (e.g., 70%+).
-    -   Add more view-based tests using descendant mirror pattern.
+    *   Continue increasing test coverage towards target (e.g., 70%+).
+    *   Add more view-based tests using descendant mirror pattern.

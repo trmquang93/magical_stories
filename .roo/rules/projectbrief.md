@@ -1,3 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
 # Project Brief: Magical Stories
 
 ## Core Goal
@@ -10,7 +15,7 @@ To create a mobile application (iOS) that generates personalized, magical storie
 - Implement parental controls for content and usage management.
 - Ensure a user-friendly and visually appealing interface using SwiftUI.
 - Leverage AI (currently Google Gemini) for dynamic story content and illustration generation.
-- **Planned:** Introduce themed "Growth Collections" to guide development and offer structured content (design completed, implementation not yet started).
+- **In Progress:** Implement themed "Growth Collections" to guide development and offer structured content (core models and service layer implemented, UI in development).
 - **Planned:** Implement a monetization strategy using StoreKit (design completed, implementation not yet started).
 - *Initially considered:* Potentially offer structured "Growth Path Stories" for skill development (superseded by Growth Collections).
 

@@ -14,6 +14,7 @@ final class CollectionRepository: CollectionRepositoryProtocol, Sendable {
 
     func saveCollection(_ collection: StoryCollection) throws {
         modelContext.insert(collection)
+        try modelContext.save()
     }
 
     func fetchCollection(id: UUID) throws -> StoryCollection? {
@@ -31,17 +32,18 @@ final class CollectionRepository: CollectionRepositoryProtocol, Sendable {
 
     func updateCollectionProgress(id: UUID, progress: Float) throws {
         guard let collection = try fetchCollection(id: id) else {
-            print("Error: Collection with ID \(id) not found for progress update.")
-            return
+            throw NSError(domain: "CollectionRepository", code: 404, userInfo: [NSLocalizedDescriptionKey: "Collection with ID \(id) not found for progress update."])
         }
+        collection.completionProgress = Double(progress)
         collection.updatedAt = Date()
+        try modelContext.save()
     }
 
     func deleteCollection(id: UUID) throws {
         guard let collection = try fetchCollection(id: id) else {
-            print("Error: Collection with ID \(id) not found for deletion.")
-            return
+            throw NSError(domain: "CollectionRepository", code: 404, userInfo: [NSLocalizedDescriptionKey: "Collection with ID \(id) not found for deletion."])
         }
         modelContext.delete(collection)
+        try modelContext.save()
     }
 }

@@ -5,6 +5,7 @@ struct HomeView: View {
     @State private var showingStoryForm = false
     @State private var showingGrowthStoryForm = false
     @EnvironmentObject private var storyService: StoryService
+    @EnvironmentObject private var collectionService: CollectionService
     
     var body: some View {
         NavigationStack {
@@ -75,6 +76,10 @@ struct HomeView: View {
             .sheet(isPresented: $showingStoryForm) {
                 StoryFormView()
             }
+            .sheet(isPresented: $showingGrowthStoryForm) {
+                CollectionFormView()
+                    .environmentObject(collectionService)
+            }
         }
     }
 }
@@ -92,9 +97,12 @@ extension HomeView {
         } catch {
             fatalError("Failed to create StoryService: \(error)")
         }
+        let collectionRepository = CollectionRepository(modelContext: container.mainContext)
+        let collectionService = CollectionService(repository: collectionRepository)
         return HomeView()
             .environment(\.modelContext, container.mainContext)
             .environmentObject(storyService)
+            .environmentObject(collectionService)
     }
 }
 

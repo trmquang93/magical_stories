@@ -17,6 +17,20 @@ struct CollectionCardView: View {
                 Text(collection.ageGroup)
                     .font(.caption)
             }
+            ProgressView(value: collection.completionProgress)
+                .progressViewStyle(LinearProgressViewStyle(tint: .accentColor))
+                .padding(.vertical, 4)
+            
+            if collection.completionProgress >= 1.0 {
+                HStack(spacing: 4) {
+                    Image(systemName: "star.fill")
+                        .foregroundColor(.yellow)
+                    Text("Completed")
+                        .font(.caption)
+                        .foregroundColor(.yellow)
+                }
+                .padding(.top, 4)
+            }
         }
         .padding()
         .background(Color(.systemBackground))

@@ -1,3 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
 # System Patterns: Magical Stories
 
 ## Core Architecture
@@ -115,6 +120,37 @@ The application primarily follows the **MVVM (Model-View-ViewModel)** pattern wi
       - The service conforms to `IllustrationServiceProtocol` for testability.
       - Internal helper methods encapsulate request construction, response parsing, error mapping, and file operations.
       - Designed to be extensible for future prompt variations or API changes.
+
+12. **Growth Collections Implementation:**
+
+    The Growth Collections feature is being implemented using these architectural patterns:
+
+    - **Core Models:**
+      - `StoryCollection` - SwiftData `@Model` class representing a collection of stories with a specific growth theme.
+      - `GrowthCategory` - Enum defining developmental categories (e.g., emotionalIntelligence, socialSkills, etc.).
+      - Two-way relationship between `Story` and `StoryCollection` models via SwiftData's `@Relationship` attribute.
+
+    - **Repository Pattern:**
+      - `CollectionRepository` encapsulates SwiftData access logic for `StoryCollection` entities.
+      - Provides CRUD operations and query methods.
+      - Uses ModelContext for persistence operations.
+
+    - **Service Layer:**
+      - `CollectionService` implements business logic for creation, retrieval, and management of story collections.
+      - Conforms to `CollectionServiceProtocol` for testability.
+      - Includes progress tracking and achievement logic.
+      - Will manage the generation of multiple themed stories when creating a collection.
+
+    - **Planned UI Components:**
+      - `CollectionsView` - Main view for browsing all collections.
+      - `CollectionDetailView` - Displays stories within a collection with progress tracking.
+      - `CollectionFormView` - Input form for creating a new collection.
+
+    - **Integration Points:**
+      - Growth Collections will be accessible via main navigation.
+      - Collections will leverage existing story generation and reading flows.
+      - Achievement system will track progress within collections.
+      - Future StoreKit integration will gate premium collections.
 
 ## Current Architecture Notes
 - The system leverages standard SwiftUI patterns and MVVM concepts.

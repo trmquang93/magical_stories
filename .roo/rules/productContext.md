@@ -1,9 +1,14 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
 # Product Context: Magical Stories
 
 ## Why This Project Exists
 Magical Stories aims to foster creativity, imagination, and positive development in children by providing personalized and engaging story content. It addresses the need for unique, age-appropriate stories that can be tailored to a child's interests and developmental needs, moving beyond static storybooks. The app also provides tools for parents to manage content and potentially track learning progress.
 
-A key differentiator and Unique Selling Point (USP) is the **planned and designed (not yet started)** **"Growth Collections"** feature, offering guided, themed story collections focused on development, which is not commonly found in competing apps.
+A key differentiator and Unique Selling Point (USP) is the **"Growth Collections"** feature, which is currently being implemented. This feature offers guided, themed story collections focused on development, which is not commonly found in competing apps.
 
 ## How It Should Work
 
@@ -22,19 +27,20 @@ A key differentiator and Unique Selling Point (USP) is the **planned and designe
 -   **Parental Controls:** Content filtering by theme/age, screen time limits.
 -   **App Settings:** Basic customization options.
 -   **Illustration Generation:** AI-generated illustrations for story pages.
--   **StoreKit Monetization (Planned and designed, not yet started):** Integration with StoreKit 2 for premium features, subscriptions, or unlocking specific Growth Collections.
+-   **StoreKit Monetization (Planned and designed, implementation pending):** Integration with StoreKit 2 for premium features, subscriptions, or unlocking specific Growth Collections.
 
--   **📖 Growth Collections (Planned and designed, not yet started):**
+-   **📖 Growth Collections (Implementation in progress):**
     *   **Purpose:** Provide AI-personalized story collections focused on developing essential life skills, positive behaviors, and emotional intelligence.
+    *   **Current Status:** Core models and base service layer implemented, UI components and integration in development.
     *   **How it Works:**
-        1.  **Input:** Parents provide Child's Age Group, Developmental Focus, Interests, etc. (Specific form TBD, e.g., `CollectionFormView`).
+        1.  **Input:** Parents provide Child's Age Group, Developmental Focus, Interests, etc. (Specific form being developed, e.g., `CollectionFormView`).
         2.  **Generation:** AI creates a structured collection of stories tailored to the inputs (e.g., a "Kindness" collection).
         3.  **Tracking:** App tracks reading completion, offers achievements/badges, and shows progress within the collection.
     *   **Growth Themes:** Emotional Intelligence, Cognitive Development, Confidence, Social Responsibility, etc.
     *   **UI/UX:**
-        *   Accessed potentially via `HomeView` or a dedicated Collections tab.
-        *   Collections listed in the Library with progress indicators.
-        *   Gamified elements like badges and animations.
+        *   Will be accessed via a dedicated Collections tab or section in the Library.
+        *   Collections listed with progress indicators.
+        *   Gamified elements like badges and animations (to be implemented).
 
 ### Future Enhancements (Beyond Core Features)
 -   Enhanced accessibility features (beyond basic VoiceOver).
