@@ -9,12 +9,10 @@ import Testing
 class CollectionServiceIntegrationTests {
 
     var collectionService: CollectionService!
-    var aiService: MockAIService
     var repository: CollectionRepository!
 
     init() {
         // Setup for integration test - using new CollectionService API with appropriate mocks
-        aiService = MockAIService()
         // Use in-memory ModelContext for repository
         let modelContext: ModelContext = {
             do {
@@ -23,8 +21,8 @@ class CollectionServiceIntegrationTests {
                 fatalError("Failed to create ModelContext/ModelContainer: \(error)")
             }
         }()
-        repository = CollectionRepository(context: modelContext)
-        collectionService = CollectionService(aiService: aiService, repository: repository)
+        repository = CollectionRepository(modelContext: modelContext)
+        collectionService = CollectionService(repository: repository)
         // Clean up any existing test data if needed (implementation may be updated in later subtasks)
     }
 
@@ -32,5 +30,31 @@ class CollectionServiceIntegrationTests {
     private func cleanupTestData() async {
         // Clean up collections created for testing
         // Implementation will be updated in a later subtask to use the new repository
+    }
+    
+    @Test("Can create and fetch a collection")
+    func testCreateAndFetch() throws {
+        // Arrange
+        let testCollection = StoryCollection(
+            title: "Test Collection",
+            descriptionText: "Test Description",
+            category: "Test Category",
+            ageGroup: "3-5 years"
+        )
+        
+        // Act & Assert
+        try collectionService.createCollection(testCollection)
+        
+        // Fetch all collections
+        let collections = try collectionService.fetchAllCollections()
+        
+        // Verify the collection was saved
+        #expect(collections.count > 0)
+        #expect(collections.contains { $0.id == testCollection.id })
+        
+        // Fetch the specific collection
+        let fetchedCollection = try collectionService.fetchCollection(id: testCollection.id)
+        #expect(fetchedCollection != nil)
+        #expect(fetchedCollection?.title == testCollection.title)
     }
 }

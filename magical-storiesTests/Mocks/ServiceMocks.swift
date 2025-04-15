@@ -38,25 +38,15 @@ actor InMemoryCollectionRepository {
         collections.removeAll { $0.id == id }
     }
 
-    func fetch(filter: CollectionFilter) async throws -> [StoryCollection] {
-        switch filter {
-        case let .growthCategory(category):
-            return collections.filter { $0.growthCategory == category }
-        case let .targetAgeGroup(ageGroup):
-            return collections.filter { $0.targetAgeGroup == ageGroup }
-        }
+    // Updated fetch method to use category and ageGroup instead of growthCategory and targetAgeGroup
+    func fetch(filter: String) async throws -> [StoryCollection] {
+        // Since we don't have a CollectionFilter enum yet, we'll just do a simple string match
+        return collections.filter { $0.title.contains(filter) || $0.category.contains(filter) }
     }
 
-    func fetchSorted(by sort: CollectionSort) async throws
-        -> [StoryCollection]
-    {
-        switch sort {
-        case .createdAtDescending:
-            return
-                collections
-                .sorted {
-                    ($0.createdAt ?? Date.distantPast) > ($1.createdAt ?? Date.distantPast)
-                }
+    func fetchSorted() async throws -> [StoryCollection] {
+        return collections.sorted {
+            $0.createdAt > $1.createdAt
         }
     }
 
@@ -151,6 +141,59 @@ class MockPersistenceService: PersistenceServiceProtocol {
         deletedStoryIds.append(id)
         savedStories.removeAll { $0.id == id }
     }
+    
+    // Implementing the required methods from PersistenceServiceProtocol
+    func incrementReadCount(for storyId: UUID) async throws {
+        // Implementation for testing - since Story doesn't have readCount, we'll just mark this as a no-op
+        print("Mock: incrementReadCount for \(storyId)")
+    }
+    
+    func toggleFavorite(for storyId: UUID) async throws {
+        // Implementation for testing - since Story doesn't have isFavorite, we'll just mark this as a no-op
+        print("Mock: toggleFavorite for \(storyId)")
+    }
+    
+    func updateLastReadAt(for storyId: UUID, date: Date) async throws {
+        // Implementation for testing - since Story doesn't have lastReadAt, we'll just mark this as a no-op
+        print("Mock: updateLastReadAt for \(storyId) to \(date)")
+    }
+    
+    // Achievement-related methods
+    func saveAchievement(_ achievement: Achievement) async throws {
+        // No-op for testing
+    }
+    
+    func fetchAchievement(id: UUID) async throws -> Achievement? {
+        return nil // For testing
+    }
+    
+    func fetchAllAchievements() async throws -> [Achievement] {
+        return [] // For testing
+    }
+    
+    func fetchEarnedAchievements() async throws -> [Achievement] {
+        return [] // For testing
+    }
+    
+    func fetchAchievements(forCollection collectionId: UUID) async throws -> [Achievement] {
+        return [] // For testing
+    }
+    
+    func updateAchievementStatus(id: UUID, isEarned: Bool, earnedDate: Date?) async throws {
+        // No-op for testing
+    }
+    
+    func deleteAchievement(withId id: UUID) async throws {
+        // No-op for testing
+    }
+    
+    func associateAchievement(_ achievementId: String, withCollection collectionId: UUID) async throws {
+        // No-op for testing
+    }
+    
+    func removeAchievementAssociation(_ achievementId: String, fromCollection collectionId: UUID) async throws {
+        // No-op for testing
+    }
 }
 
 // MARK: - MockCollectionService
@@ -158,58 +201,52 @@ class MockPersistenceService: PersistenceServiceProtocol {
 /// Minimal mock for CollectionServiceProtocol.
 @MainActor
 class MockCollectionService: CollectionServiceProtocol {
-    var collections: [GrowthCollection] = []
-    var isGenerating: Bool = false
-
-    // Handler closures for full customization in tests
-    var generateCollectionHandler:
-        (
-            (CollectionParameters) async throws
-                -> GrowthCollection
-        )?
-    var loadCollectionsHandler: (() async -> Void)?
+    var collections: [StoryCollection] = []
+    
+    // Handler closures for testing callbacks
     var updateProgressHandler: ((UUID, Float) async throws -> Void)?
-    var deleteCollectionHandler: ((UUID) async throws -> Void)?
     var checkAchievementsHandler: ((UUID) async throws -> [Achievement])?
-
-    func generateCollection(parameters: CollectionParameters) async throws
-        -> GrowthCollection
-    {
-        if let handler = generateCollectionHandler {
-            return try await handler(parameters)
-        }
-        return GrowthCollection(
-            id: UUID(), title: "Mock", description: "Mock",
-            theme: "Mock",
-            targetAgeGroup: AgeGroup.threeToFive.rawValue, stories: []
-        )
+    
+    // Core CollectionServiceProtocol methods
+    func createCollection(_ collection: StoryCollection) throws {
+        collections.append(collection)
     }
-
-    func loadCollections() async {
-        if let handler = loadCollectionsHandler {
-            await handler()
+    
+    func fetchCollection(id: UUID) throws -> StoryCollection? {
+        return collections.first { $0.id == id }
+    }
+    
+    func fetchAllCollections() throws -> [StoryCollection] {
+        return collections
+    }
+    
+    func updateCollectionProgress(id: UUID, progress: Float) throws {
+        if let index = collections.firstIndex(where: { $0.id == id }) {
+            collections[index].completionProgress = Double(progress)
         }
     }
-
+    
+    func deleteCollection(id: UUID) throws {
+        collections.removeAll { $0.id == id }
+    }
+    
+    // Additional methods needed for StoryDetailViewTests
     func updateProgress(for collectionId: UUID, progress: Float) async throws {
         if let handler = updateProgressHandler {
             try await handler(collectionId, progress)
+        } else {
+            // Default implementation if no handler is set
+            if let index = collections.firstIndex(where: { $0.id == collectionId }) {
+                collections[index].completionProgress = Double(progress)
+            }
         }
     }
-
-    func deleteCollection(_ collectionId: UUID) async throws {
-        if let handler = deleteCollectionHandler {
-            try await handler(collectionId)
-        }
-    }
-
-    func checkAchievements(for collectionId: UUID) async throws
-        -> [Achievement]
-    {
+    
+    func checkAchievements(for collectionId: UUID) async throws -> [Achievement] {
         if let handler = checkAchievementsHandler {
             return try await handler(collectionId)
         }
-        return []
+        return [] // Default empty array if no handler
     }
 }
 
@@ -225,5 +262,28 @@ class MockCollectionRepository {
 
     func get(byId id: UUID) -> StoryCollection? {
         return collections.first { $0.id == id }
+    }
+}
+
+// MARK: - MockAIService
+/// Mock AI service for testing
+class MockAIService {
+    var generateStoryShouldFail = false
+    var generateIllustrationShouldFail = false
+    var generatedStoryContent = "Once upon a time..."
+    var generatedIllustrationPath = "path/to/illustration.png"
+    
+    func generateStory(parameters: StoryParameters) async throws -> String {
+        if generateStoryShouldFail {
+            throw NSError(domain: "MockAIService", code: 500, userInfo: [NSLocalizedDescriptionKey: "Story generation failed"])
+        }
+        return generatedStoryContent
+    }
+    
+    func generateIllustration(for pageText: String, theme: String) async throws -> String? {
+        if generateIllustrationShouldFail {
+            throw NSError(domain: "MockAIService", code: 500, userInfo: [NSLocalizedDescriptionKey: "Illustration generation failed"])
+        }
+        return generatedIllustrationPath
     }
 }
