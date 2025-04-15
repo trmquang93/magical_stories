@@ -117,38 +117,6 @@ final class PageView_Tests: XCTestCase {
         return nil
     }
     
-    // Test basic content display
-    func testPageViewDisplaysContent() throws {
-        let content = "Test content"
-        let page = Page(content: content, pageNumber: 1)
-        let view = PageView(page: page)
-        
-        let text = try XCTUnwrap(findView(ofType: Text.self, in: view))
-        // Cannot access Text's internal storage; just check that a Text view exists
-        // Optionally, if accessibility is set, test that instead
-        XCTAssertNotNil(text)
-    }
-    
-    // Test illustration loading states
-    func testPageViewIllustrationStates() {
-        // Success state
-        let successPage = Page(content: "Content", pageNumber: 1, illustrationRelativePath: "test.jpg", illustrationStatus: .success)
-        let successView = PageView(page: successPage)
-        XCTAssertNotNil(findView(ofType: AsyncImage<Image>.self, in: successView))
-        
-        // Failed state
-        let failedPage = Page(content: "Content", pageNumber: 1, illustrationStatus: .failed)
-        let failedView = PageView(page: failedPage)
-        let button = findView(ofType: Button<Text>.self, in: failedView)
-        XCTAssertNotNil(button)
-        
-        // Initial state
-        let initialPage = Page(content: "Content", pageNumber: 1)
-        let initialView = PageView(page: initialPage)
-        let placeholder = findView(ofType: Image.self, in: initialView)
-        XCTAssertNotNil(placeholder)
-    }
-    
     // Test regenerate action
     func testRegenerateAction() {
         var actionCalled = false

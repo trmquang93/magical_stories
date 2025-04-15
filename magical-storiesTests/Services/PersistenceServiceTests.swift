@@ -23,7 +23,7 @@ final class PersistenceServiceTests: XCTestCase {
         let modelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
         modelContext = ModelContext(modelContainer)
         
-        persistenceService = PersistenceService(context: modelContext, userDefaults: testUserDefaults)
+        persistenceService = PersistenceService(context: modelContext)
     }
 
     override func tearDownWithError() throws {
@@ -136,27 +136,5 @@ final class PersistenceServiceTests: XCTestCase {
         XCTAssertEqual(loadedStories.count, 1)
         XCTAssertEqual(loadedStories.first?.id, story1.id)
         XCTAssertEqual(loadedStories.first?.title, "To Keep")
-    }
-
-    // Test checking the migration logic handles corrupted data gracefully
-    func testDecodingFailure() async throws {
-        // Given: Corrupted data saved under the key
-        let corruptedData = Data("this is not valid json".utf8)
-        testUserDefaults.set(corruptedData, forKey: "savedStories") // Use the key directly
-        testUserDefaults.set(false, forKey: "storiesMigratedToSwiftData") // Force migration to run
-
-        // Re-create the service to test migration with corrupted data
-        persistenceService = PersistenceService(context: modelContext, userDefaults: testUserDefaults)
-        
-        // When - We need to wait for the migration Task to complete
-        try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-        
-        // Then - Migration should complete despite corrupted data, and migration flag should be set
-        XCTAssertTrue(testUserDefaults.bool(forKey: "storiesMigratedToSwiftData"),
-            "Migration flag should be set even if data is corrupted")
-        
-        // Load stories should return empty array, not throw an error since we're using SwiftData now
-        let loadedStories = try await persistenceService.loadStories()
-        XCTAssertEqual(loadedStories.count, 0, "Should return empty array after failed migration")
     }
 }

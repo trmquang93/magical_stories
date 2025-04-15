@@ -8,7 +8,7 @@ final class AchievementModel {
     @Attribute(.unique) var id: UUID
     var name: String
     var achievementDescription: String
-    var earnedAt: Date
+    var earnedAt: Date?
     var typeRawValue: String
     var iconName: String?
     var progress: Double?
@@ -20,7 +20,7 @@ final class AchievementModel {
         name: String,
         achievementDescription: String? = nil,
         type: AchievementType,
-        earnedAt: Date = Date(),
+        earnedAt: Date? = nil,
         iconName: String? = nil,
         progress: Double? = nil,
         story: StoryModel? = nil

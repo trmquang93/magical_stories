@@ -3,109 +3,119 @@ description:
 globs: 
 alwaysApply: true
 ---
-version: 1.1
-rules:
-  - name: "Swift Testing TDD Rule"
-    description: "Enforce Test-Driven Development using Swift Testing framework"
-    checkpoints:
-      - type: "test_syntax"
-        verification:
-          - "Uses @Test macro appropriately"
-          - "Uses #expect for assertions"
-          - "Uses #require for optional unwrapping"
-          - "Implements parameterized tests where applicable"
-          - "Uses appropriate test traits"
+# Common Rules
 
-      - type: "test_organization"
-        verification:
-          - "Tests are properly grouped"
-          - "Uses descriptive test names"
-          - "Applies appropriate tags"
-          - "Handles async tests correctly"
+## Version: 1.1
 
-      - type: "tdd_workflow"
-        files_to_update:
-          - "magical-storiesTests/*.swift"
-        verification:
-          - "Red: Initial test fails"
-          - "Green: Minimal implementation passes"
-          - "Refactor: Maintains passing tests"
+### Swift Testing TDD Rule
+**Description:** Enforce Test-Driven Development using Swift Testing framework
 
-    memory_categories:
-      - type: "test_patterns"
-        description: "Swift Testing patterns and best practices"
-        retention: "permanent"
-        memories:
-          - name: "Test Target Imports"
-            description: "@testable import magical_stories is required in test files since test target and main app target are different targets. Unlike views within the same target, test files need explicit imports to access the main app's code."
-            date_added: "2025-03-30"
-            context: "This was learned during the implementation of RootView_Tests.swift when fixing test file imports."
+#### Checkpoints
 
-  - name: "Documentation Update Rule"
-    description: "Ensure documentation is updated when project changes occur"
-    checkpoints:
-      - type: "architecture_changes"
-        files_to_update:
-          - "documents/technical/architecture-overview.md"
-          - "documents/project/technical-roadmap.md"
-          - "documents/development/project-plan.md"
-      
-      - type: "api_changes"
-        files_to_update:
-          - "documents/api/google-ai-integration.md"
-          - "documents/api/storekit-integration.md"
-      
-      - type: "data_model_changes"
-        files_to_update:
-          - "documents/data/swift-data-schema.md"
-          - "documents/data/persistence-guide.md"
-      
-      - type: "security_changes"
-        files_to_update:
-          - "documents/security/security-guidelines.md"
-          - "documents/security/privacy-compliance.md"
-      
-      - type: "ui_changes"
-        files_to_update:
-          - "documents/ui/design-system.md"
-          - "documents/ui/accessibility.md"
-      
-      - type: "feature_changes"
-        files_to_update:
-          - "documents/MVP-requirements.md"
-          - "documents/Growth-Path-Stories.md"
-          - "documents/App-structure.md"
+- **Test Syntax**
+  - Uses `@Test` macro appropriately
+  - Uses `#expect` for assertions
+  - Uses `#require` for optional unwrapping
+  - Implements parameterized tests where applicable
+  - Uses appropriate test traits
 
-  - name: "Review Checklist"
-    description: "Ensure all necessary documentation is reviewed and updated"
-    checklist:
-      - "Have you updated all affected documentation?"
-      - "Have you reviewed the changes with the team?"
-      - "Have you updated the version numbers if applicable?"
-      - "Have you validated all code examples in documentation?"
+- **Test Organization**
+  - Tests are properly grouped
+  - Uses descriptive test names
+  - Applies appropriate tags
+  - Handles async tests correctly
 
-  - name: "Memory Tracking Rule"
-    description: "Track and manage system memories and important information"
-    memory_categories:
-      - type: "technical_decisions"
-        description: "Architecture and technical choice rationales"
-        retention: "permanent"
-        
-      - type: "requirements"
-        description: "Project requirements and constraints"
-        retention: "project_duration"
-        
-      - type: "user_preferences"
-        description: "User-specified preferences and configurations"
-        retention: "permanent"
-        
-      - type: "context"
-        description: "Project context and background information"
-        retention: "project_duration"
-        
-    memories:
-      - type: "technical_decisions"
-        name: "iOS Target Imports"
-        description: "Within the same iOS target project, views and components are automatically available without explicit imports. Only need to import external modules/frameworks not in the same target."
-        date_added: "2025-03-30"
-        context: "This was learned during the development of RootView.swift when attempting to unnecessarily import views from the same target."
+- **TDD Workflow**
+  - **Files to Update:** `magical-storiesTests/*.swift`
+  - **Verification:**
+    - Red: Initial test fails
+    - Green: Minimal implementation passes
+    - Refactor: Maintains passing tests
+
+#### Memory Categories
+- **Test Patterns**
+  - **Description:** Swift Testing patterns and best practices
+  - **Retention:** Permanent
+  - **Memories:**
+    - **Name:** Test Target Imports
+      - **Description:** `@testable import magical_stories` is required in test files since test target and main app target are different targets. Unlike views within the same target, test files need explicit imports to access the main app's code.
+      - **Date Added:** 2025-03-30
+      - **Context:** This was learned during the implementation of `RootView_Tests.swift` when fixing test file imports.
+
+---
+
+### Documentation Update Rule
+**Description:** Ensure documentation is updated when project changes occur
+
+#### Checkpoints
+
+- **Architecture Changes**
+  - **Files to Update:**
+    - `documents/technical/architecture-overview.md`
+    - `documents/project/technical-roadmap.md`
+    - `documents/development/project-plan.md`
+
+- **API Changes**
+  - **Files to Update:**
+    - `documents/api/google-ai-integration.md`
+    - `documents/api/storekit-integration.md`
+
+- **Data Model Changes**
+  - **Files to Update:**
+    - `documents/data/swift-data-schema.md`
+    - `documents/data/persistence-guide.md`
+
+- **Security Changes**
+  - **Files to Update:**
+    - `documents/security/security-guidelines.md`
+    - `documents/security/privacy-compliance.md`
+
+- **UI Changes**
+  - **Files to Update:**
+    - `documents/ui/design-system.md`
+    - `documents/ui/accessibility.md`
+
+- **Feature Changes**
+  - **Files to Update:**
+    - `documents/MVP-requirements.md`
+    - `documents/Growth-Path-Stories.md`
+    - `documents/App-structure.md`
+
+---
+
+### Review Checklist
+**Description:** Ensure all necessary documentation is reviewed and updated
+
+- Have you updated all affected documentation?
+- Have you reviewed the changes with the team?
+- Have you updated the version numbers if applicable?
+- Have you validated all code examples in documentation?
+
+---
+
+### Memory Tracking Rule
+**Description:** Track and manage system memories and important information
+
+#### Memory Categories
+- **Technical Decisions**
+  - **Description:** Architecture and technical choice rationales
+  - **Retention:** Permanent
+
+- **Requirements**
+  - **Description:** Project requirements and constraints
+  - **Retention:** Project Duration
+
+- **User Preferences**
+  - **Description:** User-specified preferences and configurations
+  - **Retention:** Permanent
+
+- **Context**
+  - **Description:** Project context and background information
+  - **Retention:** Project Duration
+
+#### Memories
+- **Type:** Technical Decisions
+  - **Name:** iOS Target Imports
+    - **Description:** Within the same iOS target project, views and components are automatically available without explicit imports. Only need to import external modules/frameworks not in the same target.
+    - **Date Added:** 2025-03-30
+    - **Context:** This was learned during the development of `RootView.swift` when attempting to unnecessarily import views from the same target.

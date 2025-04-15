@@ -37,25 +37,17 @@ struct AppSettings: Codable {
 @MainActor
 class SettingsService: ObservableObject {
     private let repository: SettingsRepositoryProtocol
-    private let userDefaults: UserDefaults // Keep for settings migration logic
-    private let usageAnalyticsService: UsageAnalyticsServiceProtocol // Inject usage service
-    private let migrationDoneKey = "settingsMigrationToSwiftDataDone" // Key to track migration
+    private let usageAnalyticsService: UsageAnalyticsServiceProtocol
 
     @Published private(set) var parentalControls: ParentalControls
     @Published private(set) var appSettings: AppSettings
 
-    // Constants for old UserDefaults keys (used only for migration)
-    private let oldParentalControlsKey = "parentalControls"
-    private let oldAppSettingsKey = "appSettings"
-
     init(
         repository: SettingsRepositoryProtocol,
-        usageAnalyticsService: UsageAnalyticsServiceProtocol, // Add usage service to init
-        userDefaults: UserDefaults = .standard
+        usageAnalyticsService: UsageAnalyticsServiceProtocol
     ) {
         self.repository = repository
-        self.usageAnalyticsService = usageAnalyticsService // Store injected service
-        self.userDefaults = userDefaults
+        self.usageAnalyticsService = usageAnalyticsService
 
         // Initialize with defaults first, will be overwritten by loaded/migrated data
         self.parentalControls = .default
@@ -79,20 +71,15 @@ class SettingsService: ObservableObject {
                     self.appSettings = appModel.toAppSettings()
                     self.parentalControls = controlsModel.toParentalControls()
                 }
-                // Ensure migration flag is set if data exists
-                if !userDefaults.bool(forKey: migrationDoneKey) {
-                     userDefaults.set(true, forKey: migrationDoneKey)
-                     // Optionally remove old keys if they somehow still exist
-                     userDefaults.removeObject(forKey: oldParentalControlsKey)
-                     userDefaults.removeObject(forKey: oldAppSettingsKey)
-                }
                 return // Loading successful
             }
 
             // 2. If not in SwiftData, check if migration is needed (and not already done)
+            // Migration logic from UserDefaults was here but incomplete/removed.
+            // Now, if SwiftData is empty, we proceed directly to saving defaults.
 
             // 3. If no data in SwiftData and no migration occurred (or failed), save defaults
-            print("No existing settings found in SwiftData or UserDefaults. Saving defaults.")
+            print("No existing settings found in SwiftData. Saving defaults.")
             let defaultAppSettingsModel = AppSettingsModel.default
             let defaultParentalControlsModel = ParentalControlsModel.default
 

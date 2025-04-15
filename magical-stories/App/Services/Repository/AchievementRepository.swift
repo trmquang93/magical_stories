@@ -47,3 +47,102 @@ class AchievementRepository: BaseRepository<AchievementModel> {
     // - fetchRecentAchievements(limit: Int)
     // - fetchAchievements(earnedAfter: Date)
 }
+
+// MARK: - Protocol Conformance (Implied)
+
+extension AchievementRepository { // Using extension for clarity
+
+    /// Fetches all achievements sorted by earned date (most recent first).
+    /// - Returns: An array of all AchievementModel objects.
+    func fetchAllAchievements() async throws -> [AchievementModel] {
+        let descriptor = FetchDescriptor<AchievementModel>(sortBy: [SortDescriptor(\.earnedAt, order: .reverse)])
+        return try await fetch(descriptor)
+    }
+
+    /// Fetches all achievements that have been earned (earnedAt is not nil).
+    /// - Returns: An array of earned AchievementModel objects.
+    func fetchEarnedAchievements() async throws -> [AchievementModel] {
+        let descriptor = FetchDescriptor<AchievementModel>(
+            predicate: #Predicate { $0.earnedAt != nil },
+            sortBy: [SortDescriptor(\.earnedAt, order: .reverse)]
+        )
+        return try await fetch(descriptor)
+    }
+
+    /// Updates the earned status and date of a specific achievement.
+    /// - Parameters:
+    ///   - id: The UUID of the achievement to update.
+    ///   - isEarned: Boolean indicating if the achievement is now earned.
+    ///   - earnedDate: The date the achievement was earned (defaults to now if isEarned is true and date is nil).
+    func updateAchievementStatus(id: UUID, isEarned: Bool, earnedDate: Date?) async throws {
+        guard let achievement = try await fetchAchievement(withId: id) else {
+            throw PersistenceError.dataNotFound // Or handle appropriately
+        }
+        achievement.earnedAt = isEarned ? (earnedDate ?? Date()) : nil
+        // SwiftData tracks changes, saving happens at a higher level or explicitly if needed
+        // No explicit save call here, assuming context saves changes.
+        // If BaseRepository doesn't handle auto-save on modification, add `try await save(achievement)`
+    }
+
+    // --- Methods Requiring Collection Relationship (Placeholder Implementation) ---
+    // These methods assume a relationship exists or will be added between AchievementModel and StoryCollectionModel.
+    // Adjust implementation once the relationship is defined (e.g., through StoryModel).
+
+    /// Fetches achievements associated with a specific collection ID.
+    /// **Note:** Requires `AchievementModel` to have a relationship (direct or indirect) with `StoryCollectionModel`.
+    /// - Parameter collectionId: The UUID of the collection.
+    /// - Returns: An array of AchievementModel objects associated with the collection.
+    func fetchAchievements(forCollection collectionId: UUID) async throws -> [AchievementModel] {
+        // Placeholder: This requires knowing how achievements relate to collections.
+        // Example if Achievement links to Story, and Story links to Collection:
+        // let storyPredicate = #Predicate<StoryModel> { story in
+        //     story.collections.contains { $0.id == collectionId }
+        // }
+        // let achievementPredicate = #Predicate<AchievementModel> { achievement in
+        //     achievement.story != nil && storyPredicate.evaluate(achievement.story!)
+        // }
+        // let descriptor = FetchDescriptor<AchievementModel>(predicate: achievementPredicate)
+        // return try await fetch(descriptor)
+
+        print("Warning: fetchAchievements(forCollection:) needs implementation based on actual data model relationships.")
+        return [] // Return empty until implemented correctly
+    }
+
+    /// Associates an achievement with a collection.
+    /// **Note:** Requires relationship modification capabilities.
+    /// - Parameters:
+    ///   - achievementId: The ID of the achievement (assuming String for consistency with UserDefaults version, adjust if needed).
+    ///   - collectionId: The UUID of the collection.
+    func associateAchievement(_ achievementId: String, withCollection collectionId: UUID) async throws {
+        // Placeholder: Implementation depends on how the relationship is modeled.
+        // Might involve fetching the achievement and collection models and updating their relationship properties.
+        guard let achievementUUID = UUID(uuidString: achievementId),
+              let achievement = try await fetchAchievement(withId: achievementUUID) else {
+            throw PersistenceError.dataNotFound
+        }
+        // Fetch the CollectionModel (requires CollectionRepository)
+        // Update the relationship (e.g., achievement.collections.append(collection) or collection.achievements.append(achievement))
+        // Save changes if needed.
+        print("Warning: associateAchievement(_:withCollection:) needs implementation based on actual data model relationships.")
+        // throw PersistenceError.repositoryError(NSError(domain: "Not implemented", code: -1))
+    }
+
+    /// Removes an achievement's association with a collection.
+    /// **Note:** Requires relationship modification capabilities.
+    /// - Parameters:
+    ///   - achievementId: The ID of the achievement (assuming String).
+    ///   - collectionId: The UUID of the collection.
+    func removeAchievementAssociation(_ achievementId: String, fromCollection collectionId: UUID) async throws {
+        // Placeholder: Implementation depends on how the relationship is modeled.
+        // Might involve fetching models and removing links from their relationship properties.
+         guard let achievementUUID = UUID(uuidString: achievementId),
+               let achievement = try await fetchAchievement(withId: achievementUUID) else {
+             throw PersistenceError.dataNotFound
+         }
+        // Fetch the CollectionModel
+        // Remove the relationship link
+        // Save changes if needed.
+        print("Warning: removeAchievementAssociation(_:fromCollection:) needs implementation based on actual data model relationships.")
+        // throw PersistenceError.repositoryError(NSError(domain: "Not implemented", code: -1))
+    }
+}
