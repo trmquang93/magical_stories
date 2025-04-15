@@ -1,6 +1,6 @@
 # Growth Story Collections — Implementation Plan
 
-_Last updated: April 10, 2025_
+_Last updated: 2024-07-26_
 
 ---
 
@@ -21,9 +21,9 @@ _Last updated: April 10, 2025_
 
 ## 3. Dependencies
 
-- **SwiftData Migration (Phase 3)**: Must be completed first, including `Story`, `Page`, and `StoryCollection` models.
 - **Designs**: Already completed.
 - **Architecture**: MVVM with SwiftUI, Repository pattern, async/await, environment-based dependency injection.
+- **Core SwiftData Models**: Base models like `Story` and `Page` are defined.
 
 ---
 
@@ -67,7 +67,7 @@ _Last updated: April 10, 2025_
 ### Phase 4.2: UI Implementation
 
 - **5.2.1 Create `CollectionFormView`**
-  - Input: Child’s age group, developmental focus, interests
+  - Input: Child's age group, developmental focus, interests
   - Triggers collection generation via `CollectionService`
 - **5.2.2 Create `CollectionsView`**
   - List of all collections with progress indicators
@@ -145,14 +145,13 @@ _Last updated: April 10, 2025_
 
 ## 8. Timeline (Estimated)
 
-| Phase                     | Duration | Dependencies                     |
-|---------------------------|----------|----------------------------------|
-| SwiftData Migration       | 1-2 weeks| None (Phase 3)                   |
-| Models & Service Layer    | 1 week   | SwiftData Migration              |
-| UI Implementation         | 1-2 weeks| Models & Service Layer           |
-| Integration & Tracking    | 1 week   | UI Implementation                |
-| Testing                   | 1 week   | All previous                     |
-| **Total**                 | ~4-6 weeks|                                  |
+| Phase                  | Duration   | Dependencies                 |
+| ---------------------- | ---------- | ---------------------------- |
+| Models & Service Layer | 1 week     | None (SwiftData established) |
+| UI Implementation      | 1-2 weeks  | Models & Service Layer       |
+| Integration & Tracking | 1 week     | UI Implementation            |
+| Testing                | 1 week     | All previous                 |
+| **Total**              | ~3-5 weeks |                              |
 
 ---
 
@@ -339,25 +338,21 @@ These instructions supersede any conflicting general instructions. Only perform 
 
 ### 12. Risks & Mitigation
 
-- **AI Generation Failures:**  
-  - Mitigate with retries, fallbacks, and clear user messaging.  
+- **AI Generation Failures:**
+  - Mitigate with retries, fallbacks, and clear user messaging.
   - Log errors centrally for monitoring.
 
-- **Performance Issues:**  
-  - Batch AI calls, optimize SwiftData queries.  
+- **Performance Issues:**
+  - Batch AI calls, optimize SwiftData queries.
   - Profile and optimize UI rendering.
 
-- **User Confusion:**  
-  - Provide clear onboarding and UI cues.  
+- **User Confusion:**
+  - Provide clear onboarding and UI cues.
   - Use progressive disclosure to avoid overwhelming users.
 
-- **Monetization Complexity:**  
-  - Use feature flags to hide premium content until StoreKit is ready.  
+- **Monetization Complexity:**
+  - Use feature flags to hide premium content until StoreKit is ready.
   - Test entitlement flows thoroughly.
-
-- **Data Migration:**  
-  - Ensure SwiftData migration scripts are well-tested.  
-  - Provide backup/restore options during migration.
 
 ---
 

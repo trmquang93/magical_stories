@@ -1,30 +1,32 @@
 import SwiftUI
+import SwiftData
 
 struct CollectionsListView: View {
-    @EnvironmentObject private var collectionService: CollectionService
-    // Optional search text binding if search needs to apply here
-    // @Binding var searchText: String
+    @Query private var collections: [StoryCollection]
+    @State private var searchText = ""
     
-    // TODO: Add filtering logic based on searchText if needed
-    private var filteredCollections: [GrowthCollection] {
-        // For now, just return all collections
-        [] // TODO: Implement fetching collections from service or view model
+    private var filteredCollections: [StoryCollection] {
+        if searchText.isEmpty {
+            return collections
+        } else {
+            return collections.filter { $0.title.localizedCaseInsensitiveContains(searchText) }
+        }
     }
     
     var body: some View {
-        // Use a List or ScrollView with LazyVGrid/LazyVStack
-        // Using List for simplicity initially
-        List(filteredCollections) { collection in
-            // Add navigation link now that GrowthCollection is Hashable
-            NavigationLink(value: collection) { 
-                CollectionCardView(collection: collection)
+        NavigationStack {
+            List(filteredCollections) { collection in
+                NavigationLink(value: collection) {
+                    CollectionCardView(collection: collection)
+                }
             }
+            .navigationTitle("Collections")
+            .searchable(text: $searchText)
         }
-        .listStyle(.plain) // Use plain list style
     }
 }
 
 #Preview {
     CollectionsListView()
-        .environmentObject(CollectionService.preview) // Use preview service
-} 
+        .modelContainer(for: StoryCollection.self, inMemory: true)
+}

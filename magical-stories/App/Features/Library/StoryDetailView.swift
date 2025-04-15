@@ -46,7 +46,7 @@ struct StoryDetailView: View {
                             .accessibilityHint("Swipe left or right to navigate between pages")
                     }
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never)) // Use page style, hide default index dots
+                .tabViewStyle(.page(indexDisplayMode: .never))  // Use page style, hide default index dots
                 .onChange(of: currentPageIndex) { _, newIndex in
                     updateReadingProgress(newIndex: newIndex)
                 }
@@ -60,11 +60,13 @@ struct StoryDetailView: View {
         }
         .navigationTitle(story.title)
         .navigationBarTitleDisplayMode(.inline)
-        .task { // Use .task for async operations on appear
+        .task {  // Use .task for async operations on appear
             await loadPages()
         }
-        .alert("Achievement Unlocked!", isPresented: $showCompletionAlert, presenting: newAchievements) { achievements in
-            Button("Awesome!") { }
+        .alert(
+            "Achievement Unlocked!", isPresented: $showCompletionAlert, presenting: newAchievements
+        ) { achievements in
+            Button("Awesome!") {}
         } message: { achievements in
             Text("You've earned: \(achievements.map { $0.name }.joined(separator: ", "))")
         }
@@ -99,13 +101,16 @@ struct StoryDetailView: View {
         print("StoryDetailView: Loaded \(pages.count) pages directly from story model.")
         isLoadingPages = false
         if !pages.isEmpty {
-            readingProgress = StoryProcessor.calculateReadingProgress(currentPage: currentPageIndex + 1, totalPages: pages.count)
+            readingProgress = StoryProcessor.calculateReadingProgress(
+                currentPage: currentPageIndex + 1, totalPages: pages.count)
         } else {
             readingProgress = 0.0
         }
 
         if !pages.isEmpty {
-            UIAccessibility.post(notification: .screenChanged, argument: "\(pages.count) pages loaded. Page 1 is now displayed")
+            UIAccessibility.post(
+                notification: .screenChanged,
+                argument: "\(pages.count) pages loaded. Page 1 is now displayed")
         }
     }
 
@@ -114,9 +119,11 @@ struct StoryDetailView: View {
             readingProgress = 0.0
             return
         }
-        readingProgress = StoryProcessor.calculateReadingProgress(currentPage: newIndex + 1, totalPages: pages.count)
+        readingProgress = StoryProcessor.calculateReadingProgress(
+            currentPage: newIndex + 1, totalPages: pages.count)
 
-        UIAccessibility.post(notification: .pageScrolled, argument: "Page \(newIndex + 1) of \(pages.count)")
+        UIAccessibility.post(
+            notification: .pageScrolled, argument: "Page \(newIndex + 1) of \(pages.count)")
 
         if newIndex == pages.count - 1 {
             Task {
@@ -134,30 +141,40 @@ struct StoryDetailView: View {
         }
 
         // Fetch the collection asynchronously since CollectionService does not expose a collections property
-        guard let collection = try? await collectionService.fetchCollections().first(where: { $0.id == collectionId }) else {
+        guard
+            let collection = try? await collectionService.fetchAllCollections().first(where: {
+                $0.id == collectionId
+            })
+        else {
             print("[StoryDetailView] Could not find parent collection with ID: \(collectionId)")
             return
         }
 
-        let totalStories = Float(collection.stories.count)
+        let totalStories = Float(collection.stories?.count ?? 0)
         guard totalStories > 0 else {
             print("[StoryDetailView] Collection has no stories, cannot calculate progress.")
             return
         }
         let progressPerStory = 1.0 / totalStories
-        let potentialNewProgress = min(collection.completionProgress + Double(progressPerStory), 1.0)
+        let potentialNewProgress = min(
+            collection.completionProgress + Double(progressPerStory), 1.0)
 
         guard potentialNewProgress > collection.completionProgress else {
-            print("[StoryDetailView] Calculated progress (\(potentialNewProgress)) did not increase from current (\(collection.completionProgress)). No update needed.")
+            print(
+                "[StoryDetailView] Calculated progress (\(potentialNewProgress)) did not increase from current (\(collection.completionProgress)). No update needed."
+            )
             return
         }
 
         let finalProgress = potentialNewProgress
 
-        print("[StoryDetailView] Updating collection \(collectionId) progress from \(collection.completionProgress) to \(finalProgress)")
+        print(
+            "[StoryDetailView] Updating collection \(collectionId) progress from \(collection.completionProgress) to \(finalProgress)"
+        )
 
         do {
-            try await collectionService.updateProgress(for: collectionId, progress: finalProgress)
+            try await collectionService.updateCollectionProgress(
+                id: collectionId, progress: Float(finalProgress))
 
             // TODO: Implement achievement checking if/when CollectionService provides such a method.
             // let earnedAchievements = try await collectionService.checkAchievements(for: collectionId)
@@ -167,12 +184,9 @@ struct StoryDetailView: View {
             //     self.showCompletionAlert = true
             // }
         } catch {
-            print("[StoryDetailView] Error updating progress or checking achievements for collection \(collectionId): \(error)")
+            print(
+                "[StoryDetailView] Error updating progress or checking achievements for collection \(collectionId): \(error)"
+            )
         }
     }
-}
-
-#Preview {
-    StoryDetailView(story: Story.preview)
-        .environmentObject(CollectionService.preview)
 }

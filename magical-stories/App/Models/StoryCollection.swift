@@ -1,102 +1,75 @@
 import Foundation
 import SwiftData
 
-/// A collection of stories focused on child development areas like emotional intelligence, confidence, etc.
-/// Combines functionality from both StoryCollection and GrowthCollection concepts.
+/// Represents a collection of stories, often themed around a specific growth category.
 @Model
-final class StoryCollection: Identifiable, Codable {
+final class StoryCollection: Sendable, Codable {
     @Attribute(.unique) var id: UUID
     var title: String
-    var descriptionText: String?
-    var growthCategory: String? // e.g., emotionalIntelligence, confidenceLeadership
-    var targetAgeGroup: String? // e.g., preschool, elementary, preteen
-    var completionProgress: Double // 0.0 to 1.0
-    var stories: [Story] // many-to-many relationship
-    var achievements: [Achievement]?
+    var descriptionText: String  // Renamed from description to avoid conflict
+    var category: String
+    var ageGroup: String
+    var completionProgress: Double = 0.0  // Default progress
+    @Relationship(deleteRule: .cascade, inverse: \Story.collections) var stories: [Story]? = []  // Optional to handle potential empty collections initially
     var createdAt: Date
-    
+    var updatedAt: Date
+
     init(
         id: UUID = UUID(),
         title: String,
-        descriptionText: String? = nil,
-        growthCategory: String? = nil,
-        targetAgeGroup: String? = nil,
-        stories: [Story] = [],
-        achievements: [Achievement]? = nil,
-        completionProgress: Double = 0.0
+        descriptionText: String,
+        category: String,
+        ageGroup: String,
+        stories: [Story]? = [],
+        createdAt: Date = Date(),
+        updatedAt: Date = Date()
     ) {
         self.id = id
         self.title = title
         self.descriptionText = descriptionText
-        self.growthCategory = growthCategory
-        self.targetAgeGroup = targetAgeGroup
+        self.category = category
+        self.ageGroup = ageGroup
         self.stories = stories
-        self.achievements = achievements
-        self.completionProgress = completionProgress
-        self.createdAt = Date()
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
     }
-    
+
     enum CodingKeys: String, CodingKey {
-        case id, title, descriptionText, growthCategory, targetAgeGroup, completionProgress, stories, achievements, createdAt
+        case id, title, descriptionText, category, ageGroup, completionProgress, stories, createdAt,
+            updatedAt
     }
 
     convenience init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let id = try container.decode(UUID.self, forKey: .id)
         let title = try container.decode(String.self, forKey: .title)
-        let descriptionText = try container.decodeIfPresent(String.self, forKey: .descriptionText)
-        let growthCategory = try container.decodeIfPresent(String.self, forKey: .growthCategory)
-        let targetAgeGroup = try container.decodeIfPresent(String.self, forKey: .targetAgeGroup)
+        let descriptionText = try container.decode(String.self, forKey: .descriptionText)
+        let category = try container.decode(String.self, forKey: .category)
+        let ageGroup = try container.decode(String.self, forKey: .ageGroup)
         let completionProgress = try container.decode(Double.self, forKey: .completionProgress)
+
         let stories = try container.decode([Story].self, forKey: .stories)
-        let achievements = try container.decodeIfPresent([Achievement].self, forKey: .achievements)
         let createdAt = try container.decode(Date.self, forKey: .createdAt)
+        let updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+
         self.init(
-            id: id,
-            title: title,
-            descriptionText: descriptionText,
-            growthCategory: growthCategory,
-            targetAgeGroup: targetAgeGroup,
-            stories: stories,
-            achievements: achievements,
-            completionProgress: completionProgress
-        )
-        self.createdAt = createdAt
+            id: id, title: title, descriptionText: descriptionText, category: category,
+            ageGroup: ageGroup, stories: stories, createdAt: createdAt, updatedAt: updatedAt)
+
+        self.completionProgress = completionProgress
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(title, forKey: .title)
-        try container.encodeIfPresent(descriptionText, forKey: .descriptionText)
-        try container.encodeIfPresent(growthCategory, forKey: .growthCategory)
-        try container.encodeIfPresent(targetAgeGroup, forKey: .targetAgeGroup)
+        try container.encode(descriptionText, forKey: .descriptionText)
+        try container.encode(category, forKey: .category)
+        try container.encode(ageGroup, forKey: .ageGroup)
         try container.encode(completionProgress, forKey: .completionProgress)
         try container.encode(stories, forKey: .stories)
-        try container.encodeIfPresent(achievements, forKey: .achievements)
         try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
     }
-    
-    /// Calculates completion progress based on completed stories
-    func calculateProgress() -> Double {
-        guard !stories.isEmpty else { return 0.0 }
-        let completedCount = stories.filter { $0.isCompleted }.count
-        return Double(completedCount) / Double(stories.count)
-    }
-    
-    // Example for previews
-    static var previewExample: StoryCollection {
-        StoryCollection(
-            title: "The Little Explorer's Guide to Courage",
-            descriptionText: "A collection of stories helping young adventurers find their inner bravery.",
-            growthCategory: "confidenceLeadership",
-            targetAgeGroup: "preschool",
-            stories: [
-                Story.previewStory(title: "Finley Fox Faces the Dark"),
-                Story.previewStory(title: "Lily Lamb Tries Something New"),
-                Story.previewStory(title: "Sammy Squirrel Climbs High")
-            ],
-            completionProgress: 0.66
-        )
-    }
+    // Add convenience methods or computed properties if required by tests later
 }

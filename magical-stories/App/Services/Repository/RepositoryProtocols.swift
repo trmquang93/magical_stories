@@ -1,31 +1,31 @@
 import Foundation
 
-/// Protocol defining the requirements for managing Growth Collection data.
+/// Protocol defining the requirements for managing Story Collection data.
 protocol CollectionRepositoryProtocol {
-    /// Saves a new Growth Collection or updates an existing one.
-    /// - Parameter collection: The `GrowthCollection` object to save.
+    /// Saves a new Story Collection or updates an existing one.
+    /// - Parameter collection: The `StoryCollection` object to save.
     /// - Throws: An error if saving fails (e.g., `PersistenceError.encodingFailed`).
-    func saveCollection(_ collection: GrowthCollection) throws
+    func saveCollection(_ collection: StoryCollection) throws
 
-    /// Fetches a specific Growth Collection by its ID.
+    /// Fetches a specific Story Collection by its ID.
     /// - Parameter id: The `UUID` of the collection to fetch.
-    /// - Returns: The `GrowthCollection` if found, otherwise `nil`.
+    /// - Returns: The `StoryCollection` if found, otherwise `nil`.
     /// - Throws: An error if fetching fails (e.g., `PersistenceError.decodingFailed`).
-    func fetchCollection(id: UUID) throws -> GrowthCollection?
+    func fetchCollection(id: UUID) throws -> StoryCollection?
 
-    /// Fetches all saved Growth Collections.
-    /// - Returns: An array of `GrowthCollection` objects. Returns an empty array if none are found.
+    /// Fetches all saved Story Collections.
+    /// - Returns: An array of `StoryCollection` objects. Returns an empty array if none are found.
     /// - Throws: An error if fetching fails (e.g., `PersistenceError.decodingFailed`).
-    func fetchAllCollections() throws -> [GrowthCollection]
+    func fetchAllCollections() throws -> [StoryCollection]
 
-    /// Updates the progress of a specific Growth Collection.
+    /// Updates the progress of a specific Story Collection.
     /// - Parameters:
     ///   - id: The `UUID` of the collection to update.
     ///   - progress: The new progress value (0.0 to 1.0).
     /// - Throws: An error if the collection is not found or updating fails.
     func updateCollectionProgress(id: UUID, progress: Float) throws
 
-    /// Deletes a specific Growth Collection.
+    /// Deletes a specific Story Collection.
     /// - Parameter id: The `UUID` of the collection to delete.
     /// - Throws: An error if deletion fails.
     func deleteCollection(id: UUID) throws

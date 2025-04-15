@@ -1,78 +1,47 @@
 import Foundation
 import SwiftData
 
-enum CollectionFilter {
-    case growthCategory(String)
-    case targetAgeGroup(String)
-}
+/// Concrete implementation of `CollectionRepositoryProtocol` using SwiftData.
+final class CollectionRepository: CollectionRepositoryProtocol, Sendable {
 
-enum CollectionSort {
-    case createdAtDescending
-}
+    private let modelContext: ModelContext
 
-class CollectionRepository: BaseRepository<StoryCollection> {
-    init(context: ModelContext) {
-        super.init(modelContext: context)
+    /// Initializes the repository with a SwiftData model context.
+    /// - Parameter modelContext: The `ModelContext` to use for data operations.
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
     }
 
-    func create(_ collection: StoryCollection) async throws {
-        try await save(collection)
+    func saveCollection(_ collection: StoryCollection) throws {
+        modelContext.insert(collection)
     }
 
-    func get(byId id: UUID) async throws -> StoryCollection? {
-        let descriptor = FetchDescriptor<StoryCollection>(
-            predicate: #Predicate { $0.id == id }
-        )
-        let results = try await fetch(descriptor)
+    func fetchCollection(id: UUID) throws -> StoryCollection? {
+        let predicate = #Predicate<StoryCollection> { $0.id == id }
+        var fetchDescriptor = FetchDescriptor<StoryCollection>(predicate: predicate)
+        fetchDescriptor.fetchLimit = 1
+        let results = try modelContext.fetch(fetchDescriptor)
         return results.first
     }
 
-    override func update(_ collection: StoryCollection) async throws {
-        try await super.update(collection)
+    func fetchAllCollections() throws -> [StoryCollection] {
+        let fetchDescriptor = FetchDescriptor<StoryCollection>(sortBy: [SortDescriptor(\.createdAt, order: .reverse)])
+        return try modelContext.fetch(fetchDescriptor)
     }
 
-    func delete(byId id: UUID) async throws {
-        if let collection = try await get(byId: id) {
-            try await delete(collection)
+    func updateCollectionProgress(id: UUID, progress: Float) throws {
+        guard let collection = try fetchCollection(id: id) else {
+            print("Error: Collection with ID \(id) not found for progress update.")
+            return
         }
+        collection.updatedAt = Date()
     }
 
-    func fetch(filter: CollectionFilter) async throws -> [StoryCollection] {
-        switch filter {
-        case .growthCategory(let category):
-            let descriptor = FetchDescriptor<StoryCollection>(
-                predicate: #Predicate { $0.growthCategory == category }
-            )
-            return try await fetch(descriptor)
-        case .targetAgeGroup(let ageGroup):
-            let descriptor = FetchDescriptor<StoryCollection>(
-                predicate: #Predicate { $0.targetAgeGroup == ageGroup }
-            )
-            return try await fetch(descriptor)
+    func deleteCollection(id: UUID) throws {
+        guard let collection = try fetchCollection(id: id) else {
+            print("Error: Collection with ID \(id) not found for deletion.")
+            return
         }
-    }
-
-    func fetchSorted(by sort: CollectionSort) async throws -> [StoryCollection] {
-        switch sort {
-        case .createdAtDescending:
-            let descriptor = FetchDescriptor<StoryCollection>(
-                sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
-            )
-            return try await fetch(descriptor)
-        }
-    }
-
-    func addStory(_ story: Story, toCollectionId id: UUID) async throws {
-        guard let collection = try await get(byId: id) else { return }
-        if !collection.stories.contains(where: { $0.id == story.id }) {
-            collection.stories.append(story)
-            try await update(collection)
-        }
-    }
-
-    func removeStory(storyId: UUID, fromCollectionId id: UUID) async throws {
-        guard let collection = try await get(byId: id) else { return }
-        collection.stories.removeAll { $0.id == storyId }
-        try await update(collection)
+        modelContext.delete(collection)
     }
 }

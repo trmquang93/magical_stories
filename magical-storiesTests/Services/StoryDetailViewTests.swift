@@ -21,7 +21,13 @@ struct StoryDetailViewTests {
         // Create a story that belongs to a collection
         story = Story.previewStory(title: "Test Story for Completion")
         // Associate the story with a collection via the collections property
-        let storyCollection = StoryCollection(id: collectionId, title: "Test Collection")
+        let storyCollection = StoryCollection(
+            id: collectionId,
+            title: "Test Collection",
+            descriptionText: "A collection for testing.", // Added
+            category: "TestCategory", // Added
+            ageGroup: "5-7" // Added
+        )
         story.collections = [storyCollection]
         story.pages = [  // Ensure it has pages
             Page(content: "Page 1", pageNumber: 1),
@@ -29,16 +35,19 @@ struct StoryDetailViewTests {
         ]
 
         // Create a dummy collection in the mock service
-        let initialCollection = GrowthCollection(
+        // Replaced GrowthCollection with StoryCollection and added missing args
+        let initialCollection = StoryCollection(
             id: collectionId,
             title: "Test Collection",
-            description: "A test collection for completion",
-            theme: "Testing",
-            targetAgeGroup: "5-7",
-            stories: [story],  // Include the story
-            progress: 0.0  // Start with 0 progress
+            descriptionText: "A test collection for completion", // Renamed/Added
+            category: "Testing", // Added (using theme value)
+            ageGroup: "5-7", // Added (using targetAgeGroup value)
+            stories: [story]  // Include the story
+            // progress is handled by StoryCollection's default or internal logic now
         )
-        mockCollectionService.collections = [initialCollection]
+        // Assuming mockCollectionService.collections expects [StoryCollection]
+        // If it expects [GrowthCollection], this needs adjustment based on GrowthCollection definition
+        mockCollectionService.collections = [initialCollection] // Type needs to match mock service expectation
 
         // If testing UI interactions, instantiate the view
         // view = StoryDetailView(story: story).environmentObject(mockCollectionService)
@@ -60,7 +69,8 @@ struct StoryDetailViewTests {
             // Simulate updating the collection progress in the mock
             if let index = self.mockCollectionService.collections.firstIndex(where: { $0.id == id })
             {
-                self.mockCollectionService.collections[index].progress = progress
+                // Corrected property name
+                self.mockCollectionService.collections[index].completionProgress = Double(progress)
             }
         }
 
@@ -95,20 +105,28 @@ struct StoryDetailViewTests {
         // Arrange
         var story1 = Story.previewStory(title: "Story 1")
         var story2 = Story.previewStory(title: "Story 2")
-        let storyCollection = StoryCollection(id: collectionId, title: "Multi Story Collection")
+        // Added missing arguments
+        let storyCollection = StoryCollection(
+            id: collectionId,
+            title: "Multi Story Collection",
+            descriptionText: "A collection with multiple stories.", // Added
+            category: "TestCategory", // Added
+            ageGroup: "5-7" // Added
+        )
         story1.collections = [storyCollection]
         story2.collections = [storyCollection]
 
-        let initialCollection = GrowthCollection(
+        // Replaced GrowthCollection with StoryCollection and added missing args
+        let initialCollection = StoryCollection(
             id: collectionId,
             title: "Multi Story Collection",
-            description: "A collection with two stories",
-            theme: "Testing",
-            targetAgeGroup: "5-7",
-            stories: [story1, story2],  // Two stories
-            progress: 0.0  // Start with 0
+            descriptionText: "A collection with two stories", // Renamed/Added
+            category: "Testing", // Added (using theme value)
+            ageGroup: "5-7", // Added (using targetAgeGroup value)
+            stories: [story1, story2]  // Two stories
+            // progress handled by StoryCollection
         )
-        mockCollectionService.collections = [initialCollection]
+        mockCollectionService.collections = [initialCollection] // Type needs to match mock service
         self.story = story1  // Simulate completing story1
 
         var updatedProgress: Float? = nil
@@ -127,20 +145,28 @@ struct StoryDetailViewTests {
     @Test mutating func handleStoryCompletion_NoUpdateIfProgressNotIncreased() async throws {
         // Arrange
         var story1 = Story.previewStory(title: "Story 1")
+        // Added missing arguments
         let storyCollection = StoryCollection(
-            id: collectionId, title: "Already Complete Collection")
-        story1.collections = [storyCollection]
-
-        let initialCollection = GrowthCollection(
             id: collectionId,
             title: "Already Complete Collection",
-            description: "A collection that is already complete",
-            theme: "Testing",
-            targetAgeGroup: "5-7",
-            stories: [story1],
-            progress: 1.0  // Already complete
+            descriptionText: "A collection already complete.", // Added
+            category: "TestCategory", // Added
+            ageGroup: "5-7" // Added
         )
-        mockCollectionService.collections = [initialCollection]
+        story1.collections = [storyCollection]
+
+        // Replaced GrowthCollection with StoryCollection and added missing args
+        let initialCollection = StoryCollection(
+            id: collectionId,
+            title: "Already Complete Collection",
+            descriptionText: "A collection that is already complete", // Renamed/Added
+            category: "Testing", // Added (using theme value)
+            ageGroup: "5-7", // Added (using targetAgeGroup value)
+            stories: [story1]
+            // progress handled by StoryCollection
+        )
+        initialCollection.completionProgress = 1.0 // Set progress after init
+        mockCollectionService.collections = [initialCollection] // Type needs to match mock service
         self.story = story1  // Simulate completing the only story
 
         var didCallUpdateProgress = false
@@ -187,14 +213,17 @@ struct StoryDetailViewTests {
             })
         else { return }
 
-        let totalStories = Float(collection.stories.count)
+        // Use optional chaining and nil-coalescing for safety with stories
+        let totalStories = Float(collection.stories?.count ?? 0)
         guard totalStories > 0 else { return }
         let progressPerStory = 1.0 / totalStories
-        let potentialNewProgress = min(collection.progress + progressPerStory, 1.0)
+        // Use completionProgress property (ensure Double for calculation)
+        let potentialNewProgress = min(collection.completionProgress + Double(progressPerStory), 1.0)
 
-        guard potentialNewProgress > collection.progress else { return }
+        // Use completionProgress property
+        guard potentialNewProgress > collection.completionProgress else { return }
 
-        let finalProgress = potentialNewProgress
+        let finalProgress = Float(potentialNewProgress) // Ensure Float type for updateProgress call
 
         do {
             try await mockCollectionService.updateProgress(

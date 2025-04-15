@@ -1,14 +1,5 @@
 import SwiftUI
 
-// Define options for Pickers
-enum AgeGroup: String, CaseIterable, Identifiable {
-    case threeToFive = "3-5 years"
-    case sixToEight = "6-8 years"
-    case nineToTwelve = "9-12 years"
-    
-    var id: String { self.rawValue }
-}
-
 enum DevelopmentalFocus: String, CaseIterable, Identifiable {
     case emotionalIntelligence = "Emotional Intelligence"
     case problemSolving = "Problem Solving"
@@ -25,7 +16,7 @@ struct CollectionFormView: View {
     @EnvironmentObject private var collectionService: CollectionService
     
     // State variables for form inputs
-    @State private var childAgeGroup: AgeGroup = .threeToFive // Use Enum
+    @State private var childAgeGroup: AgeGroup = .preschool // Use Enum
     @State private var developmentalFocus: DevelopmentalFocus = .emotionalIntelligence // Use Enum
     @State private var interests: String = "" // Comma-separated or token field?
     @State private var childName: String = "" // Optional
@@ -130,12 +121,19 @@ struct CollectionFormView: View {
         
         do {
             print("[CollectionFormView] Generating collection with parameters: \(parameters)")
-            _ = try await collectionService.createCollection(
-                title: "Untitled Collection",
-                theme: parameters.developmentalFocus,
-                ageGroup: parameters.childAgeGroup,
-                focusArea: parameters.developmentalFocus
+            
+            // Create the StoryCollection object
+            let newCollection = StoryCollection(
+                title: "Untitled Collection", // Using a default title for now
+                descriptionText: parameters.interests, // Using interests as description
+                category: parameters.developmentalFocus, // Using focus as category
+                ageGroup: parameters.childAgeGroup // Using age group from form
+                // id, stories, createdAt, updatedAt will use default values
             )
+            
+            // Call the service with the StoryCollection object
+            _ = try await collectionService.createCollection(newCollection)
+            
             // Success!
             isGenerating = false
             dismiss() // Dismiss the form on success
@@ -147,10 +145,3 @@ struct CollectionFormView: View {
         }
     }
 }
-
-#Preview {
-    // Need to provide a mock/preview CollectionService
-    // Assuming CollectionService.preview exists and is set up
-    CollectionFormView()
-        .environmentObject(CollectionService.preview) 
-} 

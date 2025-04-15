@@ -1,11 +1,10 @@
-import Foundation // Added for Date, UUID (though often implicit)
+import CoreData
+import Foundation  // Added for Date, UUID (though often implicit)
 import GoogleGenerativeAI
 import SwiftData
 import SwiftUI
-import CoreData
 
 // MARK: - Story Models
-
 
 // MARK: - Story Service Errors
 enum StoryServiceError: LocalizedError, Equatable {
@@ -65,9 +64,8 @@ private struct StoryGenerationResponseWrapper: StoryGenerationResponse {
 class StoryService: ObservableObject {
     private let model: GenerativeModelProtocol
     private let promptBuilder: PromptBuilder
+    private let storyProcessor: StoryProcessor  // Added StoryProcessor
     private let persistenceService: PersistenceServiceProtocol
-    private let storyProcessor: StoryProcessor // Added StoryProcessor
-
     @Published private(set) var stories: [Story] = []
     @Published private(set) var isGenerating = false
 
@@ -77,9 +75,9 @@ class StoryService: ObservableObject {
         context: ModelContext,
         persistenceService: PersistenceServiceProtocol? = nil,
         model: GenerativeModelProtocol? = nil,
-        storyProcessor: StoryProcessor? = nil // Allow injecting for testing
-    ) throws { // Mark initializer as throwing
-        self.model = model ?? GenerativeModelWrapper(name: "gemini-1.5-flash", apiKey: apiKey) // Updated model name
+        storyProcessor: StoryProcessor? = nil  // Allow injecting for testing
+    ) throws {  // Mark initializer as throwing
+        self.model = model ?? GenerativeModelWrapper(name: "gemini-1.5-flash", apiKey: apiKey)  // Updated model name
         self.promptBuilder = PromptBuilder()
         self.persistenceService = persistenceService ?? PersistenceService(context: context)
 
@@ -89,7 +87,8 @@ class StoryService: ObservableObject {
         // For now, let's assume a default IllustrationService can be created.
         // Use 'try' as IllustrationService() can throw
         let effectiveIllustrationService = try IllustrationService()
-        self.storyProcessor = storyProcessor ?? StoryProcessor(illustrationService: effectiveIllustrationService)
+        self.storyProcessor =
+            storyProcessor ?? StoryProcessor(illustrationService: effectiveIllustrationService)
 
         // Task must be after all properties are initialized
         Task {
@@ -136,14 +135,17 @@ class StoryService: ObservableObject {
             try await persistenceService.saveStory(story)
             // Immediately update the in-memory stories list so tests see the new story
             if !stories.contains(where: { $0.id == story.id }) {
-                stories.insert(story, at: 0) // Insert at front to match loadStories() sort order
+                stories.insert(story, at: 0)  // Insert at front to match loadStories() sort order
             }
             await loadStories()
             return story
 
         } catch {
-            print("[StoryService] generateStory ERROR: \(error.localizedDescription) (main thread: \(Thread.isMainThread))")
-            AIErrorManager.logError(error, source: "StoryService", additionalInfo: "Error in generateStory")
+            print(
+                "[StoryService] generateStory ERROR: \(error.localizedDescription) (main thread: \(Thread.isMainThread))"
+            )
+            AIErrorManager.logError(
+                error, source: "StoryService", additionalInfo: "Error in generateStory")
 
             // 1. If error is already a StoryServiceError, rethrow as-is
             if let storyError = error as? StoryServiceError {
@@ -157,7 +159,9 @@ class StoryService: ObservableObject {
                 throw StoryServiceError.networkError
             }
             // 3. If error is a persistence error, map to .persistenceFailed
-            else if (error as NSError).domain == NSCocoaErrorDomain && (error as NSError).code == NSPersistentStoreSaveError {
+            else if (error as NSError).domain == NSCocoaErrorDomain
+                && (error as NSError).code == NSPersistentStoreSaveError
+            {
                 throw StoryServiceError.persistenceFailed
             }
             // 4. If error is already a known persistence error
@@ -176,16 +180,20 @@ class StoryService: ObservableObject {
         do {
             let loadedStories = try await persistenceService.loadStories()
             let sortedStories = loadedStories.sorted { $0.timestamp > $1.timestamp }
-            print("[StoryService] loadStories loaded \(sortedStories.count) stories (main thread: \(Thread.isMainThread))")
+            print(
+                "[StoryService] loadStories loaded \(sortedStories.count) stories (main thread: \(Thread.isMainThread))"
+            )
             stories = sortedStories
         } catch {
-            print("[StoryService] loadStories ERROR: \(error.localizedDescription) (main thread: \(Thread.isMainThread))")
-            AIErrorManager.logError(error, source: "StoryService", additionalInfo: "Failed to load stories")
+            print(
+                "[StoryService] loadStories ERROR: \(error.localizedDescription) (main thread: \(Thread.isMainThread))"
+            )
+            AIErrorManager.logError(
+                error, source: "StoryService", additionalInfo: "Failed to load stories")
             stories = []
         }
         print("[StoryService] loadStories END (main thread: \(Thread.isMainThread))")
     }
-
 
     private func extractTitleAndContent(from text: String) throws -> (String, String) {
         // Assuming the AI returns the story in a format like:
@@ -199,28 +207,31 @@ class StoryService: ObservableObject {
         else {
             // If title format is not found, handle it as an error
             let errorMessage = "Invalid story format received from AI (missing 'Title: ' prefix)"
-            AIErrorManager.logError(StoryServiceError.generationFailed(errorMessage),
-                                   source: "StoryService",
-                                   additionalInfo: "Raw response: \(text.prefix(100))...")
+            AIErrorManager.logError(
+                StoryServiceError.generationFailed(errorMessage),
+                source: "StoryService",
+                additionalInfo: "Raw response: \(text.prefix(100))...")
             throw StoryServiceError.generationFailed(errorMessage)
         }
 
         let title = String(titleLine.dropFirst(7)).trimmingCharacters(in: .whitespacesAndNewlines)
         // Ensure content is not empty after removing title
         let contentStartIndex = text.index(text.startIndex, offsetBy: titleLine.count)
-        let content = String(text[contentStartIndex...]).trimmingCharacters(in: .whitespacesAndNewlines)
+        let content = String(text[contentStartIndex...]).trimmingCharacters(
+            in: .whitespacesAndNewlines)
 
         guard !title.isEmpty else {
-             let errorMessage = "Invalid story format received from AI (empty title)"
-             AIErrorManager.logError(StoryServiceError.generationFailed(errorMessage), source: "StoryService")
-             throw StoryServiceError.generationFailed(errorMessage)
+            let errorMessage = "Invalid story format received from AI (empty title)"
+            AIErrorManager.logError(
+                StoryServiceError.generationFailed(errorMessage), source: "StoryService")
+            throw StoryServiceError.generationFailed(errorMessage)
         }
         guard !content.isEmpty else {
-             let errorMessage = "Invalid story format received from AI (empty content)"
-             AIErrorManager.logError(StoryServiceError.generationFailed(errorMessage), source: "StoryService")
-             throw StoryServiceError.generationFailed(errorMessage)
+            let errorMessage = "Invalid story format received from AI (empty content)"
+            AIErrorManager.logError(
+                StoryServiceError.generationFailed(errorMessage), source: "StoryService")
+            throw StoryServiceError.generationFailed(errorMessage)
         }
-
 
         return (title, content)
     }
@@ -231,10 +242,10 @@ private struct PromptBuilder {
     // Corrected PromptBuilder parameters based on StoryModels.swift
     func buildPrompt(
         childName: String,
-        childAge: Int, // Corrected parameter name to match StoryParameters
+        childAge: Int,  // Corrected parameter name to match StoryParameters
         favoriteCharacter: String,
-        theme: String // Theme is now String
-        // language parameter removed
+        theme: String  // Theme is now String
+            // language parameter removed
     ) -> String {
         """
         Create a bedtime story for a child with the following parameters:

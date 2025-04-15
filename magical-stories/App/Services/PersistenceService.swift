@@ -1,6 +1,33 @@
 import Foundation
 import SwiftData
 
+// MARK: - Persistence Service Protocol
+@MainActor // Ensure methods are called on the main actor if they interact with SwiftData context directly
+protocol PersistenceServiceProtocol {
+    // Story Management
+    func saveStories(_ stories: [Story]) async throws
+    func loadStories() async throws -> [Story]
+    func saveStory(_ story: Story) async throws
+    func deleteStory(withId id: UUID) async throws
+
+    // Story State Updates
+    func incrementReadCount(for storyId: UUID) async throws
+    func toggleFavorite(for storyId: UUID) async throws
+    func updateLastReadAt(for storyId: UUID, date: Date) async throws // Added default value removal as protocols define interface
+
+    // Achievement Management
+    func saveAchievement(_ achievement: Achievement) async throws
+    func fetchAchievement(id: UUID) async throws -> Achievement?
+    func fetchAllAchievements() async throws -> [Achievement]
+    func fetchEarnedAchievements() async throws -> [Achievement]
+    func fetchAchievements(forCollection collectionId: UUID) async throws -> [Achievement]
+    func updateAchievementStatus(id: UUID, isEarned: Bool, earnedDate: Date?) async throws
+    func deleteAchievement(withId id: UUID) async throws
+    func associateAchievement(_ achievementId: String, withCollection collectionId: UUID) async throws
+    func removeAchievementAssociation(_ achievementId: String, fromCollection collectionId: UUID) async throws
+}
+
+
 /// Errors that can occur during persistence operations
 enum PersistenceError: Error {
     case encodingFailed(Error)
