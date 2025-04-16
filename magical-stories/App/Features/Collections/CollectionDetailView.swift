@@ -2,85 +2,74 @@ import SwiftUI
 
 struct CollectionDetailView: View {
     @EnvironmentObject private var collectionService: CollectionService
-    @State private var collection: StoryCollection
+    @Bindable var collection: StoryCollection // Use @Bindable for live updates
 
     init(collection: StoryCollection) {
-        _collection = State(initialValue: collection)
+        self.collection = collection
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text(collection.title)
-                    .font(.largeTitle)
-                    .bold()
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text(collection.title)
+                        .font(.largeTitle)
+                        .bold()
 
-                Text(collection.descriptionText)
-                    .font(.body)
+                    Text(collection.descriptionText)
+                        .font(.body)
 
-                HStack {
-                    Text("Category: \(collection.category)")
-                        .font(.subheadline)
-                    Spacer()
-                    Text("Age Group: \(collection.ageGroup)")
-                        .font(.subheadline)
-                }
-
-                ProgressView(value: collection.completionProgress)
-                    .padding(.vertical)
-
-                Text("Stories")
-                    .font(.title2)
-                    .bold()
-                    .padding(.top)
-
-                ForEach(collection.stories ?? []) { story in
                     HStack {
-                        NavigationLink(value: story) {
-                            Text(story.title)
-                                .font(.headline)
-                        }
+                        Text("Category: \(collection.category)")
+                            .font(.subheadline)
                         Spacer()
-                        Button(action: {
-                            toggleStoryCompletion(story)
-                        }) {
-                            Image(
-                                systemName: story.isCompleted ? "checkmark.circle.fill" : "circle"
-                            )
-                            .foregroundColor(story.isCompleted ? .green : .gray)
-                        }
-                        .buttonStyle(.plain)
+                        Text("Age Group: \(collection.ageGroup)")
+                            .font(.subheadline)
                     }
-                    .padding(.vertical, 8)
+
+                    ProgressView(value: collection.completionProgress)
+                        .padding(.vertical)
+
+                    Text("Stories")
+                        .font(.title2)
+                        .bold()
+                        .padding(.top)
+
+                    ForEach(collection.stories ?? []) { story in
+                        storyRow(story: story)
+                    }
                 }
+                .padding()
             }
-            .padding()
-        }
-        .navigationTitle(collection.title)
-        .navigationBarTitleDisplayMode(.inline)
-        .onChange(of: collection) { newValue in
-            // Handle collection changes if needed
+            .navigationTitle(collection.title)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(for: Story.self) { story in
+                // TODO: Replace with actual StoryDetailView when available
+                Text(story.title) // Placeholder for StoryDetailView
+            }
         }
     }
 
-    private func toggleStoryCompletion(_ story: Story) {
-        // Toggle completion state
-        story.isCompleted.toggle()
-
-        // Update collection progress based on stories completed
-        let stories = collection.stories ?? []
-        let completedCount = stories.filter { $0.isCompleted }.count
-        let progress = Double(completedCount) / Double(stories.count)
-
-        // Update collection progress in service
-        do {
-            try collectionService.updateCollectionProgress(
-                id: collection.id, progress: Float(progress))
-            // Update local state to reflect changes
-            collection.completionProgress = progress
-        } catch {
-            print("Failed to update collection progress: \(error)")
+    // Helper function to break down the view complexity
+    @ViewBuilder
+    private func storyRow(story: Story) -> some View {
+        NavigationLink(value: story) {
+            HStack {
+                Text(story.title)
+                    .font(.headline)
+                Spacer()
+                if story.isCompleted {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                        .accessibilityLabel("Completed")
+                } else {
+                    Image(systemName: "circle")
+                        .foregroundColor(.gray)
+                        .accessibilityLabel("Not completed")
+                }
+            }
         }
+        .padding(.vertical, 8)
     }
 }
 

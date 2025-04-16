@@ -69,15 +69,16 @@ alwaysApply: true
 - Documented that `CollectionsListView` is not yet integrated into the main UI; the collections list is still rendered in `HomeView`.
 - No duplication or conflicts found; code is ready for future tab integration (T6).
 
-## What's Left / Next Steps (Refined Growth Collections Plan)
+**T2: Refactor and Enhance `CollectionDetailView` (Complete)**
+- Refactored state management from `@State` to `@Bindable` for better SwiftData integration.
+- Removed deprecated `toggleStoryCompletion` function and button.
+- Updated UI to use `Story.isCompleted` for completion status.
+- Added `storyRow` helper function to resolve type-checking performance issues.
+- Added `.navigationDestination(for: Story.self)` with placeholder for StoryDetailView.
+- Created `CollectionDetailView_Tests.swift` with model state validation tests.
+- Tests verify collection data, progress values, and state updates (UI-specific tests deferred to UI test suite).
 
-**T2: Refactor and Enhance `CollectionDetailView`**
-*   ST-2.1: Review `CollectionDetailView` state management (`@State` vs. `@Bindable`/observation). (S)
-*   ST-2.2: Verify Story List Display. (S)
-*   ST-2.3: Ensure `.navigationDestination(for: StoryModel.self)` is correctly placed. (S)
-*   ST-2.4: Verify Progress Display updates correctly. (S)
-*   ST-2.6: Remove `toggleStoryCompletion` function and button. (S)
-*   ST-2.5: Write/Update Tests for `CollectionDetailView`. (M)
+## What's Left / Next Steps (Refined Growth Collections Plan)
 
 **T3: Enhance `CollectionService` Logic**
 *   ST-3.1: Implement `generateStoriesForCollection` logic. (L)
