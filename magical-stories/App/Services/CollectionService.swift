@@ -12,6 +12,7 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
     @Published var collections: [StoryCollection] = []
     @Published var isGenerating: Bool = false
     @Published var generationError: Error?
+    private var isLoaded = false
 
     init(repository: CollectionRepositoryProtocol, storyService: StoryService) {
         self.repository = repository
@@ -25,7 +26,7 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
         try repository.saveCollection(collection)
         print("[CollectionService] Collection saved successfully, reloading collections")
         // Reload collections after creation
-        loadCollections()
+        loadCollections(forceReload: true)
     }
 
     func fetchCollection(id: UUID) throws -> StoryCollection? {
@@ -44,7 +45,9 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
         try repository.deleteCollection(id: id)
     }
 
-    func loadCollections() {
+    func loadCollections(forceReload: Bool = false) {
+        guard !isLoaded || forceReload else { return }
+        isLoaded = true
         do {
             let all = try repository.fetchAllCollections()
             print("[CollectionService] Loaded \(all.count) collections from repository")

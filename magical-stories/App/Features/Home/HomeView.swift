@@ -112,7 +112,7 @@ struct HomeView: View {
                 isPresented: $showingGrowthStoryForm,
                 onDismiss: {
                     print("[HomeView] Growth story form dismissed, reloading collections")
-                    collectionService.loadCollections()  // Reload collections when form is dismissed
+                    collectionService.loadCollections(forceReload: true)  // Reload collections when form is dismissed
                 }
             ) {
                 CollectionFormView()
@@ -121,13 +121,6 @@ struct HomeView: View {
             .task {
                 print("[HomeView] Task loading collections")
                 collectionService.loadCollections()
-            }
-            .onAppear {
-                print("[HomeView] Appeared, loading collections")
-                collectionService.loadCollections()
-            }
-            .onChange(of: collectionService.collections) { _, newCollections in
-                print("[HomeView] Collections changed, count: \(newCollections.count)")
             }
             .navigationDestination(for: StoryCollection.self) { collection in
                 CollectionDetailView(collection: collection)
