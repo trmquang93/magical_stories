@@ -1,9 +1,9 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: true
 ---
-# Project Progress: Magical Stories (as of 2025-04-15)
+# Project Progress: Magical Stories (as of 2025-04-16)
 
 ## What Works / Implemented Features
 
@@ -29,71 +29,82 @@ alwaysApply: true
     -   Test coverage significantly increased.
     -   A test script (`run_tests.sh`) is available for consistent test execution.
     -   All tests passing with fixed build errors and test failures.
--   **Core Models:** Standardized core data models (`Story`, `StoryParameters`).
+-   **Core Models:** Standardized core data models (`StoryModel`, `PageModel`, `StoryCollection`, `GrowthCategory`).
 -   **Persistence:** Fully integrated **SwiftData** as the primary persistence layer. Legacy UserDefaults migration code and tests have been removed.
 -   **Illustration Generation (Fully Implemented & Integrated):**
-
-    The `IllustrationService` is now fully operational, completing the core feature for automated illustration generation based on story content. It:
-
-    *   Generates illustrations by making **direct REST API calls** to Google's Generative AI endpoint.
-    *   Constructs **detailed prompts** with specific constraints (e.g., no anthropomorphic animals).
-    *   Implements **retry logic** (up to 5 attempts with delay) and **comprehensive error handling**.
-    *   Saves generated images to **persistent app storage** (`Application Support/Illustrations`), storing **relative paths** in the model.
-    *   Logs errors and issues via the centralized `AIErrorManager`.
-    *   Supports **manual regeneration** via UI if initial generation fails.
-    *   Has been **verified** with correct API key, model (`gemini-2.0-flash-exp-image-generation`), and response parsing (base64 `inlineData`).
-    *   All related tests have been updated and are passing.
-
-    This completes the main functionality for automated illustration generation. Minor future improvements (e.g., prompt tuning, UI polish) may be made, but the core system is feature-complete.
-
+    *   Uses **direct REST API calls** to Google's Generative AI endpoint.
+    *   Constructs **detailed prompts** with constraints.
+    *   Implements **retry logic** and **comprehensive error handling**.
+    *   Saves generated images to **persistent app storage**.
+    *   Logs errors via `AIErrorManager`.
+    *   Fully **integrated and operational**.
 -   **Error Handling:**
-    *   Created AIErrorManager for centralized error management.
-    *   Enhanced error handling for AI API interactions (text and image generation).
-    *   Implemented graceful fallbacks with placeholder images for illustration failures.
-    *   Added comprehensive logging and user-friendly error messages.
-
+    *   `AIErrorManager` for centralized AI error management.
+    *   Enhanced error handling for AI API interactions.
+    *   Graceful fallbacks for illustration failures.
+    *   Comprehensive logging and user-friendly error messages.
 -   **Recent Fixes:**
-    *   Story creation, saving, and immediate display in LibraryView now work reliably.
+    *   Story creation, saving, and immediate display in LibraryView work reliably.
     *   Debugging and error visibility improved.
 
 -   **Growth Collections (Implementation In Progress):**
-    *   Core models implemented:
-        *   Created `StoryCollection` data model with SwiftData annotations and relationship to `Story` model.
-        *   Implemented `GrowthCategory` enum to represent developmental categories.
-    *   Basic service layer:
-        *   Created `CollectionService` with CRUD operations.
-        *   Set up repository pattern for data access.
-    *   Testing:
-        *   Started creating unit tests for models and service layer.
-        *   Integration tests for validating collection creation and fetching functionality.
-    *   Remaining work:
-        *   Complete UI implementation (`CollectionsView`, `CollectionDetailView`, `CollectionFormView`).
-        *   Implement progress tracking and achievement system.
-        *   Integrate with existing story reading flow.
-        *   Add additional service methods for generating content and tracking progress.
+    *   **Core Models:** `StoryCollection`, `GrowthCategory` implemented with SwiftData. Relationship with `StoryModel` defined.
+    *   **Service Layer:** `CollectionService` and `CollectionRepository` created with basic CRUD operations.
+    *   **UI Components:**
+        *   `CollectionsListView`: Exists, uses `@Query` for data fetching, basic search implemented. Uses `NavigationLink(value:)`.
+        *   `CollectionCardView`: Exists, displays collection info and `completionProgress`.
+        *   `CollectionDetailView`: Exists, displays stories, uses `NavigationLink(value:)`. Contains *incorrect* progress update logic (`toggleStoryCompletion`) that needs removal.
+        *   `CollectionFormView`: Exists, captures input, creates collection shell via `CollectionService`, and triggers story generation via `CollectionService`. Handles internal loading/error states.
+    *   **Integration:**
+        *   `HomeView` presents `CollectionFormView` via a button.
+    *   **Progress Tracking:** Relies on `StoryModel.readCount` and `StoryCollection.completionProgress`.
+    *   **Testing:** Initial unit and integration tests for models and service layer exist.
 
-## What's Left / Next Steps
+## What's Left / Next Steps (Refined Growth Collections Plan)
 
--   **Growth Story Collections:** Continue implementation with the following:
-    *   UI components: Collections list, detail view, form for creating collections.
-    *   Progress tracking and achievement integration.
-    *   Integration with existing story generation and reading flows.
-    *   Advanced features like personalized collection generation.
+**T1: Finalize `CollectionsListView` Integration**
+*   ST-1.1: Review `CollectionsListView` and `CollectionCardView` for minor adjustments. (S)
+*   ST-1.3: Ensure `.navigationDestination(for: StoryCollection.self)` is correctly placed. (S)
+*   ST-1.5: Write/Update Tests for `CollectionsListView`. (M)
+
+**T2: Refactor and Enhance `CollectionDetailView`**
+*   ST-2.1: Review `CollectionDetailView` state management (`@State` vs. `@Bindable`/observation). (S)
+*   ST-2.2: Verify Story List Display. (S)
+*   ST-2.3: Ensure `.navigationDestination(for: StoryModel.self)` is correctly placed. (S)
+*   ST-2.4: Verify Progress Display updates correctly. (S)
+*   ST-2.6: Remove `toggleStoryCompletion` function and button. (S)
+*   ST-2.5: Write/Update Tests for `CollectionDetailView`. (M)
+
+**T3: Enhance `CollectionService` Logic**
+*   ST-3.1: Implement `generateStoriesForCollection` logic. (L)
+*   ST-3.2: Implement `updateCollectionProgress` based on `readCount`. (M)
+*   ST-3.3: Implement Achievement/Badge Logic (Optional). (M)
+*   ST-3.4: Write/Update Tests for `CollectionService`. (L)
+
+**T4: Finalize `CollectionFormView` Integration**
+*   ST-4.3: Verify Loading/Error State Handling in `CollectionFormView` & hosting view. (M)
+*   ST-4.4: Write/Update Tests for `CollectionFormView` Integration. (M)
+
+**T5: Implement Progress Tracking Flow**
+*   ST-5.1: Update `StoryModel.readCount`/`lastReadAt` on story completion. (M)
+*   ST-5.2: Notify `CollectionService.updateProgress` after `StoryModel` update. (S)
+*   ST-5.3: Verify UI reflects progress updates. (S)
+*   ST-5.4: Implement Achievement/Badge UI (Optional). (M)
+*   ST-5.5: Write Tests for Progress Tracking Integration. (M)
+
+**T6: Integrate Collections into Main Navigation**
+*   ST-6.1: Add Collections Tab to `MainTabView`. (S)
+
+**T7: Final Testing and Refinement**
+*   ST-7.1: End-to-End Testing. (M)
+*   ST-7.2: UI/UX Refinement. (M)
+*   ST-7.3: Final Test Suite Run. (S)
+
+---
 
 -   **StoreKit Integration:** Planned and designed feature; implementation has not yet begun. This is a next priority after Growth Collections is more mature.
-    *   Implement `PurchaseService` for handling in-app purchases and subscriptions.
-    *   Create `EntitlementManager` for tracking user access to premium features.
-    *   Design and implement paywall UI for upgrading to premium.
-    *   Integrate with Growth Collections for premium content.
-
--   **UI Polishing:** Further refinement of UI elements, animations, and overall user experience, including illustration display.
-
+-   **UI Polishing:** Further refinement of UI elements, animations, and overall user experience.
 -   **Error Handling:** Continue enhancing error handling for persistence operations and general app errors.
-
 -   **Accessibility:** Thorough accessibility testing and implementation needed.
-
 -   **CI/CD:** Review and refine CI/CD setup.
-
--   **Test Improvements:**
-    *   Continue increasing test coverage towards target (e.g., 70%+).
-    *   Add more view-based tests using descendant mirror pattern.
+-   **Test Improvements:** Continue increasing test coverage towards target (e.g., 70%+).

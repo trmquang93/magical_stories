@@ -1,6 +1,6 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: true
 ---
 # Technical Context: Magical Stories
@@ -40,13 +40,13 @@ alwaysApply: true
 -   **SwiftUI:** For UI, state management, and navigation.
 -   **Foundation:** For core data types, networking (`URLSession`), `UserDefaults` (minor preferences), `ProcessInfo`, etc.
 -   **GoogleGenerativeAI (Swift SDK):** For interacting with the Gemini Pro API (text generation). `StoryService` uses `GenerativeModelProtocol`. The SDK is imported in the project but **not** used for image generation in `IllustrationService`, which relies on direct REST API calls instead.
--   **SwiftData:** Integrated as the primary data persistence layer.
+-   **SwiftData:** Integrated as the primary data persistence layer. Used with `@Model`, `@Query`, `ModelContext`, etc.
 -   **Testing:** Swift's built-in testing framework (`Testing`) is used for unit and integration tests.
 -   **XCTest:** Underlying framework for UI tests (`magical-storiesUITests`).
 
 ## Core Technical Patterns & Guidelines
 -   **Architecture:** Follows MVVM principles loosely, heavily relying on SwiftUI's state management and the Repository pattern for data access. See `memory_bank/systemPatterns.md`.
--   **State Management:** Primarily uses `@StateObject`, `@EnvironmentObject`, `@State`, `@Binding`, and `@AppStorage`.
+-   **State Management:** Primarily uses `@StateObject`, `@EnvironmentObject`, `@State`, `@Binding`, `@AppStorage`, and `@Query` (for direct SwiftData observation in views).
 -   **Asynchronous Operations:** `async/await` is mandatory for all network operations and data access. Views use `.task`.
 -   **Error Handling:** Utilize Swift's native `do-catch` with custom `Error` enums. `AIErrorManager` handles AI errors. Provide user feedback via `.alert`.
 -   **Navigation:** Use `TabView`, `NavigationStack`, `.sheet`, and `NavigationLink` / `.navigationDestination`. See `memory_bank/systemPatterns.md`.
