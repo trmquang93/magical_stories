@@ -8,6 +8,16 @@ alwaysApply: true
 ## Current Focus
 The primary focus remains on **implementing the Growth Collections feature**. Core models and services are in place. Recent work involved reviewing existing UI components and refining the implementation plan.
 
+### [Update 2025-04-16] Step T2 Complete: Refactor and Enhance CollectionDetailView
+- CollectionDetailView was refactored to use `@Bindable` for more reactive state management.
+- The deprecated `toggleStoryCompletion` function and button were removed as progress should be based on reading stories.
+- UI now uses `Story.isCompleted` for the completion indicator instead of the non-existent `readCount` property.
+- Added a `storyRow` helper function to resolve type-checking performance issues in complex SwiftUI views.
+- Added `.navigationDestination(for: Story.self)` with a placeholder for StoryDetailView.
+- Created `CollectionDetailView_Tests.swift` with tests that verify collection data, progress values, and state updates.
+- Test suite follows best practices for testing SwiftUI views, focusing on model state validation.
+- Next step (T3) will focus on enhancing `CollectionService` logic for better integration with the progress tracking flow.
+  
 ### [Update 2025-04-16] Step T1 Complete: Finalize CollectionsListView Integration
 - CollectionsListView and CollectionCardView were reviewed and refactored for clarity, accessibility, and future integration.
 - .navigationDestination(for: StoryCollection.self) is now present in CollectionsListView's NavigationStack.

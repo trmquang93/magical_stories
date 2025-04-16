@@ -17,10 +17,14 @@ struct CollectionDetailView_Tests {
         let collection = StoryCollection(title: "Growth", descriptionText: "Desc", category: "cat", ageGroup: "elem", stories: [story1, story2], createdAt: Date(), updatedAt: Date())
         context.insert(collection)
         try context.save()
-        // Check model state
+        // Check model state - order may be different than created since array order is not guaranteed
         #expect(collection.stories?.count == 2)
-        #expect(collection.stories?.first?.title == "Story 1")
-        #expect(collection.stories?.last?.title == "Story 2")
+        
+        // Instead of checking specific order, just check if both stories exist in the collection
+        let storyTitles = collection.stories?.map { $0.title } ?? []
+        #expect(storyTitles.contains("Story 1"))
+        #expect(storyTitles.contains("Story 2"))
+        
         // TODO: Use ViewInspector or UI test to assert icon rendering and completion indicator if available
     }
 

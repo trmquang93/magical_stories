@@ -199,7 +199,6 @@ class MockPersistenceService: PersistenceServiceProtocol {
 // MARK: - MockCollectionService
 
 /// Minimal mock for CollectionServiceProtocol.
-@MainActor
 class MockCollectionService: CollectionServiceProtocol {
     var collections: [StoryCollection] = []
     
@@ -247,21 +246,6 @@ class MockCollectionService: CollectionServiceProtocol {
             return try await handler(collectionId)
         }
         return [] // Default empty array if no handler
-    }
-}
-
-// MARK: - MockCollectionRepository
-
-/// Minimal mock for a collection repository, can be expanded as needed.
-class MockCollectionRepository {
-    var collections: [StoryCollection] = []
-
-    func add(_ collection: StoryCollection) {
-        collections.append(collection)
-    }
-
-    func get(byId id: UUID) -> StoryCollection? {
-        return collections.first { $0.id == id }
     }
 }
 

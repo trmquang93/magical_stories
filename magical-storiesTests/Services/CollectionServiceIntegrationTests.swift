@@ -25,9 +25,7 @@ class CollectionServiceIntegrationTests {
         // Provide a dummy ModelContext for StoryService mock
         let container = try! ModelContainer(for: StoryCollection.self)
         let modelContextForStoryService = ModelContext(container)
-        let storyService = try! MockStoryService(
-            context: modelContextForStoryService
-        )
+        let storyService = try! MockStoryService()
         collectionService = CollectionService(repository: repository, storyService: storyService)
         // Clean up any existing test data if needed (implementation may be updated in later subtasks)
     }
