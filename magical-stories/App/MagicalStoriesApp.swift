@@ -34,6 +34,7 @@ struct MagicalStoriesApp: App {
         let userProfileRepository = UserProfileRepository(modelContext: context)
         let settingsRepository = SettingsRepository(modelContext: context)
         let collectionRepository = CollectionRepository(modelContext: context)
+        let achievementRepository = AchievementRepository(modelContext: context)
 
         // 2. Services that depend on repositories
         let usageAnalyticsService = UsageAnalyticsService(
@@ -49,7 +50,7 @@ struct MagicalStoriesApp: App {
         }
 
         let collectionService = CollectionService(
-            repository: collectionRepository, storyService: story)
+            repository: collectionRepository, storyService: story, achievementRepository: achievementRepository)
         
         let persistenceService = PersistenceService(context: context)
 

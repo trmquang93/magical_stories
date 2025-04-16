@@ -77,11 +77,42 @@ class MockStoryService: StoryService {
     }
 }
 
+/// Mock for AchievementRepositoryProtocol to use in tests
+class MockAchievementRepository: AchievementRepositoryProtocol {
+    var achievements: [UUID: AchievementModel] = [:]
+    var saveCalled = false
+    func saveAchievement(_ achievement: AchievementModel) throws {
+        saveCalled = true
+        achievements[achievement.id] = achievement
+    }
+    func fetchAchievement(id: UUID) throws -> AchievementModel? {
+        return achievements[id]
+    }
+    func fetchAllAchievements() throws -> [AchievementModel] {
+        return Array(achievements.values)
+    }
+    func fetchEarnedAchievements() throws -> [AchievementModel] {
+        return achievements.values.filter { $0.earnedAt != nil }
+    }
+    func fetchAchievements(forCollection collectionId: UUID) throws -> [AchievementModel] {
+        return []
+    }
+    func updateAchievementStatus(id: UUID, isEarned: Bool, earnedDate: Date?) throws {
+        if let achievement = achievements[id] {
+            achievement.earnedAt = isEarned ? (earnedDate ?? Date()) : nil
+            achievements[id] = achievement
+        }
+    }
+    func deleteAchievement(id: UUID) throws {
+        achievements.removeValue(forKey: id)
+    }
+}
+
 @Suite("CollectionService Tests")
 @MainActor
 struct CollectionServiceTests {
     
-    func setupTest() -> (service: CollectionService, repository: MockCollectionRepository, storyService: MockStoryService) {
+    func setupTest() -> (service: CollectionService, repository: MockCollectionRepository, storyService: MockStoryService, achievementRepository: MockAchievementRepository) {
         let repository = MockCollectionRepository()
         let storyService: MockStoryService
         do {
@@ -89,13 +120,14 @@ struct CollectionServiceTests {
         } catch {
             fatalError("Failed to initialize MockStoryService: \(error)")
         }
-        let service = CollectionService(repository: repository, storyService: storyService)
-        return (service, repository, storyService)
+        let achievementRepository = MockAchievementRepository()
+        let service = CollectionService(repository: repository, storyService: storyService, achievementRepository: achievementRepository)
+        return (service, repository, storyService, achievementRepository)
     }
     
     @Test("generateStoriesForCollection creates stories with varied themes")
     func testGenerateStoriesForCollection() async throws {
-        let (service, repository, storyService) = setupTest()
+        let (service, repository, storyService, _) = setupTest()
         
         let collection = StoryCollection(
             title: "Test Collection",
@@ -133,7 +165,7 @@ struct CollectionServiceTests {
     
     @Test("generateStoriesForCollection handles failure gracefully")
     func testGenerateStoriesForCollectionFailure() async throws {
-        let (service, _, storyService) = setupTest()
+        let (service, _, storyService, _) = setupTest()
         
         let collection = StoryCollection(
             title: "Test Collection",
@@ -166,7 +198,7 @@ struct CollectionServiceTests {
     
     @Test("createStoryThemes generates varied themes")
     func testCreateStoryThemes() throws {
-        let (service, _, _) = setupTest()
+        let (service, _, _, _) = setupTest()
         
         // Access private method using reflection
         let mirror = Mirror(reflecting: service)
@@ -197,7 +229,7 @@ struct CollectionServiceTests {
     
     @Test("updateCollectionProgressBasedOnReadCount calculates progress correctly")
     func testUpdateCollectionProgressBasedOnReadCount() async throws {
-        let (service, repository, _) = setupTest()
+        let (service, repository, _, _) = setupTest()
         
         // Create test collection with 4 stories, 2 completed
         let collection = StoryCollection(
@@ -250,7 +282,7 @@ struct CollectionServiceTests {
     
     @Test("updateCollectionProgressBasedOnReadCount handles empty collections")
     func testUpdateCollectionProgressWithNoStories() async throws {
-        let (service, repository, _) = setupTest()
+        let (service, repository, _, _) = setupTest()
         
         // Create test collection with no stories
         let collection = StoryCollection(
@@ -273,7 +305,7 @@ struct CollectionServiceTests {
     
     @Test("markStoryAsCompleted updates story completion and collection progress")
     func testMarkStoryAsCompleted() async throws {
-        let (service, repository, _) = setupTest()
+        let (service, repository, _, _) = setupTest()
         
         // Create test collection with 2 stories, none completed
         let collection = StoryCollection(
@@ -323,7 +355,7 @@ struct CollectionServiceTests {
     
     @Test("Achievements are tracked when collection is completed")
     func testAchievementTracking() async throws {
-        let (service, repository, _) = setupTest()
+        let (service, repository, _, _) = setupTest()
         
         // Create test collection with 1 story
         let collection = StoryCollection(

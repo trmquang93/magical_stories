@@ -145,8 +145,9 @@ extension HomeView {
             fatalError("Failed to create StoryService: \(error)")
         }
         let collectionRepository = CollectionRepository(modelContext: container.mainContext)
+        let achievementRepository = AchievementRepository(modelContext: container.mainContext)
         let collectionService = CollectionService(
-            repository: collectionRepository, storyService: storyService)
+            repository: collectionRepository, storyService: storyService, achievementRepository: achievementRepository)
         collectionService.loadCollections()
         return HomeView()
             .environment(\.modelContext, container.mainContext)

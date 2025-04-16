@@ -33,32 +33,33 @@ protocol CollectionRepositoryProtocol {
 
 /// Protocol defining the requirements for managing Achievement data.
 protocol AchievementRepositoryProtocol {
+    // TODO: This protocol is now tightly coupled to AchievementModel (the persistence model). Consider adding a conversion layer if a public struct is needed in the future.
     /// Saves a new Achievement or updates an existing one.
-    /// - Parameter achievement: The `Achievement` object to save.
+    /// - Parameter achievement: The `AchievementModel` object to save.
     /// - Throws: An error if saving fails (e.g., `PersistenceError.encodingFailed`).
-    func saveAchievement(_ achievement: Achievement) throws
+    func saveAchievement(_ achievement: AchievementModel) throws
 
     /// Fetches a specific Achievement by its ID.
     /// - Parameter id: The `UUID` of the achievement to fetch.
-    /// - Returns: The `Achievement` if found, otherwise `nil`.
+    /// - Returns: The `AchievementModel` if found, otherwise `nil`.
     /// - Throws: An error if fetching fails (e.g., `PersistenceError.decodingFailed`).
-    func fetchAchievement(id: UUID) throws -> Achievement?
+    func fetchAchievement(id: UUID) throws -> AchievementModel?
 
     /// Fetches all saved Achievements.
-    /// - Returns: An array of `Achievement` objects. Returns an empty array if none are found.
+    /// - Returns: An array of `AchievementModel` objects. Returns an empty array if none are found.
     /// - Throws: An error if fetching fails (e.g., `PersistenceError.decodingFailed`).
-    func fetchAllAchievements() throws -> [Achievement]
+    func fetchAllAchievements() throws -> [AchievementModel]
 
     /// Fetches all earned Achievements.
-    /// - Returns: An array of earned `Achievement` objects. Returns an empty array if none are found.
+    /// - Returns: An array of earned `AchievementModel` objects. Returns an empty array if none are found.
     /// - Throws: An error if fetching fails (e.g., `PersistenceError.decodingFailed`).
-    func fetchEarnedAchievements() throws -> [Achievement]
+    func fetchEarnedAchievements() throws -> [AchievementModel]
 
     /// Fetches all Achievements associated with a specific collection.
     /// - Parameter collectionId: The `UUID` of the collection.
-    /// - Returns: An array of `Achievement` objects. Returns an empty array if none are found.
+    /// - Returns: An array of `AchievementModel` objects. Returns an empty array if none are found.
     /// - Throws: An error if fetching fails (e.g., `PersistenceError.decodingFailed`).
-    func fetchAchievements(forCollection collectionId: UUID) throws -> [Achievement]
+    func fetchAchievements(forCollection collectionId: UUID) throws -> [AchievementModel]
 
     /// Updates the earned status of a specific Achievement.
     /// - Parameters:

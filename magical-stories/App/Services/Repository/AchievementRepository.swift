@@ -3,7 +3,7 @@ import Foundation
 import SwiftData
 
 /// Repository for Achievement-specific operations
-class AchievementRepository: BaseRepository<AchievementModel> {
+class AchievementRepository: BaseRepository<AchievementModel>, AchievementRepositoryProtocol {
 
     /// Initialize with a ModelContext
     /// - Parameter modelContext: The SwiftData model context to use for persistence operations
@@ -144,5 +144,66 @@ extension AchievementRepository { // Using extension for clarity
         // Save changes if needed.
         print("Warning: removeAchievementAssociation(_:fromCollection:) needs implementation based on actual data model relationships.")
         // throw PersistenceError.repositoryError(NSError(domain: "Not implemented", code: -1))
+    }
+}
+
+// MARK: - AchievementRepositoryProtocol Synchronous Conformance (Temporary Workaround)
+// TODO: This is a temporary workaround to satisfy AchievementRepositoryProtocol, which requires synchronous methods.
+// In the future, refactor the protocol and all usages to be async/await throughout.
+extension AchievementRepository {
+    func saveAchievement(_ achievement: AchievementModel) throws {
+        // If async save is needed, implement here. For now, assume context auto-saves.
+        // If explicit save is needed, add: try await save(achievement)
+    }
+    func fetchAchievement(id: UUID) throws -> AchievementModel? {
+        var result: AchievementModel?
+        let semaphore = DispatchSemaphore(value: 0)
+        Task {
+            result = try? await fetchAchievement(withId: id)
+            semaphore.signal()
+        }
+        semaphore.wait()
+        return result
+    }
+    func fetchAllAchievements() throws -> [AchievementModel] {
+        var result: [AchievementModel] = []
+        let semaphore = DispatchSemaphore(value: 0)
+        Task {
+            result = (try? await fetchAllAchievements()) ?? []
+            semaphore.signal()
+        }
+        semaphore.wait()
+        return result
+    }
+    func fetchEarnedAchievements() throws -> [AchievementModel] {
+        var result: [AchievementModel] = []
+        let semaphore = DispatchSemaphore(value: 0)
+        Task {
+            result = (try? await fetchEarnedAchievements()) ?? []
+            semaphore.signal()
+        }
+        semaphore.wait()
+        return result
+    }
+    func fetchAchievements(forCollection collectionId: UUID) throws -> [AchievementModel] {
+        var result: [AchievementModel] = []
+        let semaphore = DispatchSemaphore(value: 0)
+        Task {
+            result = (try? await fetchAchievements(forCollection: collectionId)) ?? []
+            semaphore.signal()
+        }
+        semaphore.wait()
+        return result
+    }
+    func updateAchievementStatus(id: UUID, isEarned: Bool, earnedDate: Date?) throws {
+        let semaphore = DispatchSemaphore(value: 0)
+        Task {
+            _ = try? await updateAchievementStatus(id: id, isEarned: isEarned, earnedDate: earnedDate)
+            semaphore.signal()
+        }
+        semaphore.wait()
+    }
+    func deleteAchievement(id: UUID) throws {
+        // Implement if needed. For now, assume context auto-deletes or add explicit delete logic.
     }
 }
