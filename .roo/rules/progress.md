@@ -78,13 +78,14 @@ alwaysApply: true
 - Created `CollectionDetailView_Tests.swift` with model state validation tests.
 - Tests verify collection data, progress values, and state updates (UI-specific tests deferred to UI test suite).
 
-## What's Left / Next Steps (Refined Growth Collections Plan)
+**T3: Enhance `CollectionService` Logic (Complete)**
+- Implemented `generateStoriesForCollection` logic: generates multiple stories with varied themes, associates them with the collection, and persists them using the repository and `StoryService`.
+- Implemented `updateCollectionProgressBasedOnReadCount`: calculates and updates collection progress based on completed stories (`isCompleted`), with robust error handling and edge case management.
+- Added/verified placeholder for achievement/badge logic (`trackCollectionCompletionAchievement`).
+- Comprehensive tests written/updated for all new logic, including story generation, progress calculation, marking stories as completed, and achievement tracking (placeholder).
+- No duplication or conflicts found; logic is centralized and testable.
 
-**T3: Enhance `CollectionService` Logic**
-*   ST-3.1: Implement `generateStoriesForCollection` logic. (L)
-*   ST-3.2: Implement `updateCollectionProgress` based on `readCount`. (M)
-*   ST-3.3: Implement Achievement/Badge Logic (Optional). (M)
-*   ST-3.4: Write/Update Tests for `CollectionService`. (L)
+## What's Left / Next Steps (Refined Growth Collections Plan)
 
 **T4: Finalize `CollectionFormView` Integration**
 *   ST-4.3: Verify Loading/Error State Handling in `CollectionFormView` & hosting view. (M)

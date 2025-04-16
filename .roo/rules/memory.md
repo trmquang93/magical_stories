@@ -23,6 +23,7 @@ I am an expert software engineer with a unique characteristic: my memory resets 
 - Update after significant changes. (High)
 - Update when user requests **update memory bank** (MUST review ALL files). (High)
 - Update when context needs clarification. (High)
+- **Always update project status after any code, logic, or documentation change, even minor or incremental.** (Critical)
 
 ---
 
