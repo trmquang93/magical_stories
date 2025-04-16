@@ -1,4 +1,4 @@
-# Design System
+# Design System: Magical Stories
 
 ## Overview
 This document outlines the design system for the Magical Stories app, ensuring consistent UI/UX across all features.
@@ -445,3 +445,44 @@ This document should be updated when:
 - Visual style changes
 - Accessibility requirements change
 - Best practices evolve
+
+## UI Patterns for Growth Path Collections
+
+### Navigation
+- Collections are accessed via a dedicated tab in the main TabView
+- Uses `NavigationStack` for intra-tab navigation
+- `CollectionCardView` for list items, `CollectionDetailView` for detail, `StoryDetailView` for reading
+- Modal presentation (`.sheet`) for `CollectionFormView` (collection creation)
+
+### Visual Elements
+- **CollectionCardView:**
+  - Displays collection title, theme, and progress indicator (e.g., progress bar or fraction)
+  - Tappable to navigate to detail
+- **CollectionDetailView:**
+  - Shows collection summary, list of stories, and overall progress
+  - Each story row shows completion status
+  - Progress bar updates as stories are completed
+- **StoryDetailView:**
+  - Paginated reading interface
+  - Progress tracked and updated on completion
+
+### Feedback & Accessibility
+- Progress indicators update in real time as stories are completed
+- (Planned) Achievements/badges shown on collection completion or milestones
+- All controls and indicators support Dynamic Type and VoiceOver
+- Loading and error states use overlay indicators and alerts for consistency
+
+### Outstanding UI Tasks
+- Finalize polish for all collection-related views (cards, detail, progress bars)
+- Add feedback/animations for progress and achievements (if feasible)
+- Ensure accessibility for all new UI elements
+- Extract reusable loading/error overlay component for forms (future improvement)
+
+---
+
+## Related Components
+- `CollectionsListView.swift`
+- `CollectionCardView.swift`
+- `CollectionDetailView.swift`
+- `CollectionFormView.swift`
+- `StoryDetailView.swift`

@@ -6,7 +6,40 @@ alwaysApply: true
 # Active Context (as of 2025-04-16)
 
 ## Current Focus
-The primary focus remains on **implementing the Growth Collections feature**. Core models and services are in place. Recent work involved reviewing existing UI components and refining the implementation plan.
+The primary focus remains on **finalizing the Growth Path Collections feature**. Core models, services, and UI are implemented. Recent work involved documenting the user flow, integration points, and outstanding tasks for full feature completion. Documentation and Memory Bank have been updated to reflect the current state and next steps.
+
+### Growth Path Collections: User Flow
+1. Access Collections via the dedicated tab in MainTabView
+2. Browse collection cards with progress indicators
+3. Tap a collection to view its stories and progress
+4. Read a story; upon completion, progress is updated
+5. Create a new collection via Home tab (CollectionFormView)
+6. Progress and achievements (planned) are reflected in the UI
+
+### Integration Points
+- Models: `StoryCollection`, `GrowthCategory`, `StoryModel` (with `readCount`, `lastReadAt`, `isCompleted`)
+- Services: `CollectionService`, `CollectionRepository`, `StoryService`
+- UI: `CollectionsListView`, `CollectionCardView`, `CollectionDetailView`, `CollectionFormView`, `StoryDetailView`
+- Persistence: SwiftData via repositories
+- Progress Tracking: Implemented and tested (story completion updates collection progress)
+- Testing: Unit and integration tests exist for core flows
+
+### Outstanding Tasks
+- Ensure Collections tab is present and fully integrated in `MainTabView`
+- Finalize navigation and destination logic for all collection-related views
+- Complete end-to-end and edge case testing for the full user flow
+- Polish UI/UX for all collection views, ensuring accessibility and feedback
+- Implement (optional) achievement/badge logic and UI
+- Update all relevant documentation and Memory Bank after each change
+
+## Next Steps
+- Complete T6 (tab integration if not done)
+- Proceed with T7 (testing, UI/UX, accessibility)
+- (Optionally) Implement T8 (achievements)
+- Update all documentation and Memory Bank (T9)
+
+## Documentation
+All relevant project documents and Memory Bank files have been updated to reflect the current state, user flow, and next steps for Growth Path Collections.
 
 ### [Update 2025-04-16] Step T2 Complete: Refactor and Enhance CollectionDetailView
 - CollectionDetailView was refactored to use `@Bindable` for more reactive state management.

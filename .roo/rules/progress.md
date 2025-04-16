@@ -7,7 +7,7 @@ alwaysApply: true
 
 ## What Works / Implemented Features
 
--   **Core App Structure:** Basic SwiftUI app structure with `TabView` navigation (Home, Library, Settings) is in place.
+-   **Core App Structure:** Basic SwiftUI app structure with `TabView` navigation (Home, Library, Settings, Collections) is in place.
 -   **Story Generation:**
     -   UI (`StoryFormView`) exists for inputting parameters.
     -   `StoryService` uses the **real Google Generative AI API** (via `GenerativeModelProtocol`) to generate story content based on parameters.
@@ -47,18 +47,23 @@ alwaysApply: true
     *   Story creation, saving, and immediate display in LibraryView work reliably.
     *   Debugging and error visibility improved.
 
--   **Growth Collections (Implementation In Progress):**
-    *   **Core Models:** `StoryCollection`, `GrowthCategory` implemented with SwiftData. Relationship with `StoryModel` defined.
-    *   **Service Layer:** `CollectionService` and `CollectionRepository` created with basic CRUD operations.
-    *   **UI Components:**
-        *   `CollectionsListView`: Exists, uses `@Query` for data fetching, basic search implemented. Uses `NavigationLink(value:)`. **[T1 Complete: Refactored, navigation ensured, test coverage added, not yet integrated in main UI]**
-        *   `CollectionCardView`: Exists, displays collection info and `completionProgress`. **[T1 Complete: Refactored, accessibility improved]**
-        *   `CollectionDetailView`: Exists, displays stories, uses `NavigationLink(value:)`. Contains *incorrect* progress update logic (`toggleStoryCompletion`) that needs removal.
-        *   `CollectionFormView`: Exists, captures input, creates collection shell via `CollectionService`, and triggers story generation via `CollectionService`. Handles internal loading/error states. **[T4: Enhanced with overlay loading indicator and error alert for consistency with StoryFormView; inline error section removed; explicit TODOs for UI state tests added to CollectionFormView_Tests.swift]**
-    *   **Integration:**
-        *   `HomeView` presents `CollectionFormView` via a button.
-    *   **Progress Tracking:** Relies on `StoryModel.readCount` and `StoryCollection.completionProgress`.
-    *   **Testing:** Initial unit and integration tests for models and service layer exist. **[T1: CollectionsListView_Tests.swift created]**
+-   **Growth Path Collections (Feature Overview & User Flow):**
+    *   **Purpose:** Themed, developmentally-focused sets of stories. Each collection targets a specific growth area (e.g., Emotional Intelligence, Problem Solving) and tracks progress as stories are read and completed. Guides children through structured content, with progress tracking and (planned) achievements.
+    *   **User Flow:**
+        1. **Access Collections:** User taps "Collections" tab to view all collections.
+        2. **Browse Collections:** User sees a list of collection cards with progress indicators.
+        3. **View Collection Details:** User taps a card to see stories and progress within the collection.
+        4. **Read a Story:** User selects a story, reads it, and upon completion, progress is updated.
+        5. **Track Progress:** Collection and story progress are updated and reflected in the UI.
+        6. **Create New Collection:** User initiates creation, fills out the form, and a new collection with stories is generated.
+        7. **Ongoing Engagement:** User continues reading, tracking progress, and earning (future) achievements.
+    *   **Integration Points:**
+        - Models: `StoryCollection`, `GrowthCategory`, `StoryModel` (with `readCount`, `lastReadAt`, `isCompleted`)
+        - Services: `CollectionService`, `CollectionRepository`, `StoryService`
+        - UI: `CollectionsListView`, `CollectionCardView`, `CollectionDetailView`, `CollectionFormView`, `StoryDetailView`
+        - Persistence: SwiftData via repositories
+        - Progress Tracking: Implemented and tested (story completion updates collection progress)
+        - Testing: Unit and integration tests exist for core flows
 
 ## Recently Completed
 
@@ -92,7 +97,7 @@ alwaysApply: true
 - Updated `CollectionFormView_Tests.swift` with explicit TODOs for UI state tests (loading overlay, error alert, dismissal), referencing ViewInspector or UI test requirements.
 - Documented the need for future UI test coverage and potential for extracting a reusable loading/error overlay component.
 
-## [2025-04-16] T5: Progress Tracking Flow (Complete)
+**T5: Progress Tracking Flow (Complete)**
 - StoryDetailView now updates `readCount` and `lastReadAt` via `PersistenceService` when a story is completed.
 - On completion, if the story belongs to a collection, `CollectionService.markStoryAsCompleted` is called, updating `isCompleted` and recalculating collection progress.
 - UI progress bar and state update accordingly.
@@ -100,15 +105,38 @@ alwaysApply: true
 - All logic is centralized; no duplication or conflicts found.
 - See: `App/Features/Library/StoryDetailView.swift`, `App/Services/CollectionService.swift`, `App/Services/PersistenceService.swift`, `magical-storiesTests/Views/StoryReadingIntegrationTests.swift`.
 
-## What's Left / Next Steps (Refined Growth Collections Plan)
+## What's Left / Next Steps (Refined Growth Path Collections Plan)
+
+| Step | Task                               | Description                             | Status         |
+| ---- | ---------------------------------- | --------------------------------------- | -------------- |
+| T6   | Integrate Collections Tab          | Add Collections tab to main navigation  | Pending/Verify |
+| T7   | Final Testing & Refinement         | E2E tests, UI/UX polish, accessibility  | Pending        |
+| T8   | Achievement/Badge Logic (Optional) | Implement and test achievement logic/UI | Planned        |
+| T9   | Documentation Update               | Update all docs and Memory Bank         | Pending        |
 
 **T6: Integrate Collections into Main Navigation**
-*   ST-6.1: Add Collections Tab to `MainTabView`. (S)
+- **ST-6.1:** Add Collections Tab to `MainTabView` (if not already present)
+    - Ensure `CollectionsListView` is accessible as a dedicated tab
+    - Validate navigation stack and destination setup
 
 **T7: Final Testing and Refinement**
-*   ST-7.1: End-to-End Testing. (M)
-*   ST-7.2: UI/UX Refinement. (M)
-*   ST-7.3: Final Test Suite Run. (S)
+- **ST-7.1:** End-to-End Testing
+    - Test the full user flow: create collection, generate stories, read stories, track progress, and UI updates
+    - Validate error handling and edge cases (e.g., no stories, all stories completed)
+- **ST-7.2:** UI/UX Refinement
+    - Polish UI for all collection-related views (cards, detail, progress bars)
+    - Ensure accessibility (VoiceOver, Dynamic Type)
+    - Add animations or feedback for progress/achievements (if feasible)
+- **ST-7.3:** Final Test Suite Run
+    - Run all unit, integration, and UI tests
+    - Ensure 100% passing and target coverage
+
+**T8: Achievement/Badge Logic (Optional, Planned)**
+- **ST-8.1:** Implement achievement/badge logic in `CollectionService`
+    - Track milestones (e.g., all stories completed, streaks)
+    - Trigger UI feedback (badges, animations)
+- **ST-8.2:** UI for achievements/badges in `CollectionDetailView` and/or `CollectionsListView`
+- **ST-8.3:** Tests for achievement logic and UI
 
 ---
 
