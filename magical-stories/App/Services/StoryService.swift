@@ -176,23 +176,15 @@ class StoryService: ObservableObject {
     }
 
     func loadStories() async {
-        print("[StoryService] loadStories START (main thread: \(Thread.isMainThread))")
         do {
             let loadedStories = try await persistenceService.loadStories()
             let sortedStories = loadedStories.sorted { $0.timestamp > $1.timestamp }
-            print(
-                "[StoryService] loadStories loaded \(sortedStories.count) stories (main thread: \(Thread.isMainThread))"
-            )
             stories = sortedStories
         } catch {
-            print(
-                "[StoryService] loadStories ERROR: \(error.localizedDescription) (main thread: \(Thread.isMainThread))"
-            )
             AIErrorManager.logError(
                 error, source: "StoryService", additionalInfo: "Failed to load stories")
             stories = []
         }
-        print("[StoryService] loadStories END (main thread: \(Thread.isMainThread))")
     }
 
     private func extractTitleAndContent(from text: String) throws -> (String, String) {
@@ -234,6 +226,17 @@ class StoryService: ObservableObject {
         }
 
         return (title, content)
+    }
+
+    // MARK: - Story Deletion
+    func deleteStory(id: UUID) async {
+        do {
+            try await persistenceService.deleteStory(withId: id)
+            // Remove from in-memory list for immediate UI update
+            stories.removeAll { $0.id == id }
+        } catch {
+            AIErrorManager.logError(error, source: "StoryService", additionalInfo: "Failed to delete story with id: \(id)")
+        }
     }
 }
 

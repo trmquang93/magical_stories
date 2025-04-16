@@ -4,6 +4,8 @@ import SwiftData
 struct LibraryView: View {
     @EnvironmentObject private var storyService: StoryService
     @State private var searchText = ""
+    @State private var showDeleteError = false
+    @State private var deleteErrorMessage = ""
     
     var body: some View {
         NavigationStack {
@@ -20,6 +22,15 @@ struct LibraryView: View {
                                     StoryCard(story: story)
                                 }
                                 .buttonStyle(.plain)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        Task {
+                                            await deleteStory(story)
+                                        }
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
                             }
                         }
                         .padding(.horizontal, Theme.Spacing.md)
@@ -37,6 +48,11 @@ struct LibraryView: View {
                     await storyService.loadStories()
                 }
             }
+            .alert("Delete Failed", isPresented: $showDeleteError, actions: {
+                Button("OK", role: .cancel) {}
+            }, message: {
+                Text(deleteErrorMessage)
+            })
         }
     }
     
@@ -66,6 +82,19 @@ struct LibraryView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.top, 100) // Adjust padding as needed
         .accessibilityIdentifier("LibraryEmptyState")
+    }
+    
+    // MARK: - Deletion Logic
+    private func deleteStory(_ story: Story) async {
+        let id = story.id
+        let beforeCount = storyService.stories.count
+        await storyService.deleteStory(id: id)
+        // If the count did not decrease, assume failure (since StoryService swallows errors)
+        let afterCount = storyService.stories.count
+        if afterCount == beforeCount {
+            deleteErrorMessage = "Could not delete the story. Please try again."
+            showDeleteError = true
+        }
     }
 }
 

@@ -43,4 +43,19 @@ struct LibraryViewTests {
         return nil
     }
 
+    @MainActor
+    @Test("Deleting a story removes it from the service and UI")
+    func testDeleteStoryRemovesFromServiceAndUI() async throws {
+        // Arrange
+        let story = Story.preview
+        let service = try await makeStoryService(with: [story])
+        let controller = hostLibraryView(with: service)
+        // Precondition: Story is present
+        #expect(service.stories.contains(where: { $0.id == story.id }))
+        // Act: Delete the story
+        await service.deleteStory(id: story.id)
+        // Assert: Story is removed from service
+        #expect(!service.stories.contains(where: { $0.id == story.id }))
+        // TODO: UI-level test for swipe-to-delete and alert presentation requires UI automation or ViewInspector
+    }
 }
