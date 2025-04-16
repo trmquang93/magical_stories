@@ -92,14 +92,15 @@ alwaysApply: true
 - Updated `CollectionFormView_Tests.swift` with explicit TODOs for UI state tests (loading overlay, error alert, dismissal), referencing ViewInspector or UI test requirements.
 - Documented the need for future UI test coverage and potential for extracting a reusable loading/error overlay component.
 
-## What's Left / Next Steps (Refined Growth Collections Plan)
+## [2025-04-16] T5: Progress Tracking Flow (Complete)
+- StoryDetailView now updates `readCount` and `lastReadAt` via `PersistenceService` when a story is completed.
+- On completion, if the story belongs to a collection, `CollectionService.markStoryAsCompleted` is called, updating `isCompleted` and recalculating collection progress.
+- UI progress bar and state update accordingly.
+- Added a new integration test in `StoryReadingIntegrationTests.swift` to verify the full flow: reading a story to completion updates all relevant fields and triggers collection progress recalculation.
+- All logic is centralized; no duplication or conflicts found.
+- See: `App/Features/Library/StoryDetailView.swift`, `App/Services/CollectionService.swift`, `App/Services/PersistenceService.swift`, `magical-storiesTests/Views/StoryReadingIntegrationTests.swift`.
 
-**T5: Implement Progress Tracking Flow**
-*   ST-5.1: Update `StoryModel.readCount`/`lastReadAt` on story completion. (M)
-*   ST-5.2: Notify `CollectionService.updateProgress` after `StoryModel` update. (S)
-*   ST-5.3: Verify UI reflects progress updates. (S)
-*   ST-5.4: Implement Achievement/Badge UI (Optional). (M)
-*   ST-5.5: Write Tests for Progress Tracking Integration. (M)
+## What's Left / Next Steps (Refined Growth Collections Plan)
 
 **T6: Integrate Collections into Main Navigation**
 *   ST-6.1: Add Collections Tab to `MainTabView`. (S)

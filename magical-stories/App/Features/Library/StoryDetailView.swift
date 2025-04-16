@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StoryDetailView: View {
     @EnvironmentObject private var collectionService: CollectionService
+    @EnvironmentObject private var persistenceService: PersistenceService
     let story: Story
 
     @State private var pages: [Page] = []
@@ -135,58 +136,24 @@ struct StoryDetailView: View {
     private func handleStoryCompletion() async {
         print("[StoryDetailView] Story completed: \(story.title)")
 
+        // Update readCount and lastReadAt in persistence
+        do {
+            try await persistenceService.incrementReadCount(for: story.id)
+            try await persistenceService.updateLastReadAt(for: story.id, date: Date())
+        } catch {
+            print("[StoryDetailView] Error updating readCount/lastReadAt: \(error)")
+        }
+
         guard let collectionId = story.collections.first?.id else {
             print("[StoryDetailView] Story \"\(story.title)\" does not belong to a collection.")
             return
         }
 
-        // Fetch the collection asynchronously since CollectionService does not expose a collections property
-        guard
-            let collection = try? await collectionService.fetchAllCollections().first(where: {
-                $0.id == collectionId
-            })
-        else {
-            print("[StoryDetailView] Could not find parent collection with ID: \(collectionId)")
-            return
-        }
-
-        let totalStories = Float(collection.stories?.count ?? 0)
-        guard totalStories > 0 else {
-            print("[StoryDetailView] Collection has no stories, cannot calculate progress.")
-            return
-        }
-        let progressPerStory = 1.0 / totalStories
-        let potentialNewProgress = min(
-            collection.completionProgress + Double(progressPerStory), 1.0)
-
-        guard potentialNewProgress > collection.completionProgress else {
-            print(
-                "[StoryDetailView] Calculated progress (\(potentialNewProgress)) did not increase from current (\(collection.completionProgress)). No update needed."
-            )
-            return
-        }
-
-        let finalProgress = potentialNewProgress
-
-        print(
-            "[StoryDetailView] Updating collection \(collectionId) progress from \(collection.completionProgress) to \(finalProgress)"
-        )
-
+        // Mark story as completed and update collection progress
         do {
-            try await collectionService.updateCollectionProgress(
-                id: collectionId, progress: Float(finalProgress))
-
-            // TODO: Implement achievement checking if/when CollectionService provides such a method.
-            // let earnedAchievements = try await collectionService.checkAchievements(for: collectionId)
-            // if !earnedAchievements.isEmpty {
-            //     print("[StoryDetailView] New achievements earned: \(earnedAchievements.map { $0.name }.joined(separator: ", "))")
-            //     self.newAchievements = earnedAchievements
-            //     self.showCompletionAlert = true
-            // }
+            try await collectionService.markStoryAsCompleted(storyId: story.id, collectionId: collectionId)
         } catch {
-            print(
-                "[StoryDetailView] Error updating progress or checking achievements for collection \(collectionId): \(error)"
-            )
+            print("[StoryDetailView] Error marking story as completed or updating collection progress: \(error)")
         }
     }
 }

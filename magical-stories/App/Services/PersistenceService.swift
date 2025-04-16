@@ -38,7 +38,7 @@ enum PersistenceError: Error {
 }
 
 @MainActor
-class PersistenceService: PersistenceServiceProtocol {
+class PersistenceService: PersistenceServiceProtocol, ObservableObject {
     private let context: ModelContext
     private let storyRepository: StoryRepository
     private let swiftDataAchievementRepository: AchievementRepository

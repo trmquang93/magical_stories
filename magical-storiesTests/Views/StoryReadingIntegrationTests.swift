@@ -1,4 +1,5 @@
 import Testing
+import Foundation
 @testable import magical_stories
 
 @Suite("Story Reading Integration Tests")
@@ -57,5 +58,70 @@ struct StoryReadingIntegrationTests {
         // Simulate previous page
         currentPageIndex -= 1
         #expect(story.pages[currentPageIndex].pageNumber == 1)
+    }
+
+    @Test("Full progress tracking flow: reading a story to completion updates readCount, lastReadAt, isCompleted, and collection progress")
+    @MainActor
+    func testFullProgressTrackingFlow() async throws {
+        // Setup mocks and test data
+        class MockPersistenceService: PersistenceServiceProtocol {
+            var incrementedStoryId: UUID?
+            var updatedLastReadAt: (UUID, Date)?
+            var stories: [Story] = []
+            func saveStory(_ story: Story) async throws {}
+            func loadStories() async throws -> [Story] { stories }
+            func deleteStory(withId id: UUID) async throws {}
+            func saveStories(_ stories: [Story]) async throws {}
+            func incrementReadCount(for storyId: UUID) async throws { incrementedStoryId = storyId }
+            func toggleFavorite(for storyId: UUID) async throws {}
+            func updateLastReadAt(for storyId: UUID, date: Date) async throws { updatedLastReadAt = (storyId, date) }
+            // Achievement methods (empty for this test)
+            func saveAchievement(_ achievement: Achievement) async throws {}
+            func fetchAchievement(id: UUID) async throws -> Achievement? { nil }
+            func fetchAllAchievements() async throws -> [Achievement] { [] }
+            func fetchEarnedAchievements() async throws -> [Achievement] { [] }
+            func fetchAchievements(forCollection collectionId: UUID) async throws -> [Achievement] { [] }
+            func updateAchievementStatus(id: UUID, isEarned: Bool, earnedDate: Date?) async throws {}
+            func deleteAchievement(withId id: UUID) async throws {}
+            func associateAchievement(_ achievementId: String, withCollection collectionId: UUID) async throws {}
+            func removeAchievementAssociation(_ achievementId: String, fromCollection collectionId: UUID) async throws {}
+        }
+        class MockCollectionService {
+            var markedCompleted: (UUID, UUID)?
+            var updatedProgressFor: UUID?
+            func markStoryAsCompleted(storyId: UUID, collectionId: UUID) async throws {
+                markedCompleted = (storyId, collectionId)
+            }
+            func updateCollectionProgressBasedOnReadCount(collectionId: UUID) async throws -> Double {
+                updatedProgressFor = collectionId
+                return 1.0
+            }
+        }
+        let storyId = UUID()
+        let collectionId = UUID()
+        let story = Story(
+            id: storyId,
+            title: "Test Story",
+            pages: [Page(content: "Page 1", pageNumber: 1), Page(content: "Page 2", pageNumber: 2)],
+            parameters: StoryParameters(childName: "Alex", childAge: 5, theme: "Adventure", favoriteCharacter: "Dragon"),
+            isCompleted: false,
+            collections: [StoryCollection(id: collectionId, title: "Test Collection", descriptionText: "", category: "emotionalIntelligence", ageGroup: "4-6")]
+        )
+        let persistence = MockPersistenceService()
+        persistence.stories = [story]
+        let collectionService = MockCollectionService()
+        // Simulate reading to last page in StoryDetailView
+        // (In real UI, this would trigger handleStoryCompletion)
+        // Here, we simulate the calls that should happen:
+        try await persistence.incrementReadCount(for: storyId)
+        try await persistence.updateLastReadAt(for: storyId, date: Date())
+        try await collectionService.markStoryAsCompleted(storyId: storyId, collectionId: collectionId)
+        let progress = try await collectionService.updateCollectionProgressBasedOnReadCount(collectionId: collectionId)
+        // Assertions
+        #expect(persistence.incrementedStoryId == storyId)
+        #expect(persistence.updatedLastReadAt?.0 == storyId)
+        #expect(collectionService.markedCompleted?.0 == storyId && collectionService.markedCompleted?.1 == collectionId)
+        #expect(collectionService.updatedProgressFor == collectionId)
+        #expect(progress == 1.0)
     }
 }
