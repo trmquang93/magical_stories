@@ -1,49 +1,100 @@
 import SwiftUI
 import SwiftData
 import Foundation
+// Import the design system if needed
+// Import SparkleAnimationView from DesignSystem/Components if not in same file
 
 struct MainTabView: View {
-    @Binding var selectedTab: TabItem // Assuming TabItem is defined elsewhere
-    @EnvironmentObject private var storyService: StoryService // Keep env objects
-    @EnvironmentObject private var settingsService: SettingsService // Keep env objects
+    @Binding var selectedTab: TabItem
+    @EnvironmentObject private var storyService: StoryService
+    @EnvironmentObject private var settingsService: SettingsService
     
     var body: some View {
-        TabView(selection: $selectedTab) {
-            NavigationStack {
-                HomeView()
+        ZStack(alignment: .bottom) {
+            // Magical sparkle background for tab bar (magical accent)
+            SparkleAnimationView(verticalRange: 0.7...1)
+                .frame(height: 80) // Only show at the bottom
+                .ignoresSafeArea(edges: .bottom)
+            TabView(selection: $selectedTab) {
+                NavigationStack {
+                    HomeView()
+                }
+                .tabItem {
+                    VStack(spacing: 2) {
+                        Image(systemName: TabItem.home.icon)
+                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                        Text(TabItem.home.title)
+                            .font(.headingSmall)
+                    }
+                    .accessibilityLabel("Home Tab")
+                }
+                .tag(TabItem.home)
+                
+                NavigationStack {
+                    LibraryView()
+                }
+                .tabItem {
+                    VStack(spacing: 2) {
+                        Image(systemName: TabItem.library.icon)
+                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                        Text(TabItem.library.title)
+                            .font(.headingSmall)
+                    }
+                    .accessibilityLabel("Library Tab")
+                }
+                .tag(TabItem.library)
+                
+                NavigationStack {
+                    CollectionsListView()
+                }
+                .tabItem {
+                    VStack(spacing: 2) {
+                        Image(systemName: TabItem.collections.icon)
+                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                        Text(TabItem.collections.title)
+                            .font(.headingSmall)
+                    }
+                    .accessibilityLabel("Collections Tab")
+                }
+                .tag(TabItem.collections)
+                
+                NavigationStack {
+                    SettingsView()
+                }
+                .tabItem {
+                    VStack(spacing: 2) {
+                        Image(systemName: TabItem.settings.icon)
+                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                        Text(TabItem.settings.title)
+                            .font(.headingSmall)
+                    }
+                    .accessibilityLabel("Settings Tab")
+                }
+                .tag(TabItem.settings)
             }
-            .tabItem {
-                Label(TabItem.home.title, systemImage: TabItem.home.icon)
-            }
-            .tag(TabItem.home)
-            
-            NavigationStack {
-                LibraryView()
-            }
-            .tabItem {
-                Label(TabItem.library.title, systemImage: TabItem.library.icon)
-            }
-            .tag(TabItem.library)
-            
-            NavigationStack {
-                CollectionsListView()
-            }
-            .tabItem {
-                Label(TabItem.collections.title, systemImage: TabItem.collections.icon)
-            }
-            .tag(TabItem.collections)
-            
-            NavigationStack {
-                SettingsView()
-            }
-            .tabItem {
-                Label(TabItem.settings.title, systemImage: TabItem.settings.icon)
-            }
-            .tag(TabItem.settings)
+            .accentColor(.magicalPrimary)
+            .background(
+                // Custom tab bar background with corner radius and shadow
+                VStack {
+                    Spacer()
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.surface)
+                        .frame(height: 60)
+                        .shadow(color: Color.black.opacity(0.05), radius: 8, y: -2)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.border, lineWidth: 1)
+                        )
+                        .edgesIgnoringSafeArea(.bottom)
+                }
+            )
         }
-        // .tint(Theme.Colors.primary) // Commenting out Theme temporarily if it causes issues
     }
 }
+
+// SparkleAnimationView is now integrated as a magical accent behind the TabBar.
+// TODO: Tune sparkle parameters for best effect in context.
+// TODO: If performance issues arise, consider reducing sparkleCount or animation complexity.
 
 extension MainTabView {
     static func makePreview() -> some View {
@@ -89,10 +140,20 @@ extension MainTabView {
             fatalError("Failed to create StoryService: \(error)")
         }
 
+        // Add CollectionService for HomeView and CollectionsListView
+        let collectionRepository = CollectionRepository(modelContext: context)
+        let achievementRepository = AchievementRepository(modelContext: context)
+        let collectionService = CollectionService(
+            repository: collectionRepository,
+            storyService: storyService,
+            achievementRepository: achievementRepository
+        )
+
         return MainTabView(selectedTab: .constant(.home))
             .modelContainer(container)
             .environmentObject(settingsService)
             .environmentObject(storyService)
+            .environmentObject(collectionService)
     }
 }
 

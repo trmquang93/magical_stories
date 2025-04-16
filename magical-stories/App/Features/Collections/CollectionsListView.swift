@@ -60,6 +60,16 @@ struct CollectionsListView: View {
 }
 
 #Preview {
-    CollectionsListView()
-        .modelContainer(for: StoryCollection.self, inMemory: true)
+    let container = try! ModelContainer(for: StoryCollection.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+    let storyService = try! StoryService(context: container.mainContext)
+    let collectionRepository = CollectionRepository(modelContext: container.mainContext)
+    let achievementRepository = AchievementRepository(modelContext: container.mainContext)
+    let collectionService = CollectionService(
+        repository: collectionRepository,
+        storyService: storyService,
+        achievementRepository: achievementRepository
+    )
+    return CollectionsListView()
+        .modelContainer(container)
+        .environmentObject(collectionService)
 }

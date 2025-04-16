@@ -1,16 +1,27 @@
-# Design System: Magical Stories
+/// [2025-04-16 Modern Calm Update]
+# Modern Calm with Magical Accents — Design System Update
 
-## Overview
-This document outlines the design system for the Magical Stories app, ensuring consistent UI/UX across all features.
-
-## Colors
-
-### Brand Colors
+## Expanded Color Palette
 ```swift
 extension Color {
+    // Brand
     static let magicalPrimary = Color("MagicalPrimary") // #7B61FF
     static let magicalSecondary = Color("MagicalSecondary") // #FFB443
     static let magicalAccent = Color("MagicalAccent") // #FF617B
+    // Modern Calm
+    static let calmBlue = Color(hex: "4F8CFF")
+    static let gentleGreen = Color(hex: "6DD6A7")
+    static let softGold = Color(hex: "FFD86B")
+    static let deepNavy = Color(hex: "222B45")
+    static let coolGray = Color(hex: "6B7280")
+    static let surface = Color(hex: "FFFFFF")
+    static let background = Color(hex: "F7F9FB")
+    static let border = Color(hex: "E3E8EF")
+    // Magical Accents (Reading/Playful)
+    static let magicPurple = Color(hex: "A259FF")
+    static let skyBlue = Color(hex: "38BDF8")
+    static let fairyPink = Color(hex: "FF7EB9")
+    static let sparkleWhite = Color.white
 }
 
 // Theme Colors
@@ -53,24 +64,16 @@ extension Color {
 ### Font Styles
 ```swift
 extension Font {
-    // Display
-    static let displayLarge = Font.system(size: 34, weight: .bold)
-    static let displayMedium = Font.system(size: 28, weight: .bold)
-    static let displaySmall = Font.system(size: 24, weight: .bold)
-    
-    // Heading
-    static let headingLarge = Font.system(size: 22, weight: .semibold)
-    static let headingMedium = Font.system(size: 20, weight: .semibold)
-    static let headingSmall = Font.system(size: 18, weight: .semibold)
-    
-    // Body
-    static let bodyLarge = Font.system(size: 17)
-    static let bodyMedium = Font.system(size: 15)
-    static let bodySmall = Font.system(size: 13)
-    
-    // Special
-    static let storyTitle = Font.custom("SFRounded", size: 24, relativeTo: .title)
-    static let storyText = Font.custom("SFRounded", size: 17, relativeTo: .body)
+    // Modern Calm
+    static let displayLarge = Font.system(size: 34, weight: .bold, design: .rounded)
+    static let displayMedium = Font.system(size: 28, weight: .bold, design: .rounded)
+    static let headingLarge = Font.system(size: 22, weight: .semibold, design: .rounded)
+    static let headingMedium = Font.system(size: 20, weight: .semibold, design: .rounded)
+    static let bodyLarge = Font.system(size: 17, design: .rounded)
+    static let bodyMedium = Font.system(size: 15, design: .rounded)
+    // Playful/Storybook (Reading)
+    static let storyTitle = Font.system(size: 28, weight: .bold, design: .rounded)
+    static let storyText = Font.system(size: 20, design: .rounded)
 }
 ```
 
@@ -514,3 +517,168 @@ In Magical Stories, users can delete a Growth Collection by swiping left on a co
 - If deletion fails, present an alert with the error message and a dismiss button.
 
 See: `CollectionsListView.swift` for implementation details.
+
+/// [2025-04-16 Modern Calm Update] End of section
+
+/// [2025-04-16 Modern Calm Update: Home View]
+# Home View — Hi-Fi Design Documentation
+
+## Visual Description
+- **Background:** #F7F9FB, subtle magical sparkles in corners (low opacity, animated if possible)
+- **Header:**
+  - Greeting: Large, friendly ("Welcome back, [Name]!")
+    - Font: .displayMedium (28pt, bold, rounded), color: deepNavy (#222B45)
+    - 16pt top margin
+  - Subheading: "What magical story will you create today?"
+    - Font: .bodyMedium (15pt, rounded), color: coolGray (#6B7280)
+    - 4pt below greeting
+- **Primary Action Card:**
+  - White, 16pt radius, soft shadow, border #E3E8EF, 20pt padding
+  - HStack: Left — icon (wand/book, 48pt, magicalPrimary bg), Right — title, subtitle, button
+  - Button: "Start", PrimaryButton style, full width
+- **Growth Collections Preview:**
+  - Section header: .headingMedium (20pt, semibold, deepNavy)
+  - Horizontal scroll of CollectionCardView cards (2.2 on screen, peek effect)
+- **Your Library Preview:**
+  - Section header: .headingMedium, deepNavy
+  - Up to 3 StoryCard previews, "See All" SecondaryButton at end
+- **Footer Tip:**
+  - "Tip: Reading together builds magical memories!"
+    - .bodySmall, magicalAccent (#FF617B), centered, 16pt bottom margin
+- **Spacing:** 16pt horizontal, 24pt between major sections
+
+## Component Breakdown & Code Snippets
+
+### Header
+```swift
+VStack(alignment: .leading, spacing: 4) {
+    Text("Welcome back, [Name]!")
+        .font(.displayMedium)
+        .foregroundColor(.deepNavy)
+        .padding(.top, 16)
+    Text("What magical story will you create today?")
+        .font(.bodyMedium)
+        .foregroundColor(.coolGray)
+}
+.padding(.horizontal, 16)
+```
+
+### Primary Action Card
+```swift
+HStack(spacing: 16) {
+    ZStack {
+        Circle()
+            .fill(Color.magicalPrimary)
+            .frame(width: 48, height: 48)
+        Image(systemName: "wand.and.stars")
+            .font(.system(size: 28, weight: .bold))
+            .foregroundColor(.white)
+    }
+    VStack(alignment: .leading, spacing: 4) {
+        Text("Create a New Story")
+            .font(.headingLarge)
+            .foregroundColor(.deepNavy)
+        Text("Personalize a bedtime adventure")
+            .font(.bodySmall)
+            .foregroundColor(.coolGray)
+        PrimaryButton(title: "Start") {
+            // Action
+        }
+        .padding(.top, 8)
+    }
+    Spacer()
+}
+.padding(20)
+.background(Color.white)
+.cornerRadius(16)
+.shadow(color: Color.black.opacity(0.05), radius: 8, y: 4)
+.overlay(
+    RoundedRectangle(cornerRadius: 16)
+        .stroke(Color.border, lineWidth: 1)
+)
+.padding(.horizontal, 16)
+.padding(.vertical, 8)
+```
+
+### Growth Collections Preview
+```swift
+VStack(alignment: .leading, spacing: 8) {
+    Text("Growth Path Collections")
+        .font(.headingMedium)
+        .foregroundColor(.deepNavy)
+        .padding(.horizontal, 16)
+    ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 12) {
+            ForEach(collections) { collection in
+                CollectionCardView(collection: collection)
+                    .frame(width: 220)
+            }
+        }
+        .padding(.horizontal, 16)
+    }
+}
+.padding(.top, 16)
+```
+
+### Your Library Preview
+```swift
+VStack(alignment: .leading, spacing: 8) {
+    Text("Your Story Library")
+        .font(.headingMedium)
+        .foregroundColor(.deepNavy)
+        .padding(.horizontal, 16)
+    ForEach(recentStories.prefix(3)) { story in
+        StoryCard(story: story)
+            .padding(.horizontal, 16)
+    }
+    HStack {
+        Spacer()
+        SecondaryButton(title: "See All") {
+            // Action
+        }
+        .frame(width: 120)
+        .padding(.trailing, 16)
+    }
+}
+.padding(.top, 24)
+```
+
+### Footer Tip
+```swift
+Text("Tip: Reading together builds magical memories!")
+    .font(.bodySmall)
+    .foregroundColor(.magicalAccent)
+    .multilineTextAlignment(.center)
+    .padding(.vertical, 16)
+    .frame(maxWidth: .infinity)
+```
+
+### Background Sparkles (Optional)
+```swift
+ZStack {
+    Color.background.ignoresSafeArea()
+    SparkleAnimationView() // Custom view for animated sparkles
+    // ...rest of HomeView content
+}
+```
+
+## Interaction & Animation Guidelines
+- Primary card button: bounces on tap, color darkens briefly
+- Collection cards: scale up slightly on tap, progress bar animates
+- Sparkles: gently float and fade in/out in the background
+- Section transitions: fade/slide in on appear
+
+## Accessibility & Responsiveness
+- All text supports Dynamic Type
+- Buttons/cards have at least 44pt tap targets
+- VoiceOver labels for all actionable elements
+- Layout adapts to iPad (wider cards, more spacing) and landscape
+
+## Figma Handoff Notes
+- Use color and typography tokens from the design system
+- Card/button radii: 16pt, shadow: 0,4,8, #0000000D
+- Spacing: 16pt standard horizontal, 24pt between major sections
+- Icons: SF Symbols, bold weight, white on colored backgrounds
+- Sparkles: ellipse/star shapes, 10–20% opacity, animate with floating motion
+
+/// [2025-04-16 Modern Calm Update: Home View] End of section
