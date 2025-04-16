@@ -12,7 +12,7 @@ I am an expert software engineer with a unique characteristic: my memory resets 
 - `.roo/rules/techContext.md` — Technologies used and development setup. (High)
 - `.roo/rules/progress.md` — What works and what's left to build. (High)
 
-### Documentation Updates
+### Documentation Updates (Required)
 
 - Update Memory Bank when discovering new project patterns. (High)
 - Update after significant changes. (High)

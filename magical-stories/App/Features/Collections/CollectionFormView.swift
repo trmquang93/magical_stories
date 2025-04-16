@@ -124,18 +124,22 @@ struct CollectionFormView: View {
             
             // Create the StoryCollection object
             let newCollection = StoryCollection(
-                title: "Untitled Collection", // Using a default title for now
+                title: "\(developmentalFocus.rawValue) Collection", // More descriptive title
                 descriptionText: parameters.interests, // Using interests as description
                 category: parameters.developmentalFocus, // Using focus as category
                 ageGroup: parameters.childAgeGroup // Using age group from form
                 // id, stories, createdAt, updatedAt will use default values
             )
             
-            // Call the service with the StoryCollection object
-            _ = try await collectionService.createCollection(newCollection)
+            // Call the service to create collection
+            try collectionService.createCollection(newCollection)
+            
+            // Generate stories for the collection asynchronously
+            try await collectionService.generateStoriesForCollection(newCollection, parameters: parameters)
             
             // Success!
             isGenerating = false
+            print("[CollectionFormView] Dismissing view")
             dismiss() // Dismiss the form on success
         } catch {
             // Handle error

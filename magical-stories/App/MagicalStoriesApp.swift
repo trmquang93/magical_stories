@@ -1,7 +1,6 @@
-import SwiftUI
-import SwiftData
 import Foundation
-
+import SwiftData
+import SwiftUI
 
 // Use local Configuration file for API keys
 @main
@@ -11,15 +10,18 @@ struct MagicalStoriesApp: App {
     @StateObject private var storyService: StoryService
     @StateObject private var collectionService: CollectionService
     private let container: ModelContainer
-    
+
     // Initialization to handle dependencies between services
     init() {
         // Initialize SwiftData container with schema
         let container: ModelContainer
         do {
             container = try ModelContainer(
-                for: StoryModel.self, PageModel.self, AchievementModel.self,
+                for: StoryModel.self, PageModel.self, AchievementModel.self, StoryCollection.self,
                 configurations: ModelConfiguration()
+            )
+            print(
+                "[MagicalStoriesApp] Successfully created ModelContainer with StoryCollection schema"
             )
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
@@ -33,15 +35,21 @@ struct MagicalStoriesApp: App {
         let collectionRepository = CollectionRepository(modelContext: context)
 
         // 2. Services that depend on repositories
-        let usageAnalyticsService = UsageAnalyticsService(userProfileRepository: userProfileRepository)
-        let settings = SettingsService(repository: settingsRepository, usageAnalyticsService: usageAnalyticsService)
-        let collectionService = CollectionService(repository: collectionRepository)
+        let usageAnalyticsService = UsageAnalyticsService(
+            userProfileRepository: userProfileRepository)
+        let settings = SettingsService(
+            repository: settingsRepository, usageAnalyticsService: usageAnalyticsService)
+
         let story: StoryService
         do {
             story = try StoryService(apiKey: AppConfig.geminiApiKey, context: context)
         } catch {
             fatalError("Failed to create StoryService: \(error)")
         }
+
+        let collectionService = CollectionService(
+            repository: collectionRepository, storyService: story)
+        
 
         // Assign to StateObjects
         _settingsService = StateObject(wrappedValue: settings)
@@ -51,7 +59,7 @@ struct MagicalStoriesApp: App {
         // Store container for environment injection
         self.container = container
     }
-    
+
     var body: some Scene {
         WindowGroup {
             // Pass all services as environment objects to make them available throughout the view hierarchy

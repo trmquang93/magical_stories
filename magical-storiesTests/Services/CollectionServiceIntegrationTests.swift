@@ -22,7 +22,13 @@ class CollectionServiceIntegrationTests {
             }
         }()
         repository = CollectionRepository(modelContext: modelContext)
-        collectionService = CollectionService(repository: repository)
+        // Provide a dummy ModelContext for StoryService mock
+        let container = try! ModelContainer(for: StoryCollection.self)
+        let modelContextForStoryService = ModelContext(container)
+        let storyService = try! MockStoryService(
+            context: modelContextForStoryService
+        )
+        collectionService = CollectionService(repository: repository, storyService: storyService)
         // Clean up any existing test data if needed (implementation may be updated in later subtasks)
     }
 
@@ -31,7 +37,7 @@ class CollectionServiceIntegrationTests {
         // Clean up collections created for testing
         // Implementation will be updated in a later subtask to use the new repository
     }
-    
+
     @Test("Can create and fetch a collection")
     func testCreateAndFetch() throws {
         // Arrange
@@ -41,17 +47,17 @@ class CollectionServiceIntegrationTests {
             category: "Test Category",
             ageGroup: "3-5 years"
         )
-        
+
         // Act & Assert
         try collectionService.createCollection(testCollection)
-        
+
         // Fetch all collections
         let collections = try collectionService.fetchAllCollections()
-        
+
         // Verify the collection was saved
         #expect(collections.count > 0)
         #expect(collections.contains { $0.id == testCollection.id })
-        
+
         // Fetch the specific collection
         let fetchedCollection = try collectionService.fetchCollection(id: testCollection.id)
         #expect(fetchedCollection != nil)

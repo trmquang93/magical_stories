@@ -1,60 +1,79 @@
-import XCTest
 import Foundation
+import XCTest
+import SwiftData
+
 @testable import magical_stories
 
-// Renamed mock to avoid conflict with existing MockCollectionRepository
-class MockCollectionRepositoryForTests: CollectionRepositoryProtocol {
-    var collections: [UUID: StoryCollection] = [:]
-    var shouldThrowError = false
-    var errorToThrow: Error = NSError(domain: "MockError", code: 1, userInfo: nil)
-    
-    func saveCollection(_ collection: StoryCollection) throws {
-        if shouldThrowError { throw errorToThrow }
-        collections[collection.id] = collection
-    }
-    
-    func fetchCollection(id: UUID) throws -> StoryCollection? {
-        if shouldThrowError { throw errorToThrow }
-        return collections[id]
-    }
-    
-    func fetchAllCollections() throws -> [StoryCollection] {
-        if shouldThrowError { throw errorToThrow }
-        return Array(collections.values)
-    }
-    
-    func updateCollectionProgress(id: UUID, progress: Float) throws {
-        if shouldThrowError { throw errorToThrow }
-        guard let collection = collections[id] else {
-            throw NSError(domain: "MockError", code: 404, userInfo: [NSLocalizedDescriptionKey: "Collection not found"])
-        }
-        collection.completionProgress = Double(progress)
-        collections[id] = collection
-    }
-    
-    func deleteCollection(id: UUID) throws {
-        if shouldThrowError { throw errorToThrow }
-        collections.removeValue(forKey: id)
+// Minimal mock StoryService to satisfy CollectionService initializer
+class MockStoryService: StoryService {
+    init(context: ModelContext, apiKey: String = "") throws {
+        try super.init(apiKey: apiKey, context: context)
     }
 }
 
+@MainActor
 final class CollectionServiceTests: XCTestCase {
+
+    // Renamed mock to avoid conflict with existing MockCollectionRepository
+    class MockCollectionRepositoryForTests: CollectionRepositoryProtocol {
+        var collections: [UUID: StoryCollection] = [:]
+        var shouldThrowError = false
+        var errorToThrow: Error = NSError(domain: "MockError", code: 1, userInfo: nil)
+
+        func saveCollection(_ collection: StoryCollection) throws {
+            if shouldThrowError { throw errorToThrow }
+            collections[collection.id] = collection
+        }
+
+        func fetchCollection(id: UUID) throws -> StoryCollection? {
+            if shouldThrowError { throw errorToThrow }
+            return collections[id]
+        }
+
+        func fetchAllCollections() throws -> [StoryCollection] {
+            if shouldThrowError { throw errorToThrow }
+            return Array(collections.values)
+        }
+
+        func updateCollectionProgress(id: UUID, progress: Float) throws {
+            if shouldThrowError { throw errorToThrow }
+            guard let collection = collections[id] else {
+                throw NSError(
+                    domain: "MockError", code: 404,
+                    userInfo: [NSLocalizedDescriptionKey: "Collection not found"])
+            }
+            collection.completionProgress = Double(progress)
+            collections[id] = collection
+        }
+
+        func deleteCollection(id: UUID) throws {
+            if shouldThrowError { throw errorToThrow }
+            collections.removeValue(forKey: id)
+        }
+    }
+
     var mockRepository: MockCollectionRepositoryForTests!
+    var mockStoryService: StoryService!
     var service: CollectionService!
-    
-    override func setUp() {
-        super.setUp()
+
+    override func setUp() async throws {
+        try await super.setUp()
         mockRepository = MockCollectionRepositoryForTests()
-        service = CollectionService(repository: mockRepository)
+        // Provide a dummy ModelContext for StoryService mock
+        let container = try ModelContainer(for: StoryCollection.self)
+        let modelContext = ModelContext(container)
+        mockStoryService = try MockStoryService(context: modelContext, apiKey: "")
+        service = CollectionService(repository: mockRepository, storyService: mockStoryService)
     }
-    
-    override func tearDown() {
+
+    override func tearDown() async throws {
         mockRepository = nil
+        mockStoryService = nil
         service = nil
-        super.tearDown()
+        try await super.tearDown()
     }
-    
-    func testCreateCollectionSuccess() throws {
+
+    func testCreateCollectionSuccess() async throws {
         let collection = StoryCollection(
             id: UUID(),
             title: "Test Collection",
@@ -62,13 +81,13 @@ final class CollectionServiceTests: XCTestCase {
             category: "Category",
             ageGroup: "AgeGroup"
         )
-        try service.createCollection(collection)
-        let saved = try service.fetchCollection(id: collection.id)
+        try await service.createCollection(collection)
+        let saved = try await service.fetchCollection(id: collection.id)
         XCTAssertNotNil(saved)
         XCTAssertEqual(saved?.title, "Test Collection")
     }
-    
-    func testCreateCollectionThrowsError() {
+
+    func testCreateCollectionThrowsError() async throws {
         mockRepository.shouldThrowError = true
         let collection = StoryCollection(
             id: UUID(),
@@ -77,10 +96,15 @@ final class CollectionServiceTests: XCTestCase {
             category: "Category",
             ageGroup: "AgeGroup"
         )
-        XCTAssertThrowsError(try service.createCollection(collection))
+        do {
+            try await service.createCollection(collection)
+            XCTFail("Expected error not thrown")
+        } catch {
+            // Expected error thrown
+        }
     }
-    
-    func testFetchCollectionSuccess() throws {
+
+    func testFetchCollectionSuccess() async throws {
         let collection = StoryCollection(
             id: UUID(),
             title: "Fetch Test",
@@ -89,22 +113,27 @@ final class CollectionServiceTests: XCTestCase {
             ageGroup: "AgeGroup"
         )
         try mockRepository.saveCollection(collection)
-        let fetched = try service.fetchCollection(id: collection.id)
+        let fetched = try await service.fetchCollection(id: collection.id)
         XCTAssertNotNil(fetched)
         XCTAssertEqual(fetched?.title, "Fetch Test")
     }
-    
-    func testFetchCollectionNotFound() throws {
-        let fetched = try service.fetchCollection(id: UUID())
+
+    func testFetchCollectionNotFound() async throws {
+        let fetched = try await service.fetchCollection(id: UUID())
         XCTAssertNil(fetched)
     }
-    
-    func testFetchCollectionThrowsError() {
+
+    func testFetchCollectionThrowsError() async throws {
         mockRepository.shouldThrowError = true
-        XCTAssertThrowsError(try service.fetchCollection(id: UUID()))
+        do {
+            _ = try await service.fetchCollection(id: UUID())
+            XCTFail("Expected error not thrown")
+        } catch {
+            // Expected error thrown
+        }
     }
-    
-    func testFetchAllCollectionsSuccess() throws {
+
+    func testFetchAllCollectionsSuccess() async throws {
         let c1 = StoryCollection(
             id: UUID(),
             title: "C1",
@@ -121,23 +150,28 @@ final class CollectionServiceTests: XCTestCase {
         )
         try mockRepository.saveCollection(c1)
         try mockRepository.saveCollection(c2)
-        let all = try service.fetchAllCollections()
+        let all = try await service.fetchAllCollections()
         XCTAssertEqual(all.count, 2)
         XCTAssertTrue(all.contains(where: { $0.title == "C1" }))
         XCTAssertTrue(all.contains(where: { $0.title == "C2" }))
     }
-    
-    func testFetchAllCollectionsEmpty() throws {
-        let all = try service.fetchAllCollections()
+
+    func testFetchAllCollectionsEmpty() async throws {
+        let all = try await service.fetchAllCollections()
         XCTAssertTrue(all.isEmpty)
     }
-    
-    func testFetchAllCollectionsThrowsError() {
+
+    func testFetchAllCollectionsThrowsError() async throws {
         mockRepository.shouldThrowError = true
-        XCTAssertThrowsError(try service.fetchAllCollections())
+        do {
+            _ = try await service.fetchAllCollections()
+            XCTFail("Expected error not thrown")
+        } catch {
+            // Expected error thrown
+        }
     }
-    
-    func testUpdateCollectionProgressSuccess() throws {
+
+    func testUpdateCollectionProgressSuccess() async throws {
         let collection = StoryCollection(
             id: UUID(),
             title: "Progress Test",
@@ -146,23 +180,32 @@ final class CollectionServiceTests: XCTestCase {
             ageGroup: "AgeGroup"
         )
         try mockRepository.saveCollection(collection)
-        try service.updateCollectionProgress(id: collection.id, progress: 0.75)
-        let updated = try service.fetchCollection(id: collection.id)
+        try await service.updateCollectionProgress(id: collection.id, progress: 0.75)
+        let updated = try await service.fetchCollection(id: collection.id)
         XCTAssertEqual(updated?.completionProgress, 0.75)
     }
-    
-    func testUpdateCollectionProgressCollectionNotFound() {
-        XCTAssertThrowsError(try service.updateCollectionProgress(id: UUID(), progress: 0.5)) { error in
-            XCTAssertEqual((error as NSError).code, 404)
+
+    func testUpdateCollectionProgressCollectionNotFound() async throws {
+        do {
+            try await service.updateCollectionProgress(id: UUID(), progress: 0.5)
+            XCTFail("Expected error not thrown")
+        } catch {
+            let nsError = error as NSError
+            XCTAssertEqual(nsError.code, 404)
         }
     }
-    
-    func testUpdateCollectionProgressThrowsError() {
+
+    func testUpdateCollectionProgressThrowsError() async throws {
         mockRepository.shouldThrowError = true
-        XCTAssertThrowsError(try service.updateCollectionProgress(id: UUID(), progress: 0.5))
+        do {
+            try await service.updateCollectionProgress(id: UUID(), progress: 0.5)
+            XCTFail("Expected error not thrown")
+        } catch {
+            // Expected error thrown
+        }
     }
-    
-    func testDeleteCollectionSuccess() throws {
+
+    func testDeleteCollectionSuccess() async throws {
         let collection = StoryCollection(
             id: UUID(),
             title: "Delete Test",
@@ -171,13 +214,18 @@ final class CollectionServiceTests: XCTestCase {
             ageGroup: "AgeGroup"
         )
         try mockRepository.saveCollection(collection)
-        try service.deleteCollection(id: collection.id)
-        let deleted = try service.fetchCollection(id: collection.id)
+        try await service.deleteCollection(id: collection.id)
+        let deleted = try await service.fetchCollection(id: collection.id)
         XCTAssertNil(deleted)
     }
-    
-    func testDeleteCollectionThrowsError() {
+
+    func testDeleteCollectionThrowsError() async throws {
         mockRepository.shouldThrowError = true
-        XCTAssertThrowsError(try service.deleteCollection(id: UUID()))
+        do {
+            try await service.deleteCollection(id: UUID())
+            XCTFail("Expected error not thrown")
+        } catch {
+            // Expected error thrown
+        }
     }
 }
