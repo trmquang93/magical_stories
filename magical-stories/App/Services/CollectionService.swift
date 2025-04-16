@@ -7,6 +7,7 @@ import SwiftData
 final class CollectionService: ObservableObject, CollectionServiceProtocol {
     private let repository: CollectionRepositoryProtocol
     private let storyService: StoryService
+    private let achievementRepository: AchievementRepository
     // TODO: Add AchievementRepository when implemented
 
     @Published var collections: [StoryCollection] = []
@@ -14,9 +15,10 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
     @Published var generationError: Error?
     private var isLoaded = false
 
-    init(repository: CollectionRepositoryProtocol, storyService: StoryService) {
+    init(repository: CollectionRepositoryProtocol, storyService: StoryService, achievementRepository: AchievementRepository) {
         self.repository = repository
         self.storyService = storyService
+        self.achievementRepository = achievementRepository
         // Load collections immediately on initialization
         loadCollections()
     }
@@ -285,16 +287,27 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
     /// - Parameter collection: The completed collection
     /// - Throws: Error if achievement tracking fails
     private func trackCollectionCompletionAchievement(collection: StoryCollection) async throws {
-        // TODO: Implement achievement tracking when AchievementRepository is available
-        print("[CollectionService] Collection \(collection.title) completed! Achievement would be tracked here.")
-        
-        // Placeholder for future achievement code:
-        // let achievement = AchievementModel(
-        //     name: "Collection Master: \(collection.title)",
-        //     type: .collectionCompleted,
-        //     isEarned: true,
-        //     earnedDate: Date()
-        // )
-        // try await achievementRepository.saveAchievement(achievement)
+        // Check if an achievement for this collection already exists (by name/type)
+        let achievementName = "Completed \(collection.title)"
+        let achievementType = AchievementType.growthPathProgress
+        let allAchievements = try await achievementRepository.fetchAllAchievements()
+        if allAchievements.contains(where: { $0.name == achievementName && $0.typeRawValue == achievementType.rawValue }) {
+            print("[CollectionService] Achievement for collection \(collection.title) already exists.")
+            return
+        }
+        // Associate with the first story in the collection if possible
+        let associatedStory = collection.stories?.first
+        let achievementModel = AchievementModel(
+            name: achievementName,
+            achievementDescription: "Completed all stories in the \(collection.title) collection.",
+            type: achievementType,
+            earnedAt: Date(),
+            iconName: achievementType.defaultIconName,
+            progress: 1.0,
+            story: associatedStory as? StoryModel // Only if using StoryModel, otherwise nil
+        )
+        try await achievementRepository.save(achievementModel)
+        print("[CollectionService] Achievement for collection \(collection.title) created and saved.")
+        // TODO: Trigger UI update/notification for achievement unlock (to be handled in UI layer)
     }
 }

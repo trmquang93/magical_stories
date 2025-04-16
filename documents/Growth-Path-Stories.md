@@ -22,12 +22,12 @@ Growth Path Collections provide themed, developmentally-focused sets of stories.
 
 ## Outstanding/Missing Logic & Implementation Tasks
 
-| Step | Task                           | Description                             | Status         |
-| ---- | ------------------------------ | --------------------------------------- | -------------- |
-| T6   | Integrate Collections Tab      | Add Collections tab to main navigation  | Pending/Verify |
-| T7   | Final Testing & Refinement     | E2E tests, UI/UX polish, accessibility  | Pending        |
-| T8   | Achievements/Badges (Optional) | Implement and test achievement logic/UI | Planned        |
-| T9   | Documentation Update           | Update all docs and Memory Bank         | Pending        |
+| Step | Task                               | Description                                                                    | Status         |
+| ---- | ---------------------------------- | ------------------------------------------------------------------------------ | -------------- |
+| T6   | Integrate Collections Tab          | Add Collections tab to main navigation                                         | Pending/Verify |
+| T7   | Final Testing & Refinement         | E2E tests, core functional validation                                          | Pending        |
+| T8   | Final UI/UX Polish & Accessibility | UI/UX polish, animation, accessibility, haptic feedback, and visual refinement | Pending        |
+| T9   | Documentation Update               | Update all docs and Memory Bank                                                | Pending        |
 
 ### T6: Integrate Collections into Main Navigation
 - Add Collections Tab to `MainTabView` (if not already present)
@@ -36,13 +36,13 @@ Growth Path Collections provide themed, developmentally-focused sets of stories.
 
 ### T7: Final Testing and Refinement
 - End-to-End Testing: Test the full user flow, validate error handling and edge cases
-- UI/UX Refinement: Polish UI, ensure accessibility, add feedback/animations for progress
 - Final Test Suite Run: Run all tests, ensure 100% passing and target coverage
 
-### T8: Achievement/Badge Logic (Optional, Planned)
-- Implement achievement/badge logic in `CollectionService`
-- UI for achievements/badges in `CollectionDetailView` and/or `CollectionsListView`
-- Tests for achievement logic and UI
+### T8: Final UI/UX Polish & Accessibility
+- Polish UI for all collection-related views (cards, detail, progress bars)
+- Ensure accessibility (VoiceOver, Dynamic Type)
+- Add animations or feedback for progress/achievements (if feasible)
+- Haptic feedback and visual refinement
 
 ### T9: Documentation & Memory Bank Update
 - Update all relevant documentation and Memory Bank for new patterns, technical decisions, and completed work

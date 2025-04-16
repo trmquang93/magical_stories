@@ -59,10 +59,11 @@ alwaysApply: true
         7. **Ongoing Engagement:** User continues reading, tracking progress, and earning (future) achievements.
     *   **Integration Points:**
         - Models: `StoryCollection`, `GrowthCategory`, `StoryModel` (with `readCount`, `lastReadAt`, `isCompleted`)
-        - Services: `CollectionService`, `CollectionRepository`, `StoryService`
-        - UI: `CollectionsListView`, `CollectionCardView`, `CollectionDetailView`, `CollectionFormView`, `StoryDetailView`
+        - Services: `CollectionService`, `CollectionRepository`, `StoryService`, `AchievementRepository`
+        - UI: `CollectionsListView`, `CollectionCardView`, `CollectionDetailView` (now with Achievements section), `CollectionFormView`, `StoryDetailView`
         - Persistence: SwiftData via repositories
         - Progress Tracking: Implemented and tested (story completion updates collection progress)
+        - Achievements: Achievements are now persisted on collection completion and displayed in the UI.
         - Testing: Unit and integration tests exist for core flows
 
 ## Recently Completed
@@ -105,14 +106,22 @@ alwaysApply: true
 - All logic is centralized; no duplication or conflicts found.
 - See: `App/Features/Library/StoryDetailView.swift`, `App/Services/CollectionService.swift`, `App/Services/PersistenceService.swift`, `magical-storiesTests/Views/StoryReadingIntegrationTests.swift`.
 
+**T8: Achievement/Badge Logic (Complete)**
+- Service layer now creates and persists a unique achievement when a collection is completed.
+- Achievements are named "Completed [Collection Title]", use type `.growthPathProgress`, and are associated with the first story in the collection if possible.
+- Duplicate achievements for the same collection are prevented.
+- `CollectionDetailView` now displays earned achievements in a dedicated section, fetching them asynchronously for all stories in the collection.
+- Accessibility and empty/loading states are handled in the new UI. (UI/UX polish and animation will be finalized in T8)
+- TODOs remain for expanded UI tests.
+
 ## What's Left / Next Steps (Refined Growth Path Collections Plan)
 
-| Step | Task                               | Description                             | Status         |
-| ---- | ---------------------------------- | --------------------------------------- | -------------- |
-| T6   | Integrate Collections Tab          | Add Collections tab to main navigation  | Pending/Verify |
-| T7   | Final Testing & Refinement         | E2E tests, UI/UX polish, accessibility  | Pending        |
-| T8   | Achievement/Badge Logic (Optional) | Implement and test achievement logic/UI | Planned        |
-| T9   | Documentation Update               | Update all docs and Memory Bank         | Pending        |
+| Step | Task                               | Description                                                                    | Status         |
+| ---- | ---------------------------------- | ------------------------------------------------------------------------------ | -------------- |
+| T6   | Integrate Collections Tab          | Add Collections tab to main navigation                                         | Pending/Verify |
+| T7   | Final Testing & Refinement         | E2E tests, core functional validation                                          | Pending        |
+| T8   | Final UI/UX Polish & Accessibility | UI/UX polish, animation, accessibility, haptic feedback, and visual refinement | Pending        |
+| T9   | Documentation Update               | Update all docs and Memory Bank                                                | Pending        |
 
 **T6: Integrate Collections into Main Navigation**
 - **ST-6.1:** Add Collections Tab to `MainTabView` (if not already present)
@@ -123,20 +132,19 @@ alwaysApply: true
 - **ST-7.1:** End-to-End Testing
     - Test the full user flow: create collection, generate stories, read stories, track progress, and UI updates
     - Validate error handling and edge cases (e.g., no stories, all stories completed)
-- **ST-7.2:** UI/UX Refinement
-    - Polish UI for all collection-related views (cards, detail, progress bars)
-    - Ensure accessibility (VoiceOver, Dynamic Type)
-    - Add animations or feedback for progress/achievements (if feasible)
-- **ST-7.3:** Final Test Suite Run
+- **ST-7.2:** Final Test Suite Run
     - Run all unit, integration, and UI tests
     - Ensure 100% passing and target coverage
 
-**T8: Achievement/Badge Logic (Optional, Planned)**
-- **ST-8.1:** Implement achievement/badge logic in `CollectionService`
-    - Track milestones (e.g., all stories completed, streaks)
-    - Trigger UI feedback (badges, animations)
-- **ST-8.2:** UI for achievements/badges in `CollectionDetailView` and/or `CollectionsListView`
-- **ST-8.3:** Tests for achievement logic and UI
+**T8: Final UI/UX Polish & Accessibility**
+- **ST-8.1:** Polish UI for all collection-related views (cards, detail, progress bars)
+- **ST-8.2:** Ensure accessibility (VoiceOver, Dynamic Type)
+- **ST-8.3:** Add animations or feedback for progress/achievements (if feasible)
+- **ST-8.4:** Haptic feedback and visual refinement
+
+**T9: Documentation Update**
+- **ST-9.1:** Update all documentation and Memory Bank
+- **ST-9.2:** Ensure all features and components are well-documented
 
 ---
 

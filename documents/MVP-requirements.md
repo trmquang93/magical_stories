@@ -26,9 +26,12 @@
 - Ensure Collections tab is present and fully integrated in `MainTabView`
 - Finalize navigation and destination logic for all collection-related views
 - Complete end-to-end and edge case testing for the full user flow
-- Polish UI/UX for all collection views, ensuring accessibility and feedback
 - Implement (optional) achievement/badge logic and UI
-- Update all relevant documentation and Memory Bank after each change
+
+## Final UI/UX Polish & Accessibility (Pre-Release Phase)
+- Polish UI/UX for all collection views, ensure accessibility and feedback
+- Add animations or haptic feedback for progress/achievements (if feasible)
+- Perform final accessibility audit and visual refinement
 
 ## Testing & Validation
 - End-to-end tests for collection creation, story reading, and progress tracking
