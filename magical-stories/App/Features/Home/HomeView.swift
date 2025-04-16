@@ -72,34 +72,6 @@ struct HomeView: View {
                     }
                     .padding(.horizontal, Theme.Spacing.lg)
 
-                    // List of created Growth Collections
-                    Group {
-                        if !collectionService.collections.isEmpty {
-                            Text("Your Growth Collections")
-                                .font(Theme.Typography.headingMedium)
-                                .padding(.top, Theme.Spacing.lg)
-                                .padding(.horizontal, Theme.Spacing.lg)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                            VStack(spacing: Theme.Spacing.md) {
-                                ForEach(collectionService.collections, id: \.id) { collection in
-                                    NavigationLink(value: collection) {
-                                        CollectionCardView(collection: collection)
-                                            .padding(.horizontal, Theme.Spacing.lg)
-                                    }
-                                    .buttonStyle(PlainButtonStyle())
-                                }
-                            }
-                        } else {
-                            // Debugging placeholder to confirm UI updates are working
-                            Text("No collections yet - Create your first collection!")
-                                .font(Theme.Typography.bodyMedium)
-                                .foregroundColor(.secondary)
-                                .padding(.top, Theme.Spacing.lg)
-                                .padding(.horizontal, Theme.Spacing.lg)
-                        }
-                    }
-
                     Spacer()
                 }
                 .padding(.bottom, Theme.Spacing.xxl)
@@ -116,14 +88,6 @@ struct HomeView: View {
                 }
             ) {
                 CollectionFormView()
-                    .environmentObject(collectionService)
-            }
-            .task {
-                print("[HomeView] Task loading collections")
-                collectionService.loadCollections()
-            }
-            .navigationDestination(for: StoryCollection.self) { collection in
-                CollectionDetailView(collection: collection)
                     .environmentObject(collectionService)
             }
         }

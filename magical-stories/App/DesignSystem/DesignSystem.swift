@@ -117,3 +117,15 @@ struct PrimaryButton: View {
     }
     .padding()
 }
+
+// MARK: - Font Scale EnvironmentKey
+private struct FontScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1.0
+}
+
+extension EnvironmentValues {
+    var fontScale: CGFloat {
+        get { self[FontScaleKey.self] }
+        set { self[FontScaleKey.self] = newValue }
+    }
+}

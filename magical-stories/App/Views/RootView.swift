@@ -45,5 +45,7 @@ struct RootView: View {
             .environmentObject(storyService)
             .environmentObject(settingsService)
             .environmentObject(persistenceService)
+            .preferredColorScheme(settingsService.appSettings.darkModeEnabled ? .dark : .light)
+            .environment(\.fontScale, settingsService.appSettings.fontScale)
     }
 }
