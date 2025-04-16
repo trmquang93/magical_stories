@@ -73,14 +73,6 @@ struct CollectionFormView: View {
                     .disabled(isGenerating || !isFormValid) // Disable if generating or form invalid
                     .frame(maxWidth: .infinity, alignment: .center) // Center button
                 }
-                
-                // Display error message
-                if let error = errorMessage {
-                    Section(header: Text("Error").foregroundColor(.red)) {
-                        Text(error)
-                            .foregroundColor(.red)
-                    }
-                }
             }
             .navigationTitle("New Collection")
             .navigationBarTitleDisplayMode(.inline)
@@ -91,6 +83,34 @@ struct CollectionFormView: View {
                 }
             }
             .disabled(isGenerating) // Disable the form while generating
+            // Overlay loading indicator for consistency with StoryFormView
+            .overlay {
+                if isGenerating {
+                    // Use a simple ProgressView overlay; replace with MagicalLoadingView if available
+                    ZStack {
+                        Color.black.opacity(0.4).ignoresSafeArea()
+                        VStack(spacing: 16) {
+                            ProgressView("Generating your collection...")
+                                .progressViewStyle(CircularProgressViewStyle())
+                                .padding()
+                            Text("Please wait while we create your personalized collection.")
+                                .font(.body)
+                                .foregroundColor(.white)
+                        }
+                        .padding(32)
+                        .background(RoundedRectangle(cornerRadius: 16).fill(Color(.systemGray6).opacity(0.95)))
+                        .shadow(radius: 10)
+                    }
+                }
+            }
+            // Present error as alert for consistency with StoryFormView
+            .alert("Error", isPresented: .constant(errorMessage != nil), actions: {
+                Button("OK", role: .cancel) { errorMessage = nil }
+            }, message: {
+                if let error = errorMessage {
+                    Text(error)
+                }
+            })
         }
     }
     

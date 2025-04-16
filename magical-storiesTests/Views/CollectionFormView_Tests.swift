@@ -36,4 +36,10 @@ struct CollectionFormView_Tests {
 
 // NOTE: UI state transitions (button enabled/disabled, ProgressView, error message) require a mock conforming to ObservableObject and ViewInspector or UI test. These tests focus on service logic only.
 
+// TODO: Add UI tests for the following states in CollectionFormView:
+// - Loading overlay appears when isGenerating is true (matches StoryFormView pattern)
+// - Error alert is presented when errorMessage is set
+// - Form dismisses on successful collection generation
+// These require ViewInspector or UI test suite integration.
+
 // TODO: If ViewInspector is available, add assertions for UI state. 

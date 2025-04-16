@@ -54,7 +54,7 @@ alwaysApply: true
         *   `CollectionsListView`: Exists, uses `@Query` for data fetching, basic search implemented. Uses `NavigationLink(value:)`. **[T1 Complete: Refactored, navigation ensured, test coverage added, not yet integrated in main UI]**
         *   `CollectionCardView`: Exists, displays collection info and `completionProgress`. **[T1 Complete: Refactored, accessibility improved]**
         *   `CollectionDetailView`: Exists, displays stories, uses `NavigationLink(value:)`. Contains *incorrect* progress update logic (`toggleStoryCompletion`) that needs removal.
-        *   `CollectionFormView`: Exists, captures input, creates collection shell via `CollectionService`, and triggers story generation via `CollectionService`. Handles internal loading/error states.
+        *   `CollectionFormView`: Exists, captures input, creates collection shell via `CollectionService`, and triggers story generation via `CollectionService`. Handles internal loading/error states. **[T4: Enhanced with overlay loading indicator and error alert for consistency with StoryFormView; inline error section removed; explicit TODOs for UI state tests added to CollectionFormView_Tests.swift]**
     *   **Integration:**
         *   `HomeView` presents `CollectionFormView` via a button.
     *   **Progress Tracking:** Relies on `StoryModel.readCount` and `StoryCollection.completionProgress`.
@@ -85,11 +85,14 @@ alwaysApply: true
 - Comprehensive tests written/updated for all new logic, including story generation, progress calculation, marking stories as completed, and achievement tracking (placeholder).
 - No duplication or conflicts found; logic is centralized and testable.
 
-## What's Left / Next Steps (Refined Growth Collections Plan)
+**T4: Finalize `CollectionFormView` Integration (Complete)**
+- Enhanced `CollectionFormView` to use an overlay loading indicator and `.alert` for error messages, matching the pattern in `StoryFormView` for UI/UX consistency.
+- Removed the inline error section in favor of alert-based error presentation.
+- All controls are disabled during loading, and user feedback is clear and consistent.
+- Updated `CollectionFormView_Tests.swift` with explicit TODOs for UI state tests (loading overlay, error alert, dismissal), referencing ViewInspector or UI test requirements.
+- Documented the need for future UI test coverage and potential for extracting a reusable loading/error overlay component.
 
-**T4: Finalize `CollectionFormView` Integration**
-*   ST-4.3: Verify Loading/Error State Handling in `CollectionFormView` & hosting view. (M)
-*   ST-4.4: Write/Update Tests for `CollectionFormView` Integration. (M)
+## What's Left / Next Steps (Refined Growth Collections Plan)
 
 **T5: Implement Progress Tracking Flow**
 *   ST-5.1: Update `StoryModel.readCount`/`lastReadAt` on story completion. (M)
