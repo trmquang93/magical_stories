@@ -1,3 +1,6 @@
+/// CollectionsListView displays a list of StoryCollection items with search and navigation.
+/// NOTE: This view is not currently integrated into the main app UI. The collections list is rendered directly in HomeView.
+/// This view is intended for future use as a dedicated tab (see plan T6).
 import SwiftUI
 import SwiftData
 
@@ -22,6 +25,9 @@ struct CollectionsListView: View {
             }
             .navigationTitle("Collections")
             .searchable(text: $searchText)
+            .navigationDestination(for: StoryCollection.self) { collection in
+                CollectionDetailView(collection: collection)
+            }
         }
     }
 }
