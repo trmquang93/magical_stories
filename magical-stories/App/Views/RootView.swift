@@ -38,10 +38,12 @@ struct RootView: View {
     @State var selectedTab: TabItem = .home
     @EnvironmentObject var storyService: StoryService
     @EnvironmentObject var settingsService: SettingsService
+    @EnvironmentObject var persistenceService: PersistenceService
     
     var body: some View {
         MainTabView(selectedTab: $selectedTab)
             .environmentObject(storyService)
             .environmentObject(settingsService)
+            .environmentObject(persistenceService)
     }
 }

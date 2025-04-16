@@ -19,14 +19,18 @@ struct CollectionsListView: View {
     var body: some View {
         NavigationStack {
             List(filteredCollections) { collection in
-                NavigationLink(value: collection) {
+                NavigationLink(value: collection.id) {
                     CollectionCardView(collection: collection)
                 }
             }
             .navigationTitle("Collections")
             .searchable(text: $searchText)
-            .navigationDestination(for: StoryCollection.self) { collection in
-                CollectionDetailView(collection: collection)
+            .navigationDestination(for: UUID.self) { collectionId in
+                if let collection = collections.first(where: { $0.id == collectionId }) {
+                    CollectionDetailView(collection: collection)
+                } else {
+                    Text("Collection not found")
+                }
             }
         }
     }

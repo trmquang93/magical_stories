@@ -9,6 +9,7 @@ struct MagicalStoriesApp: App {
     @StateObject private var settingsService: SettingsService
     @StateObject private var storyService: StoryService
     @StateObject private var collectionService: CollectionService
+    @StateObject private var persistenceService: PersistenceService
     private let container: ModelContainer
 
     // Initialization to handle dependencies between services
@@ -50,11 +51,13 @@ struct MagicalStoriesApp: App {
         let collectionService = CollectionService(
             repository: collectionRepository, storyService: story)
         
+        let persistenceService = PersistenceService(context: context)
 
         // Assign to StateObjects
         _settingsService = StateObject(wrappedValue: settings)
         _storyService = StateObject(wrappedValue: story)
         _collectionService = StateObject(wrappedValue: collectionService)
+        _persistenceService = StateObject(wrappedValue: persistenceService)
 
         // Store container for environment injection
         self.container = container
@@ -67,6 +70,7 @@ struct MagicalStoriesApp: App {
                 .environmentObject(settingsService)
                 .environmentObject(storyService)
                 .environmentObject(collectionService)
+                .environmentObject(persistenceService)
                 .modelContainer(container)
         }
     }

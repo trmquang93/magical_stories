@@ -9,44 +9,42 @@ struct CollectionDetailView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text(collection.title)
-                        .font(.largeTitle)
-                        .bold()
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Text(collection.title)
+                    .font(.largeTitle)
+                    .bold()
 
-                    Text(collection.descriptionText)
-                        .font(.body)
+                Text(collection.descriptionText)
+                    .font(.body)
 
-                    HStack {
-                        Text("Category: \(collection.category)")
-                            .font(.subheadline)
-                        Spacer()
-                        Text("Age Group: \(collection.ageGroup)")
-                            .font(.subheadline)
-                    }
-
-                    ProgressView(value: collection.completionProgress)
-                        .padding(.vertical)
-
-                    Text("Stories")
-                        .font(.title2)
-                        .bold()
-                        .padding(.top)
-
-                    ForEach(collection.stories ?? []) { story in
-                        storyRow(story: story)
-                    }
+                HStack {
+                    Text("Category: \(collection.category)")
+                        .font(.subheadline)
+                    Spacer()
+                    Text("Age Group: \(collection.ageGroup)")
+                        .font(.subheadline)
                 }
-                .padding()
+
+                ProgressView(value: collection.completionProgress)
+                    .padding(.vertical)
+
+                Text("Stories")
+                    .font(.title2)
+                    .bold()
+                    .padding(.top)
+
+                ForEach(collection.stories ?? []) { story in
+                    storyRow(story: story)
+                }
             }
-            .navigationTitle(collection.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: Story.self) { story in
-                // TODO: Replace with actual StoryDetailView when available
-                Text(story.title) // Placeholder for StoryDetailView
-            }
+            .padding()
+        }
+        .navigationTitle(collection.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(for: Story.self) { story in
+            StoryDetailView(story: story)
+                .environmentObject(collectionService)
         }
     }
 
