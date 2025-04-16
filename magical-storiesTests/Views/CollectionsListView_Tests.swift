@@ -37,5 +37,32 @@ struct CollectionsListView_Tests {
         // TODO: If ViewInspector is available, assert that NavigationLink exists for the collection
     }
 
+    @Test("Deleting a collection removes it from the list and model container")
+    func testDeleteCollectionRemovesFromList() async throws {
+        // Setup in-memory model container
+        let container = try ModelContainer(for: StoryCollection.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+        // Insert mock collections
+        let collection1 = StoryCollection(title: "To Delete", descriptionText: "Desc", category: "cat", ageGroup: "elementary", stories: [], createdAt: Date(), updatedAt: Date())
+        let collection2 = StoryCollection(title: "To Keep", descriptionText: "Desc", category: "cat", ageGroup: "elementary", stories: [], createdAt: Date(), updatedAt: Date())
+        await MainActor.run {
+            context.insert(collection1)
+            context.insert(collection2)
+        }
+        try await MainActor.run { try context.save() }
+        // Simulate deletion via service
+        let service = CollectionService(
+            repository: CollectionRepository(modelContext: context),
+            storyService: try StoryService(apiKey: "test", context: context),
+            achievementRepository: AchievementRepository(modelContext: context)
+        )
+        try await MainActor.run { try service.deleteCollection(id: collection1.id) }
+        // Verify collection1 is deleted
+        let all = try await MainActor.run { try context.fetch(FetchDescriptor<StoryCollection>()) }
+        #expect(!all.contains(where: { $0.id == collection1.id }))
+        #expect(all.contains(where: { $0.id == collection2.id }))
+        // NOTE: UI-level swipe-to-delete cannot be tested in unit tests without ViewInspector or UI test tools. Documented as limitation.
+    }
+
     // TODO: SwiftUI navigation cannot be fully tested in unit tests without UI test tools. Document as limitation.
 } 

@@ -11,6 +11,7 @@ Growth Path Collections provide themed, developmentally-focused sets of stories.
 5. **Track Progress:** Collection and story progress are updated and reflected in the UI.
 6. **Create New Collection:** User initiates creation, fills out the form, and a new collection with stories is generated.
 7. **Ongoing Engagement:** User continues reading, tracking progress, and earning (future) achievements.
+8. **Delete Collection:** User can delete a collection by swiping left on a collection card in the Collections tab.
 
 ## Integration Points
 - **Models:** `StoryCollection`, `GrowthCategory`, `StoryModel` (with `readCount`, `lastReadAt`, `isCompleted`)
@@ -51,7 +52,7 @@ Growth Path Collections provide themed, developmentally-focused sets of stories.
 
 ## Improvement Options
 - Enhance search/filter in collections list
-- Enable editing or deleting collections
+- Enable editing collections (deleting is now implemented via swipe-to-delete in the Collections tab)
 - Add more granular progress tracking (per page, per session)
 - Add parental insights/reporting on growth areas
 - Extract reusable loading/error overlay component for forms

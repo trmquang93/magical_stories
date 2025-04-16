@@ -97,6 +97,7 @@ graph TD
     -   A core feature providing themed story sets.
     -   Managed by `CollectionService`, likely interacting with `StoryRepository` and potentially AI services.
     -   Models define collection structure and content.
+    -   **CollectionsListView supports swipe-to-delete for deleting collections, calling `CollectionService.deleteCollection`.**
 -   **StoreKit Integration (Monetization):**
     -   Enables premium features via subscriptions or lifetime purchase.
     -   `PurchaseService` handles StoreKit API interactions (loading products, purchases, transactions).
@@ -118,6 +119,7 @@ A comprehensive testing strategy ensures code quality and stability.
 -   **Swift Testing:** The primary framework for unit and integration tests.
 -   **XCTest:** Used for UI tests (`magical-storiesUITests`).
 -   **Categories:** Unit, Integration, UI, and SwiftUI View tests are employed.
+-   **Delete collection feature:** Tested at the service and repository layers; UI-level swipe-to-delete is documented and follows SwiftUI best practices.
 
 ### 2.2. Key Principles
 -   **Mocking:** Protocol-based mocking is crucial for isolating components in unit tests. Services and Repositories have corresponding protocols (e.g., `IllustrationServiceProtocol`, `StoryRepositoryProtocol`) and mock implementations are used extensively.

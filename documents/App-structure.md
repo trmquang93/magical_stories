@@ -15,6 +15,7 @@
   - Tapping a story navigates to `StoryDetailView` (paginated reading).
   - Progress is tracked and updated as stories are completed.
   - "Create Collection" is initiated from HomeView, presenting `CollectionFormView` as a sheet.
+  - **Delete Collection:** Users can delete a collection by swiping left on a collection in the Collections tab (swipe-to-delete UI).
 
 ## User Flow (Growth Path Collections)
 1. User taps "Collections" tab to view all collections.
@@ -22,6 +23,7 @@
 3. User taps a collection to view its stories and progress.
 4. User reads a story; upon completion, progress is updated.
 5. User can create a new collection via the Home tab.
+6. User can delete a collection by swiping left on a collection card in the Collections tab.
 6. Progress and achievements (planned) are reflected in the UI.
 
 ## Outstanding Tasks for Growth Path Collections

@@ -156,6 +156,11 @@ final class StoryCollection {
         self.stories = []
     }
 }
+
+**Deletion:**
+Deleting a collection from the Collections tab (via swipe-to-delete in CollectionsListView) will remove the collection and, due to the cascade delete rule, all associated stories. This ensures data integrity and a clean user experience.
+
+See: `CollectionsListView.swift` and `documents/ui/design-system.md` for UI details.
 ```
 
 ### 2.4. Achievement Model

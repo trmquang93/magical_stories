@@ -408,6 +408,15 @@ struct DynamicTypeTest {
 - [ ] Error messages
 - [ ] Loading states
 
+## Swipe-to-Delete Accessibility
+
+The swipe-to-delete action for deleting collections in the Collections tab (CollectionsListView) uses the native SwiftUI pattern, which is fully accessible:
+- VoiceOver users can swipe up or down to reveal the Delete action on a collection.
+- The Delete action is announced and can be activated with a double-tap.
+- Error alerts shown after a failed deletion are accessible and provide clear feedback.
+
+See: `documents/ui/design-system.md` for more on destructive actions.
+
 ---
 
 This document should be updated when:

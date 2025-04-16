@@ -486,3 +486,31 @@ This document should be updated when:
 - `CollectionDetailView.swift`
 - `CollectionFormView.swift`
 - `StoryDetailView.swift`
+
+## Patterns
+
+### Destructive Actions: Swipe-to-Delete
+
+For destructive actions such as deleting a collection, use the native SwiftUI swipe-to-delete pattern in lists. This provides a familiar and accessible experience for users.
+
+**Example:**
+
+```
+List {
+    ForEach(items) { item in
+        // ...
+    }
+    .onDelete(perform: deleteItems)
+}
+```
+
+In Magical Stories, users can delete a Growth Collection by swiping left on a collection in the Collections tab. An error alert is shown if deletion fails.
+
+**Accessibility:**
+- The swipe-to-delete action is accessible via VoiceOver and supports standard iOS gestures.
+- Always provide an alert or confirmation for destructive actions if accidental deletion is a concern.
+
+**Error Handling:**
+- If deletion fails, present an alert with the error message and a dismiss button.
+
+See: `CollectionsListView.swift` for implementation details.
