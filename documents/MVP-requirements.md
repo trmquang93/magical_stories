@@ -1,0 +1,1 @@
+- [x] CollectionsListView is integrated as a dedicated tab in MainTabView, enabling direct access to Growth Collections and supporting UI testing and incremental development. 

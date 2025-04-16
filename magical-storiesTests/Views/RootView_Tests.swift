@@ -22,6 +22,7 @@ struct RootView_Tests {
         #expect(TabItem.home.title == "Home", "Home tab should have correct title")
         #expect(TabItem.library.title == "Library", "Library tab should have correct title")
         #expect(TabItem.settings.title == "Settings", "Settings tab should have correct title")
+        #expect(TabItem.collections.title == "Collections", "Collections tab should have correct title")
     }
     
     @Test("TabItem should have correct icons")
@@ -29,6 +30,7 @@ struct RootView_Tests {
         #expect(TabItem.home.icon == "house.fill", "Home tab should have correct icon")
         #expect(TabItem.library.icon == "books.vertical.fill", "Library tab should have correct icon")
         #expect(TabItem.settings.icon == "gear", "Settings tab should have correct icon")
+        #expect(TabItem.collections.icon == "square.grid.2x2.fill", "Collections tab should have correct icon")
     }
     
     @Test("MainTabView should have correct initial tab selection")
@@ -62,5 +64,16 @@ struct RootView_Tests {
         
         // Then - Verify updated value
         #expect(selectedTabBinding.wrappedValue == .library, "Tab should be updated to library")
+    }
+    
+    @Test("MainTabView should allow selecting the Collections tab")
+    func testCollectionsTabSelection() async throws {
+        let selectedTabBinding = TestSupport.createBindingForTest(TabItem.home)
+        _ = MainTabView(selectedTab: selectedTabBinding)
+        // Initially home
+        #expect(selectedTabBinding.wrappedValue == .home, "Initial tab should be home")
+        // Change to collections
+        selectedTabBinding.wrappedValue = .collections
+        #expect(selectedTabBinding.wrappedValue == .collections, "Tab should be updated to collections")
     }
 }

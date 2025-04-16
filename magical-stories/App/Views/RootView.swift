@@ -5,6 +5,7 @@ enum TabItem {
     case home
     case library
     case settings
+    case collections
 
     var title: String {
         switch self {
@@ -14,6 +15,8 @@ enum TabItem {
             return "Library"
         case .settings:
             return "Settings"
+        case .collections:
+            return "Collections"
         }
     }
 
@@ -25,6 +28,8 @@ enum TabItem {
             return "books.vertical.fill"
         case .settings:
             return "gear"
+        case .collections:
+            return "square.grid.2x2.fill"
         }
     }
 }

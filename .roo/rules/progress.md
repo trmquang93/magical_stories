@@ -51,21 +51,25 @@ alwaysApply: true
     *   **Core Models:** `StoryCollection`, `GrowthCategory` implemented with SwiftData. Relationship with `StoryModel` defined.
     *   **Service Layer:** `CollectionService` and `CollectionRepository` created with basic CRUD operations.
     *   **UI Components:**
-        *   `CollectionsListView`: Exists, uses `@Query` for data fetching, basic search implemented. Uses `NavigationLink(value:)`.
-        *   `CollectionCardView`: Exists, displays collection info and `completionProgress`.
+        *   `CollectionsListView`: Exists, uses `@Query` for data fetching, basic search implemented. Uses `NavigationLink(value:)`. **[T1 Complete: Refactored, navigation ensured, test coverage added, not yet integrated in main UI]**
+        *   `CollectionCardView`: Exists, displays collection info and `completionProgress`. **[T1 Complete: Refactored, accessibility improved]**
         *   `CollectionDetailView`: Exists, displays stories, uses `NavigationLink(value:)`. Contains *incorrect* progress update logic (`toggleStoryCompletion`) that needs removal.
         *   `CollectionFormView`: Exists, captures input, creates collection shell via `CollectionService`, and triggers story generation via `CollectionService`. Handles internal loading/error states.
     *   **Integration:**
         *   `HomeView` presents `CollectionFormView` via a button.
     *   **Progress Tracking:** Relies on `StoryModel.readCount` and `StoryCollection.completionProgress`.
-    *   **Testing:** Initial unit and integration tests for models and service layer exist.
+    *   **Testing:** Initial unit and integration tests for models and service layer exist. **[T1: CollectionsListView_Tests.swift created]**
+
+## Recently Completed
+
+**T1: Finalize `CollectionsListView` Integration (Complete)**
+- Refactored `CollectionsListView` and `CollectionCardView` for clarity, accessibility, and future integration.
+- Ensured `.navigationDestination(for: StoryCollection.self)` is present in `CollectionsListView`'s `NavigationStack`.
+- Created `CollectionsListView_Tests.swift` for basic test coverage (limited by SwiftUI testing constraints).
+- Documented that `CollectionsListView` is not yet integrated into the main UI; the collections list is still rendered in `HomeView`.
+- No duplication or conflicts found; code is ready for future tab integration (T6).
 
 ## What's Left / Next Steps (Refined Growth Collections Plan)
-
-**T1: Finalize `CollectionsListView` Integration**
-*   ST-1.1: Review `CollectionsListView` and `CollectionCardView` for minor adjustments. (S)
-*   ST-1.3: Ensure `.navigationDestination(for: StoryCollection.self)` is correctly placed. (S)
-*   ST-1.5: Write/Update Tests for `CollectionsListView`. (M)
 
 **T2: Refactor and Enhance `CollectionDetailView`**
 *   ST-2.1: Review `CollectionDetailView` state management (`@State` vs. `@Bindable`/observation). (S)

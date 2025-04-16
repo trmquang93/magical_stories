@@ -26,6 +26,14 @@ struct MainTabView: View {
             .tag(TabItem.library)
             
             NavigationStack {
+                CollectionsListView()
+            }
+            .tabItem {
+                Label(TabItem.collections.title, systemImage: TabItem.collections.icon)
+            }
+            .tag(TabItem.collections)
+            
+            NavigationStack {
                 SettingsView()
             }
             .tabItem {

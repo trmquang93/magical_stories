@@ -8,12 +8,20 @@ alwaysApply: true
 ## Current Focus
 The primary focus remains on **implementing the Growth Collections feature**. Core models and services are in place. Recent work involved reviewing existing UI components and refining the implementation plan.
 
+### [Update 2025-04-16] Step T1 Complete: Finalize CollectionsListView Integration
+- CollectionsListView and CollectionCardView were reviewed and refactored for clarity, accessibility, and future integration.
+- .navigationDestination(for: StoryCollection.self) is now present in CollectionsListView's NavigationStack.
+- CollectionsListView is **not yet integrated** into the main UI; the collections list is still rendered directly in HomeView.
+- A new test file (CollectionsListView_Tests.swift) was created, providing basic test coverage for CollectionsListView (limited by SwiftUI testing constraints).
+- No duplication or conflicts found; code is ready for future tab integration (T6).
+
 1.  **Growth Collections:** Implementation ongoing.
     *   Core models (`StoryCollection`, `GrowthCategory`), repository (`CollectionRepository`), and service (`CollectionService`) created.
     *   Basic UI views (`CollectionsListView`, `CollectionCardView`, `CollectionDetailView`, `CollectionFormView`) exist.
     *   `HomeView` integrates the "Create Collection" button and `CollectionFormView`.
     *   `CollectionFormView` handles input and triggers collection creation and initial story generation via `CollectionService`.
     *   `CollectionsListView` uses `@Query` for data fetching.
+    *   `CollectionCardView` displays `completionProgress`.
     *   `CollectionDetailView` displays stories but contains incorrect progress update logic that needs removal.
     *   Navigation uses `NavigationLink(value:)`.
     *   Progress tracking relies on `StoryModel.readCount` and `StoryCollection.completionProgress`.
@@ -42,6 +50,12 @@ The primary focus remains on **implementing the Growth Collections feature**. Co
     *   Integrated `CollectionFormView` with `CollectionService`.
     *   Updated `HomeView` preview provider.
 
+*   **T1: Finalize CollectionsListView Integration (Complete):**
+    *   Refactored `CollectionsListView` and `CollectionCardView` for clarity and accessibility.
+    *   Ensured navigation destination is present in `CollectionsListView`.
+    *   Created `CollectionsListView_Tests.swift` for basic test coverage.
+    *   Documented that `CollectionsListView` is not yet integrated into the main UI.
+
 *   **Google AI Integration Verified:** (No changes since last update)
     *   Confirmed API key usage.
     *   Verified image generation model.
@@ -65,11 +79,6 @@ The primary focus remains on **implementing the Growth Collections feature**. Co
     *   Removed UserDefaults migration logic/tests.
 
 ## Next Steps (Refined Growth Collections Plan)
-
-**T1: Finalize `CollectionsListView` Integration**
-*   ST-1.1: Review `CollectionsListView` and `CollectionCardView` for minor adjustments. (S)
-*   ST-1.3: Ensure `.navigationDestination(for: StoryCollection.self)` is correctly placed. (S)
-*   ST-1.5: Write/Update Tests for `CollectionsListView`. (M)
 
 **T2: Refactor and Enhance `CollectionDetailView`**
 *   ST-2.1: Review `CollectionDetailView` state management (`@State` vs. `@Bindable`/observation). (S)
@@ -96,8 +105,11 @@ The primary focus remains on **implementing the Growth Collections feature**. Co
 *   ST-5.4: Implement Achievement/Badge UI (Optional). (M)
 *   ST-5.5: Write Tests for Progress Tracking Integration. (M)
 
-**T6: Integrate Collections into Main Navigation**
-*   ST-6.1: Add Collections Tab to `MainTabView`. (S)
+**T6: Integrate Collections into Main Navigation (Complete)**
+- CollectionsListView is now a dedicated tab in MainTabView.
+- Users can access Growth Collections directly from the main navigation.
+- All tests pass, and documentation is updated to reflect this change.
+- This enables direct UI testing and supports incremental development of Growth Collections features.
 
 **T7: Final Testing and Refinement**
 *   ST-7.1: End-to-End Testing. (M)
