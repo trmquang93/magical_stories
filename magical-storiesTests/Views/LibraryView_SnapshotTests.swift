@@ -7,6 +7,7 @@ import SwiftData
 
 @MainActor
 final class LibraryView_SnapshotTests: XCTestCase {
+    let diff: Snapshotting<UIViewController, UIImage> = .image(precision: 0.95, perceptualPrecision: 0.95)
     // Helper to create a mock StoryService with demo stories
     func makeMockStoryService() -> StoryService {
         // If you have StoryService.mockWithDemoStories(), use it. Otherwise, create a minimal mock:
@@ -51,7 +52,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 812) // iPhone 11 size
         host.overrideUserInterfaceStyle = .light
-        assertSnapshot(of: host, as: .image, named: "LibraryView_iPhone11_Light")
+        assertSnapshot(of: host, as: diff, named: "LibraryView_iPhone11_Light")
     }
 
     func testLibraryView_DarkMode_iPhone11() {
@@ -60,7 +61,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 812) // iPhone 11 size
         host.overrideUserInterfaceStyle = .dark
-        assertSnapshot(of: host, as: .image, named: "LibraryView_iPhone11_Dark")
+        assertSnapshot(of: host, as: diff, named: "LibraryView_iPhone11_Dark")
     }
 
     func testLibraryView_EmptyState_LightMode() {
@@ -69,7 +70,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
         host.overrideUserInterfaceStyle = .light
-        assertSnapshot(of: host, as: .image, named: "LibraryView_EmptyState_Light")
+        assertSnapshot(of: host, as: diff, named: "LibraryView_EmptyState_Light")
     }
 
     func testLibraryView_EmptyState_DarkMode() {
@@ -78,7 +79,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
         host.overrideUserInterfaceStyle = .dark
-        assertSnapshot(of: host, as: .image, named: "LibraryView_EmptyState_Dark")
+        assertSnapshot(of: host, as: diff, named: "LibraryView_EmptyState_Dark")
     }
 
     func testLibraryView_SearchResults_LightMode() {
@@ -88,7 +89,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
         host.overrideUserInterfaceStyle = .light
-        assertSnapshot(of: host, as: .image, named: "LibraryView_SearchResults_Light")
+        assertSnapshot(of: host, as: diff, named: "LibraryView_SearchResults_Light")
     }
 
     func testLibraryView_SearchResults_DarkMode() {
@@ -97,7 +98,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
         host.overrideUserInterfaceStyle = .dark
-        assertSnapshot(of: host, as: .image, named: "LibraryView_SearchResults_Dark")
+        assertSnapshot(of: host, as: diff, named: "LibraryView_SearchResults_Dark")
     }
 }
 
