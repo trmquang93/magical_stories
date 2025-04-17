@@ -682,3 +682,33 @@ ZStack {
 - Sparkles: ellipse/star shapes, 10–20% opacity, animate with floating motion
 
 /// [2025-04-16 Modern Calm Update: Home View] End of section
+
+# UI Testing and Snapshot Testing for LibraryView
+
+## Automated UI Tests
+- LibraryView is covered by device-level UI tests (XCUITest) in the `magical-storiesUITests` target.
+- These tests validate the presence and accessibility of the header, subtitle, search bar, recent stories, and categories.
+- UI tests also take screenshots for visual inspection and can be extended for pixel-diff automation.
+
+## Snapshot Testing
+- Pixel-perfect snapshot tests are implemented using the [SnapshotTesting](https://github.com/pointfreeco/swift-snapshot-testing) library in the `magical-storiesTests` (unit test) target.
+- Snapshots are taken for both light and dark mode, at iPhone 11 size (375x812).
+- The following UI elements are validated:
+  - Header ("Library")
+  - Subtitle ("Your magical story collection")
+  - Search bar ("Search stories")
+  - Recent stories section and cards
+  - Categories section and cards
+  - Overall layout and spacing
+- Reference images are committed to the repo and reviewed on every UI change.
+
+## Best Practices
+- Keep snapshot reference images up to date with intentional UI changes.
+- Review diffs on every PR to catch unintentional UI regressions.
+- Run both logic/unit and UI/snapshot tests in CI for full coverage.
+- Use descriptive snapshot names and test on all relevant device sizes and color schemes.
+- Maintain test constants (e.g., category names) in sync with production code for reliability.
+
+---
+
+*Last updated: 2025-04-16*

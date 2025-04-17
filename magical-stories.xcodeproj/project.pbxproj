@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4DBDB0502DB0B7E100252B5A /* InlineSnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB04F2DB0B7E100252B5A /* InlineSnapshotTesting */; };
+		4DBDB0522DB0B7E100252B5A /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB0512DB0B7E100252B5A /* SnapshotTesting */; };
+		4DBDB0542DB0B7E100252B5A /* SnapshotTestingCustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB0532DB0B7E100252B5A /* SnapshotTestingCustomDump */; };
+		4DBDB0562DB0B7F200252B5A /* InlineSnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB0552DB0B7F200252B5A /* InlineSnapshotTesting */; };
+		4DBDB0582DB0B7F200252B5A /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB0572DB0B7F200252B5A /* SnapshotTesting */; };
+		4DBDB05A2DB0B7F200252B5A /* SnapshotTestingCustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB0592DB0B7F200252B5A /* SnapshotTestingCustomDump */; };
 		4DDF1BF82D996FA8005D882A /* GoogleGenerativeAI in Frameworks */ = {isa = PBXBuildFile; productRef = 4DDF1BF72D996FA8005D882A /* GoogleGenerativeAI */; };
 /* End PBXBuildFile section */
 
@@ -65,6 +71,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4DBDB05A2DB0B7F200252B5A /* SnapshotTestingCustomDump in Frameworks */,
+				4DBDB0562DB0B7F200252B5A /* InlineSnapshotTesting in Frameworks */,
+				4DBDB0582DB0B7F200252B5A /* SnapshotTesting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,6 +81,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4DBDB0542DB0B7E100252B5A /* SnapshotTestingCustomDump in Frameworks */,
+				4DBDB0502DB0B7E100252B5A /* InlineSnapshotTesting in Frameworks */,
+				4DBDB0522DB0B7E100252B5A /* SnapshotTesting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -143,6 +155,9 @@
 			);
 			name = "magical-storiesTests";
 			packageProductDependencies = (
+				4DBDB0552DB0B7F200252B5A /* InlineSnapshotTesting */,
+				4DBDB0572DB0B7F200252B5A /* SnapshotTesting */,
+				4DBDB0592DB0B7F200252B5A /* SnapshotTestingCustomDump */,
 			);
 			productName = "magical-storiesTests";
 			productReference = 4DDF1B592D98B918005D882A /* magical-storiesTests.xctest */;
@@ -166,6 +181,9 @@
 			);
 			name = "magical-storiesUITests";
 			packageProductDependencies = (
+				4DBDB04F2DB0B7E100252B5A /* InlineSnapshotTesting */,
+				4DBDB0512DB0B7E100252B5A /* SnapshotTesting */,
+				4DBDB0532DB0B7E100252B5A /* SnapshotTestingCustomDump */,
 			);
 			productName = "magical-storiesUITests";
 			productReference = 4DDF1B632D98B918005D882A /* magical-storiesUITests.xctest */;
@@ -205,6 +223,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				4DDF1BF62D996FA8005D882A /* XCRemoteSwiftPackageReference "generative-ai-swift" */,
+				4DBDB04E2DB0B7E100252B5A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4DDF1B482D98B911005D882A /* Products */;
@@ -571,6 +590,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		4DBDB04E2DB0B7E100252B5A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.18.3;
+			};
+		};
 		4DDF1BF62D996FA8005D882A /* XCRemoteSwiftPackageReference "generative-ai-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/google/generative-ai-swift";
@@ -582,6 +609,36 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		4DBDB04F2DB0B7E100252B5A /* InlineSnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4DBDB04E2DB0B7E100252B5A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = InlineSnapshotTesting;
+		};
+		4DBDB0512DB0B7E100252B5A /* SnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4DBDB04E2DB0B7E100252B5A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTesting;
+		};
+		4DBDB0532DB0B7E100252B5A /* SnapshotTestingCustomDump */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4DBDB04E2DB0B7E100252B5A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTestingCustomDump;
+		};
+		4DBDB0552DB0B7F200252B5A /* InlineSnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4DBDB04E2DB0B7E100252B5A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = InlineSnapshotTesting;
+		};
+		4DBDB0572DB0B7F200252B5A /* SnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4DBDB04E2DB0B7E100252B5A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTesting;
+		};
+		4DBDB0592DB0B7F200252B5A /* SnapshotTestingCustomDump */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4DBDB04E2DB0B7E100252B5A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTestingCustomDump;
+		};
 		4DDF1BF72D996FA8005D882A /* GoogleGenerativeAI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 4DDF1BF62D996FA8005D882A /* XCRemoteSwiftPackageReference "generative-ai-swift" */;

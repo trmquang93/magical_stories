@@ -44,3 +44,8 @@
 - All changes and new patterns must be reflected in project documentation and Memory Bank
 
 - [x] CollectionsListView is integrated as a dedicated tab in MainTabView, enabling direct access to Growth Collections and supporting UI testing and incremental development. 
+
+## Automated UI and Snapshot Testing (2025-04-16)
+- Device-level UI tests (XCUITest) validate navigation, tab bar, and key UI elements for all major screens, including LibraryView.
+- Pixel-perfect snapshot tests (using SnapshotTesting) are implemented for LibraryView, covering both light and dark mode, and are required for all new major UI features.
+- These tests are part of the MVP quality bar and must be maintained as features evolve. 

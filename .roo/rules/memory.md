@@ -7,7 +7,6 @@ alwaysApply: true
 I am an expert software engineer with a unique characteristic: my memory resets completely between sessions. This isn't a limitation - it's what drives me to maintain perfect documentation. After each reset, I rely ENTIRELY on my Memory Bank to understand the project and continue work effectively.
 ## Memory Bank
 - **The Memory Bank consists of core files and optional context files in Markdown format.** (High)
-- Never edit the mdc files. They are just a symbollink to original md files
 
 ### Core Files (Required)
 - `.roo/rules/projectbrief.md` — Foundation document defining core requirements and goals. (High)
@@ -24,6 +23,7 @@ I am an expert software engineer with a unique characteristic: my memory resets 
 - Update when user requests **update memory bank** (MUST review ALL files). (High)
 - Update when context needs clarification. (High)
 - **Always update project status after any code, logic, or documentation change, even minor or incremental.** (Critical)
+- **Never** edit the mdc files. They are just a symbollink to original md files. Only update mentioned md files (Critical)
 
 ---
 
@@ -41,3 +41,9 @@ I am an expert software engineer with a unique characteristic: my memory resets 
   - CollectionsListView is not yet integrated into the main UI; the collections list is still rendered directly in HomeView.
   - A new test file (CollectionsListView_Tests.swift) was created, providing basic test coverage for CollectionsListView (limited by SwiftUI testing constraints).
   - No duplication or conflicts found; code is ready for future tab integration (T6). 
+  
+- **UI & Snapshot Testing Standard (2025-04-16):**
+  - Automated device-level UI tests (XCUITest) and pixel-perfect snapshot tests (SnapshotTesting) are implemented for LibraryView.
+  - Snapshot tests are run for both light and dark mode, and on iPhone 11 size.
+  - This is now a standard for all major UI features going forward.
+  - Reference images are committed and reviewed on every UI change. 
