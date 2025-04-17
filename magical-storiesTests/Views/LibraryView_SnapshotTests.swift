@@ -2,6 +2,7 @@ import XCTest
 import SwiftUI
 import SnapshotTesting
 import SwiftData
+import Combine
 
 @testable import magical_stories
 
@@ -100,6 +101,59 @@ final class LibraryView_SnapshotTests: XCTestCase {
         host.overrideUserInterfaceStyle = .dark
         assertSnapshot(of: host, as: diff, named: "LibraryView_SearchResults_Dark")
     }
+
+    // Helper to create a mock StoryService with 3+ stories for recent stories section
+    func makeRecentStoriesServiceAndWait(_ expectation: XCTestExpectation) -> StoryService {
+        let schema = Schema([StoryModel.self, PageModel.self])
+        let container = try! ModelContainer(for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
+        let context = ModelContext(container)
+        let mockPersistence = MockPersistenceService()
+        let now = Date()
+        mockPersistence.storiesToLoad = [
+            Story.previewStory(title: "Newest Story").withTimestamp(now),
+            Story.previewStory(title: "Middle Story").withTimestamp(now.addingTimeInterval(-3600)),
+            Story.previewStory(title: "Oldest Story").withTimestamp(now.addingTimeInterval(-7200))
+        ]
+        let service = try! StoryService(
+            apiKey: "",
+            context: context,
+            persistenceService: mockPersistence
+        )
+        // Use Combine to observe the stories property
+        var cancellable: AnyCancellable?
+        cancellable = service.$stories.sink { stories in
+            if stories.count == 3 {
+                expectation.fulfill()
+                cancellable?.cancel()
+            }
+        }
+        Task { await service.loadStories() }
+        // Keep cancellable alive until expectation is fulfilled
+        _ = cancellable
+        return service
+    }
+
+    func testLibraryView_RecentStoriesSection_LightMode() {
+        let expectation = expectation(description: "Wait for stories to load")
+        let service = makeRecentStoriesServiceAndWait(expectation)
+        wait(for: [expectation], timeout: 2.0)
+        let view = LibraryView().environmentObject(service)
+        let host = UIHostingController(rootView: view)
+        host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
+        host.overrideUserInterfaceStyle = .light
+        assertSnapshot(of: host, as: diff, named: "LibraryView_RecentStoriesSection_Light")
+    }
+
+    func testLibraryView_RecentStoriesSection_DarkMode() {
+        let expectation = expectation(description: "Wait for stories to load")
+        let service = makeRecentStoriesServiceAndWait(expectation)
+        wait(for: [expectation], timeout: 2.0)
+        let view = LibraryView().environmentObject(service)
+        let host = UIHostingController(rootView: view)
+        host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
+        host.overrideUserInterfaceStyle = .dark
+        assertSnapshot(of: host, as: diff, named: "LibraryView_RecentStoriesSection_Dark")
+    }
 }
 
 // Helper for injecting search text into LibraryView for snapshot
@@ -110,5 +164,13 @@ struct LibraryViewWithSearchText: View {
         LibraryView()
             .environmentObject(storyService)
             .onAppear { _searchText.wrappedValue = searchText }
+    }
+}
+
+// Helper extension to set timestamp on Story
+extension Story {
+    func withTimestamp(_ date: Date) -> Story {
+        self.timestamp = date
+        return self
     }
 } 
