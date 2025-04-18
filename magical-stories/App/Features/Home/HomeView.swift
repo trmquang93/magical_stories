@@ -23,7 +23,12 @@ struct HomeView: View {
         ZStack {
             Theme.Colors.background.ignoresSafeArea()
             // Optional: SparkleAnimationView() // Placeholder for animated sparkles
-            mainContent
+            NavigationStack {
+                mainContent
+                    .navigationDestination(for: Story.self) { story in
+                        StoryDetailView(story: story)
+                    }
+            }
         }
         .sheet(isPresented: $showingStoryForm) {
             StoryFormView()
@@ -134,8 +139,10 @@ struct HomeView: View {
                 .foregroundColor(Theme.Colors.textPrimary)
                 .padding(.horizontal, Spacing.lg)
             ForEach(storyService.stories.prefix(2)) { story in
-                StoryCard(story: story)
-                    .padding(.horizontal, Spacing.lg)
+                NavigationLink(value: story) {
+                    StoryCard(story: story)
+                        .padding(.horizontal, Spacing.lg)
+                }
             }
             if storyService.stories.count > 2 {
                 Button(action: {

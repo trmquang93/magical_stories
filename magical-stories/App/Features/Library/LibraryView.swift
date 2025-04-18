@@ -25,92 +25,99 @@ struct LibraryView: View {
     @State private var deleteErrorMessage = ""
     
     var body: some View {
-        ZStack(alignment: .bottom) {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Header
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Library")
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundColor(Theme.Colors.textPrimary)
-                            .accessibilityIdentifier("LibraryView_Header")
-                            .accessibilityLabel("LibraryView_Header")
-                        Text("Your magical story collection")
-                            .font(.system(size: 15, weight: .regular, design: .rounded))
-                            .foregroundColor(Theme.Colors.textSecondary)
-                            .accessibilityIdentifier("LibraryView_Subtitle")
-                            .accessibilityLabel("LibraryView_Subtitle")
-                    }
-                    .padding(.top, 48)
-                    .padding(.horizontal, 16)
+        NavigationStack {
+            ZStack(alignment: .bottom) {
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Header
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Library")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .foregroundColor(Theme.Colors.textPrimary)
+                                .accessibilityIdentifier("LibraryView_Header")
+                                .accessibilityLabel("LibraryView_Header")
+                            Text("Your magical story collection")
+                                .font(.system(size: 15, weight: .regular, design: .rounded))
+                                .foregroundColor(Theme.Colors.textSecondary)
+                                .accessibilityIdentifier("LibraryView_Subtitle")
+                                .accessibilityLabel("LibraryView_Subtitle")
+                        }
+                        .padding(.top, 48)
+                        .padding(.horizontal, 16)
 
-                    // Search Bar
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(Theme.Colors.textSecondary)
-                            .padding(.leading, 12)
-                        TextField("Search stories", text: $searchText)
-                            .font(.system(size: 17, weight: .regular, design: .rounded))
-                            .padding(.vertical, 12)
-                            .padding(.horizontal, 4)
-                            .accessibilityIdentifier("LibraryView_SearchField")
-                            .accessibilityLabel("LibraryView_SearchField")
-                    }
-                    .background(Theme.Colors.surfacePrimary)
-                    .cornerRadius(16)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Theme.Colors.surfaceSecondary, lineWidth: 1)
-                    )
-                    .padding(.top, 24)
-                    .padding(.horizontal, 16)
+                        // Search Bar
+                        HStack {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(Theme.Colors.textSecondary)
+                                .padding(.leading, 12)
+                            TextField("Search stories", text: $searchText)
+                                .font(.system(size: 17, weight: .regular, design: .rounded))
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 4)
+                                .accessibilityIdentifier("LibraryView_SearchField")
+                                .accessibilityLabel("LibraryView_SearchField")
+                        }
+                        .background(Theme.Colors.surfacePrimary)
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Theme.Colors.surfaceSecondary, lineWidth: 1)
+                        )
+                        .padding(.top, 24)
+                        .padding(.horizontal, 16)
 
-                    // Recent Stories
-                    if !recentStories.isEmpty {
+                        // Recent Stories
+                        if !recentStories.isEmpty {
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("Recent Stories")
+                                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                                    .foregroundColor(Theme.Colors.textPrimary)
+                                    .padding(.top, 32)
+                                    .padding(.bottom, 8)
+                                    .padding(.horizontal, 0)
+                                    .accessibilityIdentifier("LibraryView_RecentStoriesSection")
+                                    .accessibilityLabel("LibraryView_RecentStoriesSection")
+                                ForEach(recentStories) { story in
+                                    NavigationLink(value: story) {
+                                        LibraryStoryCard(story: story)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 0)
+                            .padding(.horizontal, 16)
+                        }
+
+                        // Categories
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("Recent Stories")
+                            Text("Categories")
                                 .font(.system(size: 20, weight: .semibold, design: .rounded))
                                 .foregroundColor(Theme.Colors.textPrimary)
                                 .padding(.top, 32)
                                 .padding(.bottom, 8)
-                                .padding(.horizontal, 0)
-                                .accessibilityIdentifier("LibraryView_RecentStoriesSection")
-                                .accessibilityLabel("LibraryView_RecentStoriesSection")
-                            ForEach(recentStories) { story in
-                                LibraryStoryCard(story: story)
+                                .accessibilityIdentifier("LibraryView_CategoriesSection")
+                                .accessibilityLabel("LibraryView_CategoriesSection")
+                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                                ForEach(categories) { category in
+                                    LibraryCategoryCard(category: category)
+                                }
                             }
                         }
-                        .padding(.horizontal, 0)
                         .padding(.horizontal, 16)
+                        .padding(.bottom, 32)
                     }
-
-                    // Categories
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Categories")
-                            .font(.system(size: 20, weight: .semibold, design: .rounded))
-                            .foregroundColor(Theme.Colors.textPrimary)
-                            .padding(.top, 32)
-                            .padding(.bottom, 8)
-                            .accessibilityIdentifier("LibraryView_CategoriesSection")
-                            .accessibilityLabel("LibraryView_CategoriesSection")
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                            ForEach(categories) { category in
-                                LibraryCategoryCard(category: category)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 32)
                 }
+                // Tab bar highlight is handled by MainTabView
             }
-            // Tab bar highlight is handled by MainTabView
+            .background(Theme.Colors.background.ignoresSafeArea())
+            .alert("Delete Failed", isPresented: $showDeleteError, actions: {
+                Button("OK", role: .cancel) {}
+            }, message: {
+                Text(deleteErrorMessage)
+            })
+            .navigationDestination(for: Story.self) { story in
+                StoryDetailView(story: story)
+            }
         }
-        .background(Theme.Colors.background.ignoresSafeArea())
-        .alert("Delete Failed", isPresented: $showDeleteError, actions: {
-            Button("OK", role: .cancel) {}
-        }, message: {
-            Text(deleteErrorMessage)
-        })
     }
     
     // MARK: - Data Logic
