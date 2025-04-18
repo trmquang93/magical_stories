@@ -18,11 +18,18 @@ echo "Cleaning previous test results..."
 rm -rf TestResults.xcresult
 rm -rf TestResults.xml # Reverted: Remove directory if it exists
 
-# Run tests with coverage
 echo "Running tests..."
 
-# Run xcodebuild and capture the exit status, pipe output to xcbeautify
-# Note: We capture the status of xcodebuild, not xcbeautify, thanks to pipefail
+# Handle optional test name argument
+ONLY_TEST_ARG=""
+if [ $# -ge 1 ]; then
+  TEST_NAME="$1"
+  echo "Running only test: $TEST_NAME"
+  ONLY_TEST_ARG="-only-testing $TEST_NAME"
+else
+  echo "Running all tests."
+fi
+
 set +e # Temporarily disable exit on error to capture the status
 xcodebuild test \
   -workspace magical-stories.xcodeproj/project.xcworkspace \
@@ -33,7 +40,8 @@ xcodebuild test \
   -enableAddressSanitizer YES \
   -parallel-testing-enabled NO \
   -allowProvisioningUpdates \
-  -resultBundlePath TestResults.xcresult | xcbeautify \
+  -resultBundlePath TestResults.xcresult \
+  $ONLY_TEST_ARG | xcbeautify \
   --quiet \
   --report junit \
   --report-path TestResults.xml \

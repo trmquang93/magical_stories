@@ -1,6 +1,7 @@
-import SwiftUI
-import SwiftData
 import Foundation
+import SwiftData
+import SwiftUI
+
 // Import the design system if needed
 // Import SparkleAnimationView from DesignSystem/Components if not in same file
 
@@ -8,12 +9,12 @@ struct MainTabView: View {
     @Binding var selectedTab: TabItem
     @EnvironmentObject private var storyService: StoryService
     @EnvironmentObject private var settingsService: SettingsService
-    
+
     var body: some View {
         ZStack(alignment: .bottom) {
             // Magical sparkle background for tab bar (magical accent)
             SparkleAnimationView(verticalRange: 0.7...1)
-                .frame(height: 80) // Only show at the bottom
+                .frame(height: 80)  // Only show at the bottom
                 .ignoresSafeArea(edges: .bottom)
             TabView(selection: $selectedTab) {
                 NavigationStack {
@@ -29,7 +30,7 @@ struct MainTabView: View {
                     .accessibilityLabel("Home Tab")
                 }
                 .tag(TabItem.home)
-                
+
                 NavigationStack {
                     LibraryView()
                 }
@@ -43,7 +44,7 @@ struct MainTabView: View {
                     .accessibilityLabel("Library Tab")
                 }
                 .tag(TabItem.library)
-                
+
                 NavigationStack {
                     CollectionsListView()
                 }
@@ -57,7 +58,7 @@ struct MainTabView: View {
                     .accessibilityLabel("Collections Tab")
                 }
                 .tag(TabItem.collections)
-                
+
                 NavigationStack {
                     SettingsView()
                 }
@@ -105,7 +106,7 @@ extension MainTabView {
                 ParentalControlsModel.self,
                 StoryModel.self,
                 StoryPage.self,
-                AchievementModel.self
+                AchievementModel.self,
             ])
             let config = ModelConfiguration(isStoredInMemoryOnly: true)
             do {
@@ -119,8 +120,9 @@ extension MainTabView {
         let userProfileRepo = UserProfileRepository(modelContext: context)
         let settingsRepo = SettingsRepository(modelContext: context)
         let usageService = UsageAnalyticsService(userProfileRepository: userProfileRepo)
-        let settingsService = SettingsService(repository: settingsRepo, usageAnalyticsService: usageService)
-
+        let settingsService = SettingsService(
+            repository: settingsRepo, usageAnalyticsService: usageService)
+        let persistenceService = PersistenceService(context: context)
         let previewApiKey = "PREVIEW_API_KEY"
         let illustrationService: IllustrationService
         do {
@@ -134,6 +136,7 @@ extension MainTabView {
             storyService = try StoryService(
                 apiKey: previewApiKey,
                 context: context,
+                persistenceService: persistenceService,
                 storyProcessor: storyProcessor
             )
         } catch {
@@ -148,6 +151,23 @@ extension MainTabView {
             storyService: storyService,
             achievementRepository: achievementRepository
         )
+
+
+        Task {
+            await storyService.loadStories()
+            if storyService.stories.isEmpty {
+                // Inject mock stories for preview
+                let mockStories = [
+                    Story.previewStory(title: "The Magical Forest Adventure"),
+                    Story.previewStory(title: "The Lost City of Gold"),
+                    Story.previewStory(title: "The Space Explorer's Quest"),
+                ]
+                for story in mockStories {
+                    try? await persistenceService.saveStory(story)
+                }
+                await storyService.loadStories()
+            }
+        }
 
         return MainTabView(selectedTab: .constant(.home))
             .modelContainer(container)

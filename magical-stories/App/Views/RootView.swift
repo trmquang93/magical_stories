@@ -34,6 +34,17 @@ enum TabItem {
     }
 }
 
+private struct SelectedTabBindingKey: EnvironmentKey {
+    static let defaultValue: Binding<TabItem>? = nil
+}
+
+extension EnvironmentValues {
+    var selectedTabBinding: Binding<TabItem>? {
+        get { self[SelectedTabBindingKey.self] }
+        set { self[SelectedTabBindingKey.self] = newValue }
+    }
+}
+
 struct RootView: View {
     @State var selectedTab: TabItem = .home
     @EnvironmentObject var storyService: StoryService
@@ -47,5 +58,6 @@ struct RootView: View {
             .environmentObject(persistenceService)
             .preferredColorScheme(settingsService.appSettings.darkModeEnabled ? .dark : .light)
             .environment(\.fontScale, settingsService.appSettings.fontScale)
+            .environment(\.selectedTabBinding, $selectedTab)
     }
 }

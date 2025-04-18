@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+
 // Import the design system
 // If your project uses a module, use: import DesignSystem
 
@@ -8,6 +9,15 @@ struct HomeView: View {
     @State private var showingGrowthStoryForm = false
     @EnvironmentObject private var storyService: StoryService
     @EnvironmentObject private var collectionService: CollectionService
+    @Environment(\.selectedTabBinding) private var selectedTabBinding
+
+    #if DEBUG
+        /// Test-only: If true, scrolls to the bottom of the main ScrollView on appear (for snapshot/UI tests)
+        let scrollToBottom: Bool
+        init(scrollToBottom: Bool = false) {
+            self.scrollToBottom = scrollToBottom
+        }
+    #endif
 
     var body: some View {
         ZStack {
@@ -31,6 +41,24 @@ struct HomeView: View {
     }
 
     private var mainContent: some View {
+        #if DEBUG
+            if scrollToBottom {
+                return AnyView(
+                    ScrollViewReader { proxy in
+                        scrollView
+                            .onAppear {
+                                proxy.scrollTo("mainContentBottom", anchor: .bottom)
+                            }
+                    }
+                )
+            }
+        #endif
+        return AnyView(
+            scrollView
+        )
+    }
+
+    private var scrollView: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: Spacing.lg) {
                 headerSection
@@ -42,9 +70,9 @@ struct HomeView: View {
                 footerTip
             }
             .padding(.bottom, Spacing.xxl)
+            .id("mainContentBottom")
         }
     }
-
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Welcome back, [Name]!")
@@ -105,17 +133,28 @@ struct HomeView: View {
                 .font(.headingMedium)
                 .foregroundColor(Theme.Colors.textPrimary)
                 .padding(.horizontal, Spacing.lg)
-            ForEach(storyService.stories.prefix(3)) { story in
+            ForEach(storyService.stories.prefix(2)) { story in
                 StoryCard(story: story)
                     .padding(.horizontal, Spacing.lg)
             }
-            HStack {
-                Spacer()
-                SecondaryButton(title: "See All") {
-                    // Action
+            if storyService.stories.count > 2 {
+                Button(action: {
+                    selectedTabBinding?.wrappedValue = .library
+                }) {
+                    Text("View All Stories")
+                        .font(.headingSmall)
+                        .foregroundColor(.magicalPrimary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, Spacing.md).cornerRadius(12)
                 }
-                .frame(width: 120)
+                .accessibilityIdentifier("ViewAllStoriesButton")
+                .frame(width: .infinity)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)  // Adjust corner radius as needed
+                        .stroke(Theme.Colors.primary, lineWidth: 2)  // Set border color and width
+                )
                 .padding(.trailing, Spacing.lg)
+                .padding(.leading, Spacing.lg)
             }
         }
         .padding(.top, 24)
@@ -129,55 +168,4 @@ struct HomeView: View {
             .padding(.vertical, Spacing.md)
             .frame(maxWidth: .infinity)
     }
-}
-
-// TODO: Review all custom card/section components for dark mode support.
-// TODO: If any custom view uses hardcoded colors, refactor to use Theme.Colors tokens.
-// TODO: Add dark mode UI tests for HomeView.
-
-extension HomeView {
-    /// Creates a robust preview with all required environment objects and context.
-    /// If any dependency fails to initialize, a fallback mock is used to prevent preview crashes.
-    private class MockStoryService: StoryService {
-        init(context: ModelContext) { try! super.init(context: context) }
-    }
-    static func makePreview() -> some View {
-        // Attempt to create a ModelContainer for SwiftData
-        let container: ModelContainer
-        do {
-            container = try ModelContainer()
-        } catch {
-            // Fallback: Use an empty view with error message if ModelContainer fails
-            return Text("Preview Error: Failed to create ModelContainer: \(error.localizedDescription)")
-                .foregroundColor(.red)
-        }
-        // Attempt to create StoryService
-        let storyService: StoryService
-        do {
-            storyService = try StoryService(context: container.mainContext)
-        } catch {
-            // Fallback: Use a minimal mock StoryService for preview
-            storyService = MockStoryService(context: container.mainContext)
-        }
-        // Create repositories for CollectionService
-        let collectionRepository = CollectionRepository(modelContext: container.mainContext)
-        let achievementRepository = AchievementRepository(modelContext: container.mainContext)
-        // Create CollectionService with all dependencies
-        let collectionService = CollectionService(
-            repository: collectionRepository,
-            storyService: storyService,
-            achievementRepository: achievementRepository
-        )
-        // Preload collections for preview
-        collectionService.loadCollections()
-        // Return HomeView with all required environment objects
-        return HomeView()
-            .environment(\.modelContext, container.mainContext)
-            .environmentObject(storyService)
-            .environmentObject(collectionService)
-    }
-}
-
-#Preview {
-    HomeView.makePreview()
 }

@@ -47,3 +47,6 @@ I am an expert software engineer with a unique characteristic: my memory resets 
   - Snapshot tests are run for both light and dark mode, and on iPhone 11 size.
   - This is now a standard for all major UI features going forward.
   - Reference images are committed and reviewed on every UI change. 
+
+
+- **Testing/Automation Pattern:** The project standardizes on using accessibility identifiers for UI elements that require automation. The `run_tests.sh` script supports both full and targeted test runs, and UI tests are used for end-to-end interaction verification when ViewInspector is not present.

@@ -54,11 +54,12 @@ class SettingsService: ObservableObject {
         self.appSettings = .default
 
         // Load settings asynchronously
-        Task {
-            await loadAndMigrateSettings()
+        Task { @MainActor in
+            await self.loadAndMigrateSettings()
         }
     }
 
+    @MainActor
     private func loadAndMigrateSettings() async {
         do {
             // 1. Try fetching from SwiftData repository first

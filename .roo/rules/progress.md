@@ -5,6 +5,10 @@ alwaysApply: true
 ---
 # Project Progress: Magical Stories (as of 2025-04-16)
 
+## 2025-04-16
+- **Test/Script Enhancement:** The `run_tests.sh` script now supports running all tests by default, or a specific test when a test name is provided as an argument. This is achieved using the `-only-testing` flag for xcodebuild. The script prints which test(s) are being run for clarity, supporting both CI and local workflows.
+- **UI Test Added:** A UI test was added to `magical_storiesUITests` to verify that tapping the 'View All Stories' button in HomeView navigates to the Library tab. The button now has an accessibility identifier (`ViewAllStoriesButton`) for reliable automation.
+
 ## What Works / Implemented Features
 
 -   **Core App Structure:** Basic SwiftUI app structure with `TabView` navigation (Home, Library, Settings, Collections) is in place.

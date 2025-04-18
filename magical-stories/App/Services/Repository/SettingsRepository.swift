@@ -13,7 +13,7 @@ protocol SettingsRepositoryProtocol {
     func saveParentalControls(_ controls: ParentalControlsModel) async throws
 }
 
-// Implementation using SwiftData's ModelContext
+@MainActor
 class SettingsRepository: SettingsRepositoryProtocol {
     private let modelContext: ModelContext
 
