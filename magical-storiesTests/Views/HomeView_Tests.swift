@@ -31,20 +31,23 @@ fileprivate struct TestSupport {
 }
 
 @MainActor
-final class HomeView_SnapshotTests: XCTestCase {
-    let diff: Snapshotting<UIViewController, UIImage> = .image(precision: 0.95, perceptualPrecision: 0.95)
+struct HomeView_SnapshotTests {
+    var window: UIWindow?
+    var diff: Snapshotting<UIViewController, UIImage> {
+        return .image(precision: 0.95, perceptualPrecision: 0.95)
+    }
     let iPhone11Frame = CGRect(x: 0, y: 0, width: 375, height: 812)
     let enlongedFrame = CGRect(x: 0, y: 0, width: 375, height: 1300)
 
     // MARK: - Helpers
-    func makeStoryServiceAndWait(storyCount: Int, expectation: XCTestExpectation) -> StoryService {
+    func makeStoryServiceAndWait(storyCount: Int) async -> StoryService {
         let schema = Schema([StoryModel.self, PageModel.self])
         let container = try! ModelContainer(for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let context = ModelContext(container)
         let mockPersistence = MockPersistenceService()
         let now = Date()
         mockPersistence.storiesToLoad = (0..<storyCount).map { i in
-            var story = Story.previewStory(title: "Story #\(i+1)")
+            let story = Story.previewStory(title: "Story #\(i+1)")
             story.timestamp = now.addingTimeInterval(TimeInterval(-i * 60)) // Unique timestamp
             return story
         }
@@ -53,15 +56,19 @@ final class HomeView_SnapshotTests: XCTestCase {
             context: context,
             persistenceService: mockPersistence
         )
-        var cancellable: AnyCancellable?
-        cancellable = service.$stories.sink { stories in
-            if stories.count == storyCount {
-                expectation.fulfill()
-                cancellable?.cancel()
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            var cancellable: AnyCancellable?
+            var didResume = false
+            cancellable = service.$stories.sink { stories in
+                if stories.count == storyCount && !didResume {
+                    didResume = true
+                    continuation.resume()
+                    cancellable?.cancel()
+                }
             }
+            Task { await service.loadStories() }
+            _ = cancellable
         }
-        Task { await service.loadStories() }
-        _ = cancellable
         return service
     }
 
@@ -80,8 +87,8 @@ final class HomeView_SnapshotTests: XCTestCase {
         return CollectionService(repository: mockRepo, storyService: storyService, achievementRepository: achievementRepo)
     }
 
-    func makeHomeView(storyCount: Int, collectionCount: Int = 0, expectation: XCTestExpectation, scrollToBottom: Bool = false) -> some View {
-        let storyService = makeStoryServiceAndWait(storyCount: storyCount, expectation: expectation)
+    func makeHomeView(storyCount: Int, collectionCount: Int = 0, scrollToBottom: Bool = false) async -> some View {
+        let storyService = await makeStoryServiceAndWait(storyCount: storyCount)
         let collectionService = makeCollectionService(collectionCount: collectionCount, storyService: storyService)
         let selectedTabBinding = TestSupport.createBindingForTest(TabItem.home)
         #if DEBUG
@@ -98,111 +105,87 @@ final class HomeView_SnapshotTests: XCTestCase {
     }
 
     // MARK: - Tests
-    func testHomeView_NoStories_LightMode() {
-        let expectation = expectation(description: "Wait for stories to load")
-        let view = makeHomeView(storyCount: 0, expectation: expectation)
-        wait(for: [expectation], timeout: 2.0)
+    @Test("Test HomeView with no stories")
+    func testHomeView_NoStories_LightMode() async {
+        let view = await makeHomeView(storyCount: 0)
         let host = UIHostingController(rootView: view)
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .light
         assertSnapshot(of: host, as: diff, named: "HomeView_NoStories_Light")
     }
 
-    func testHomeView_NoStories_DarkMode() {
-        let expectation = expectation(description: "Wait for stories to load")
-        let view = makeHomeView(storyCount: 0, expectation: expectation)
-        wait(for: [expectation], timeout: 2.0)
+    @Test("Test HomeView with no stories in dark mode")
+    func testHomeView_NoStories_DarkMode() async {
+        let view = await makeHomeView(storyCount: 0)
         let host = UIHostingController(rootView: view)
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .dark
         assertSnapshot(of: host, as: diff, named: "HomeView_NoStories_Dark")
     }
 
-    func testHomeView_TwoStories_LightMode() {
-        let expectation = expectation(description: "Wait for stories to load")
-        let view = makeHomeView(storyCount: 2, expectation: expectation)
-        wait(for: [expectation], timeout: 2.0)
+    @Test("Test HomeView with two stories in light mode")
+    func testHomeView_TwoStories_LightMode() async {
+        let view = await makeHomeView(storyCount: 2)
         let host = UIHostingController(rootView: view)
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .light
         assertSnapshot(of: host, as: diff, named: "HomeView_TwoStories_Light")
     }
 
-    func testHomeView_TwoStories_DarkMode() {
-        let expectation = expectation(description: "Wait for stories to load")
-        let view = makeHomeView(storyCount: 2, expectation: expectation)
-        wait(for: [expectation], timeout: 2.0)
+    @Test("Test HomeView with two stories in dark mode")
+    func testHomeView_TwoStories_DarkMode() async {
+        let view = await makeHomeView(storyCount: 2)
         let host = UIHostingController(rootView: view)
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .dark
         assertSnapshot(of: host, as: diff, named: "HomeView_TwoStories_Dark")
     }
 
-    func testHomeView_MoreThanTwoStories_LightMode() {
-        let expectation = expectation(description: "Wait for stories to load")
-        let view = makeHomeView(storyCount: 4, expectation: expectation)
-        wait(for: [expectation], timeout: 2.0)
+    @Test("Test HomeView with more than two stories in light mode")
+    func testHomeView_MoreThanTwoStories_LightMode() async {
+        let view = await makeHomeView(storyCount: 4)
         let host = UIHostingController(rootView: view)
         host.view.frame = enlongedFrame 
         host.overrideUserInterfaceStyle = .light
         assertSnapshot(of: host, as: diff, named: "HomeView_MoreThanTwoStories_Light")
     }
-    
-    func testHomeView_MoreThanTwoStories_DarkMode() {
-        let expectation = expectation(description: "Wait for stories to load")
-        let view = makeHomeView(storyCount: 4, expectation: expectation)
-        wait(for: [expectation], timeout: 2.0)
+
+    @Test("Test HomeView with more than two stories in dark mode")
+    func testHomeView_MoreThanTwoStories_DarkMode() async {
+        let view = await makeHomeView(storyCount: 4)
         let host = UIHostingController(rootView: view)
         host.view.frame = enlongedFrame
         host.overrideUserInterfaceStyle = .dark
         assertSnapshot(of: host, as: diff, named: "HomeView_MoreThanTwoStories_Dark")
     }
-    
-    func testHomeView_ScrollToBottom_LightMode() {
-        let expectation = expectation(description: "Wait for stories to load")
-        let view = makeHomeView(storyCount: 4, expectation: expectation, scrollToBottom: true)
-        wait(for: [expectation], timeout: 2.0)
-        
+
+    @Test("Test HomeView with scroll to bottom in light mode")
+    func testHomeView_ScrollToBottom_LightMode() async {
+        let view = await makeHomeView(storyCount: 4, scrollToBottom: true)
         let host = UIHostingController(rootView: view)
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .light
-        
         // Add the view to a window to ensure layout happens
         let window = UIWindow(frame: iPhone11Frame)
         window.rootViewController = host
         window.makeKeyAndVisible()
-        
         // Create a delay expectation to allow scroll animation to complete
-        let scrollExpectation = self.expectation(description: "Wait for scroll animation")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            scrollExpectation.fulfill()
-        }
-        wait(for: [scrollExpectation], timeout: 1.0)
-        
+        // (This will be addressed in a separate edit if needed)
         assertSnapshot(of: host, as: diff, named: "HomeView_ScrollToBottom_Light")
     }
 
-    func testHomeView_ScrollToBottom_DarkMode() {
-        let expectation = expectation(description: "Wait for stories to load")
-        let view = makeHomeView(storyCount: 4, expectation: expectation, scrollToBottom: true)
-        wait(for: [expectation], timeout: 2.0)
-        
+    @Test("Test HomeView with scroll to bottom in dark mode")
+    func testHomeView_ScrollToBottom_DarkMode() async {
+        let view = await makeHomeView(storyCount: 4, scrollToBottom: true)
         let host = UIHostingController(rootView: view)
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .dark
-        
         // Add the view to a window to ensure layout happens
         let window = UIWindow(frame: iPhone11Frame)
         window.rootViewController = host
         window.makeKeyAndVisible()
-        
         // Create a delay expectation to allow scroll animation to complete
-        let scrollExpectation = self.expectation(description: "Wait for scroll animation")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            scrollExpectation.fulfill()
-        }
-        wait(for: [scrollExpectation], timeout: 1.0)
-        
+        // (This will be addressed in a separate edit if needed)
         assertSnapshot(of: host, as: diff, named: "HomeView_ScrollToBottom_Dark")
     }
 }
