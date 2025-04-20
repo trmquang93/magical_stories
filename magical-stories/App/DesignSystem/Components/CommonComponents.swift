@@ -3,11 +3,11 @@ import SwiftUI
 // MARK: - MagicalCard
 struct MagicalCard<Content: View>: View {
     let content: Content
-    var padding: EdgeInsets = EdgeInsets(
-        top: Theme.Spacing.md,
-        leading: Theme.Spacing.md,
-        bottom: Theme.Spacing.md,
-        trailing: Theme.Spacing.md
+    var padding: SwiftUI.EdgeInsets = SwiftUI.EdgeInsets(
+        top: UITheme.Spacing.md,
+        leading: UITheme.Spacing.md,
+        bottom: UITheme.Spacing.md,
+        trailing: UITheme.Spacing.md
     )
     
     init(@ViewBuilder content: () -> Content) {
@@ -17,8 +17,8 @@ struct MagicalCard<Content: View>: View {
     var body: some View {
         content
             .padding(padding)
-            .background(Theme.Colors.surfacePrimary)
-            .cornerRadius(Theme.Layout.cornerRadiusMedium)
+            .background(UITheme.Colors.surfacePrimary)
+            .cornerRadius(UITheme.Layout.cornerRadiusMedium)
             .shadow(
                 color: Color.black.opacity(0.05),
                 radius: 8,
@@ -39,10 +39,10 @@ struct MagicalSection<Content: View>: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+        VStack(alignment: .leading, spacing: UITheme.Spacing.md) {
             Text(title)
-                .font(Theme.Typography.headingMedium)
-                .foregroundColor(Theme.Colors.textPrimary)
+                .font(UITheme.Typography.headingMedium)
+                .foregroundColor(UITheme.Colors.textPrimary)
             
             content
         }
@@ -53,7 +53,7 @@ struct MagicalSection<Content: View>: View {
 struct MagicalDivider: View {
     var body: some View {
         Rectangle()
-            .fill(Theme.Colors.surfaceSecondary)
+            .fill(UITheme.Colors.surfaceSecondary)
             .frame(height: 1)
     }
 }
@@ -63,13 +63,13 @@ struct MagicalLoadingView: View {
     let message: String
     
     var body: some View {
-        VStack(spacing: Theme.Spacing.md) {
+        VStack(spacing: UITheme.Spacing.md) {
             ProgressView()
                 .scaleEffect(1.5)
             
             Text(message)
-                .font(Theme.Typography.bodyMedium)
-                .foregroundColor(Theme.Colors.textSecondary)
+                .font(UITheme.Typography.bodyMedium)
+                .foregroundColor(UITheme.Colors.textSecondary)
                 .dynamicTypeSize(...DynamicTypeSize.accessibility5)
         }
         .accessibilityElement(children: .combine)
@@ -84,14 +84,14 @@ struct MagicalErrorView: View {
     let retryAction: () -> Void
     
     var body: some View {
-        VStack(spacing: Theme.Spacing.lg) {
+        VStack(spacing: UITheme.Spacing.lg) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 48))
-                .foregroundColor(Theme.Colors.error)
+                .foregroundColor(UITheme.Colors.error)
             
             Text(message)
-                .font(Theme.Typography.bodyLarge)
-                .foregroundColor(Theme.Colors.textPrimary)
+                .font(UITheme.Typography.bodyLarge)
+                .foregroundColor(UITheme.Colors.textPrimary)
                 .multilineTextAlignment(.center)
             
             PrimaryButton(title: "Try Again") {
@@ -111,20 +111,20 @@ struct MagicalEmptyStateView: View {
     let action: () -> Void
     
     var body: some View {
-        VStack(spacing: Theme.Spacing.lg) {
+        VStack(spacing: UITheme.Spacing.lg) {
             Image(systemName: "sparkles")
                 .font(.system(size: 48))
-                .foregroundColor(Theme.Colors.primary)
+                .foregroundColor(UITheme.Colors.primary)
             
-            VStack(spacing: Theme.Spacing.xs) {
+            VStack(spacing: UITheme.Spacing.xs) {
                 Text(title)
-                    .font(Theme.Typography.headingMedium)
-                    .foregroundColor(Theme.Colors.textPrimary)
+                    .font(UITheme.Typography.headingMedium)
+                    .foregroundColor(UITheme.Colors.textPrimary)
                     .dynamicTypeSize(...DynamicTypeSize.accessibility5)
                 
                 Text(message)
-                    .font(Theme.Typography.bodyMedium)
-                    .foregroundColor(Theme.Colors.textSecondary)
+                    .font(UITheme.Typography.bodyMedium)
+                    .foregroundColor(UITheme.Colors.textSecondary)
                     .multilineTextAlignment(.center)
                     .dynamicTypeSize(...DynamicTypeSize.accessibility5)
             }
@@ -143,19 +143,19 @@ struct MagicalEmptyStateView: View {
 struct CommonComponents_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView {
-            VStack(spacing: Theme.Spacing.lg) {
+            VStack(spacing: UITheme.Spacing.lg) {
                 MagicalCard {
-                    VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+                    VStack(alignment: .leading, spacing: UITheme.Spacing.md) {
                         Text("Card Title")
-                            .font(Theme.Typography.headingMedium)
+                            .font(UITheme.Typography.headingMedium)
                         Text("This is a card with some content inside it.")
-                            .font(Theme.Typography.bodyMedium)
+                            .font(UITheme.Typography.bodyMedium)
                     }
                 }
                 
                 MagicalSection("Section Title") {
                     Text("This is a section with content.")
-                        .font(Theme.Typography.bodyMedium)
+                        .font(UITheme.Typography.bodyMedium)
                 }
                 
                 MagicalDivider()
@@ -178,7 +178,7 @@ struct CommonComponents_Previews: PreviewProvider {
             }
             .padding()
         }
-        .background(Theme.Colors.background)
+        .background(UITheme.Colors.background)
     }
 }
 
@@ -204,7 +204,7 @@ struct SparkleAnimationView: View {
             .magicPurple.opacity(0.18),
             .skyBlue.opacity(0.14),
             .fairyPink.opacity(0.12),
-            .magicalPrimary.opacity(0.10)
+            Color("MagicalPrimary").opacity(0.10)
         ],
         minSize: CGFloat = 12,
         maxSize: CGFloat = 32,

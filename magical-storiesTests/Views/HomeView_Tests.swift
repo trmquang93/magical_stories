@@ -23,7 +23,7 @@ struct HomeView_Tests {
     @Test("HomeView displays createGrowthCollectionCard when collections is empty")
     func testCreateGrowthCollectionCard() async throws {
         let viewData = await createTestView(storyCount: 0, collectionCount: 0)
-        let view = viewData.0
+        let _ = viewData.0
         let collectionService = viewData.2
         
         #expect(collectionService.collections.isEmpty)
@@ -39,8 +39,34 @@ struct HomeView_Tests {
     @Test("HomeView displays growthCollectionsPreview when collections is not empty")
     func testGrowthCollectionsPreview() async throws {
         let viewData = await createTestView(storyCount: 0, collectionCount: 2)
-        let view = viewData.0
+        let _ = viewData.0
         let collectionService = viewData.2
+        
+        // Wait for collections to be loaded with Combine
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            var cancellable: AnyCancellable?
+            var didResume = false
+            
+            // Force reload of collections
+            collectionService.loadCollections(forceReload: true)
+            
+            cancellable = collectionService.$collections.sink { collections in
+                if !collections.isEmpty && collections.count == 2 && !didResume {
+                    didResume = true
+                    continuation.resume()
+                    cancellable?.cancel()
+                }
+            }
+            
+            // Timeout after reasonable time
+            Task {
+                try? await Task.sleep(for: .seconds(1))
+                if !didResume {
+                    didResume = true
+                    continuation.resume()
+                }
+            }
+        }
         
         // Verify the HomeView is in the correct state to display growthCollectionsPreview
         #expect(!collectionService.collections.isEmpty)
@@ -67,7 +93,7 @@ struct HomeView_Tests {
             persistenceService: mockPersistence
         )
         
-        // Create collection service
+        // Create collection service with explicit collections
         let mockRepo = MockCollectionRepository()
         for i in 0..<collectionCount {
             let collection = StoryCollection(

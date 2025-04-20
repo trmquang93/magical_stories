@@ -7,6 +7,7 @@ struct StoryParameters: Codable, Hashable {
     var childAge: Int
     var theme: String
     var favoriteCharacter: String
+    var storyLength: String?
 }
 
 /// Represents a page in a story.

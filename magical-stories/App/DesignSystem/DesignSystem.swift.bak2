@@ -420,6 +420,6 @@ struct ActionCard: View {
     .environment(\.colorScheme, .dark)
 }
 
+#Preview("Light Mode") {
 
-
-
+#Preview("Dark Mode") {

@@ -21,7 +21,7 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
-            Theme.Colors.background.ignoresSafeArea()
+            UITheme.Colors.background.ignoresSafeArea()
             // Optional: SparkleAnimationView() // Placeholder for animated sparkles
             NavigationStack {
                 mainContent
@@ -87,12 +87,12 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Welcome back, [Name]!")
                 .font(.displayMedium)
-                .foregroundColor(Theme.Colors.textPrimary)
+                .foregroundColor(UITheme.Colors.textPrimary)
                 .padding(.top, Spacing.xl)
                 .accessibilityIdentifier("HomeView_WelcomeHeading")
             Text("What magical story will you create today?")
                 .font(.bodyMedium)
-                .foregroundColor(Theme.Colors.textSecondary)
+                .foregroundColor(UITheme.Colors.textSecondary)
                 .accessibilityIdentifier("HomeView_WelcomeSubtitle")
         }
         .padding(.horizontal, Spacing.lg)
@@ -102,7 +102,7 @@ struct HomeView: View {
     private var primaryActionCard: some View {
         ActionCard(
             iconName: "wand.and.stars",
-            iconColor: Theme.Colors.primary,
+            iconColor: UITheme.Colors.primary,
             title: "Create a New Story",
             subtitle: "Personalize a bedtime adventure",
             buttonTitle: "Start",
@@ -115,7 +115,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Growth Path Collections")
                 .font(.headingMedium)
-                .foregroundColor(Theme.Colors.textPrimary)
+                .foregroundColor(UITheme.Colors.textPrimary)
                 .padding(.horizontal, Spacing.lg)
                 .accessibilityIdentifier("HomeView_CollectionsHeading")
             ScrollView(.horizontal, showsIndicators: false) {
@@ -136,7 +136,7 @@ struct HomeView: View {
     private var createGrowthCollectionCard: some View {
         ActionCard(
             iconName: "plus",
-            iconColor: Theme.Colors.primary,
+            iconColor: UITheme.Colors.primary,
             title: "Create a Growth Collection",
             subtitle: "Guide your child's growth with themed story sets",
             buttonTitle: "Create Collection",
@@ -149,7 +149,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Your Story Library")
                 .font(.headingMedium)
-                .foregroundColor(Theme.Colors.textPrimary)
+                .foregroundColor(UITheme.Colors.textPrimary)
                 .padding(.horizontal, Spacing.lg)
                 .accessibilityIdentifier("HomeView_LibraryHeading")
             ForEach(storyService.stories.prefix(2)) { story in
@@ -173,7 +173,7 @@ struct HomeView: View {
                 .frame(width: .infinity)
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)  // Adjust corner radius as needed
-                        .stroke(Theme.Colors.primary, lineWidth: 2)  // Set border color and width
+                        .stroke(UITheme.Colors.primary, lineWidth: 2)  // Set border color and width
                 )
                 .padding(.trailing, Spacing.lg)
                 .padding(.leading, Spacing.lg)
@@ -186,7 +186,7 @@ struct HomeView: View {
     private var footerTip: some View {
         Text("Tip: Reading together builds magical memories!")
             .font(.bodySmall)
-            .foregroundColor(Theme.Colors.accent)
+            .foregroundColor(UITheme.Colors.accent)
             .multilineTextAlignment(.center)
             .padding(.vertical, Spacing.md)
             .frame(maxWidth: .infinity)

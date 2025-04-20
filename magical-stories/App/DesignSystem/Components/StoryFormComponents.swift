@@ -9,11 +9,11 @@ struct MagicalTextField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
             Text(title)
-                .font(Theme.Typography.bodyMedium)
-                .foregroundColor(Theme.Colors.textSecondary)
+                .font(UITheme.Typography.bodyMedium)
+                .foregroundColor(UITheme.Colors.textSecondary)
             
             TextField(placeholder, text: $text)
-                .font(Theme.Typography.bodyLarge)
+                .font(UITheme.Typography.bodyLarge)
                 .textFieldStyle(MagicalTextFieldStyle())
                 .autocapitalization(.words)
         }
@@ -29,8 +29,8 @@ struct MagicalSegmentedPicker<T: Hashable>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
             Text(title)
-                .font(Theme.Typography.bodyMedium)
-                .foregroundColor(Theme.Colors.textSecondary)
+                .font(UITheme.Typography.bodyMedium)
+                .foregroundColor(UITheme.Colors.textSecondary)
             
             Picker(title, selection: $selection) {
                 ForEach(options, id: \.0) { option in
@@ -52,8 +52,8 @@ struct MagicalEmojiPicker: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
             Text(title)
-                .font(Theme.Typography.bodyMedium)
-                .foregroundColor(Theme.Colors.textSecondary)
+                .font(UITheme.Typography.bodyMedium)
+                .foregroundColor(UITheme.Colors.textSecondary)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: Theme.Spacing.sm) {
@@ -82,12 +82,12 @@ struct MagicalThemePicker: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
             Text(title)
-                .font(Theme.Typography.bodyMedium)
-                .foregroundColor(Theme.Colors.textSecondary)
+                .font(UITheme.Typography.bodyMedium)
+                .foregroundColor(UITheme.Colors.textSecondary)
             
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: Theme.Spacing.sm) {
-                    ForEach(themes) { theme in
+                HStack(spacing: UITheme.Spacing.sm) {
+                    ForEach(StoryTheme.allCases) { theme in
                         ThemeButton(
                             theme: theme,
                             isSelected: selection == theme
@@ -96,7 +96,7 @@ struct MagicalThemePicker: View {
                         }
                     }
                 }
-                .padding(.horizontal, Theme.Spacing.xs)
+                .padding(.horizontal, UITheme.Spacing.xs)
             }
         }
     }
@@ -111,21 +111,21 @@ private struct EmojiButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: Theme.Spacing.xxs) {
+            VStack(spacing: UITheme.Spacing.xxs) {
                 Text(emoji)
                     .font(.system(size: 32))
                 Text(description)
-                    .font(Theme.Typography.bodySmall)
-                    .foregroundColor(Theme.Colors.textSecondary)
+                    .font(UITheme.Typography.bodySmall)
+                    .foregroundColor(UITheme.Colors.textSecondary)
             }
             .frame(width: 64, height: 80)
             .background(
-                RoundedRectangle(cornerRadius: Theme.Layout.cornerRadiusMedium)
-                    .fill(isSelected ? Theme.Colors.surfaceSecondary : Theme.Colors.surfacePrimary)
+                RoundedRectangle(cornerRadius: UITheme.Layout.cornerRadiusMedium)
+                    .fill(isSelected ? UITheme.Colors.surfaceSecondary : UITheme.Colors.surfacePrimary)
                     .overlay(
-                        RoundedRectangle(cornerRadius: Theme.Layout.cornerRadiusMedium)
+                        RoundedRectangle(cornerRadius: UITheme.Layout.cornerRadiusMedium)
                             .strokeBorder(
-                                isSelected ? Theme.Colors.primary : Theme.Colors.surfaceSecondary,
+                                isSelected ? UITheme.Colors.primary : UITheme.Colors.surfaceSecondary,
                                 lineWidth: 2
                             )
                     )
@@ -142,22 +142,22 @@ private struct ThemeButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: Theme.Spacing.xxs) {
+            VStack(spacing: UITheme.Spacing.xxs) {
                 Image(systemName: theme.iconName)
                     .font(.system(size: 24))
-                    .foregroundColor(isSelected ? Theme.Colors.primary : Theme.Colors.textPrimary)
-                Text(theme.title)
-                    .font(Theme.Typography.bodySmall)
-                    .foregroundColor(Theme.Colors.textSecondary)
+                    .foregroundColor(isSelected ? UITheme.Colors.primary : UITheme.Colors.textPrimary)
+                Text("UITheme.title")
+                    .font(UITheme.Typography.bodySmall)
+                    .foregroundColor(UITheme.Colors.textSecondary)
             }
             .frame(width: 80, height: 80)
             .background(
-                RoundedRectangle(cornerRadius: Theme.Layout.cornerRadiusMedium)
-                    .fill(isSelected ? Theme.Colors.surfaceSecondary : Theme.Colors.surfacePrimary)
+                RoundedRectangle(cornerRadius: UITheme.Layout.cornerRadiusMedium)
+                    .fill(isSelected ? UITheme.Colors.surfaceSecondary : UITheme.Colors.surfacePrimary)
                     .overlay(
-                        RoundedRectangle(cornerRadius: Theme.Layout.cornerRadiusMedium)
+                        RoundedRectangle(cornerRadius: UITheme.Layout.cornerRadiusMedium)
                             .strokeBorder(
-                                isSelected ? Theme.Colors.primary : Theme.Colors.surfaceSecondary,
+                                isSelected ? UITheme.Colors.primary : UITheme.Colors.surfaceSecondary,
                                 lineWidth: 2
                             )
                     )
@@ -171,12 +171,12 @@ private struct ThemeButton: View {
 struct MagicalTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
-            .padding(Theme.Spacing.md)
-            .background(Theme.Colors.surfacePrimary)
-            .cornerRadius(Theme.Layout.cornerRadiusMedium)
+            .padding(UITheme.Spacing.md)
+            .background(UITheme.Colors.surfacePrimary)
+            .cornerRadius(UITheme.Layout.cornerRadiusMedium)
             .overlay(
-                RoundedRectangle(cornerRadius: Theme.Layout.cornerRadiusMedium)
-                    .strokeBorder(Theme.Colors.surfaceSecondary, lineWidth: 1)
+                RoundedRectangle(cornerRadius: UITheme.Layout.cornerRadiusMedium)
+                    .strokeBorder(UITheme.Colors.surfaceSecondary, lineWidth: 1)
             )
     }
 }

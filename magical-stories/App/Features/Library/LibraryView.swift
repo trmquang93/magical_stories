@@ -33,12 +33,12 @@ struct LibraryView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Library")
                                 .font(.system(size: 28, weight: .bold, design: .rounded))
-                                .foregroundColor(Theme.Colors.textPrimary)
+                                .foregroundColor(UITheme.Colors.textPrimary)
                                 .accessibilityIdentifier("LibraryView_Header")
                                 .accessibilityLabel("LibraryView_Header")
                             Text("Your magical story collection")
                                 .font(.system(size: 15, weight: .regular, design: .rounded))
-                                .foregroundColor(Theme.Colors.textSecondary)
+                                .foregroundColor(UITheme.Colors.textSecondary)
                                 .accessibilityIdentifier("LibraryView_Subtitle")
                                 .accessibilityLabel("LibraryView_Subtitle")
                         }
@@ -48,7 +48,7 @@ struct LibraryView: View {
                         // Search Bar
                         HStack {
                             Image(systemName: "magnifyingglass")
-                                .foregroundColor(Theme.Colors.textSecondary)
+                                .foregroundColor(UITheme.Colors.textSecondary)
                                 .padding(.leading, 12)
                             TextField("Search stories", text: $searchText)
                                 .font(.system(size: 17, weight: .regular, design: .rounded))
@@ -57,11 +57,11 @@ struct LibraryView: View {
                                 .accessibilityIdentifier("LibraryView_SearchField")
                                 .accessibilityLabel("LibraryView_SearchField")
                         }
-                        .background(Theme.Colors.surfacePrimary)
+                        .background(UITheme.Colors.surfacePrimary)
                         .cornerRadius(16)
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
-                                .stroke(Theme.Colors.surfaceSecondary, lineWidth: 1)
+                                .stroke(UITheme.Colors.surfaceSecondary, lineWidth: 1)
                         )
                         .padding(.top, 24)
                         .padding(.horizontal, 16)
@@ -71,7 +71,7 @@ struct LibraryView: View {
                             VStack(alignment: .leading, spacing: 16) {
                                 Text("Recent Stories")
                                     .font(.system(size: 20, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Theme.Colors.textPrimary)
+                                    .foregroundColor(UITheme.Colors.textPrimary)
                                     .padding(.top, 32)
                                     .padding(.bottom, 8)
                                     .padding(.horizontal, 0)
@@ -91,7 +91,7 @@ struct LibraryView: View {
                         VStack(alignment: .leading, spacing: 16) {
                             Text("Categories")
                                 .font(.system(size: 20, weight: .semibold, design: .rounded))
-                                .foregroundColor(Theme.Colors.textPrimary)
+                                .foregroundColor(UITheme.Colors.textPrimary)
                                 .padding(.top, 32)
                                 .padding(.bottom, 8)
                                 .accessibilityIdentifier("LibraryView_CategoriesSection")
@@ -108,7 +108,7 @@ struct LibraryView: View {
                 }
                 // Tab bar highlight is handled by MainTabView
             }
-            .background(Theme.Colors.background.ignoresSafeArea())
+            .background(UITheme.Colors.background.ignoresSafeArea())
             .alert("Delete Failed", isPresented: $showDeleteError, actions: {
                 Button("OK", role: .cancel) {}
             }, message: {
@@ -180,21 +180,21 @@ struct LibraryStoryCard: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(story.title)
                     .font(.system(size: 17, weight: .medium, design: .rounded))
-                    .foregroundColor(Theme.Colors.textPrimary)
+                    .foregroundColor(UITheme.Colors.textPrimary)
                 Text("Read \(relativeDateString(from: story.timestamp)) • \(storyDurationString(story: story))")
                     .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundColor(Theme.Colors.textSecondary)
+                    .foregroundColor(UITheme.Colors.textSecondary)
             }
             Spacer()
             Image(systemName: "ellipsis")
-                .foregroundColor(Theme.Colors.textSecondary)
+                .foregroundColor(UITheme.Colors.textSecondary)
         }
         .padding(16)
-        .background(Theme.Colors.surfacePrimary)
+        .background(UITheme.Colors.surfacePrimary)
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(Theme.Colors.surfaceSecondary, lineWidth: 1)
+                .stroke(UITheme.Colors.surfaceSecondary, lineWidth: 1)
         )
     }
     // Helper for relative date
@@ -227,19 +227,19 @@ struct LibraryCategoryCard: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(category.name)
                     .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundColor(Theme.Colors.textPrimary)
+                    .foregroundColor(UITheme.Colors.textPrimary)
                 Text("\(category.storyCount) stories")
                     .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundColor(Theme.Colors.textSecondary)
+                    .foregroundColor(UITheme.Colors.textSecondary)
             }
             Spacer()
         }
         .padding(16)
-        .background(Theme.Colors.surfacePrimary)
+        .background(UITheme.Colors.surfacePrimary)
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(Theme.Colors.surfaceSecondary, lineWidth: 1)
+                .stroke(UITheme.Colors.surfaceSecondary, lineWidth: 1)
         )
     }
 }
@@ -248,34 +248,34 @@ struct StoryCard: View {
     let story: Story
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+        VStack(alignment: .leading, spacing: UITheme.Spacing.xs) {
             // Theme Icon
             HStack {
                 Image(systemName: "book.closed") // TODO: Map theme string to icon
-                    .foregroundColor(Theme.Colors.primary)
+                    .foregroundColor(UITheme.Colors.primary)
                 Spacer()
                 Text(dateFormatter.string(from: story.timestamp))
-                    .font(Theme.Typography.bodySmall)
-                    .foregroundColor(Theme.Colors.textSecondary)
+                    .font(UITheme.Typography.bodySmall)
+                    .foregroundColor(UITheme.Colors.textSecondary)
             }
-            .padding(.bottom, Theme.Spacing.xxs)
+            .padding(.bottom, UITheme.Spacing.xxs)
             
             // Title
             Text(story.title)
-                .font(Theme.Typography.headingSmall)
-                .foregroundColor(Theme.Colors.textPrimary)
+                .font(UITheme.Typography.headingSmall)
+                .foregroundColor(UITheme.Colors.textPrimary)
                 .accessibilityIdentifier("StoryTitle_\(story.title)")
                 .lineLimit(2)
             
             // Child name
             Text("For: \(story.parameters.childName)")
-                .font(Theme.Typography.bodySmall)
-                .foregroundColor(Theme.Colors.textSecondary)
+                .font(UITheme.Typography.bodySmall)
+                .foregroundColor(UITheme.Colors.textSecondary)
         }
-        .padding(Theme.Spacing.md)
+        .padding(UITheme.Spacing.md)
         .frame(maxWidth: .infinity, minHeight: 140, alignment: .leading)
-        .background(Theme.Colors.surfacePrimary)
-        .cornerRadius(Theme.Layout.cornerRadiusMedium)
+        .background(UITheme.Colors.surfacePrimary)
+        .cornerRadius(UITheme.Layout.cornerRadiusMedium)
         .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
     }
     

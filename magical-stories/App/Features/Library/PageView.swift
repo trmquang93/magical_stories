@@ -28,7 +28,7 @@ struct PageView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: Theme.Spacing.lg) {
+            VStack(alignment: .leading, spacing: UITheme.Spacing.lg) {
                 // Display illustration if available
                 if page.illustrationStatus == .success, let relPath = page.illustrationRelativePath,
                     let url = fullImageURL(for: relPath)
@@ -39,8 +39,8 @@ struct PageView: View {
                             ProgressView()
                                 .frame(height: 200)
                                 .frame(maxWidth: .infinity)
-                                .background(Theme.Colors.surfaceSecondary)
-                                .cornerRadius(Theme.Layout.cornerRadiusMedium)
+                                .background(UITheme.Colors.surfaceSecondary)
+                                .cornerRadius(UITheme.Layout.cornerRadiusMedium)
                                 .accessibilityLabel("Loading illustration")
                                 .accessibilityAddTraits(.updatesFrequently)
                         case .success(let image):
@@ -49,7 +49,7 @@ struct PageView: View {
                                 .scaledToFit()
                                 .frame(height: 200)
                                 .frame(maxWidth: .infinity)
-                                .cornerRadius(Theme.Layout.cornerRadiusMedium)
+                                .cornerRadius(UITheme.Layout.cornerRadiusMedium)
                                 .accessibilityLabel(illustrationDescription)
                                 .accessibilityAddTraits(.isImage)
                         case .failure:
@@ -58,13 +58,13 @@ struct PageView: View {
                                 .scaledToFit()
                                 .frame(height: 200)
                                 .frame(maxWidth: .infinity)
-                                .cornerRadius(Theme.Layout.cornerRadiusMedium)
+                                .cornerRadius(UITheme.Layout.cornerRadiusMedium)
                                 .overlay(
                                     Text("Failed to load illustration")
-                                        .font(Theme.Typography.bodySmall)
+                                        .font(UITheme.Typography.bodySmall)
                                         .padding(6)
-                                        .background(Theme.Colors.surfaceSecondary.opacity(0.8))
-                                        .cornerRadius(Theme.Layout.cornerRadiusSmall)
+                                        .background(UITheme.Colors.surfaceSecondary.opacity(0.8))
+                                        .cornerRadius(UITheme.Layout.cornerRadiusSmall)
                                         .padding(8),
                                     alignment: .bottom
                                 )
@@ -81,13 +81,13 @@ struct PageView: View {
                             .scaledToFit()
                             .frame(height: 200)
                             .frame(maxWidth: .infinity)
-                            .cornerRadius(Theme.Layout.cornerRadiusMedium)
+                            .cornerRadius(UITheme.Layout.cornerRadiusMedium)
                             .overlay(
                                 Text("Illustration failed")
-                                    .font(Theme.Typography.bodySmall)
+                                    .font(UITheme.Typography.bodySmall)
                                     .padding(6)
-                                    .background(Theme.Colors.surfaceSecondary.opacity(0.8))
-                                    .cornerRadius(Theme.Layout.cornerRadiusSmall)
+                                    .background(UITheme.Colors.surfaceSecondary.opacity(0.8))
+                                    .cornerRadius(UITheme.Layout.cornerRadiusSmall)
                                     .padding(8),
                                 alignment: .bottom
                             )
@@ -107,22 +107,22 @@ struct PageView: View {
                         .scaledToFit()
                         .frame(height: 200)
                         .frame(maxWidth: .infinity)
-                        .cornerRadius(Theme.Layout.cornerRadiusMedium)
+                        .cornerRadius(UITheme.Layout.cornerRadiusMedium)
                         .accessibilityLabel("Illustration placeholder")
                         .accessibilityAddTraits(.isImage)
                 }
                 Text(page.content)
-                    .font(Theme.Typography.bodyLarge)
+                    .font(UITheme.Typography.bodyLarge)
                     .lineSpacing(8)  // Consistent line spacing
-                    .foregroundColor(Theme.Colors.textPrimary)
+                    .foregroundColor(UITheme.Colors.textPrimary)
                     .dynamicTypeSize(...DynamicTypeSize.accessibility5)
                     .accessibilityLabel("Story text")
                     .accessibilitySortPriority(2)
 
                 Spacer()  // Push content to the top
             }
-            .padding(.horizontal, Theme.Spacing.lg)
-            .padding(.vertical, Theme.Spacing.xl)  // Add vertical padding
+            .padding(.horizontal, UITheme.Spacing.lg)
+            .padding(.vertical, UITheme.Spacing.xl)  // Add vertical padding
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Page \(page.pageNumber)")

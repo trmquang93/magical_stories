@@ -74,7 +74,7 @@ struct StoryServiceTests {
         let container = try ModelContainer(for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let testContext = ModelContext(container)
         
-        let storyService: StoryService = try StoryService(
+        _ = try StoryService(
             apiKey: "", // Not used by mockModel
             context: testContext,
             persistenceService: mockPersistenceService, // Correct injection

@@ -108,7 +108,7 @@ struct CollectionDetailView: View {
         .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Achievement: \(achievement.name)")
-        .accessibilityHint(achievement.achievementDescription ?? "")
+        .accessibilityHint(achievement.achievementDescription)
     }
 
     private func loadAchievements() async {
@@ -120,16 +120,27 @@ struct CollectionDetailView: View {
         }
         var all: [AchievementModel] = []
         for story in stories {
-            if let storyModel = story as? StoryModel {
-                if let modelContext = storyModel.modelContext {
+            if let storyId = getStoryId(from: story) {
+                if let modelContext = getModelContext(from: story) {
                     let repo = AchievementRepository(modelContext: modelContext)
-                    if let storyAchievements = try? await repo.fetchAchievements(for: storyModel.id) {
+                    if let storyAchievements = try? await repo.fetchAchievements(for: storyId) {
                         all.append(contentsOf: storyAchievements)
                     }
                 }
             }
         }
         achievements = all.filter { $0.type == .growthPathProgress }
+    }
+
+    private func getStoryId(from story: Story) -> UUID? {
+        return story.id
+    }
+
+    private func getModelContext(from story: Story) -> ModelContext? {
+        if let mirror = Mirror(reflecting: story).children.first(where: { $0.label == "modelContext" }) {
+            return mirror.value as? ModelContext
+        }
+        return nil
     }
 
     // Helper function to break down the view complexity

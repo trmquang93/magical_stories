@@ -74,7 +74,7 @@ struct CollectionCardView: View {
     }
 }
 
-#Preview {
+#Preview("Light Mode", traits: .sizeThatFitsLayout) {
     VStack {
         CollectionCardView(collection: StoryCollection(
             title: "Forest Friends",
@@ -103,10 +103,10 @@ struct CollectionCardView: View {
         .frame(width: 250)
     }
     .padding()
-    .previewLayout(.sizeThatFits)
     .preferredColorScheme(.light)
+}
     
-    // Dark mode preview
+#Preview("Dark Mode", traits: .sizeThatFitsLayout) {
     VStack {
         CollectionCardView(collection: StoryCollection(
             title: "Forest Friends",
@@ -135,6 +135,5 @@ struct CollectionCardView: View {
         .frame(width: 250)
     }
     .padding()
-    .previewLayout(.sizeThatFits)
     .preferredColorScheme(.dark)
 }

@@ -78,14 +78,14 @@ struct StoryDetailView: View {
     private var pageIndicatorAndProgress: some View {
         VStack(spacing: Theme.Spacing.xs) {
             ProgressView(value: readingProgress)
-                .tint(Theme.Colors.primary)
+                .tint(UITheme.Colors.primary)
                 .padding(.horizontal, Theme.Spacing.lg)
                 .accessibilityLabel(progressDescription)
                 .accessibilityValue(progressDescription)
 
             Text("Page \(currentPageIndex + 1) of \(pages.count)")
-                .font(Theme.Typography.bodySmall)
-                .foregroundColor(Theme.Colors.textSecondary)
+                .font(UITheme.Typography.bodySmall)
+                .foregroundColor(UITheme.Colors.textSecondary)
                 .dynamicTypeSize(...DynamicTypeSize.accessibility5)
                 .accessibilityLabel("Page \(currentPageIndex + 1) of \(pages.count)")
         }

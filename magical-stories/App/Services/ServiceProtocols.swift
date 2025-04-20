@@ -5,30 +5,30 @@ protocol CollectionServiceProtocol {
     /// Creates a new Story Collection.
     /// - Parameter collection: The `StoryCollection` to create.
     /// - Throws: An error if creation fails.
-    func createCollection(_ collection: StoryCollection) throws
+    @MainActor func createCollection(_ collection: StoryCollection) throws
 
     /// Fetches a specific Story Collection by its ID.
     /// - Parameter id: The `UUID` of the collection to fetch.
     /// - Returns: The `StoryCollection` if found, otherwise `nil`.
     /// - Throws: An error if fetching fails.
-    func fetchCollection(id: UUID) throws -> StoryCollection?
+    @MainActor func fetchCollection(id: UUID) throws -> StoryCollection?
 
     /// Fetches all Story Collections.
     /// - Returns: An array of `StoryCollection` objects.
     /// - Throws: An error if fetching fails.
-    func fetchAllCollections() throws -> [StoryCollection]
+    @MainActor func fetchAllCollections() throws -> [StoryCollection]
 
     /// Updates the progress of a specific Story Collection.
     /// - Parameters:
     ///   - id: The `UUID` of the collection to update.
     ///   - progress: The new progress value (0.0 to 1.0).
     /// - Throws: An error if updating fails.
-    func updateCollectionProgress(id: UUID, progress: Float) throws
+    @MainActor func updateCollectionProgress(id: UUID, progress: Float) throws
 
     /// Deletes a specific Story Collection.
     /// - Parameter id: The `UUID` of the collection to delete.
     /// - Throws: An error if deletion fails.
-    func deleteCollection(id: UUID) throws
+    @MainActor func deleteCollection(id: UUID) throws
 }
 
 /// Protocol defining the requirements for Story services.

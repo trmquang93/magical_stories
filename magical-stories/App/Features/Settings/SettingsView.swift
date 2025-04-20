@@ -24,7 +24,7 @@ struct SettingsView: View {
                 // Profile Section
                 Section("Profile") {
                     TextField("Child's Name", text: $childName)
-                        .font(Theme.Typography.bodyLarge)
+                        .font(Theme.Fonts.bodyMedium)
                         .onSubmit {
                             UserDefaults.standard.set(childName, forKey: "childName")
                         }
@@ -58,7 +58,7 @@ struct SettingsView: View {
                         
                         HStack {
                             Text("A")
-                                .font(Theme.Typography.bodySmall)
+                                .font(Theme.Fonts.caption)
                             
                             Slider(value: $fontScale, in: 0.8...1.3, step: 0.1)
                                 .onChange(of: fontScale) { _, newValue in
@@ -68,7 +68,7 @@ struct SettingsView: View {
                                 }
                             
                             Text("A")
-                                .font(Theme.Typography.bodyLarge)
+                                .font(Theme.Fonts.header)
                         }
                     }
                 }
@@ -169,70 +169,112 @@ struct ContentFiltersView: View {
     
     var body: some View {
         Form {
-            Section("Age Range") {
-                HStack {
-                    Text("Minimum Age")
-                    Spacer()
-                    Picker("", selection: $minimumAge) {
-                        ForEach(3...12, id: \.self) { age in
-                            Text("\(age)").tag(age)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .frame(width: 80)
-                }
-                .onChange(of: minimumAge) { _, newValue in
-                    if newValue > maximumAge {
-                        maximumAge = newValue
-                    }
-                    updateAgeRange()
-                }
-                
-                HStack {
-                    Text("Maximum Age")
-                    Spacer()
-                    Picker("", selection: $maximumAge) {
-                        ForEach(minimumAge...15, id: \.self) { age in
-                            Text("\(age)").tag(age)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .frame(width: 80)
-                }
-                .onChange(of: maximumAge) { _, newValue in
-                    updateAgeRange()
-                }
-            }
-            
-            Section("Allowed Themes") {
-                ForEach(StoryTheme.allCases) { theme in
-                    Button(action: {
-                        toggleTheme(theme)
-                    }) {
-                        HStack {
-                            Image(systemName: theme.iconName)
-                                .foregroundColor(Theme.Colors.primary)
-                            
-                            Text(theme.title)
-                            
-                            Spacer()
-                            
-                            if selectedThemes.contains(theme) {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(Theme.Colors.primary)
-                            }
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .onChange(of: selectedThemes) { _, newValue in
-                var controls = settingsService.parentalControls
-                controls.allowedThemes = newValue
-                settingsService.updateParentalControls(controls)
-            }
+            ageRangeSection
+            allowedThemesSection
         }
         .navigationTitle("Content Filters")
+    }
+    
+    // Extract age range section to simplify the body
+    private var ageRangeSection: some View {
+        Section("Age Range") {
+            minimumAgeRow
+            maximumAgeRow
+        }
+    }
+    
+    // Extract minimum age row to simplify the body
+    private var minimumAgeRow: some View {
+        HStack {
+            Text("Minimum Age")
+            Spacer()
+            minimumAgePicker
+        }
+        .onChange(of: minimumAge) { _, newValue in
+            handleMinimumAgeChange(newValue)
+        }
+    }
+    
+    // Extract picker to simplify the row
+    private var minimumAgePicker: some View {
+        Picker("", selection: $minimumAge) {
+            ForEach(3...12, id: \.self) { age in
+                Text("\(age)").tag(age)
+            }
+        }
+        .pickerStyle(.menu)
+        .frame(width: 80)
+    }
+    
+    // Extract maximum age row to simplify the body
+    private var maximumAgeRow: some View {
+        HStack {
+            Text("Maximum Age")
+            Spacer()
+            maximumAgePicker
+        }
+        .onChange(of: maximumAge) { _, newValue in
+            updateAgeRange()
+        }
+    }
+    
+    // Extract picker to simplify the row
+    private var maximumAgePicker: some View {
+        Picker("", selection: $maximumAge) {
+            ForEach(minimumAge...15, id: \.self) { age in
+                Text("\(age)").tag(age)
+            }
+        }
+        .pickerStyle(.menu)
+        .frame(width: 80)
+    }
+    
+    // Extract allowed themes section to simplify the body
+    private var allowedThemesSection: some View {
+        Section("Allowed Themes") {
+            ForEach(StoryTheme.allCases) { theme in
+                themeRow(theme)
+            }
+        }
+        .onChange(of: selectedThemes) { _, newValue in
+            updateAllowedThemes(newValue)
+        }
+    }
+    
+    // Extract theme row to simplify the section
+    private func themeRow(_ theme: StoryTheme) -> some View {
+        Button(action: {
+            toggleTheme(theme)
+        }) {
+            HStack {
+                Image(systemName: theme.iconName)
+                    .foregroundColor(Theme.Colors.appPrimary)
+                
+                Text(theme.title)
+                
+                Spacer()
+                
+                if selectedThemes.contains(theme) {
+                    Image(systemName: "checkmark")
+                        .foregroundColor(Theme.Colors.appPrimary)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+    
+    // Helper methods
+    private func handleMinimumAgeChange(_ newValue: Int) {
+        if newValue > maximumAge {
+            maximumAge = newValue
+        }
+        updateAgeRange()
+    }
+    
+    private func updateAllowedThemes(_ newValue: Set<StoryTheme>) {
+        var controls = settingsService.parentalControls
+        controls.allowedThemes = newValue
+        settingsService.updateParentalControls(controls)
     }
     
     private func toggleTheme(_ theme: StoryTheme) {
@@ -254,41 +296,54 @@ struct ContentFiltersView: View {
     }
 }
 
+// MARK: - Preview Helpers
+// Break down the preview setup into smaller functions to help the compiler with type checking
 #Preview {
-    // Define a helper function or struct for preview setup if it gets complex,
-    // or perform setup directly before returning the view.
-    // Using a simple direct setup here:
-    let container: ModelContainer = {
-        // Define the schema including all necessary models for the preview context
-        let schema = Schema([
-            UserProfile.self,
-            AppSettingsModel.self,
-            ParentalControlsModel.self,
-            StoryModel.self, // Use the @Model class
-            PageModel.self,    // Use the @Model class
-            AchievementModel.self // Use the @Model class
-        ])
-        // Configure for in-memory storage
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        do {
-            // Create the container
-            return try ModelContainer(for: schema, configurations: config)
-        } catch {
-            // Handle potential errors during container creation
-            fatalError("Failed to create preview ModelContainer: \(error)")
-        }
-    }() // Immediately execute the closure to get the container
+    // Create the preview model container
+    let container = createPreviewModelContainer()
+    
+    // Return the view with dependencies using a separate function for actor-isolated work
+    return createPreviewView(container: container)
+}
 
-    // Create instances of repositories and services needed for the preview
+// Helper function to create a preview model container
+fileprivate func createPreviewModelContainer() -> ModelContainer {
+    let schema = Schema([
+        UserProfile.self,
+        AppSettingsModel.self,
+        ParentalControlsModel.self,
+        StoryModel.self,
+        PageModel.self,
+        AchievementModel.self
+    ])
+    
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    
+    do {
+        return try ModelContainer(for: schema, configurations: config)
+    } catch {
+        fatalError("Failed to create preview ModelContainer: \(error)")
+    }
+}
+
+// Helper function to create the view with all dependencies
+@MainActor // Mark this function as running on the main actor
+fileprivate func createPreviewView(container: ModelContainer) -> some View {
+    let settingsService = createSettingsService(container: container)
+    
+    return SettingsView()
+        .modelContainer(container)
+        .environmentObject(settingsService)
+}
+
+// Helper function to create settings service
+@MainActor // Mark this function as running on the main actor
+fileprivate func createSettingsService(container: ModelContainer) -> SettingsService {
     let context = container.mainContext
     let userProfileRepo = UserProfileRepository(modelContext: context)
     let settingsRepo = SettingsRepository(modelContext: context)
     let usageService = UsageAnalyticsService(userProfileRepository: userProfileRepo)
     let settingsService = SettingsService(repository: settingsRepo, usageAnalyticsService: usageService)
-
-    // Return the view, injecting the container and environment objects
-    // No explicit 'return' needed here due to ViewBuilder
-    SettingsView()
-        .modelContainer(container) // Provide the in-memory container
-        .environmentObject(settingsService) // Provide the initialized service
+    
+    return settingsService
 }
