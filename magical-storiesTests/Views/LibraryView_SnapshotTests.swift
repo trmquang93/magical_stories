@@ -1,14 +1,30 @@
-import XCTest
+import Testing
 import SwiftUI
 import SnapshotTesting
-import SwiftData
+import CoreData
 import Combine
+import XCTest
+import SwiftData
 
 @testable import magical_stories
+
+// Helper struct for binding
+fileprivate struct TestSupport {
+    static func createBindingForTest<T>(_ value: T) -> Binding<T> {
+        var mutableValue = value
+        return Binding(
+            get: { mutableValue },
+            set: { mutableValue = $0 }
+        )
+    }
+}
 
 @MainActor
 final class LibraryView_SnapshotTests: XCTestCase {
     let diff: Snapshotting<UIViewController, UIImage> = .image(precision: 0.95, perceptualPrecision: 0.95)
+    let iPhone11Frame = CGRect(x: 0, y: 0, width: 375, height: 812)
+    let record: Bool? = nil
+    
     // Helper to create a mock StoryService with demo stories
     func makeMockStoryService() -> StoryService {
         // If you have StoryService.mockWithDemoStories(), use it. Otherwise, create a minimal mock:
@@ -51,7 +67,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let service = makeMockStoryService()
         let view = LibraryView().environmentObject(service)
         let host = UIHostingController(rootView: view)
-        host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 812) // iPhone 11 size
+        host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .light
         assertSnapshot(of: host, as: diff, named: "LibraryView_iPhone11_Light")
     }
@@ -60,7 +76,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let service = makeMockStoryService()
         let view = LibraryView().environmentObject(service)
         let host = UIHostingController(rootView: view)
-        host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 812) // iPhone 11 size
+        host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .dark
         assertSnapshot(of: host, as: diff, named: "LibraryView_iPhone11_Dark")
     }
@@ -69,7 +85,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let service = makeEmptyStoryService()
         let view = LibraryView().environmentObject(service)
         let host = UIHostingController(rootView: view)
-        host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
+        host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .light
         assertSnapshot(of: host, as: diff, named: "LibraryView_EmptyState_Light")
     }
@@ -78,7 +94,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let service = makeEmptyStoryService()
         let view = LibraryView().environmentObject(service)
         let host = UIHostingController(rootView: view)
-        host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
+        host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .dark
         assertSnapshot(of: host, as: diff, named: "LibraryView_EmptyState_Dark")
     }
@@ -88,7 +104,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         // Simulate search by injecting searchText via reflection (not ideal, but works for snapshot)
         let view = LibraryViewWithSearchText(searchText: "Dragon").environmentObject(service)
         let host = UIHostingController(rootView: view)
-        host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
+        host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .light
         assertSnapshot(of: host, as: diff, named: "LibraryView_SearchResults_Light")
     }
@@ -97,7 +113,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let service = makeMockStoryService()
         let view = LibraryViewWithSearchText(searchText: "Dragon").environmentObject(service)
         let host = UIHostingController(rootView: view)
-        host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
+        host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .dark
         assertSnapshot(of: host, as: diff, named: "LibraryView_SearchResults_Dark")
     }
@@ -139,7 +155,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         wait(for: [expectation], timeout: 2.0)
         let view = LibraryView().environmentObject(service)
         let host = UIHostingController(rootView: view)
-        host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
+        host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .light
         assertSnapshot(of: host, as: diff, named: "LibraryView_RecentStoriesSection_Light")
     }
@@ -150,7 +166,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         wait(for: [expectation], timeout: 2.0)
         let view = LibraryView().environmentObject(service)
         let host = UIHostingController(rootView: view)
-        host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
+        host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .dark
         assertSnapshot(of: host, as: diff, named: "LibraryView_RecentStoriesSection_Dark")
     }

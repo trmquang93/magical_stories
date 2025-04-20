@@ -1,0 +1,32 @@
+{
+  "configurations" : [
+    {
+      "id" : "6BA14825-3D5E-40AE-955F-0508A013BE96",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : false,
+      "target" : {
+        "containerPath" : "container:magical-stories.xcodeproj",
+        "identifier" : "4DDF1B582D98B918005D882A",
+        "name" : "magical-storiesTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:magical-stories.xcodeproj",
+        "identifier" : "4DDF1B622D98B918005D882A",
+        "name" : "magical-storiesUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

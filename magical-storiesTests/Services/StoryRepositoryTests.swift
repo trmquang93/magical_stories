@@ -55,7 +55,7 @@ final class StoryRepositoryTests: XCTestCase {
         let story = createSampleDomainStory()
 
         // When
-        let savedModel = try await storyRepository.saveStory(story)
+        _ = try await storyRepository.saveStory(story)
         let loadedModels = try await storyRepository.fetchAllStories()
 
         // Then

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4DB1D39B2DB48E06001E9287 /* magical-stories.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 4DB1D39A2DB48E06001E9287 /* magical-stories.xctestplan */; };
 		4DBDB0502DB0B7E100252B5A /* InlineSnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB04F2DB0B7E100252B5A /* InlineSnapshotTesting */; };
 		4DBDB0522DB0B7E100252B5A /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB0512DB0B7E100252B5A /* SnapshotTesting */; };
 		4DBDB0542DB0B7E100252B5A /* SnapshotTestingCustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB0532DB0B7E100252B5A /* SnapshotTestingCustomDump */; };
@@ -34,6 +35,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4DB1D39A2DB48E06001E9287 /* magical-stories.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = "magical-stories.xctestplan"; sourceTree = "<group>"; };
 		4DDF1B472D98B911005D882A /* magical-stories.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "magical-stories.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4DDF1B592D98B918005D882A /* magical-storiesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "magical-storiesTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4DDF1B632D98B918005D882A /* magical-storiesUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "magical-storiesUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -92,6 +94,7 @@
 		4DDF1B3E2D98B910005D882A = {
 			isa = PBXGroup;
 			children = (
+				4DB1D39A2DB48E06001E9287 /* magical-stories.xctestplan */,
 				4D5D563E2DA2D7DE001709F0 /* magical-stories */,
 				4DDF1B5C2D98B918005D882A /* magical-storiesTests */,
 				4DDF1B662D98B918005D882A /* magical-storiesUITests */,
@@ -240,6 +243,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4DB1D39B2DB48E06001E9287 /* magical-stories.xctestplan in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

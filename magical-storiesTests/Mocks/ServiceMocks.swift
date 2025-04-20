@@ -247,6 +247,12 @@ class MockCollectionService: CollectionServiceProtocol {
         }
         return [] // Default empty array if no handler
     }
+    
+    // Method to simulate loadCollections from the real CollectionService
+    func loadCollections(forceReload: Bool = false) {
+        // This mock implementation just keeps the collections as is 
+        // No need to do anything since the collections are already set directly in the test
+    }
 }
 
 // MARK: - MockAIService

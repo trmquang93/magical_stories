@@ -81,6 +81,7 @@ struct HomeView: View {
             .padding(.bottom, Spacing.xxl)
             .id("mainContentBottom")
         }
+        .accessibilityIdentifier("HomeView_MainScrollView")
     }
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -88,11 +89,14 @@ struct HomeView: View {
                 .font(.displayMedium)
                 .foregroundColor(Theme.Colors.textPrimary)
                 .padding(.top, Spacing.xl)
+                .accessibilityIdentifier("HomeView_WelcomeHeading")
             Text("What magical story will you create today?")
                 .font(.bodyMedium)
                 .foregroundColor(Theme.Colors.textSecondary)
+                .accessibilityIdentifier("HomeView_WelcomeSubtitle")
         }
         .padding(.horizontal, Spacing.lg)
+        .accessibilityIdentifier("HomeView_HeaderSection")
     }
 
     private var primaryActionCard: some View {
@@ -104,6 +108,7 @@ struct HomeView: View {
             buttonTitle: "Start",
             buttonAction: { showingStoryForm = true }
         )
+        .accessibilityIdentifier("HomeView_CreateStoryCard")
     }
 
     private var growthCollectionsPreview: some View {
@@ -112,6 +117,7 @@ struct HomeView: View {
                 .font(.headingMedium)
                 .foregroundColor(Theme.Colors.textPrimary)
                 .padding(.horizontal, Spacing.lg)
+                .accessibilityIdentifier("HomeView_CollectionsHeading")
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(collectionService.collections) { collection in
@@ -121,8 +127,10 @@ struct HomeView: View {
                 }
                 .padding(.horizontal, Spacing.lg)
             }
+            .accessibilityIdentifier("HomeView_CollectionsScrollView")
         }
         .padding(.top, 16)
+        .accessibilityIdentifier("HomeView_CollectionsSection")
     }
 
     private var createGrowthCollectionCard: some View {
@@ -134,6 +142,7 @@ struct HomeView: View {
             buttonTitle: "Create Collection",
             buttonAction: { showingGrowthStoryForm = true }
         )
+        .accessibilityIdentifier("HomeView_CreateCollectionCard")
     }
 
     private var libraryPreview: some View {
@@ -142,10 +151,12 @@ struct HomeView: View {
                 .font(.headingMedium)
                 .foregroundColor(Theme.Colors.textPrimary)
                 .padding(.horizontal, Spacing.lg)
+                .accessibilityIdentifier("HomeView_LibraryHeading")
             ForEach(storyService.stories.prefix(2)) { story in
                 NavigationLink(value: story) {
                     StoryCard(story: story)
                         .padding(.horizontal, Spacing.lg)
+                        .accessibilityIdentifier("HomeView_StoryCard_\(story.id)")
                 }
             }
             if storyService.stories.count > 2 {
@@ -169,6 +180,7 @@ struct HomeView: View {
             }
         }
         .padding(.top, 24)
+        .accessibilityIdentifier("HomeView_LibrarySection")
     }
 
     private var footerTip: some View {
@@ -178,5 +190,6 @@ struct HomeView: View {
             .multilineTextAlignment(.center)
             .padding(.vertical, Spacing.md)
             .frame(maxWidth: .infinity)
+            .accessibilityIdentifier("HomeView_FooterTip")
     }
 }

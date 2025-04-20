@@ -50,12 +50,14 @@ struct RootView: View {
     @EnvironmentObject var storyService: StoryService
     @EnvironmentObject var settingsService: SettingsService
     @EnvironmentObject var persistenceService: PersistenceService
+    @EnvironmentObject var collectionService: CollectionService
     
     var body: some View {
         MainTabView(selectedTab: $selectedTab)
             .environmentObject(storyService)
             .environmentObject(settingsService)
             .environmentObject(persistenceService)
+            .environmentObject(collectionService)
             .preferredColorScheme(settingsService.appSettings.darkModeEnabled ? .dark : .light)
             .environment(\.fontScale, settingsService.appSettings.fontScale)
             .environment(\.selectedTabBinding, $selectedTab)

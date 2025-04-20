@@ -32,7 +32,6 @@ fi
 
 set +e # Temporarily disable exit on error to capture the status
 xcodebuild test \
-  -workspace magical-stories.xcodeproj/project.xcworkspace \
   -scheme magical-stories \
   -configuration Debug \
   -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2' \

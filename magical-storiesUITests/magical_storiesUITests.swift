@@ -112,4 +112,89 @@ final class magical_storiesUITests: XCTestCase {
             print("No recent story card found in LibraryView; skipping navigation test.")
         }
     }
+    
+    func testHomeViewCollectionsStateWithNoCollections() {
+        let app = XCUIApplication()
+        
+        // Configure the app to start with no collections
+        app.launchArguments = ["UITesting"]
+        app.launchEnvironment = [
+            "USE_DEMO_DATA": "false",  // Don't load demo collections
+            "SKIP_ONBOARDING": "true", // Skip onboarding if it exists
+            "FAST_ANIMATIONS": "true"  // Speed up animations
+        ]
+        
+        app.launch()
+        
+        // Tap Home tab to ensure we're on HomeView
+        let homeTab = app.tabBars.buttons["Home Tab"]
+        if homeTab.exists { homeTab.tap() }
+        
+        // When no collections are present, we should see the "Create a Growth Collection" card
+        let createCollectionCard = app.otherElements["HomeView_CreateCollectionCard"]
+        XCTAssertTrue(createCollectionCard.exists, "HomeView should display 'Create Collection' card when no collections exist")
+        
+        // And we should NOT see the collections section
+        let collectionsSection = app.otherElements["HomeView_CollectionsSection"]
+        XCTAssertFalse(collectionsSection.exists, "HomeView should not display collections section when no collections exist")
+    }
+    
+    func testHomeViewCollectionsStateWithExistingCollections() {
+        let app = XCUIApplication()
+        
+        // Configure the app to start with demo collections
+        app.launchArguments = ["UITesting"]
+        app.launchEnvironment = [
+            "USE_DEMO_DATA": "true",  // Load demo collections
+            "SKIP_ONBOARDING": "true", // Skip onboarding if it exists
+            "FAST_ANIMATIONS": "true"  // Speed up animations
+        ]
+        
+        app.launch()
+        
+        // Tap Home tab to ensure we're on HomeView
+        let homeTab = app.tabBars.buttons["Home Tab"]
+        if homeTab.exists { homeTab.tap() }
+        
+        // When collections are present, we should see the collections section
+        let collectionsSection = app.otherElements["HomeView_CollectionsSection"]
+        XCTAssertTrue(collectionsSection.waitForExistence(timeout: 2), "HomeView should display collections section when collections exist")
+        
+        // We should see the collections heading
+        let collectionsHeading = app.staticTexts["HomeView_CollectionsHeading"]
+        XCTAssertTrue(collectionsHeading.exists, "HomeView should display collections heading when collections exist")
+        
+        // We should NOT see the "Create a Growth Collection" card
+        let createCollectionCard = app.otherElements["HomeView_CreateCollectionCard"]
+        XCTAssertFalse(createCollectionCard.exists, "HomeView should not display 'Create Collection' card when collections exist")
+        
+        // And we should see a horizontal collections scroll view
+        let collectionsScrollView = app.scrollViews["HomeView_CollectionsScrollView"]
+        XCTAssertTrue(collectionsScrollView.exists, "HomeView should display collections scroll view when collections exist")
+    }
+    
+    func testViewAllStoriesButton() {
+        let app = XCUIApplication()
+        app.launch()
+        
+        // Tap Home tab to ensure we're on HomeView
+        let homeTab = app.tabBars.buttons["Home Tab"]
+        if homeTab.exists { homeTab.tap() }
+        
+        // Look for "View All Stories" button
+        let viewAllStoriesButton = app.buttons["ViewAllStoriesButton"]
+        
+        if viewAllStoriesButton.exists {
+            // Tap the button
+            viewAllStoriesButton.tap()
+            
+            // Verify we navigated to the Library tab
+            // Wait briefly for the animation to complete
+            let libraryTitle = app.navigationBars["Your Story Library"].firstMatch
+            XCTAssertTrue(libraryTitle.waitForExistence(timeout: 2), "Should navigate to Library tab when 'View All Stories' is tapped")
+        } else {
+            // If the button doesn't exist (possibly because there aren't enough stories), log this
+            print("'View All Stories' button not found - may be because there aren't enough stories.")
+        }
+    }
 }
