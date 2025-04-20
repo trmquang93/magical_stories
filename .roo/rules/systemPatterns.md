@@ -21,6 +21,7 @@ The application primarily follows the **MVVM (Model-View-ViewModel)** pattern wi
 
 3.  **Service Layer & Setup:**
     *   Application logic related to external interactions (AI, persistence, StoreKit) and core functionalities is encapsulated in Service classes (`StoryService`, `SettingsService`, `IllustrationService`, `CollectionService`, `RecommendationEngine`, `PurchaseService`, `EntitlementManager`).
+        *   **`StoryService` Enhancement:** The `StoryService` now utilizes an enhanced `StoryParameters` model (`developmentalFocus`, `interactiveElements`, `emotionalThemes`) and an updated internal `PromptBuilder` to generate stories tailored for developmental benefits, incorporating richer vocabulary, clearer narratives, emotional modeling, and optional interactive prompts based on these new parameters.
     *   Services and Repositories are often initialized as `@StateObject`s at the application root (`MagicalStoriesApp`) and injected into the view hierarchy using `.environmentObject()`.
     ```swift
     // Example from MagicalStoriesApp

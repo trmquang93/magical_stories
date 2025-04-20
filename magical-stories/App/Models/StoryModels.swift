@@ -8,6 +8,9 @@ struct StoryParameters: Codable, Hashable {
     var theme: String
     var favoriteCharacter: String
     var storyLength: String?
+    var developmentalFocus: [GrowthCategory]? // Optional array for developmental themes
+    var interactiveElements: Bool? // Optional flag for interactive prompts
+    var emotionalThemes: [String]? // Optional array for specific emotions
 }
 
 /// Represents a page in a story.

@@ -21,7 +21,7 @@ A key differentiator and Unique Selling Point (USP) is the **"Growth Collections
 
 ### Key Features
 
--   **Personalized Single Story Generation:** AI-driven creation based on user inputs via `StoryFormView`.
+-   **Personalized Single Story Generation:** AI-driven creation based on user inputs via `StoryFormView`. The `StoryService` now incorporates optional parameters (`developmentalFocus`, `interactiveElements`, `emotionalThemes`) to generate stories that are not only personalized but also developmentally beneficial, fostering specific skills and emotional understanding through tailored prompts.
 -   **Story Library:** Persistent storage and browsing of generated stories.
 -   **Paginated Reading View:** Stories broken down into readable pages with illustrations.
 -   **Parental Controls:** Content filtering by theme/age, screen time limits.

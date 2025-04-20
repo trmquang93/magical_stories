@@ -3,7 +3,10 @@ description:
 globs:
 alwaysApply: true
 ---
-# Project Progress: Magical Stories (as of 2025-04-16)
+# Project Progress: Magical Stories (as of 2025-04-20)
+
+## 2025-04-20
+- **Story Service Enhancement:** Updated `StoryParameters` model and `StoryService`'s internal `PromptBuilder` to incorporate optional `developmentalFocus`, `interactiveElements`, and `emotionalThemes`. Prompts are now engineered to generate stories with richer vocabulary, clearer narratives, emotional modeling, and optional interactive elements for enhanced developmental benefits.
 
 ## 2025-04-16
 - **Test/Script Enhancement:** The `run_tests.sh` script now supports running all tests by default, or a specific test when a test name is provided as an argument. This is achieved using the `-only-testing` flag for xcodebuild. The script prints which test(s) are being run for clarity, supporting both CI and local workflows.
@@ -12,9 +15,10 @@ alwaysApply: true
 ## What Works / Implemented Features
 
 -   **Core App Structure:** Basic SwiftUI app structure with `TabView` navigation (Home, Library, Settings, Collections) is in place.
--   **Story Generation:**
+-   **Story Generation (Enhanced):**
     -   UI (`StoryFormView`) exists for inputting parameters.
     -   `StoryService` uses the **real Google Generative AI API** (via `GenerativeModelProtocol`) to generate story content based on parameters.
+    -   **Enhancement:** `StoryParameters` now includes optional `developmentalFocus`, `interactiveElements`, and `emotionalThemes`. The prompt building logic within `StoryService` incorporates these to generate more developmentally beneficial stories (richer vocabulary, clearer narrative, emotional modeling, interactive prompts).
 -   **Story Library:**
     -   `LibraryView` displays saved stories.
     -   Stories are persisted locally using **SwiftData** as the primary storage.
@@ -71,6 +75,11 @@ alwaysApply: true
         - Testing: Unit and integration tests exist for core flows
 
 ## Recently Completed
+
+**Story Service Enhancement (Complete - 2025-04-20)**
+- Updated `StoryParameters` model to include `developmentalFocus`, `interactiveElements`, and `emotionalThemes`.
+- Enhanced `StoryService`'s internal `PromptBuilder` to utilize these new parameters, generating prompts designed for developmentally richer story content.
+- Updated relevant Memory Bank documentation (`productContext.md`, `systemPatterns.md`, `progress.md`).
 
 **T1: Finalize `CollectionsListView` Integration (Complete)**
 - Refactored `CollectionsListView` and `CollectionCardView` for clarity, accessibility, and future integration.

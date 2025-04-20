@@ -106,13 +106,8 @@ class StoryService: ObservableObject {
         isGenerating = true
         defer { isGenerating = false }
 
-        // Generate the prompt using the builder
-        let prompt = promptBuilder.buildPrompt(
-            childName: parameters.childName,
-            childAge: parameters.childAge,
-            favoriteCharacter: parameters.favoriteCharacter,
-            theme: parameters.theme
-        )
+        // Generate the prompt using the builder, passing the whole parameters struct
+        let prompt = promptBuilder.buildPrompt(parameters: parameters)
 
         do {
             // --- Actual API Call ---
@@ -243,37 +238,72 @@ class StoryService: ObservableObject {
 // MARK: - Prompt Builder
 private struct PromptBuilder {
     // Corrected PromptBuilder parameters based on StoryModels.swift
-    func buildPrompt(
-        childName: String,
-        childAge: Int,  // Corrected parameter name to match StoryParameters
-        favoriteCharacter: String,
-        theme: String  // Theme is now String
-            // language parameter removed
-    ) -> String {
-        """
+    func buildPrompt(parameters: StoryParameters) -> String {
+        var prompt = """
         Create a bedtime story for a child with the following parameters:
-        - Child's name: \(childName)
-        - Age group: \(childAge)
-        - Favorite character: \(favoriteCharacter)
-        - Theme: \(theme)
-        // Language removed
+        - Child's name: \(parameters.childName)
+        - Age group: \(parameters.childAge)
+        - Favorite character: \(parameters.favoriteCharacter)
+        - Theme: \(parameters.theme)
+        """
+
+        if let focus = parameters.developmentalFocus, !focus.isEmpty {
+            let focusThemes = focus.map { $0.rawValue }.joined(separator: ", ")
+            prompt += "\n- Developmental Focus: \(focusThemes)"
+        }
+
+        if let emotions = parameters.emotionalThemes, !emotions.isEmpty {
+            let emotionList = emotions.joined(separator: ", ")
+            prompt += "\n- Emotional Themes: \(emotionList)"
+        }
+
+        if let interactive = parameters.interactiveElements, interactive {
+            prompt += "\n- Include Interactive Elements: Yes"
+        }
+
+        prompt += """
 
         Requirements:
-        1. The story should be appropriate for the age group specified.
-        2. Include the child's name (\(childName)) and favorite character (\(favoriteCharacter)) naturally within the narrative.
-        3. Convey a positive moral lesson or value related to the theme: '\(theme)'.
-        4. Use simple, clear language suitable for the age group. Paragraphs should be relatively short.
-        5. Create an engaging, slightly magical, and comforting atmosphere suitable for bedtime.
-        6. The story should be approximately 3-5 paragraphs long.
-        7. **IMPORTANT FORMATTING:** Start the entire response *immediately* with "Title: " followed by a creative title for the story on the first line.
-        8. After the "Title: " line, skip exactly one line (a single newline character) before starting the main content of the story. Do not add any other text before "Title: " or between the title line and the content.
+        1. The story must be appropriate for a \(parameters.childAge)-year-old child.
+        2. Naturally include the child's name (\(parameters.childName)) and favorite character (\(parameters.favoriteCharacter)).
+        3. Convey a positive moral lesson or value related to the theme: '\(parameters.theme)'.
+        4. Use rich vocabulary and varied sentence structures suitable for the age group, promoting language development.
+        5. Ensure a clear narrative arc with cause-and-effect relationships.
+        6. Create an engaging, slightly magical, and comforting atmosphere suitable for bedtime.
+        7. The story should be approximately 3-5 paragraphs long.
+        """
+
+        // Add developmental focus instructions
+        if let focus = parameters.developmentalFocus, !focus.isEmpty {
+            let focusThemes = focus.map { $0.rawValue }.joined(separator: ", ")
+            prompt += "\n8. Weave in the developmental focus themes: \(focusThemes). Show characters demonstrating these skills or learning about them."
+        }
+
+        // Add emotional theme instructions
+        if let emotions = parameters.emotionalThemes, !emotions.isEmpty {
+            let emotionList = emotions.joined(separator: ", ")
+            prompt += "\n9. Focus on the emotional themes: \(emotionList). Explicitly name emotions the characters feel and model simple, positive coping strategies."
+        }
+
+        // Add interactive element instructions
+        if let interactive = parameters.interactiveElements, interactive {
+            prompt += "\n10. Include 2-3 simple interactive prompts within the story (e.g., 'What sound do you think the bear made?', 'Can you make a happy face like the squirrel?'). Mark these prompts clearly, perhaps with [Interactive Prompt]."
+        }
+
+        prompt += """
+
+        11. Provide opportunities for perspective-taking by describing characters' feelings or thoughts.
+        12. **IMPORTANT FORMATTING:** Start the entire response *immediately* with "Title: " followed by a creative title for the story on the first line.
+        13. After the "Title: " line, skip exactly one line (a single newline character) before starting the main content of the story. Do not add any other text before "Title: " or between the title line and the content.
 
         Example Output Structure:
         Title: The Whispering Shell
         \n
         Once upon a time... (story content starts here)
 
-        Make the story engaging, magical, and appropriate for bedtime reading. Ensure the formatting requirements (Title line, single blank line, content) are strictly followed.
+        Make the story engaging, developmentally beneficial, magical, and appropriate for bedtime reading. Ensure the formatting requirements (Title line, single blank line, content) are strictly followed.
         """
+        return prompt
     }
 }
+

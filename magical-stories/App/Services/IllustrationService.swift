@@ -73,6 +73,10 @@ public class IllustrationService: IllustrationServiceProtocol {
     /// - Returns: A URL pointing to the generated illustration, or `nil` if generation fails gracefully.
     /// - Throws: `IllustrationError` for configuration, network, or API issues.
     public func generateIllustration(for pageText: String, theme: String) async throws -> String? {
+        #if DEBUG
+        return nil 
+        #endif
+        
         let combinedPrompt =
             "Generate an illustration for a children's story page based on the following details. Theme: \(theme). Scene Description: \(pageText). Style: Whimsical, colorful, suitable for young children. IMPORTANT: Visualize the scene and characters based on the description, but DO NOT depict animals performing human-like actions (like talking or wearing clothes) even if mentioned in the description. Focus on the environment and the animals' natural appearance."
         
