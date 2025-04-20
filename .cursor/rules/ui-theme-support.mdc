@@ -1,0 +1,45 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# UI Theme Support Rule
+
+## Requirement
+All UI components and views **must** support both dark and light themes. This is a mandatory requirement for every new UI implementation and for any UI refactor or update.
+
+## Rationale
+Supporting both dark and light themes ensures accessibility, user comfort, and compliance with platform guidelines. It also provides a consistent and professional user experience across all devices and environments.
+
+## Implementation Guidelines
+- Use SwiftUI's built-in color scheme support (`.preferredColorScheme`, `Color.primary`, `Color.secondary`, etc.).
+- Avoid hardcoding colors; use semantic colors or asset catalog colors with light/dark variants.
+- Test all UI in both dark and light modes before merging changes.
+- Use system background and label colors where possible (e.g., `Color(.systemBackground)`, `Color(.label)`).
+- For custom colors, define both light and dark variants in the asset catalog and reference them by name.
+- Ensure images and icons are visible and accessible in both themes (use template rendering or provide variants if needed).
+- UI tests and snapshot tests **must** include both color schemes.
+
+## References
+- [Apple Human Interface Guidelines: Dark Mode](mdc:https:/developer.apple.com/design/human-interface-guidelines/ios/visual-design/dark-mode)
+- [systemPatterns.mdc](mdc:systemPatterns.mdc)
+- [techContext.mdc](mdc:techContext.mdc)
+
+## Validation
+- Reviewers must verify UI in both dark and light themes during code review.
+- Automated tests should cover both color schemes where feasible.
+
+## Example
+```swift
+struct ExampleView: View {
+    var body: some View {
+        Text("Hello, world!")
+            .padding()
+            .background(Color(.systemBackground))
+            .foregroundColor(Color(.label))
+    }
+}
+```
+
+---
+**This rule is mandatory for all UI code.**

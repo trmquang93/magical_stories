@@ -236,38 +236,188 @@ struct ActionCard: View {
     let subtitle: String
     let buttonTitle: String
     let buttonAction: () -> Void
-
+    
+    // Colors for gradient
+    private let gradientStart = Color(red: 123/255, green: 97/255, blue: 255/255) // #7B61FF
+    private let gradientEnd = Color(red: 255/255, green: 97/255, blue: 123/255) // #FF617B
+    
+    @State private var isHovering = false
+    @State private var shineOffset: CGFloat = -200
+    @Environment(\.colorScheme) private var colorScheme
+    
+    private var cardBackgroundColor: Color {
+        colorScheme == .dark ? Color(red: 30/255, green: 34/255, blue: 42/255) : Color.white
+    }
+    
+    private var cardBorderColor: Color {
+        colorScheme == .dark ? Color(red: 45/255, green: 50/255, blue: 60/255) : Color(red: 227/255, green: 232/255, blue: 239/255)
+    }
+    
     var body: some View {
-        HStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(iconColor)
-                    .frame(width: 48, height: 48)
-                Image(systemName: iconName)
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.white)
+        VStack(alignment: .leading, spacing: 0) {
+            // Icon and text container
+            HStack(spacing: 16) {
+                // Icon with gradient background
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [gradientStart, gradientEnd]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 48, height: 48)
+                        .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.2), radius: 4, x: 0, y: 2)
+                    
+                    Image(systemName: iconName)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.white)
+                        .scaleEffect(isHovering ? 1.1 : 1.0)
+                        .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: isHovering)
+                }
+                .scaleEffect(isHovering ? 1.05 : 1.0)
+                .animation(.easeInOut(duration: 0.3), value: isHovering)
+                
+                // Title and subtitle
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.headingMedium)
+                        .foregroundColor(Theme.Colors.textPrimary)
+                    
+                    Text(subtitle)
+                        .font(.bodySmall)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                }
             }
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.headingLarge)
-                    .foregroundColor(Theme.Colors.textPrimary)
-                Text(subtitle)
-                    .font(.bodySmall)
-                    .foregroundColor(Theme.Colors.textSecondary)
-                PrimaryButton(title: buttonTitle, action: buttonAction)
-                    .padding(.top, 8)
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            
+            // Button with gradient background and shine effect
+            Button(action: buttonAction) {
+                ZStack {
+                    // Gradient background
+                    LinearGradient(
+                        gradient: Gradient(colors: [gradientStart, gradientEnd]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    
+                    // Shine effect overlay
+                    GeometryReader { geometry in
+                        Color.white.opacity(0.2)
+                            .mask(
+                                Rectangle()
+                                    .fill(
+                                        LinearGradient(
+                                            gradient: Gradient(stops: [
+                                                .init(color: .clear, location: 0),
+                                                .init(color: .white, location: 0.45),
+                                                .init(color: .white, location: 0.55),
+                                                .init(color: .clear, location: 1)
+                                            ]),
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .rotationEffect(.degrees(-30))
+                                    .offset(x: shineOffset)
+                                    .frame(width: geometry.size.width * 2)
+                            )
+                    }
+                    .onAppear {
+                        withAnimation(.linear(duration: 2.5).repeatForever(autoreverses: false)) {
+                            shineOffset = 400
+                        }
+                    }
+                    
+                    // Button content with sparkles
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 16))
+                            .foregroundColor(Color(red: 255/255, green: 230/255, blue: 150/255)) // Light yellow
+                        
+                        Text(buttonTitle)
+                            .font(.headingSmall)
+                            .foregroundColor(.white)
+                        
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 16))
+                            .foregroundColor(Color(red: 255/255, green: 230/255, blue: 150/255)) // Light yellow
+                    }
+                }
             }
-            Spacer()
+            .frame(maxWidth: .infinity)
+            .frame(height: 56)
+            .cornerRadius(16)
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            .padding(.bottom, 20)
+            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.15), radius: 8, x: 0, y: 4)
         }
-        .padding(20)
-        .background(Theme.Colors.surfacePrimary)
+        .background(cardBackgroundColor)
         .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, y: 4)
+        .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.08), radius: 8, y: 4)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.border, lineWidth: 1)
+                .stroke(cardBorderColor, lineWidth: 1)
         )
         .padding(.horizontal, Spacing.lg)
         .padding(.vertical, 8)
+        .onAppear {
+            isHovering = true
+        }
+    }
+}
+
+#Preview("ActionCard") {
+    Group {
+        VStack(spacing: Spacing.lg) {
+            ActionCard(
+                iconName: "wand.and.stars",
+                iconColor: Theme.Colors.primary,
+                title: "Create a New Story",
+                subtitle: "Personalize a bedtime adventure",
+                buttonTitle: "Create Magic",
+                buttonAction: {}
+            )
+            
+            ActionCard(
+                iconName: "plus",
+                iconColor: Theme.Colors.primary,
+                title: "Create a Growth Collection",
+                subtitle: "Guide your child's growth with themed story sets",
+                buttonTitle: "Start Collection",
+                buttonAction: {}
+            )
+        }
+        .padding()
+        .background(Theme.Colors.background)
+        .environment(\.colorScheme, .light)
+        .previewDisplayName("Light Mode")
+        
+        VStack(spacing: Spacing.lg) {
+            ActionCard(
+                iconName: "wand.and.stars",
+                iconColor: Theme.Colors.primary,
+                title: "Create a New Story",
+                subtitle: "Personalize a bedtime adventure",
+                buttonTitle: "Create Magic",
+                buttonAction: {}
+            )
+            
+            ActionCard(
+                iconName: "plus",
+                iconColor: Theme.Colors.primary,
+                title: "Create a Growth Collection",
+                subtitle: "Guide your child's growth with themed story sets",
+                buttonTitle: "Start Collection",
+                buttonAction: {}
+            )
+        }
+        .padding()
+        .background(Theme.Colors.background)
+        .environment(\.colorScheme, .dark)
+        .previewDisplayName("Dark Mode")
     }
 }

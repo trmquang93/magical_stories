@@ -68,7 +68,11 @@ struct HomeView: View {
             LazyVStack(alignment: .leading, spacing: Spacing.lg) {
                 headerSection
                 primaryActionCard
-                growthCollectionsPreview
+                if collectionService.collections.isEmpty {
+                    createGrowthCollectionCard
+                } else {
+                    growthCollectionsPreview
+                }
                 if !storyService.stories.isEmpty {
                     libraryPreview
                 }
@@ -108,28 +112,28 @@ struct HomeView: View {
                 .font(.headingMedium)
                 .foregroundColor(Theme.Colors.textPrimary)
                 .padding(.horizontal, Spacing.lg)
-            if collectionService.collections.isEmpty {
-                ActionCard(
-                    iconName: "plus",
-                    iconColor: Theme.Colors.primary,
-                    title: "Create a Growth Collection",
-                    subtitle: "Guide your child's growth with themed story sets",
-                    buttonTitle: "Create Collection",
-                    buttonAction: { showingGrowthStoryForm = true }
-                )
-            } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(collectionService.collections) { collection in
-                            CollectionCardView(collection: collection)
-                                .frame(width: 220)
-                        }
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(collectionService.collections) { collection in
+                        CollectionCardView(collection: collection)
+                            .frame(width: 220)
                     }
-                    .padding(.horizontal, Spacing.lg)
                 }
+                .padding(.horizontal, Spacing.lg)
             }
         }
         .padding(.top, 16)
+    }
+
+    private var createGrowthCollectionCard: some View {
+        ActionCard(
+            iconName: "plus",
+            iconColor: Theme.Colors.primary,
+            title: "Create a Growth Collection",
+            subtitle: "Guide your child's growth with themed story sets",
+            buttonTitle: "Create Collection",
+            buttonAction: { showingGrowthStoryForm = true }
+        )
     }
 
     private var libraryPreview: some View {
