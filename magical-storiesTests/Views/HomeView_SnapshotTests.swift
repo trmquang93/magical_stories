@@ -25,6 +25,7 @@ struct HomeView_SnapshotTests {
         return .imageWithRootDirectory(precision: 0.9, perceptualPrecision: 0.9)
     }
     
+    // Reset record option - set to nil to compare against saved reference images
     let record: Bool? = nil
 
     // MARK: - Helpers

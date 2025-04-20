@@ -23,6 +23,7 @@ fileprivate struct TestSupport {
 final class LibraryView_SnapshotTests: XCTestCase {
     let diff: Snapshotting<UIViewController, UIImage> = .image(precision: 0.95, perceptualPrecision: 0.95)
     let iPhone11Frame = CGRect(x: 0, y: 0, width: 375, height: 812)
+    // Reset record option - set to nil to compare against saved reference images
     let record: Bool? = nil
     
     // Helper to create a mock StoryService with demo stories
@@ -69,7 +70,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .light
-        assertSnapshot(of: host, as: diff, named: "LibraryView_iPhone11_Light")
+        assertSnapshot(of: host, as: diff, named: "LibraryView_iPhone11_Light", record: record)
     }
 
     func testLibraryView_DarkMode_iPhone11() {
@@ -78,7 +79,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .dark
-        assertSnapshot(of: host, as: diff, named: "LibraryView_iPhone11_Dark")
+        assertSnapshot(of: host, as: diff, named: "LibraryView_iPhone11_Dark", record: record)
     }
 
     func testLibraryView_EmptyState_LightMode() {
@@ -87,7 +88,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .light
-        assertSnapshot(of: host, as: diff, named: "LibraryView_EmptyState_Light")
+        assertSnapshot(of: host, as: diff, named: "LibraryView_EmptyState_Light", record: record)
     }
 
     func testLibraryView_EmptyState_DarkMode() {
@@ -96,7 +97,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .dark
-        assertSnapshot(of: host, as: diff, named: "LibraryView_EmptyState_Dark")
+        assertSnapshot(of: host, as: diff, named: "LibraryView_EmptyState_Dark", record: record)
     }
 
     func testLibraryView_SearchResults_LightMode() {
@@ -106,7 +107,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .light
-        assertSnapshot(of: host, as: diff, named: "LibraryView_SearchResults_Light")
+        assertSnapshot(of: host, as: diff, named: "LibraryView_SearchResults_Light", record: record)
     }
 
     func testLibraryView_SearchResults_DarkMode() {
@@ -115,7 +116,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .dark
-        assertSnapshot(of: host, as: diff, named: "LibraryView_SearchResults_Dark")
+        assertSnapshot(of: host, as: diff, named: "LibraryView_SearchResults_Dark", record: record)
     }
 
     // Helper to create a mock StoryService with 3+ stories for recent stories section
@@ -157,7 +158,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .light
-        assertSnapshot(of: host, as: diff, named: "LibraryView_RecentStoriesSection_Light")
+        assertSnapshot(of: host, as: diff, named: "LibraryView_RecentStoriesSection_Light", record: record)
     }
 
     func testLibraryView_RecentStoriesSection_DarkMode() {
@@ -168,7 +169,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .dark
-        assertSnapshot(of: host, as: diff, named: "LibraryView_RecentStoriesSection_Dark")
+        assertSnapshot(of: host, as: diff, named: "LibraryView_RecentStoriesSection_Dark", record: record)
     }
 }
 
