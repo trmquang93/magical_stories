@@ -22,7 +22,7 @@ protocol CollectionServiceProtocol {
     /// - Parameters:
     ///   - id: The `UUID` of the collection to update.
     ///   - progress: The new progress value (0.0 to 1.0).
-    /// - Throws: An error if updating fails.
+    ///   - Throws: An error if updating fails.
     @MainActor func updateCollectionProgress(id: UUID, progress: Float) throws
 
     /// Deletes a specific Story Collection.
@@ -72,4 +72,4 @@ protocol IllustrationServiceProtocol {
     func generateIllustration(for pageText: String, theme: String) async throws -> String?
 }
 
-// Add other service protocols as needed (e.g., SettingsServiceProtocol)
+// Removed duplicate AchievementRepositoryProtocol, SettingsRepositoryProtocol, and PersistenceError definitions

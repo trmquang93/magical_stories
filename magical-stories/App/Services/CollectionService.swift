@@ -84,21 +84,21 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
             self.isGenerating = true
             self.generationError = nil
         }
-        
+
         defer {
             DispatchQueue.main.async {
                 self.isGenerating = false
             }
         }
-        
+
         do {
             // Number of stories to generate per collection - can be adjusted
-            let numberOfStories = 3
-            
+            let numberOfStories = 3 // Changed from 5 back to 3 to match test expectations
+
             // Create dynamic story themes based on developmental focus and interests
             let storyThemes = createStoryThemes(
                 developmentalFocus: parameters.developmentalFocus,
-                interests: parameters.interests, 
+                interests: parameters.interests,
                 count: numberOfStories
             )
 
@@ -109,11 +109,11 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
                 let ageRange = parameters.childAgeGroup.components(
                     separatedBy: CharacterSet.decimalDigits.inverted
                 ).compactMap { Int($0) }
-                
-                let childAge = ageRange.count >= 2 
+
+                let childAge = ageRange.count >= 2
                     ? (ageRange[0] + ageRange[1]) / 2  // Average of age range
                     : (ageRange.first ?? 5)  // Default to first number or 5
-                
+
                 // Prepare story parameters for each story with unique theme
                 let storyParams = StoryParameters(
                     childName: parameters.childName ?? "Child",
@@ -128,14 +128,14 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
 
                 // Generate story using StoryService
                 let story = try await storyService.generateStory(parameters: storyParams)
-                
+
                 // Add story to collection relationship (bidirectional)
                 if !story.collections.contains(where: { $0.id == collection.id }) {
                     story.collections.append(collection)
                 }
 
                 generatedStories.append(story)
-                
+
                 // Update collection immediately after each story generation for progress feedback
                 if index < numberOfStories - 1 {
                     try repository.saveCollection(collection)
@@ -146,7 +146,7 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
             if collection.stories == nil {
                 collection.stories = []
             }
-            
+
             for story in generatedStories {
                 if !(collection.stories?.contains(where: { $0.id == story.id }) ?? false) {
                     collection.stories?.append(story)
@@ -158,7 +158,7 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
 
             // Reload collections to update UI
             loadCollections()
-            
+
         } catch {
             print("[CollectionService] Failed to generate stories: \(error)")
             DispatchQueue.main.async {
@@ -167,7 +167,7 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
             throw error
         }
     }
-    
+
     /// Creates varied story themes based on developmental focus and interests
     /// - Parameters:
     ///   - developmentalFocus: The primary developmental area to focus on
@@ -176,7 +176,7 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
     /// - Returns: Array of theme strings
     private func createStoryThemes(developmentalFocus: String, interests: String, count: Int) -> [String] {
         let interestsList = interests.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-        
+
         // Base themes combining developmental focus with different aspects
         var baseThemes = [
             "\(developmentalFocus) through Cooperation",
@@ -185,25 +185,25 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
             "\(developmentalFocus) in Challenging Situations",
             "\(developmentalFocus) with Family"
         ]
-        
+
         // Add interest-specific themes
         for interest in interestsList {
             if !interest.isEmpty {
                 baseThemes.append("\(developmentalFocus) with \(interest)")
             }
         }
-        
+
         // Shuffle and take required number, or repeat if not enough themes
         baseThemes.shuffle()
         var result: [String] = []
-        
+
         for i in 0..<count {
             result.append(baseThemes[i % baseThemes.count])
         }
-        
+
         return result
     }
-    
+
     /// Updates the collection progress based on stories' readCount
     /// A story is considered "completed" if it has been read at least once (readCount > 0)
     /// Collection progress is calculated as the ratio of completed stories to total stories
@@ -214,10 +214,10 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
     @discardableResult
     func updateCollectionProgressBasedOnReadCount(collectionId: UUID) async throws -> Double {
         guard let collection = try repository.fetchCollection(id: collectionId) else {
-            throw NSError(domain: "CollectionService", code: 404, 
+            throw NSError(domain: "CollectionService", code: 404,
                           userInfo: [NSLocalizedDescriptionKey: "Collection not found"])
         }
-        
+
         // Ensure we have stories to calculate progress
         guard let stories = collection.stories, !stories.isEmpty else {
             // If no stories, progress is 0
@@ -225,34 +225,34 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
             try repository.saveCollection(collection)
             return 0.0
         }
-        
+
         // Count stories that have isCompleted=true or readCount > 0
         var completedCount = 0
-        
+
         for story in stories {
             if story.isCompleted {
                 completedCount += 1
             }
         }
-        
+
         // Calculate progress as ratio of completed to total
         let progress = Double(completedCount) / Double(stories.count)
-        
+
         // Update collection progress
         collection.completionProgress = progress
         collection.updatedAt = Date()
-        
+
         // Save changes
         try repository.saveCollection(collection)
-        
+
         // Check if collection is completed and track achievement if needed
         if progress >= 1.0 {
             try await trackCollectionCompletionAchievement(collection: collection)
         }
-        
+
         return progress
     }
-    
+
     /// Marks a story as completed and updates collection progress
     /// This method should be called when a story is finished being read
     ///
@@ -265,22 +265,22 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
             throw NSError(domain: "CollectionService", code: 404,
                          userInfo: [NSLocalizedDescriptionKey: "Collection not found"])
         }
-        
+
         guard let story = collection.stories?.first(where: { $0.id == storyId }) else {
             throw NSError(domain: "CollectionService", code: 404,
                          userInfo: [NSLocalizedDescriptionKey: "Story not found in collection"])
         }
-        
+
         // Update story completion status
         story.isCompleted = true
-        
+
         // Save collection which also saves the story due to relationship
         try repository.saveCollection(collection)
-        
+
         // Update collection progress
         try await updateCollectionProgressBasedOnReadCount(collectionId: collectionId)
     }
-    
+
     /// Tracks an achievement for completing a collection
     /// This is a placeholder for the achievement system integration
     ///
@@ -296,18 +296,16 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
             return
         }
         // Associate with the first story in the collection if possible
-        let associatedStory = collection.stories?.first as? StoryModel
-        let achievementModel = AchievementModel(
-            name: achievementName,
-            achievementDescription: "Completed all stories in the \(collection.title) collection.",
+        let associatedStory = collection.stories?.first
+        // Corrected call to createAchievement - save the result
+        let achievement = try achievementRepository.createAchievement(
+            title: achievementName,
+            description: "Completed all stories in the \(collection.title) collection.",
             type: achievementType,
-            earnedAt: Date(),
-            iconName: achievementType.defaultIconName,
-            progress: 1.0,
-            story: associatedStory
+            relatedStoryId: associatedStory?.id,
+            earnedAt: Date()
         )
-        try achievementRepository.saveAchievement(achievementModel)
-        print("[CollectionService] Achievement for collection \(collection.title) created and saved.")
+        print("[CollectionService] Achievement for collection \(collection.title) created and saved: \(achievement.id)")
         // TODO: Trigger UI update/notification for achievement unlock (to be handled in UI layer)
     }
 }

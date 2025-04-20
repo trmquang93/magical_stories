@@ -84,10 +84,6 @@ extension AchievementRepository { // Using extension for clarity
         // If BaseRepository doesn't handle auto-save on modification, add `try await save(achievement)`
     }
 
-    // --- Methods Requiring Collection Relationship (Placeholder Implementation) ---
-    // These methods assume a relationship exists or will be added between AchievementModel and StoryCollectionModel.
-    // Adjust implementation once the relationship is defined (e.g., through StoryModel).
-
     /// Fetches achievements associated with a specific collection ID.
     /// **Note:** Requires `AchievementModel` to have a relationship (direct or indirect) with `StoryCollectionModel`.
     /// - Parameter collectionId: The UUID of the collection.
@@ -117,7 +113,7 @@ extension AchievementRepository { // Using extension for clarity
         // Placeholder: Implementation depends on how the relationship is modeled.
         // Might involve fetching the achievement and collection models and updating their relationship properties.
         guard let achievementUUID = UUID(uuidString: achievementId),
-              let achievement = try await fetchAchievement(withId: achievementUUID) else {
+              let _ = try await fetchAchievement(withId: achievementUUID) else {
             throw PersistenceError.dataNotFound
         }
         // Fetch the CollectionModel (requires CollectionRepository)
@@ -136,7 +132,7 @@ extension AchievementRepository { // Using extension for clarity
         // Placeholder: Implementation depends on how the relationship is modeled.
         // Might involve fetching models and removing links from their relationship properties.
          guard let achievementUUID = UUID(uuidString: achievementId),
-               let achievement = try await fetchAchievement(withId: achievementUUID) else {
+               let _ = try await fetchAchievement(withId: achievementUUID) else {
              throw PersistenceError.dataNotFound
          }
         // Fetch the CollectionModel
@@ -151,6 +147,82 @@ extension AchievementRepository { // Using extension for clarity
 // TODO: This is a temporary workaround to satisfy AchievementRepositoryProtocol, which requires synchronous methods.
 // In the future, refactor the protocol and all usages to be async/await throughout.
 extension AchievementRepository {
+    
+    /// Creates a new Achievement.
+    /// - Parameters:
+    ///   - title: The title of the achievement.
+    ///   - description: The description of the achievement.
+    ///   - type: The type of achievement.
+    ///   - relatedStoryId: The ID of the related story, if any.
+    ///   - earnedAt: The date the achievement was earned, if already earned.
+    /// - Returns: The created `AchievementModel`.
+    /// - Throws: An error if creation fails.
+    func createAchievement(
+        title: String,
+        description: String?,
+        type: AchievementType,
+        relatedStoryId: UUID?,
+        earnedAt: Date?
+    ) throws -> AchievementModel {
+        let achievement = AchievementModel(
+            id: UUID(),
+            name: title,
+            achievementDescription: description,
+            type: type,
+            earnedAt: earnedAt
+        )
+        
+        // If there's a related story, fetch and link it
+        if let storyId = relatedStoryId, let story = try fetchStory(withId: storyId) {
+            achievement.story = story
+        }
+        
+        try saveAchievement(achievement)
+        return achievement
+    }
+    
+    /// Fetches a story by its ID (synchronous version).
+    /// This is a helper method for the createAchievement method.
+    private func fetchStory(withId id: UUID) throws -> StoryModel? {
+        var result: StoryModel?
+        let semaphore = DispatchSemaphore(value: 0)
+        Task {
+            let descriptor = FetchDescriptor<StoryModel>(predicate: #Predicate { $0.id == id })
+            let stories = try await modelContext.fetch(descriptor)
+            result = stories.first
+            semaphore.signal()
+        }
+        semaphore.wait()
+        return result
+    }
+    
+    /// Checks if an achievement with the given title and type exists.
+    /// - Parameters:
+    ///   - title: The title of the achievement.
+    ///   - type: The type of the achievement.
+    /// - Returns: `true` if an achievement exists, `false` otherwise.
+    func achievementExists(withTitle title: String, ofType type: AchievementType) -> Bool {
+        var exists = false
+        let semaphore = DispatchSemaphore(value: 0)
+        
+        Task {
+            do {
+                let typeRawValue = type.rawValue
+                let descriptor = FetchDescriptor<AchievementModel>(
+                    predicate: #Predicate { $0.name == title && $0.typeRawValue == typeRawValue }
+                )
+                let results = try await fetch(descriptor)
+                exists = !results.isEmpty
+            } catch {
+                exists = false
+            }
+            semaphore.signal()
+        }
+        
+        semaphore.wait()
+        return exists
+    }
+    
     func saveAchievement(_ achievement: AchievementModel) throws {
         // If async save is needed, implement here. For now, assume context auto-saves.
         // If explicit save is needed, add: try await save(achievement)

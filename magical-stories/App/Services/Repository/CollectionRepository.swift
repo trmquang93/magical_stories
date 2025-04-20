@@ -4,7 +4,7 @@ import SwiftData
 /// Concrete implementation of `CollectionRepositoryProtocol` using SwiftData.
 final class CollectionRepository: CollectionRepositoryProtocol, Sendable {
 
-    private let modelContext: ModelContext
+    nonisolated(unsafe) private let modelContext: ModelContext
 
     /// Initializes the repository with a SwiftData model context.
     /// - Parameter modelContext: The `ModelContext` to use for data operations.

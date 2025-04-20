@@ -1,144 +1,177 @@
-import Testing
-import Foundation
-import GoogleGenerativeAI // Keep for potential underlying types if needed, though mocks abstract it
 import SwiftData
+import Testing
+import XCTest
+
 @testable import magical_stories
 
 // MARK: - Mocks
 
-
 class MockStoryProcessor: StoryProcessor {
-    var processIntoPagesCalled = false
-    var processContent: String?
-    var processTheme: String? // Theme is String
-    var processResult: Result<[Page], Error>? // Return type is [Page]
+    override func processIntoPages(
+        _ content: String,
+        theme _: String
+    ) async throws -> [Page] {
+        return [Page(content: content, pageNumber: 1)]
+    }
+}
 
-    // Keep track of the illustration service passed
-    let receivedIllustrationService: IllustrationServiceProtocol
+// MARK: - Tests
 
-    // Override init to accept the protocol and call super if necessary/possible
-    // If StoryProcessor's init is throwing or complex, adjust this.
-    // Assuming a simple init for the base class for mocking purposes.
-    override init(illustrationService: IllustrationServiceProtocol) { // Added override
-         self.receivedIllustrationService = illustrationService
-         // Attempt to call super.init. If IllustrationService() throws, this mock setup needs refinement.
-         // For isolated unit testing of StoryService, we might not need a fully functional super.init().
-         // Let's assume we can bypass the super.init complexity for this mock's purpose,
-         // as we only care about overriding processIntoPages.
-         // Call the superclass initializer as required.
-         super.init(illustrationService: illustrationService)
+struct StoryServiceTests {
+    var storyService: StoryService!
+    var mockModel: MockGenerativeModel!
+    var mockProcessor: MockStoryProcessor!
+    var context: ModelContext!
+
+    @Test("Test generate story for young child")
+    func testGenerateStoryForYoungChild() async throws {
+        // Given
+        let parameters = StoryParameters(
+            childName: "Emma",
+            childAge: 4,
+            theme: "Friendship",
+            favoriteCharacter: "Bunny"
+        )
+
+        mockModel.generatedText = """
+            Title: Emma and Bunny's Special Day
+            Once upon a time, Emma met a fluffy bunny in the garden...
+            """
+
+        // When
+        let story = try await storyService.generateStory(parameters: parameters)
+
+        // Then
+        let prompt = mockModel.lastPrompt!
+        #expect(prompt.contains("Use simple, concrete words"))
+        #expect(prompt.contains("Create a linear story"))
+        #expect(story.title == "Emma and Bunny's Special Day")
+        #expect(story.pages.count == 1)
+        #expect(story.parameters.childAge == 4)
     }
 
+    @Test("Test generate story for intermediate child")
+    func testGenerateStoryForIntermediateChild() async throws {
+        // Given
+        let parameters = StoryParameters(
+            childName: "Alex",
+            childAge: 6,
+            theme: "Adventure",
+            favoriteCharacter: "Dragon",
+            developmentalFocus: [.kindnessEmpathy]
+        )
 
-    // Corrected signature: async throws -> [Page], theme is String
-     override func processIntoPages(_ content: String, theme: String) async throws -> [Page] { // Added override
-        processIntoPagesCalled = true
-        processContent = content
-        processTheme = theme
-        switch processResult {
-        case .success(let pages):
-            return pages
-        case .failure(let error):
-            throw error
-        case .none:
-             throw StoryServiceError.generationFailed("MockStoryProcessor not configured") // Default error
+        mockModel.generatedText = """
+            Title: Alex's Dragon Adventure
+            Alex and their brave dragon friend soared through the clouds...
+            """
+
+        // When
+        let story = try await storyService.generateStory(parameters: parameters)
+
+        // Then
+        let prompt = mockModel.lastPrompt!
+        #expect(prompt.contains("Use a mix of familiar and new vocabulary"))
+        #expect(prompt.contains("Include minor subplots"))
+        #expect(story.title == "Alex's Dragon Adventure")
+        #expect(
+            story.parameters.developmentalFocus?
+                .contains(.kindnessEmpathy) == true)
+    }
+
+    @Test("Test generate story for advanced child")
+    func testGenerateStoryForAdvancedChild() async throws {
+        // Given
+        let parameters = StoryParameters(
+            childName: "Maya",
+            childAge: 8,
+            theme: "Mystery",
+            favoriteCharacter: "Detective Cat",
+            emotionalThemes: ["curiosity"]
+        )
+
+        mockModel.generatedText = """
+            Title: Maya and Detective Cat's Mystery
+            The old clock tower held many secrets...
+            """
+
+        // When
+        let story = try await storyService.generateStory(parameters: parameters)
+
+        // Then
+        let prompt = mockModel.lastPrompt!
+        #expect(prompt.contains("Use rich vocabulary"))
+        #expect(prompt.contains("Develop multiple story layers"))
+        #expect(story.title == "Maya and Detective Cat's Mystery")
+        #expect(story.parameters.emotionalThemes?.contains("curiosity") == true)
+    }
+
+    @Test("Test generate story with invalid parameters")
+    func testGenerateStoryWithInvalidParameters() async {
+        // Given
+        let parameters = StoryParameters(
+            childName: "",  // Empty name should trigger error
+            childAge: 5,
+            theme: "Adventure",
+            favoriteCharacter: "Dragon"
+        )
+
+        // When/Then
+        do {
+            _ = try await storyService.generateStory(parameters: parameters)
+            XCTFail("Should have thrown invalid parameters error")
+        } catch {
+            guard let storyError = error as? StoryServiceError else {
+                XCTFail("Unexpected error type")
+                return
+            }
+            #expect(storyError == .invalidParameters)
         }
     }
-}
 
-
-// MARK: - Test Suite
-
-@Suite("StoryService Tests")
-struct StoryServiceTests {
-
-    var storyService: StoryService!
-    var mockModel: GenerativeModelProtocol!
-    var mockPersistenceService: PersistenceServiceProtocol!
-    var mockStoryProcessor: StoryProcessor!
-    var mockIllustrationService: MockIllustrationService! // Assuming MockIllustrationService is defined elsewhere
-
-    @MainActor // Ensure tests run on the main actor as StoryService is @MainActor
-    init() throws { // Mark init as throwing because StoryService init can throw
-        mockModel = MockGenerativeModel()
-       mockPersistenceService = MockPersistenceService()
-        mockIllustrationService = MockIllustrationService() // Instantiate mock
-        // Pass mock illustration service to mock story processor
-        mockStoryProcessor = MockStoryProcessor(illustrationService: mockIllustrationService)
-
-        // Initialize StoryService correctly, injecting mocks
-        // Use the initializer that allows injecting model and storyProcessor
-        // We pass empty for apiKey as the mockModel bypasses the actual GenerativeModelWrapper
-        // Create an in-memory model context for testing
-        let schema = Schema([StoryModel.self, PageModel.self])
-        let container = try ModelContainer(for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
-        let testContext = ModelContext(container)
-        
-        _ = try StoryService(
-            apiKey: "", // Not used by mockModel
-            context: testContext,
-            persistenceService: mockPersistenceService, // Correct injection
-            model: mockModel,                          // Correct injection
-            storyProcessor: mockStoryProcessor         // Correct injection
+    @Test("Test generate story with network error")
+    func testGenerateStoryWithNetworkError() async {
+        // Given
+        let parameters = StoryParameters(
+            childName: "Pat",
+            childAge: 7,
+            theme: "Space",
+            favoriteCharacter: "Star"
         )
-        // Initial loadStories happens within StoryService init's Task,
-        // so configure mockPersistenceService *before* initializing storyService if needed for init tests.
-        // For generateStory tests, configure mocks within each test case.
+
+        mockModel.error = NSError(domain: "NetworkError", code: -1)
+
+        // When/Then
+        do {
+            _ = try await storyService.generateStory(parameters: parameters)
+            XCTFail("Should have thrown network error")
+        } catch {
+            guard let storyError = error as? StoryServiceError else {
+                XCTFail("Unexpected error type")
+                return
+            }
+            #expect(storyError == .networkError)
+        }
     }
 
-    // DELETED testGenerateStory_Success()
-
-    // DELETED testGenerateStory_Error_InvalidParameters()
-
-    // DELETED testGenerateStory_Error_GenerationFailed_NoContent()
-
-    // DELETED testGenerateStory_Error_GenerationFailed_ModelThrows()
-
-    // DELETED testGenerateStory_Error_ProcessingFailed()
-
-    // DELETED testGenerateStory_Error_PersistenceFailed()
-}
-
-// MARK: - Tests for Story List Updates
-
-@Suite("StoryService Story List Tests")
-@MainActor
-struct StoryServiceStoryListTests {
-    var storyService: StoryService!
-    var mockPersistenceService: MockPersistenceService!
-    var modelContext: ModelContext!
-
-    init() throws {
-        mockPersistenceService = MockPersistenceService()
-
-        // Setup in-memory SwiftData context
-        let schema = Schema([StoryModel.self, PageModel.self])
-        let container = try ModelContainer(for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
-        modelContext = ModelContext(container)
-
-        // Create StoryService, injecting the context and mock persistence
-        // Note: This StoryService won't use the generative AI or processor mocks, suitable for list tests
-        storyService = try StoryService(
-            apiKey: "", // Dummy key
-            context: modelContext,
-            persistenceService: mockPersistenceService,
-            model: nil, // No generation needed for list tests
-            storyProcessor: nil // No processing needed for list tests
+    @Test("Test load stories")
+    func testLoadStories() async throws {
+        // Given
+        let parameters = StoryParameters(
+            childName: "Test",
+            childAge: 5,
+            theme: "Test",
+            favoriteCharacter: "Test"
         )
-    }
 
-    @Test("Initial stories list is empty")
-    func testInitialStoriesList() async throws {
-        // Arrange: Configure persistence to return empty list initially
-        mockPersistenceService.storiesToLoad = []
-        // Re-trigger load if necessary, or ensure init load uses the mock config
+        mockModel.generatedText = "Title: Test Story\nTest content"
+
+        // When
+        let story = try await storyService.generateStory(parameters: parameters)
         await storyService.loadStories()
 
-        // Assert
-        #expect(storyService.stories.isEmpty, "Stories list should be empty initially")
+        // Then
+        await #expect(!storyService.stories.isEmpty)
+        await #expect(storyService.stories.contains { $0.id == story.id })
     }
-
-    // DELETED testStoryAppearsAfterCreation()
-
-    // DELETED testMultipleStoriesAppear()
 }

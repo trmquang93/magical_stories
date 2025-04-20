@@ -67,6 +67,9 @@ struct MockStoryGenerationResponse: StoryGenerationResponse {
 
 /// Mock generative model for simulating AI content generation.
 class MockGenerativeModel: GenerativeModelProtocol {
+    var generatedText: String?
+    var error: Error?
+    var lastPrompt: String?
     /// Handler to control the output of generateContent.
     var generateContentHandler: ((String) -> MockStoryGenerationResponse)?
     /// Optional result for alternate test patterns.
@@ -76,6 +79,13 @@ class MockGenerativeModel: GenerativeModelProtocol {
 
     // Protocol requirement: async throws -> StoryGenerationResponse
     func generateContent(_ prompt: String) async throws -> StoryGenerationResponse {
+        lastPrompt = prompt
+        if let error = error {
+            throw error
+        }
+        if let generatedText { 
+            return MockStoryGenerationResponse(text: generatedText)
+        }
         generateContentCalled = true
         if let handler = generateContentHandler {
             return handler(prompt)

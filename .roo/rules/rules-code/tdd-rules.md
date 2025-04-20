@@ -1,0 +1,21 @@
+# TDD Rules for Developer Mode
+
+## Role in TDD Workflow
+- Only implement code after tests are defined and verified to fail (red phase).
+- Focus on making tests pass with minimal, incremental code changes (green phase).
+- Refactor code as needed while ensuring all tests continue to pass (refactor phase).
+- Do not implement untested functionality.
+
+## Protocols
+- Before coding, confirm that:
+  - Tests exist for the required functionality.
+  - Tests fail as expected before implementation.
+- After implementation, ensure:
+  - All relevant tests pass.
+  - No untested code is introduced.
+- Refactor only with a passing test suite.
+- Follow the reporting protocol and format specified by the Manager in the subtask instructions.
+
+## Notes
+- Do not define your own reporting or communication protocol; always follow the Manager’s instructions.
+- Prioritize TDD discipline and incremental, test-driven development.
