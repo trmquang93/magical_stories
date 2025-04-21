@@ -280,5 +280,20 @@ class MigrationManager {
 -   Test persistence logic thoroughly, including migrations.
 -   Manage `ModelContext` lifecycle and threading carefully.
 
+## [2025-04-20] Illustration Generation Persistence Update
+
+- **Previous Image Context:**
+  - When generating a new illustration, the service loads the previous page's image from `Application Support/Illustrations/` using the tracked relative path.
+  - The image is base64-encoded and sent as `inline_data` in the Gemini 2.0 API request for visual consistency.
+- **First Page or Missing Image:**
+  - If no previous image is available, only the text prompt is sent.
+- **Image Storage:**
+  - Generated images are saved in `Application Support/Illustrations/` with a unique filename.
+  - The relative path is returned and tracked for each page.
+- **Fallback:**
+  - Legacy Imagen API is used for single-image mode or as a fallback.
+
+See `IllustrationService.swift` for implementation details.
+
 ---
 This guide should be updated when the SwiftData schema changes, migration strategies evolve, or new persistence requirements emerge.

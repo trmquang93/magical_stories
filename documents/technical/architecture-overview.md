@@ -138,3 +138,22 @@ For detailed guidelines, patterns, and examples, refer to:
 -   Optimizing SwiftData performance and queries.
 -   Expanding analytics and monitoring.
 -   Potential introduction of dedicated ViewModels if view complexity increases significantly.
+
+## [2025-04-20] Gemini 2.0 Multimodal Illustration Generation
+
+- **Service:** IllustrationService now uses Gemini 2.0 (`gemini-2.0-flash-exp-image-generation:generateContent`) for illustration generation.
+- **Multimodal Input:** When generating a new page's illustration, the previous page's image (if available) is loaded from persistent storage and sent as `inline_data` alongside the text prompt.
+- **API Request:**
+  - Request body includes both a text part (scene description) and an image part (base64-encoded previous illustration).
+  - `generationConfig` specifies `[\"TEXT\", \"IMAGE\"]` as response modalities.
+- **Response Parsing:**
+  - The service parses `candidates[].content.parts[]` for an `inline_data` part with an image MIME type.
+  - The image is extracted, decoded, and saved to persistent storage.
+- **Fallback:**
+  - If no previous image is available (first page or error), only the text prompt is sent.
+  - Legacy Imagen API is retained for single-image mode or as a fallback.
+- **Error Handling:**
+  - Improved error handling and retry logic for API/network failures.
+  - Logs all API responses and errors for debugging.
+
+See `IllustrationService.swift` for implementation details and request/response code examples.

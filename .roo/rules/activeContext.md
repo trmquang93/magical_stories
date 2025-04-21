@@ -158,3 +158,12 @@ All relevant project documents and Memory Bank files have been updated to reflec
 *   ST-7.1: End-to-End Testing. (M)
 *   ST-7.2: UI/UX Refinement. (M)
 *   ST-7.3: Final Test Suite Run. (S)
+
+## [2025-04-20] Gemini 2.0 Multimodal Illustration Generation
+- IllustrationService now uses Gemini 2.0 multimodal API for page-to-page illustration consistency.
+- Previous page's image is sent as inline_data for context when available.
+- Falls back to text-only prompt for first page or missing image.
+- Legacy Imagen API is retained for single-image mode or as a fallback.
+- Improved error handling and response parsing.
+- Documentation updated in: google-ai-integration.md, swift-data-schema.md, architecture-overview.md, persistence-guide.md, MVP-requirements.md, Growth-Path-Stories.md, App-structure.md.
+- See IllustrationService.swift for implementation details.

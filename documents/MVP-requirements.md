@@ -5,7 +5,11 @@
 - Story Library (LibraryView, persistent storage via SwiftData)
 - Story Reading (StoryDetailView, paginated, progress bar)
 - Parental Controls (SettingsView, content filtering, screen time)
-- Illustration Generation (AI-powered, per page)
+- Illustration Generation (2025-04-20 Update)
+  - Uses Gemini 2.0 multimodal API for generating illustrations with page-to-page visual consistency.
+  - Previous page's image is sent as inline_data for context when available.
+  - Falls back to text-only prompt for first page or if previous image is missing.
+  - Legacy Imagen API is retained for single-image mode or as a fallback.
 - **Growth Path Collections (NEW):**
   - Themed, developmentally-focused sets of stories
   - Progress tracking per collection and story

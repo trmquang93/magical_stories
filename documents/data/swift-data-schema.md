@@ -394,3 +394,21 @@ Choose delete rules (`.cascade`, `.nullify`, `.deny`, `.noAction`) carefully bas
 
 ---
 This schema should be updated when models, properties, or relationships change. Refer to `persistence-guide.md` for implementation details.
+
+# SwiftData Schema: Illustration Generation (2025-04-20)
+
+## Illustration Generation Flow
+- **Multimodal Context:**
+  - When generating an illustration for a story page, if a previous page's illustration exists, its image data is loaded from persistent storage and sent as `inline_data` in the Gemini 2.0 API request.
+  - The request includes both the new page's description (as text) and the previous image (as base64-encoded inline_data) for visual consistency.
+  - The relative path to the previous illustration is tracked per page.
+- **First Page or Missing Image:**
+  - If no previous image is available (first page or error), only the text prompt is sent.
+- **Fallback:**
+  - Legacy Imagen API is used for single-image mode or as a fallback.
+
+## Data Model Impact
+- No schema change required, but the illustration generation logic now loads previous image data from the persistent directory (`Application Support/Illustrations/`).
+- The generated image is saved as before, with a new relative path returned for each page.
+
+See `IllustrationService.swift` for implementation details.

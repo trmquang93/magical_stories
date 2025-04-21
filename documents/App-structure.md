@@ -62,4 +62,11 @@ MagicalStoriesApp
 
 ## Notes
 - CollectionsListView is no longer only accessible from HomeView; it is now a dedicated tab.
-- This change enables direct UI testing and incremental development of Growth Collections features. 
+- This change enables direct UI testing and incremental development of Growth Collections features.
+
+### IllustrationService (2025-04-20 Update)
+- Now uses Gemini 2.0 multimodal API for illustration generation.
+- Sends previous page's image as inline_data for context when available.
+- Falls back to text-only prompt for first page or missing image.
+- Legacy Imagen API is retained for single-image mode or as a fallback.
+- Improved error handling and response parsing for multimodal output. 

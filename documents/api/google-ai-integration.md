@@ -122,3 +122,40 @@ Retry logic is implemented within services like `IllustrationService` for transi
 ---
 
 This documentation should be updated when API versions change, models are updated, new features are added, or security/testing strategies evolve.
+
+# Gemini 2.0 Image Generation API Integration (2025-04-20)
+
+## Model & Endpoint
+- **Model:** `gemini-2.0-flash-exp-image-generation`
+- **Endpoint:** `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent`
+
+## Request Structure
+- **Multimodal:** Supports both text and image input (for context/consistency across pages)
+- **Request Body Example:**
+```json
+{
+  "contents": [{
+    "parts": [
+      {"text": "Describe the new scene..."},
+      {
+        "inline_data": {
+          "mime_type": "image/jpeg",
+          "data": "<base64-encoded-image>"
+        }
+      }
+    ]
+  }],
+  "generationConfig": {"responseModalities": ["TEXT", "IMAGE"]}
+}
+```
+- **Response:**
+  - Look for `candidates[].content.parts[]` with `inline_data` where `mime_type` starts with `image/`.
+  - Extract and decode the `data` field for the generated image.
+
+## Fallback
+- If no previous image is available, only the text part is sent.
+- Legacy Imagen API is retained for single-image mode.
+
+## Implementation Notes
+- See `IllustrationService.swift` for Swift implementation details.
+- Handles error cases, retries, and logs API responses for debugging.

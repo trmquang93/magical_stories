@@ -60,4 +60,17 @@ Growth Path Collections provide themed, developmentally-focused sets of stories.
 ## [2025-04-16] Navigation Update
 - Growth Collections are now accessible via a dedicated "Collections" tab in the main navigation (MainTabView).
 - CollectionsListView is the entry point for browsing and managing collections.
-- This enables direct UI testing and supports incremental feature development. 
+- This enables direct UI testing and supports incremental feature development.
+
+## [2025-04-20] Illustration Generation for Growth Path Collections
+
+- **Gemini 2.0 Multimodal API:**
+  - When generating illustrations for stories in a collection, the previous page's image is sent as inline_data for visual consistency.
+  - The request includes both the new page's description (text) and the previous image (base64-encoded).
+- **Fallback:**
+  - For the first page or if the previous image is missing, only the text prompt is sent.
+  - Legacy Imagen API is used for single-image mode or as a fallback.
+- **Benefit:**
+  - Enables consistent character and setting depiction across all stories/pages in a collection.
+
+See `IllustrationService.swift` for implementation details. 
