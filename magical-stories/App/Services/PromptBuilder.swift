@@ -47,6 +47,9 @@ class PromptBuilder {
     func buildPrompt(parameters: StoryParameters) -> String {
         let vocabularyLevel = VocabularyLevel.forAge(parameters.childAge)
         
+        // Create a unique randomization seed based on current timestamp
+        let uniqueSeed = "\(Date().timeIntervalSince1970)"
+        
         var promptComponents = [
             basePrompt(parameters: parameters),
             "\nVocabulary Guidelines:",
@@ -54,7 +57,8 @@ class PromptBuilder {
             "\nNarrative Guidelines:",
             vocabularyLevel.narrativeGuideline,
             storyStructureGuidelines(),
-            formatGuidelines()
+            formatGuidelines(),
+            variabilityGuidelines(seed: uniqueSeed)
         ]
         
         // Add developmental focus if specified
@@ -124,4 +128,51 @@ class PromptBuilder {
         \(themes.map { "- \($0)" }.joined(separator: "\n"))
         """
     }
-} 
+    
+    private func variabilityGuidelines(seed: String) -> String {
+        // Generate random plot elements to incorporate
+        let plotElements = [
+            "unexpected treasure", "magical creature", "hidden doorway", 
+            "mysterious letter", "talking animal", "secret power",
+            "ancient map", "time travel", "underwater adventure",
+            "flying adventure", "lost item", "new friend",
+            "family secret", "special celebration", "weather event",
+            "curious invention", "garden discovery", "night adventure"
+        ]
+        
+        // Randomly select 2-3 plot elements
+        let numElements = Int.random(in: 2...3)
+        var selectedElements: [String] = []
+        
+        for _ in 0..<numElements {
+            if let element = plotElements.randomElement(), !selectedElements.contains(element) {
+                selectedElements.append(element)
+            }
+        }
+        
+        // Generate random settings
+        let settings = [
+            "enchanted forest", "bustling city", "quiet village",
+            "outer space", "underwater kingdom", "mountain top",
+            "desert oasis", "tropical island", "snowy tundra",
+            "jungle", "farm", "castle", "schoolyard",
+            "grandparent's house", "museum", "zoo",
+            "amusement park", "library", "beach"
+        ]
+        
+        // Select a random setting
+        let setting = settings.randomElement() ?? "magical world"
+        
+        return """
+        Variability Guidelines:
+        - Create a completely unique and original story different from any previously generated stories.
+        - Set this story in a "\(setting)" environment.
+        - Incorporate these random elements: \(selectedElements.joined(separator: ", ")).
+        - Use diverse supporting characters with unique personalities.
+        - Include unexpected twists or challenges for the main character.
+        - This story MUST be completely unique and not similar to previous generations.
+        - Unique story identifier: \(seed)
+        - Upon receiving this prompt, create a NEW, UNIQUE story different from ANY other story you've generated before.
+        """
+    }
+}

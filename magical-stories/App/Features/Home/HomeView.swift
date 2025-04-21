@@ -1,9 +1,6 @@
 import SwiftData
 import SwiftUI
 
-// Import the design system
-// If your project uses a module, use: import DesignSystem
-
 struct HomeView: View {
     @State private var showingStoryForm = false
     @State private var showingGrowthStoryForm = false
@@ -22,7 +19,9 @@ struct HomeView: View {
     var body: some View {
         ZStack {
             UITheme.Colors.background.ignoresSafeArea()
-            // Optional: SparkleAnimationView() // Placeholder for animated sparkles
+            UITheme.Colors.background.opacity(0.9)
+                .ignoresSafeArea(edges: .top)
+                .frame(height: 30)
             NavigationStack {
                 mainContent
                     .navigationDestination(for: Story.self) { story in
@@ -83,6 +82,7 @@ struct HomeView: View {
         }
         .accessibilityIdentifier("HomeView_MainScrollView")
     }
+
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Welcome back, [Name]!")

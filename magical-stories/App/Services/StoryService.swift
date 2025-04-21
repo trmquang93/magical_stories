@@ -46,7 +46,11 @@ class GenerativeModelWrapper: GenerativeModelProtocol {
     }
 
     func generateContent(_ prompt: String) async throws -> StoryGenerationResponse {
-        let response = try await model.generateContent(prompt)
+        // Add a unique cache-busting parameter to prompt to avoid cached responses
+        let uniquePrompt = prompt + "\n\nUniqueId: \(UUID().uuidString)"
+        
+        // Use the standard generateContent method
+        let response = try await model.generateContent(uniquePrompt)
         return StoryGenerationResponseWrapper(response: response)
     }
 }
@@ -78,7 +82,7 @@ class StoryService: ObservableObject {
         storyProcessor: StoryProcessor? = nil,  // Allow injecting for testing
         promptBuilder: PromptBuilder? = nil  // Added promptBuilder parameter for testing
     ) throws {  // Mark initializer as throwing
-        self.model = model ?? GenerativeModelWrapper(name: "gemini-1.5-flash", apiKey: apiKey)  // Updated model name
+        self.model = model ?? GenerativeModelWrapper(name: "gemini-1.5-pro", apiKey: apiKey)  // Updated to more creative model
         self.promptBuilder = promptBuilder ?? PromptBuilder()  // Use injected or create new
         self.persistenceService = persistenceService ?? PersistenceService(context: context)
 

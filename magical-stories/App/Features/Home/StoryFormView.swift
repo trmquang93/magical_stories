@@ -10,6 +10,7 @@ struct StoryFormView: View {
     @State private var childName = ""
     @State private var selectedAgeRange: String = "3-5" // Default to first option
     @State private var selectedTheme: StoryTheme = .friendship // Default to first theme
+    @State private var favoriteCharacter = "" // Added favorite character field
     @State private var storyLength: Double = 2 // Default to Medium (1=Short, 2=Medium, 3=Long)
     @State private var selectedLanguage: String = "en" // Default language code
     
@@ -35,6 +36,13 @@ struct StoryFormView: View {
         ("ar", "العربية")
     ]
     private let storyLengthLabels = ["Short", "Medium", "Long"]
+    
+    // Sample favorite characters for suggestions
+    private let characterSuggestions = [
+        "Dragon", "Unicorn", "Lion", "Panda", "Superhero", 
+        "Princess", "Wizard", "Fairy", "Robot", "Dinosaur",
+        "Astronaut", "Pirate", "Knight", "Mermaid", "Detective"
+    ]
     
     // Gradient for buttons and accents
     private var primaryGradient: LinearGradient {
@@ -69,6 +77,31 @@ struct StoryFormView: View {
                                         selectedAgeRange = range
                                     }
                                     .buttonStyle(SegmentedButtonStyle(isSelected: selectedAgeRange == range))
+                                }
+                            }
+                        }
+                        
+                        // Favorite Character
+                        FormField(title: "Favorite Character") {
+                            VStack(spacing: UITheme.Spacing.xs) {
+                                TextField("Enter favorite character", text: $favoriteCharacter)
+                                    .inputFieldStyle()
+                                
+                                // Character suggestions
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: UITheme.Spacing.xs) {
+                                        ForEach(characterSuggestions, id: \.self) { character in
+                                            Button(character) {
+                                                favoriteCharacter = character
+                                            }
+                                            .padding(.horizontal, UITheme.Spacing.sm)
+                                            .padding(.vertical, UITheme.Spacing.xs)
+                                            .background(UITheme.Colors.surfaceSecondary)
+                                            .cornerRadius(UITheme.Layout.cornerRadiusSmall)
+                                            .foregroundColor(UITheme.Colors.textSecondary)
+                                        }
+                                    }
+                                    .padding(.vertical, UITheme.Spacing.xs)
                                 }
                             }
                         }
@@ -233,13 +266,25 @@ struct StoryFormView: View {
         default: lengthString = "Medium"
         }
         
+        // Use provided favorite character or select a random one
+        let character = !favoriteCharacter.isEmpty ? favoriteCharacter : characterSuggestions.randomElement() ?? "Lion"
+        
+        // Create emotional themes based on age (optional parameter)
+        var emotionalThemes: [String]? = nil
+        if estimatedAge > 6 {
+            emotionalThemes = ["empathy", "courage", "curiosity"]
+        }
+        
         // Prepare parameters
         let parameters = StoryParameters(
             childName: childName,
             childAge: estimatedAge,
             theme: selectedTheme.rawValue,
-            favoriteCharacter: "Lion", // Default character
-            storyLength: lengthString
+            favoriteCharacter: character,
+            storyLength: lengthString,
+            developmentalFocus: [.emotionalIntelligence, .problemSolving], // Add developmental focus
+            interactiveElements: true, // Add interactive elements
+            emotionalThemes: emotionalThemes // Add emotional themes for older children
         )
         
         isGenerating = true
