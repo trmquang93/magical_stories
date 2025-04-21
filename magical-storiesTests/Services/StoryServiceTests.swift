@@ -15,6 +15,14 @@ struct StoryServiceTests {
 
         // Arrange
         let mockModel = MockGenerativeModel()
+        var callCount = 0
+        mockModel.generateContentHandler = { prompt in
+            callCount += 1
+            // Return different content for each call
+            return MockStoryGenerationResponse(
+                text:
+                    "Title: Generated story #\(callCount)\n\nGenerated story content #\(callCount)")
+        }
         let mockPersistenceService = MockPersistenceService()
         let promptBuilder = PromptBuilder()
         let storyService = try StoryService(
@@ -39,7 +47,9 @@ struct StoryServiceTests {
         let story2 = try await storyService.generateStory(parameters: parameters)
 
         // Assert
-        #expect(story1.pages.first?.content != story2.pages.first?.content, "Generated stories should have different content")
+        #expect(
+            story1.pages.first?.content != story2.pages.first?.content,
+            "Generated stories should have different content")
         #expect(story1.title != story2.title, "Generated story titles should be different")
     }
 }

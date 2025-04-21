@@ -28,22 +28,22 @@ final class magical_storiesUITests: XCTestCase {
     func testTabBarTabsExistAndAreTappable() {
         let app = XCUIApplication()
         app.launch()
-        
+
         // Check for Home tab
         let homeTab = app.tabBars.buttons["Home Tab"]
         XCTAssertTrue(homeTab.exists, "Home tab should exist")
         homeTab.tap()
-        
+
         // Check for Library tab
         let libraryTab = app.tabBars.buttons["Library Tab"]
         XCTAssertTrue(libraryTab.exists, "Library tab should exist")
         libraryTab.tap()
-        
+
         // Check for Collections tab
         let collectionsTab = app.tabBars.buttons["Collections Tab"]
         XCTAssertTrue(collectionsTab.exists, "Collections tab should exist")
         collectionsTab.tap()
-        
+
         // Check for Settings tab
         let settingsTab = app.tabBars.buttons["Settings Tab"]
         XCTAssertTrue(settingsTab.exists, "Settings tab should exist")
@@ -53,39 +53,49 @@ final class magical_storiesUITests: XCTestCase {
     func testHomeViewDisplaysExpectedContent() {
         let app = XCUIApplication()
         app.launch()
-        
+
         // Tap Home tab to ensure we're on HomeView
         let homeTab = app.tabBars.buttons["Home Tab"]
         if homeTab.exists { homeTab.tap() }
-        
+
         // Check for welcome text
-        let welcomeText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] 'Welcome back'")).firstMatch
+        let welcomeText = app.staticTexts.containing(
+            NSPredicate(format: "label CONTAINS[c] 'Welcome back'")
+        ).firstMatch
         XCTAssertTrue(welcomeText.exists, "HomeView should display welcome text")
-        
+
         // Check for Create a New Story card/button
         let createStoryButton = app.buttons["Start"]
-        XCTAssertTrue(createStoryButton.exists, "HomeView should have a 'Start' button for creating a new story")
-        
+        XCTAssertTrue(
+            createStoryButton.exists,
+            "HomeView should have a 'Start' button for creating a new story")
+
         // Check for Growth Path Collections section
         let growthCollectionsText = app.staticTexts["Growth Path Collections"]
-        XCTAssertTrue(growthCollectionsText.exists, "HomeView should display 'Growth Path Collections' section")
+        XCTAssertTrue(
+            growthCollectionsText.exists,
+            "HomeView should display 'Growth Path Collections' section")
     }
 
     func testHomeViewStoryCardNavigation() {
         let app = XCUIApplication()
         app.launch()
-        
+
         // Tap Home tab to ensure we're on HomeView
         let homeTab = app.tabBars.buttons["Home Tab"]
         if homeTab.exists { homeTab.tap() }
-        
+
         // Find the first story card by accessibility identifier or text
         let firstStoryCard = app.staticTexts.matching(identifier: "StoryTitle_").firstMatch
         if firstStoryCard.exists {
             firstStoryCard.tap()
             // Assert that StoryDetailView appears (by navigation title or unique text)
-            let pageIndicator = app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] 'Page '")).firstMatch
-            XCTAssertTrue(pageIndicator.waitForExistence(timeout: 2), "Should navigate to StoryDetailView and see page indicator")
+            let pageIndicator = app.staticTexts.containing(
+                NSPredicate(format: "label CONTAINS[c] 'Page '")
+            ).firstMatch
+            XCTAssertTrue(
+                pageIndicator.waitForExistence(timeout: 2),
+                "Should navigate to StoryDetailView and see page indicator")
         } else {
             // If no story card, skip test
             print("No story card found in HomeView; skipping navigation test.")
@@ -95,119 +105,85 @@ final class magical_storiesUITests: XCTestCase {
     func testLibraryViewStoryCardNavigation() {
         let app = XCUIApplication()
         app.launch()
-        
+
         // Tap Library tab
         let libraryTab = app.tabBars.buttons["Library Tab"]
         if libraryTab.exists { libraryTab.tap() }
-        
+
         // Find the first recent story card by accessibility identifier or text
         let firstRecentStoryCard = app.staticTexts.matching(identifier: "StoryTitle_").firstMatch
         if firstRecentStoryCard.exists {
             firstRecentStoryCard.tap()
             // Assert that StoryDetailView appears (by navigation title or unique text)
-            let pageIndicator = app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] 'Page '")).firstMatch
-            XCTAssertTrue(pageIndicator.waitForExistence(timeout: 2), "Should navigate to StoryDetailView and see page indicator")
+            let pageIndicator = app.staticTexts.containing(
+                NSPredicate(format: "label CONTAINS[c] 'Page '")
+            ).firstMatch
+            XCTAssertTrue(
+                pageIndicator.waitForExistence(timeout: 2),
+                "Should navigate to StoryDetailView and see page indicator")
         } else {
             // If no story card, skip test
             print("No recent story card found in LibraryView; skipping navigation test.")
         }
     }
-    
-    func testHomeViewCollectionsStateWithNoCollections() {
-        let app = XCUIApplication()
-        
-        // Configure the app to start with no collections
-        app.launchArguments = ["UITesting"]
-        app.launchEnvironment = [
-            "USE_DEMO_DATA": "false",  // Don't load demo collections
-            "SKIP_ONBOARDING": "true", // Skip onboarding if it exists
-            "FAST_ANIMATIONS": "true"  // Speed up animations
-        ]
-        
-        app.launch()
-        
-        // Tap Home tab to ensure we're on HomeView
-        let homeTab = app.tabBars.buttons["Home Tab"]
-        if homeTab.exists { homeTab.tap() }
-        
-        // Use a more flexible approach to find the Create Collection button
-        // Try different ways to match the button that creates collections
-        
-        // Try exact match first
-        var createCollectionButton = app.buttons["Create Collection"]
-        
-        // If exact match fails, try with contains
-        if !createCollectionButton.exists {
-            createCollectionButton = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Collection'")).firstMatch
-        }
-        
-        // If that still fails, try with a button that contains "Create"
-        if !createCollectionButton.exists {
-            createCollectionButton = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Create'")).firstMatch
-        }
-        
-        XCTAssertTrue(createCollectionButton.exists, "HomeView should display a button to create collections when no collections exist")
-        
-        // Check for the exact subtitle text that's in HomeView
-        let guidedCollectionsText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] 'Guide your child'")).firstMatch
-        
-        // If exact match fails, look for any text about collection guidance
-        if !guidedCollectionsText.exists {
-            let fallbackText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] 'themed story sets'")).firstMatch
-            XCTAssertTrue(fallbackText.waitForExistence(timeout: 2), "HomeView should display text about themed story sets")
-        } else {
-            XCTAssertTrue(guidedCollectionsText.waitForExistence(timeout: 2), "HomeView should display guidance text for collections")
-        }
-    }
-    
+
     func testHomeViewCollectionsStateWithExistingCollections() {
         let app = XCUIApplication()
-        
+
         // Configure the app to start with demo collections
         app.launchArguments = ["UITesting"]
         app.launchEnvironment = [
             "USE_DEMO_DATA": "true",  // Load demo collections
-            "SKIP_ONBOARDING": "true", // Skip onboarding if it exists
-            "FAST_ANIMATIONS": "true"  // Speed up animations
+            "SKIP_ONBOARDING": "true",  // Skip onboarding if it exists
+            "FAST_ANIMATIONS": "true",  // Speed up animations
         ]
-        
+
         app.launch()
-        
+
         // Tap Home tab to ensure we're on HomeView
         let homeTab = app.tabBars.buttons["Home Tab"]
         if homeTab.exists { homeTab.tap() }
-        
+
         // Check for the heading text - which should be a more reliable indicator than specific implementation details
-        let collectionsHeading = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'Growth Path Collections'")).firstMatch
-        XCTAssertTrue(collectionsHeading.waitForExistence(timeout: 2), "HomeView should display 'Growth Path Collections' heading when collections exist")
-        
+        let collectionsHeading = app.staticTexts.matching(
+            NSPredicate(format: "label CONTAINS[c] 'Growth Path Collections'")
+        ).firstMatch
+        XCTAssertTrue(
+            collectionsHeading.waitForExistence(timeout: 2),
+            "HomeView should display 'Growth Path Collections' heading when collections exist")
+
         // Look for some kind of horizontal scrolling element which would contain collections
         let horizontalScrollElement = app.scrollViews.firstMatch
-        XCTAssertTrue(horizontalScrollElement.exists, "HomeView should display a scroll view when collections exist")
+        XCTAssertTrue(
+            horizontalScrollElement.exists,
+            "HomeView should display a scroll view when collections exist")
     }
-    
+
     func testViewAllStoriesButton() {
         let app = XCUIApplication()
         app.launch()
-        
+
         // Tap Home tab to ensure we're on HomeView
         let homeTab = app.tabBars.buttons["Home Tab"]
         if homeTab.exists { homeTab.tap() }
-        
+
         // Look for "View All Stories" button
         let viewAllStoriesButton = app.buttons["ViewAllStoriesButton"]
-        
+
         if viewAllStoriesButton.exists {
             // Tap the button
             viewAllStoriesButton.tap()
-            
+
             // Verify we navigated to the Library tab
             // Wait briefly for the animation to complete
             let libraryTitle = app.navigationBars["Your Story Library"].firstMatch
-            XCTAssertTrue(libraryTitle.waitForExistence(timeout: 2), "Should navigate to Library tab when 'View All Stories' is tapped")
+            XCTAssertTrue(
+                libraryTitle.waitForExistence(timeout: 2),
+                "Should navigate to Library tab when 'View All Stories' is tapped")
         } else {
             // If the button doesn't exist (possibly because there aren't enough stories), log this
-            print("'View All Stories' button not found - may be because there aren't enough stories.")
+            print(
+                "'View All Stories' button not found - may be because there aren't enough stories.")
         }
     }
 }

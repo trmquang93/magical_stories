@@ -16,6 +16,12 @@ class MockIllustrationService: IllustrationServiceProtocol {
     var generateIllustrationShouldThrowError: Error? = nil  // Default no error
     var urlToReturn: URL? = URL(string: "https://mock.url/image.png")  // Control return value
 
+    // For the enhanced method
+    var generateContextualIllustrationCallCount = 0
+    var lastContextualCallParameters: (description: String, pageNumber: Int, totalPages: Int)?
+    var contextualIllustrationPrompts: [(description: String, pageNumber: Int, totalPages: Int)] =
+        []
+
     // Update signature to match protocol
     @MainActor
     func generateIllustration(for pageText: String, theme: String) async throws -> String? {
@@ -38,10 +44,38 @@ class MockIllustrationService: IllustrationServiceProtocol {
         return relativePath
     }
 
+    // Implement the new method required by the protocol
+    @MainActor
+    func generateIllustration(for illustrationDescription: String, pageNumber: Int, totalPages: Int)
+        async throws -> String?
+    {
+        generateContextualIllustrationCallCount += 1
+        lastContextualCallParameters = (illustrationDescription, pageNumber, totalPages)
+        contextualIllustrationPrompts.append((illustrationDescription, pageNumber, totalPages))
+
+        if let error = generateIllustrationShouldThrowError {
+            print(
+                "--- MockIllustrationService: Throwing error for contextual description: \(illustrationDescription.prefix(50))..., page \(pageNumber)/\(totalPages) ---"
+            )
+            throw error
+        }
+
+        let relativePath = urlToReturn?.path.replacingOccurrences(
+            of: "/private/var/mobile/Containers/Data/Application/UUID/Application Support/",
+            with: "")
+        print(
+            "--- MockIllustrationService: Returning relative path \(relativePath ?? "nil") for contextual description: \(illustrationDescription.prefix(50))..., page \(pageNumber)/\(totalPages) ---"
+        )
+        return relativePath
+    }
+
     func reset() {
         generateIllustrationCallCount = 0
         lastCallParameters = nil
         generateIllustrationPrompts = []
+        generateContextualIllustrationCallCount = 0
+        lastContextualCallParameters = nil
+        contextualIllustrationPrompts = []
         generateIllustrationShouldThrowError = nil
         urlToReturn = URL(string: "https://mock.url/image.png")
     }
@@ -93,7 +127,7 @@ struct StoryProcessorTests {
         #expect(pages[0].content.contains("lion was very kind"))
         #expect(pages[1].content.contains("found a lost rabbit"))
     }
-    
+
     @Test("Delimiter-based story segmentation")
     @MainActor
     func testDelimiterBasedSegmentation() async throws {
@@ -115,21 +149,21 @@ struct StoryProcessorTests {
         let pages = try await storyProcessor.processIntoPages(contentWithDelimiters, theme: theme)
 
         #expect(pages.count == 3)
-        
+
         #expect(pages[0].pageNumber == 1)
         #expect(pages[1].pageNumber == 2)
         #expect(pages[2].pageNumber == 3)
-        
+
         #expect(pages[0].content.contains("Once upon a time"))
         #expect(pages[1].content.contains("One day, the lion found"))
         #expect(pages[2].content.contains("From that day forward"))
-        
+
         // Verify the delimiters are removed from the content
         for page in pages {
             #expect(!page.content.contains("---"))
         }
     }
-    
+
     @Test("Delimiter-based segmentation with empty segments")
     @MainActor
     func testDelimiterBasedSegmentationWithEmptySegments() async throws {
@@ -139,30 +173,31 @@ struct StoryProcessorTests {
         let contentWithEmptySegments = """
             First page content.
             ---
-            
+
             ---
             Third page content.
             ---
-            
+
             ---
             Fifth page content.
             """
         let theme = "Testing"
 
-        let pages = try await storyProcessor.processIntoPages(contentWithEmptySegments, theme: theme)
+        let pages = try await storyProcessor.processIntoPages(
+            contentWithEmptySegments, theme: theme)
 
         // Empty segments should be skipped
         #expect(pages.count == 3)
-        
+
         #expect(pages[0].pageNumber == 1)
         #expect(pages[1].pageNumber == 2)
         #expect(pages[2].pageNumber == 3)
-        
+
         #expect(pages[0].content.contains("First page content"))
         #expect(pages[1].content.contains("Third page content"))
         #expect(pages[2].content.contains("Fifth page content"))
     }
-    
+
     @Test("Custom delimiter segmentation")
     @MainActor
     func testCustomDelimiterSegmentation() async throws {
@@ -176,26 +211,27 @@ struct StoryProcessorTests {
             ===PAGE BREAK===
             Third page content.
             """
-        
+
         // Call paginateStory directly to test the custom delimiter
-        let pages = storyProcessor.paginateStory(contentWithCustomDelimiter, delimiter: "===PAGE BREAK===")
+        let pages = storyProcessor.paginateStory(
+            contentWithCustomDelimiter, delimiter: "===PAGE BREAK===")
 
         #expect(pages.count == 3)
-        
+
         #expect(pages[0].pageNumber == 1)
         #expect(pages[1].pageNumber == 2)
         #expect(pages[2].pageNumber == 3)
-        
+
         #expect(pages[0].content.contains("First page content"))
         #expect(pages[1].content.contains("Second page content"))
         #expect(pages[2].content.contains("Third page content"))
-        
+
         // Verify the custom delimiters are removed from the content
         for page in pages {
             #expect(!page.content.contains("===PAGE BREAK==="))
         }
     }
-    
+
     @Test("Fallback to paragraph-based segmentation when no delimiter")
     @MainActor
     func testFallbackWhenNoDelimiter() async throws {
@@ -213,7 +249,8 @@ struct StoryProcessorTests {
             """
         let theme = "Testing"
 
-        let pages = try await storyProcessor.processIntoPages(contentWithoutDelimiters, theme: theme)
+        let pages = try await storyProcessor.processIntoPages(
+            contentWithoutDelimiters, theme: theme)
 
         // Should fall back to paragraph-based segmentation
         #expect(pages.count > 1)
@@ -399,7 +436,7 @@ struct StoryProcessorTests {
         let pages = try await storyProcessor.processIntoPages(content, theme: theme)
 
         #expect(pages.count == 2)
-        #expect(mockIllustrationService.generateIllustrationCallCount == pages.count)
+        #expect(mockIllustrationService.generateContextualIllustrationCallCount == pages.count)
     }
 
     @Test("Correct prompt passed to illustration service")
@@ -415,12 +452,28 @@ struct StoryProcessorTests {
         let pages = try await storyProcessor.processIntoPages(shortContent, theme: theme)
 
         #expect(pages.count == 1)
-        #expect(mockIllustrationService.generateIllustrationCallCount == 1)
+        #expect(mockIllustrationService.generateContextualIllustrationCallCount == 1)
 
-        let lastParams = mockIllustrationService.lastCallParameters
-        #expect(lastParams != nil, "Mock should have received parameters")
-        #expect(lastParams!.pageText == shortContent)
-        #expect(lastParams!.theme == theme)
+        let lastParams = mockIllustrationService.lastContextualCallParameters
+        #expect(lastParams != nil, "Mock should have received contextual parameters")
+
+        // Construct the expected prompt based on StoryProcessor's logic
+        let expectedPrompt = """
+            Create a detailed illustration for page 1 of 1 showing this scene:
+            \(shortContent)
+
+            Story context:
+            This is the beginning of the story.
+            This is the end of the story.
+
+            Theme: \(theme)
+            Important: Maintain visual consistency with previous and upcoming illustrations. Characters should look the same throughout the story.
+            """
+        #expect(
+            lastParams!.description == expectedPrompt,
+            "Generated prompt did not match expected format.")
+        #expect(lastParams!.pageNumber == 1)
+        #expect(lastParams!.totalPages == 1)
     }
 
     @Test("Page illustration URL set on success")
@@ -477,5 +530,80 @@ struct StoryProcessorTests {
         #expect(pages[0].illustrationRelativePath == nil)
         #expect(pages[0].illustrationStatus == .failed)
         #expect(pages[0].imagePrompt != nil)
+    }
+
+    @Test("Preprocessed illustration descriptions")
+    @MainActor
+    func testPreprocessedIllustrationDescriptions() async throws {
+        // Setup the mock illustration service
+        let mockIllustrationService = MockIllustrationService()
+
+        // Create a mock generative model for illustration descriptions
+        let mockGenerativeModel = MockGenerativeModel()
+        mockGenerativeModel.generateContentHandler = { prompt in
+            // Return mock JSON response with illustration descriptions
+            let descriptions = [
+                "Illustration for page 1: A brave lion standing tall in a lush forest with sunlight streaming through the trees. The lion has a golden mane and gentle eyes.",
+                "Illustration for page 2: The same lion from page 1 helping a small brown rabbit with a white fluffy tail. They are walking together on a forest path.",
+                "Illustration for page 3: The lion and rabbit from previous pages arriving at a cozy rabbit burrow. Other rabbits with the same brown fur and white tails peek out to welcome them.",
+            ]
+
+            // Convert to JSON string
+            let jsonData = try! JSONEncoder().encode(descriptions)
+            let jsonString = String(data: jsonData, encoding: .utf8)!
+
+            return MockStoryGenerationResponse(text: jsonString)
+        }
+
+        // Setup the StoryProcessor with the mocks
+        let storyProcessor = StoryProcessor(
+            illustrationService: mockIllustrationService,
+            generativeModel: mockGenerativeModel
+        )
+
+        // Test content with delimiters
+        let contentWithDelimiters = """
+            Once upon a time, there was a brave lion who lived in the forest.
+            The lion was very kind and helped all the animals in need.
+            ---
+            One day, the lion found a lost rabbit and helped it find its way home.
+            The rabbit was very grateful and they became good friends.
+            ---
+            From that day forward, the lion and the rabbit went on many adventures together.
+            They taught everyone in the forest about the importance of friendship.
+            """
+        let theme = "Friendship"
+
+        // Process the story with the enhanced method
+        let pages = try await storyProcessor.processIntoPages(contentWithDelimiters, theme: theme)
+
+        // Verify we got the expected number of pages
+        #expect(pages.count == 3)
+
+        // Verify that each page has an imagePrompt set from our mock descriptions
+        #expect(pages[0].imagePrompt?.contains("brave lion standing tall") == true)
+        #expect(pages[1].imagePrompt?.contains("same lion from page 1") == true)
+        #expect(pages[2].imagePrompt?.contains("lion and rabbit from previous pages") == true)
+
+        // Verify that the enhanced illustration method was called for all pages
+        #expect(mockIllustrationService.generateContextualIllustrationCallCount == 3)
+
+        // Verify that the right parameters were passed to the illustration service
+        if let lastCall = mockIllustrationService.lastContextualCallParameters {
+            #expect(lastCall.pageNumber == 3)
+            #expect(lastCall.totalPages == 3)
+            #expect(lastCall.description.contains("lion and rabbit from previous pages") == true)
+        } else {
+            #expect(false, "No contextual call parameters recorded")
+        }
+    }
+}
+
+// MARK: - Mock Generation Response
+struct MockGenerationResponse: StoryGenerationResponse {
+    let content: String
+
+    var text: String? {
+        return content
     }
 }

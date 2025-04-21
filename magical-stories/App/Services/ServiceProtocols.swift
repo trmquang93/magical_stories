@@ -70,6 +70,16 @@ protocol IllustrationServiceProtocol {
     /// - Returns: A relative path string pointing to the generated illustration, or `nil` if generation fails gracefully.
     /// - Throws: `IllustrationError` for configuration, network, or API issues.
     func generateIllustration(for pageText: String, theme: String) async throws -> String?
+
+    /// Generates an illustration using a context-rich, preprocessed description
+    /// - Parameters:
+    ///   - illustrationDescription: The detailed, preprocessed description for the illustration
+    ///   - pageNumber: The current page number
+    ///   - totalPages: The total number of pages in the story
+    /// - Returns: A relative path string pointing to the generated illustration, or `nil` if generation fails gracefully.
+    /// - Throws: `IllustrationError` for configuration, network, or API issues.
+    func generateIllustration(for illustrationDescription: String, pageNumber: Int, totalPages: Int)
+        async throws -> String?
 }
 
 // Removed duplicate AchievementRepositoryProtocol, SettingsRepositoryProtocol, and PersistenceError definitions

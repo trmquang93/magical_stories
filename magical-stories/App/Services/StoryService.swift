@@ -48,7 +48,7 @@ class GenerativeModelWrapper: GenerativeModelProtocol {
     func generateContent(_ prompt: String) async throws -> StoryGenerationResponse {
         // Add a unique cache-busting parameter to prompt to avoid cached responses
         let uniquePrompt = prompt + "\n\nUniqueId: \(UUID().uuidString)"
-        
+
         // Use the standard generateContent method
         let response = try await model.generateContent(uniquePrompt)
         return StoryGenerationResponseWrapper(response: response)
@@ -92,8 +92,17 @@ class StoryService: ObservableObject {
         // For now, let's assume a default IllustrationService can be created.
         // Use 'try' as IllustrationService() can throw
         let effectiveIllustrationService = try IllustrationService()
+
+        // Create a dedicated text model for StoryProcessor to use for illustration descriptions
+        let illustrationDescriptionModel = GenerativeModelWrapper(
+            name: "gemini-1.5-pro", apiKey: apiKey)
+
         self.storyProcessor =
-            storyProcessor ?? StoryProcessor(illustrationService: effectiveIllustrationService)
+            storyProcessor
+            ?? StoryProcessor(
+                illustrationService: effectiveIllustrationService,
+                generativeModel: illustrationDescriptionModel
+            )
 
         // Task must be after all properties are initialized
         Task {
@@ -235,7 +244,9 @@ class StoryService: ObservableObject {
             // Remove from in-memory list for immediate UI update
             stories.removeAll { $0.id == id }
         } catch {
-            AIErrorManager.logError(error, source: "StoryService", additionalInfo: "Failed to delete story with id: \(id)")
+            AIErrorManager.logError(
+                error, source: "StoryService",
+                additionalInfo: "Failed to delete story with id: \(id)")
         }
     }
 }
