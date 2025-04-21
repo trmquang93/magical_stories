@@ -151,4 +151,27 @@ struct PromptBuilderTests {
         #expect(prompt.contains("Use clear paragraph breaks"))
         #expect(prompt.contains("Include dialogue when appropriate"))
     }
+    
+    @Test("Prompt includes page break delimiter instructions")
+    func testPromptIncludesPageBreakDelimiterInstructions() {
+        // Given
+        let parameters = StoryParameters(
+            childName: "Jamie",
+            childAge: 5,
+            theme: "Adventure",
+            favoriteCharacter: "Explorer Fox"
+        )
+        
+        // When
+        let prompt = promptBuilder.buildPrompt(parameters: parameters)
+        
+        // Then
+        // Check in story structure guidelines
+        #expect(prompt.contains("Insert \"---\" (three hyphens) on a separate line between segments"))
+        #expect(prompt.contains("page breaks"))
+        
+        // Check in format guidelines
+        #expect(prompt.contains("VERY IMPORTANT: Use \"---\" (three hyphens) on a separate line"))
+        #expect(prompt.contains("to indicate where a new page should begin"))
+    }
 }

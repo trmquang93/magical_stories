@@ -93,6 +93,133 @@ struct StoryProcessorTests {
         #expect(pages[0].content.contains("lion was very kind"))
         #expect(pages[1].content.contains("found a lost rabbit"))
     }
+    
+    @Test("Delimiter-based story segmentation")
+    @MainActor
+    func testDelimiterBasedSegmentation() async throws {
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
+
+        let contentWithDelimiters = """
+            Once upon a time, there was a brave lion who lived in the forest.
+            The lion was very kind and helped all the animals in need.
+            ---
+            One day, the lion found a lost rabbit and helped it find its way home.
+            The rabbit was very grateful and they became good friends.
+            ---
+            From that day forward, the lion and the rabbit went on many adventures together.
+            They taught everyone in the forest about the importance of friendship.
+            """
+        let theme = "Friendship"
+
+        let pages = try await storyProcessor.processIntoPages(contentWithDelimiters, theme: theme)
+
+        #expect(pages.count == 3)
+        
+        #expect(pages[0].pageNumber == 1)
+        #expect(pages[1].pageNumber == 2)
+        #expect(pages[2].pageNumber == 3)
+        
+        #expect(pages[0].content.contains("Once upon a time"))
+        #expect(pages[1].content.contains("One day, the lion found"))
+        #expect(pages[2].content.contains("From that day forward"))
+        
+        // Verify the delimiters are removed from the content
+        for page in pages {
+            #expect(!page.content.contains("---"))
+        }
+    }
+    
+    @Test("Delimiter-based segmentation with empty segments")
+    @MainActor
+    func testDelimiterBasedSegmentationWithEmptySegments() async throws {
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
+
+        let contentWithEmptySegments = """
+            First page content.
+            ---
+            
+            ---
+            Third page content.
+            ---
+            
+            ---
+            Fifth page content.
+            """
+        let theme = "Testing"
+
+        let pages = try await storyProcessor.processIntoPages(contentWithEmptySegments, theme: theme)
+
+        // Empty segments should be skipped
+        #expect(pages.count == 3)
+        
+        #expect(pages[0].pageNumber == 1)
+        #expect(pages[1].pageNumber == 2)
+        #expect(pages[2].pageNumber == 3)
+        
+        #expect(pages[0].content.contains("First page content"))
+        #expect(pages[1].content.contains("Third page content"))
+        #expect(pages[2].content.contains("Fifth page content"))
+    }
+    
+    @Test("Custom delimiter segmentation")
+    @MainActor
+    func testCustomDelimiterSegmentation() async throws {
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
+
+        let contentWithCustomDelimiter = """
+            First page content.
+            ===PAGE BREAK===
+            Second page content.
+            ===PAGE BREAK===
+            Third page content.
+            """
+        
+        // Call paginateStory directly to test the custom delimiter
+        let pages = storyProcessor.paginateStory(contentWithCustomDelimiter, delimiter: "===PAGE BREAK===")
+
+        #expect(pages.count == 3)
+        
+        #expect(pages[0].pageNumber == 1)
+        #expect(pages[1].pageNumber == 2)
+        #expect(pages[2].pageNumber == 3)
+        
+        #expect(pages[0].content.contains("First page content"))
+        #expect(pages[1].content.contains("Second page content"))
+        #expect(pages[2].content.contains("Third page content"))
+        
+        // Verify the custom delimiters are removed from the content
+        for page in pages {
+            #expect(!page.content.contains("===PAGE BREAK==="))
+        }
+    }
+    
+    @Test("Fallback to paragraph-based segmentation when no delimiter")
+    @MainActor
+    func testFallbackWhenNoDelimiter() async throws {
+        let mockIllustrationService = MockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustrationService)
+
+        let contentWithoutDelimiters = """
+            First paragraph of content with no delimiters.
+
+            Second paragraph of content.
+
+            Third paragraph of content.
+
+            Fourth paragraph which should be on a different page.
+            """
+        let theme = "Testing"
+
+        let pages = try await storyProcessor.processIntoPages(contentWithoutDelimiters, theme: theme)
+
+        // Should fall back to paragraph-based segmentation
+        #expect(pages.count > 1)
+        #expect(pages[0].content.contains("First paragraph"))
+        #expect(pages[0].content.contains("Second paragraph"))
+    }
 
     @Test("Long story segmentation")
     @MainActor

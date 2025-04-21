@@ -10,6 +10,7 @@ class StoryProcessor {
     static let maxPageContentLength = 500 // Approximate character limit per page
     static let paragraphBreakPattern = "\n\n" // How paragraphs are delimited
     static let maxParagraphsPerPage = 2 // Maximum paragraphs allowed on a single page (Adjusted from 3)
+    static let defaultPageBreakDelimiter = "---" // Default delimiter for explicit page breaks
 
     private let formatter = StoryTextFormatter() // For potential future text formatting
     let illustrationService: IllustrationServiceProtocol // Injected via initializer
@@ -19,10 +20,72 @@ class StoryProcessor {
     }
 
     // MARK: - Segmentation
+    
+    /// Process raw story content into structured Page objects and generate illustrations.
+    /// This method first checks for explicit page break delimiters and falls back to paragraph-based pagination if needed.
+    func processIntoPages(_ content: String, theme: String) async throws -> [Page] {
+        // First attempt to paginate using the delimiter-based approach
+        var pages = paginateStory(content)
+        
+        // Generate illustrations for the pages
+        await generateIllustrationsForPages(&pages, theme: theme)
+        return pages
+    }
+
+    /// Paginates story content using explicit delimiters, with fallback to paragraph-based pagination.
+    /// - Parameters:
+    ///   - content: The raw story content to paginate
+    ///   - delimiter: The delimiter string to use for page breaks (default: "---")
+    /// - Returns: An array of Page objects representing the paginated story
+    @MainActor
+    func paginateStory(_ content: String, delimiter: String = StoryProcessor.defaultPageBreakDelimiter) -> [Page] {
+        let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedContent.isEmpty else {
+            return [] // Return empty if content is just whitespace
+        }
+        
+        // Check if the content contains the delimiter
+        if trimmedContent.contains(delimiter) {
+            // Split content by delimiter
+            var pageNumber = 1
+            var pages = [Page]()
+            
+            // Split by delimiter and process each segment
+            let segments = trimmedContent.components(separatedBy: delimiter)
+            for segment in segments {
+                let trimmedSegment = segment.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmedSegment.isEmpty {
+                    pages.append(Page(
+                        content: trimmedSegment,
+                        pageNumber: pageNumber
+                    ))
+                    pageNumber += 1
+                }
+            }
+            
+            return pages
+        } else {
+            // Fallback to the existing paragraph-based pagination logic
+            if trimmedContent.count <= Self.maxPageContentLength && 
+               trimmedContent.components(separatedBy: Self.paragraphBreakPattern).count <= Self.maxParagraphsPerPage {
+                // If the entire story is short and fits within limits, return as a single page
+                return [Page(content: trimmedContent, pageNumber: 1)]
+            } else {
+                // Otherwise, build pages paragraph by paragraph using existing logic
+                let paragraphs = trimmedContent.components(separatedBy: Self.paragraphBreakPattern)
+                                               .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                                               .filter { !$0.isEmpty } // Remove empty paragraphs
+                
+                return buildPagesFromParagraphs(paragraphs)
+            }
+        }
+    }
 
     /// Process raw story content into structured Page objects.
     /// Process raw story content into structured Page objects and generate illustrations.
-    func processIntoPages(_ content: String, theme: String) async throws -> [Page] {
+    /// This is the original method that's now updated to use the new paginateStory method.
+    @available(*, deprecated, message: "Use processIntoPages(_:theme:) instead which uses delimiter-based pagination with fallback")
+    func processIntoPagesLegacy(_ content: String, theme: String) async throws -> [Page] {
         let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedContent.isEmpty else {
             return [] // Return empty if content is just whitespace

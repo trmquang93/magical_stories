@@ -94,9 +94,11 @@ class PromptBuilder {
         Story Structure Requirements:
         - Start with "Title: [Your Story Title]" on the first line
         - Follow with the story content
-        - Divide the story into clear, logical segments that can be split into pages
-        - Each segment should be 2-3 paragraphs
-        - Include natural page breaks where illustrations could enhance the story
+        - Divide the story into clear, logical segments that represent pages
+        - IMPORTANT: Insert "---" (three hyphens) on a separate line between segments to indicate page breaks
+        - Each page should be 2-3 paragraphs in length and flow naturally
+        - Include page breaks at natural points where illustrations could enhance the story
+        - Aim for 3-6 pages total, depending on the requested story length
         - End with a clear resolution that reinforces the story's theme
         """
     }
@@ -109,6 +111,8 @@ class PromptBuilder {
         - Include dialogue when appropriate
         - Use descriptive language that creates vivid mental images
         - Maintain consistent tense throughout
+        - VERY IMPORTANT: Use "---" (three hyphens) on a separate line to indicate where a new page should begin
+        - Make sure each page (separated by "---") has a coherent chunk of the story
         """
     }
     
