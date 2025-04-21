@@ -82,7 +82,7 @@ class StoryService: ObservableObject {
         storyProcessor: StoryProcessor? = nil,  // Allow injecting for testing
         promptBuilder: PromptBuilder? = nil  // Added promptBuilder parameter for testing
     ) throws {  // Mark initializer as throwing
-        self.model = model ?? GenerativeModelWrapper(name: "gemini-1.5-pro", apiKey: apiKey)  // Updated to more creative model
+        self.model = model ?? GenerativeModelWrapper(name: "gemini-2.0-flash", apiKey: apiKey)  // Updated to more creative model
         self.promptBuilder = promptBuilder ?? PromptBuilder()  // Use injected or create new
         self.persistenceService = persistenceService ?? PersistenceService(context: context)
 
