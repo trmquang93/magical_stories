@@ -205,9 +205,12 @@ class TestableIllustrationService: IllustrationServiceProtocol {
     }
 
     @MainActor
-    func generateIllustration(for illustrationDescription: String, pageNumber: Int, totalPages: Int)
-        async throws -> String?
-    {
+    func generateIllustration(
+        for illustrationDescription: String,
+        pageNumber: Int,
+        totalPages: Int,
+        previousIllustrationPath: String?
+    ) async throws -> String? {
         // This implementation can be very similar to the other method, but with a different prompt construction
         let contextualPrompt =
             "Generate an illustration for a children's story page. This is page \(pageNumber) of \(totalPages). Scene Description: \(illustrationDescription)."

@@ -17,17 +17,16 @@ The application primarily follows the **MVVM (Model-View-ViewModel)** pattern wi
     *   `@EnvironmentObject`: Used to inject shared objects down the view hierarchy.
     *   `@State`: Used for managing simple, transient view-local state.
     *   `@Binding`: Used to create a two-way connection between a view and its state managed elsewhere.
-    *   `@Query`: Used in views like `CollectionsListView` to directly fetch and observe SwiftData models.
+    *   `@Query`: Used to directly fetch and observe SwiftData models in views.
 
-3.  **Service Layer & Setup:**
-    *   Application logic related to external interactions (AI, persistence, StoreKit) and core functionalities is encapsulated in Service classes (`StoryService`, `SettingsService`, `IllustrationService`, `CollectionService`, `RecommendationEngine`, `PurchaseService`, `EntitlementManager`).
-        *   **`StoryService` Enhancement:** The `StoryService` now utilizes an enhanced `StoryParameters` model (`developmentalFocus`, `interactiveElements`, `emotionalThemes`) and an updated internal `PromptBuilder` to generate stories tailored for developmental benefits, incorporating richer vocabulary, clearer narratives, emotional modeling, and optional interactive prompts based on these new parameters.
-    *   Services and Repositories are often initialized as `@StateObject`s at the application root (`MagicalStoriesApp`) and injected into the view hierarchy using `.environmentObject()`.
+3.  **Service Layer Pattern:**
+    *   Application logic related to external interactions (AI, persistence, StoreKit) and core functionalities is encapsulated in Service classes.
+    *   Services are initialized as `@StateObject`s at the application root and injected into the view hierarchy using `.environmentObject()`.
     ```swift
     // Example from MagicalStoriesApp
-    @StateObject private var storyRepository = StoryRepository() // Example
+    @StateObject private var storyRepository = StoryRepository()
     @StateObject private var settingsService = SettingsService()
-    @StateObject private var purchaseService = PurchaseService() // Example
+    @StateObject private var purchaseService = PurchaseService()
     // ...
     MainTabView()
         .environmentObject(storyRepository)
@@ -37,17 +36,23 @@ The application primarily follows the **MVVM (Model-View-ViewModel)** pattern wi
 
 4.  **Dependency Injection:** Services and Repositories are injected primarily via `@EnvironmentObject`. Dependencies between services/repositories are typically handled via initializers.
 
-5.  **Data Persistence & Repository Pattern:**
-    *   The **Repository Pattern** is used to abstract data access logic. Concrete repositories (`StoryRepository`, `SettingsRepository`, `AchievementRepository`, `CollectionRepository`) encapsulate CRUD operations for specific data models.
-    *   The application now uses **SwiftData** as the primary persistence layer for stories, settings, and user data.
-    *   Legacy `UserDefaults` persistence and migration logic have been removed.
+5.  **Repository Pattern:**
+    *   Abstracts data access logic from the rest of the application.
+    *   Concrete repositories encapsulate CRUD operations for specific data models.
+    *   Uses **SwiftData** as the primary persistence layer.
 
-6.  **Navigation:**
+6.  **Navigation Patterns:**
     *   **Main Navigation:** `TabView` manages the top-level navigation.
     *   **Intra-Tab Navigation:** `NavigationStack` is used *within each tab*.
-    *   **Modal Presentation:** `.sheet` is standard for modal forms (e.g., `CollectionFormView` presented from `HomeView`).
-    *   **View Transitions (Push):** `NavigationLink(value: ...)` is used (e.g., in `CollectionsListView`, `CollectionDetailView`). Requires a corresponding `.navigationDestination(for: ...)` modifier placed higher in the view hierarchy within the `NavigationStack`.
-    *   **Programmatic Navigation:** `NavigationPath` can be used.
+    *   **Modal Presentation:** `.sheet` is standard for modal forms.
+    *   **View Transitions (Push):** `NavigationLink(value: ...)` is used with corresponding `.navigationDestination(for: ...)` modifiers.
+    *   **Programmatic Navigation:** `NavigationPath` for complex navigation scenarios.
+    *   **Navigation Best Practices:**
+        *   Avoid nesting multiple `NavigationStack` components, as this disrupts navigation context and can cause back button behavior issues.
+        *   Use consistent navigation patterns throughout the app - prefer `NavigationLink(value:)` with `.navigationDestination(for:)` over `NavigationLink(destination:)`.
+        *   Remember that `MainTabView` already wraps each tab in a `NavigationStack`; adding another in tab content creates problematic nested stacks.
+        *   Back button behavior is determined by the parent `NavigationStack` context - disrupting this context leads to navigation issues.
+        *   Views that are navigation destinations should not wrap themselves in additional `NavigationStack`s.
 
 7.  **View Structure Hierarchy:**
     ```
@@ -66,64 +71,35 @@ The application primarily follows the **MVVM (Model-View-ViewModel)** pattern wi
                 └── ParentalControlsView (Implied)
     ```
 
-8.  **Asynchronous Operations:** `async/await` is used extensively for AI interactions, data fetching/saving via Repositories, and other background tasks. Views use `.task` modifiers.
-    *   Enforced async/await ordering in data persistence.
-    *   UI updates dispatched on main thread.
-    *   Debug logging added for async flows.
+8.  **Asynchronous Pattern:** 
+    *   Uses `async/await` for network operations, data access, and background tasks.
+    *   Views use `.task` modifiers for async operations.
+    *   UI updates are dispatched on the main thread.
+    *   Debug logging is used for async flows.
 
-9.  **Error Handling:**
-    *   Uses Swift's native `do-catch` and `Error` protocol.
-    *   Custom error enums define specific failure cases.
-    *   `AIErrorManager` centralizes handling for AI-related errors.
+9.  **Error Handling Pattern:**
+    *   Uses Swift's native `do-catch` with custom `Error` enums.
+    *   Centralizes error management for specific domains (e.g., `AIErrorManager`).
     *   Views use `@State` for error tracking and `.alert` for presentation.
-    *   Error propagation improved in service layer.
 
-10. **Protocol-Based Mocking (for Testing):**
-    *   Service and Repository protocols (e.g., `StoryRepositoryProtocol`, `SettingsServiceProtocol`, `IllustrationServiceProtocol`, `CollectionServiceProtocol`) exist for most components, enabling the creation of mock objects for robust unit testing without live dependencies (like network calls or disk I/O).
-    *   Improved mocking strategies are implemented across tests.
+10. **Protocol-Based Testing Pattern:**
+    *   Services and Repositories conform to protocols to enable mock implementations.
+    *   Mocks are used for testing without live dependencies (network, disk I/O).
 
-11. **Illustration Generation:** (No changes from previous state)
-    *   Uses direct REST API calls.
-    *   Detailed prompts, retry logic, error handling via `IllustrationError` and `AIErrorManager`.
-    *   Saves images to persistent storage.
-    *   Fully integrated.
+11. **Illustration Generation Pattern:**
+    *   Uses direct REST API calls with detailed prompts.
+    *   Implements retry logic and error handling.
+    *   Follows a consistent pattern for all image generation requests.
 
-12. **Growth Collections Implementation:**
-
-    The Growth Collections feature is being implemented using these architectural patterns:
-
-    - **Core Models:**
-      - `StoryCollection` - SwiftData `@Model` class representing a collection of stories with a specific growth theme. Includes `completionProgress`.
-      - `GrowthCategory` - Enum defining developmental categories.
-      - Relationship between `StoryModel` and `StoryCollection` models via SwiftData's `@Relationship`.
-      - `StoryModel` includes `readCount` and `lastReadAt` for progress tracking.
-
-    - **Repository Pattern:**
-      - `CollectionRepository` encapsulates SwiftData access logic for `StoryCollection` entities.
-      - Provides CRUD operations and query methods.
-      - Uses ModelContext for persistence operations.
-
-    - **Service Layer:**
-      - `CollectionService` implements business logic for creation, retrieval, and management of story collections.
-      - Conforms to `CollectionServiceProtocol` for testability.
-      - Includes logic for `createCollection`, `generateStoriesForCollection`, and `updateCollectionProgress` (based on `StoryModel.readCount`).
-      - Will contain achievement logic (optional).
-
-    - **UI Components (Current State):**
-      - `CollectionsListView`: Main view for browsing collections. Uses `@Query` for data fetching and `NavigationLink(value:)` for navigation. Contains search functionality.
-      - `CollectionCardView`: Displays summary info for a collection, including `completionProgress`. Used within `CollectionsListView`.
-      - `CollectionDetailView`: Displays stories within a specific collection. Uses `NavigationLink(value:)` to navigate to `StoryDetailView`. *Note: Contains incorrect progress update logic (`toggleStoryCompletion`) slated for removal.*
-      - `CollectionFormView`: Input form for creating a new collection. Captures parameters, calls `CollectionService` to create the collection shell and trigger story generation. Handles internal loading/error states.
-
-    - **Integration Points:**
-      - Growth Collections will be accessible via a dedicated tab in `MainTabView`, hosting `CollectionsListView` within a `NavigationStack`.
-      - `HomeView` presents `CollectionFormView` modally.
-      - Collections leverage existing story reading flows (navigating from `CollectionDetailView` to `StoryDetailView`).
-      - Progress updates are triggered after a story is read (updating `StoryModel.readCount`), notifying `CollectionService` to recalculate `StoryCollection.completionProgress`.
-      - Achievement system will track progress within collections.
-      - Future StoreKit integration will gate premium collections.
+12. **Model-Repository-Service Pattern:**
+    * **Models:** SwiftData `@Model` classes with appropriate relationships.
+    * **Repositories:** Encapsulate SwiftData access logic and CRUD operations.
+    * **Services:** Implement business logic, utilizing repositories for data access.
+    * This pattern is consistently applied across different features (stories, collections, settings).
 
 ## Current Architecture Notes
 - The system leverages standard SwiftUI patterns and MVVM concepts.
 - Key additions include Growth Collections and StoreKit monetization.
 - `TextToSpeechService` remains removed.
+
+*Note: For implementation status and feature details, please refer to progress.md.*

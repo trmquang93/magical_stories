@@ -3,12 +3,17 @@ description:
 globs:
 alwaysApply: true
 ---
-# Project Progress: Magical Stories (as of 2025-04-20)
+# Project Progress: Magical Stories (as of 2025-04-23)
 
-## 2025-04-20
+## Recent Updates
+
+### 2025-04-23
+- **Navigation Fix for AllStoriesView:** Fixed an issue where tapping the back button in StoryDetailView when accessed from AllStoriesView would incorrectly navigate back to LibraryView (root). Removed the unnecessary nested NavigationStack in AllStoriesView and standardized navigation patterns across the app. Created a UI test to verify the fix, and documented navigation best practices in systemPatterns.md to prevent similar issues in the future.
+
+### 2025-04-20
 - **Story Service Enhancement:** Updated `StoryParameters` model and `StoryService`'s internal `PromptBuilder` to incorporate optional `developmentalFocus`, `interactiveElements`, and `emotionalThemes`. Prompts are now engineered to generate stories with richer vocabulary, clearer narratives, emotional modeling, and optional interactive elements for enhanced developmental benefits.
 
-## 2025-04-16
+### 2025-04-16
 - **Test/Script Enhancement:** The `run_tests.sh` script now supports running all tests by default, or a specific test when a test name is provided as an argument. This is achieved using the `-only-testing` flag for xcodebuild. The script prints which test(s) are being run for clarity, supporting both CI and local workflows.
 - **UI Test Added:** A UI test was added to `magical_storiesUITests` to verify that tapping the 'View All Stories' button in HomeView navigates to the Library tab. The button now has an accessibility identifier (`ViewAllStoriesButton`) for reliable automation.
 
@@ -75,6 +80,14 @@ alwaysApply: true
         - Testing: Unit and integration tests exist for core flows
 
 ## Recently Completed
+
+**Navigation Fix for AllStoriesView (Complete - 2025-04-23)**
+- Fixed an issue where tapping the back button in StoryDetailView when navigated from AllStoriesView would incorrectly return to LibraryView (root).
+- Root cause analysis identified two issues: AllStoriesView had an unnecessary NavigationStack wrapper and LibraryView used inconsistent navigation patterns.
+- Solution: (1) Removed redundant NavigationStack from AllStoriesView while preserving the navigationDestination modifier, and (2) Updated LibraryView to use NavigationLink(value:) instead of NavigationLink(destination:).
+- Created UI test (testAllStoriesView_StoryDetailNavigation) to verify the proper back button behavior.
+- Documented navigation best practices in systemPatterns.md to prevent similar issues in the future.
+- This fix ensures a consistent navigation experience when browsing and reading stories.
 
 **Story Service Enhancement (Complete - 2025-04-20)**
 - Updated `StoryParameters` model to include `developmentalFocus`, `interactiveElements`, and `emotionalThemes`.
@@ -159,11 +172,12 @@ alwaysApply: true
 - **ST-9.1:** Update all documentation and Memory Bank
 - **ST-9.2:** Ensure all features and components are well-documented
 
----
-
+## Future Priorities
 -   **StoreKit Integration:** Planned and designed feature; implementation has not yet begun. This is a next priority after Growth Collections is more mature.
 -   **UI Polishing:** Further refinement of UI elements, animations, and overall user experience.
 -   **Error Handling:** Continue enhancing error handling for persistence operations and general app errors.
 -   **Accessibility:** Thorough accessibility testing and implementation needed.
 -   **CI/CD:** Review and refine CI/CD setup.
 -   **Test Improvements:** Continue increasing test coverage towards target (e.g., 70%+).
+
+*Note: For architectural patterns and design information, please refer to systemPatterns.md.*

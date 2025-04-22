@@ -1,140 +1,124 @@
 import SwiftData
 import SwiftUI
-import Testing
+import XCTest
 
 @testable import magical_stories
 
-@Suite("AllStoriesView Tests")
-struct AllStoriesView_Tests {
-    @Test func testAllStoriesView_ShowsAllStories() async throws {
-        // Create a model container
-        let container = try ModelContainer(
-            for: StoryModel.self, configurations: .init(isStoredInMemoryOnly: true))
-        let context = container.mainContext
+@MainActor
+class AllStoriesView_Tests: XCTestCase {
 
-        // Create a mock story service with test stories
-        let storyService = try StoryService(context: context)
+  @MainActor
+  func testAllStoriesView_ShowsAllStories() async throws {
+    let container = try ModelContainer(
+      for: StoryModel.self, configurations: .init(isStoredInMemoryOnly: true))
+    let context = container.mainContext
 
-        // Add test stories
-        let testStory1 = Story(
-            title: "Test Story 1",
-            childName: "Test Child",
-            childAge: 5,
-            theme: "Adventure",
-            favoriteCharacter: "Dragon"
-        )
-        let testStory2 = Story(
-            title: "Test Story 2",
-            childName: "Test Child",
-            childAge: 5,
-            theme: "Fantasy",
-            favoriteCharacter: "Unicorn"
-        )
-        let testStory3 = Story(
-            title: "Test Story 3",
-            childName: "Test Child",
-            childAge: 5,
-            theme: "Bedtime",
-            favoriteCharacter: "Fox"
-        )
+    let storyService = TestMockStoryService()
 
-        // Add stories to service
-        await storyService.addMockStories([testStory1, testStory2, testStory3])
+    // Add test stories
+    let testStory1 = Story(
+      title: "Adventure in Wonderland",
+      pages: [Page(content: "Story content for Adventure in Wonderland", pageNumber: 1)],
+      parameters: StoryParameters(
+        childName: "Alice",
+        childAge: 7,
+        theme: "Adventure",
+        favoriteCharacter: "Rabbit"
+      )
+    )
+    let testStory2 = Story(
+      title: "The Magical Forest",
+      pages: [Page(content: "Story content for The Magical Forest", pageNumber: 1)],
+      parameters: StoryParameters(
+        childName: "Emma",
+        childAge: 6,
+        theme: "Fantasy",
+        favoriteCharacter: "Dragon"
+      )
+    )
+    let testStory3 = Story(
+      title: "Bedtime for Teddy",
+      pages: [Page(content: "Story content for Bedtime for Teddy", pageNumber: 1)],
+      parameters: StoryParameters(
+        childName: "Ben",
+        childAge: 4,
+        theme: "Bedtime",
+        favoriteCharacter: "Bear"
+      )
+    )
 
-        // Verify the stories are loaded
-        #expect(storyService.stories.count == 3)
+    await storyService.addMockStories([testStory1, testStory2, testStory3])
 
-        // Create the view
-        let view = AllStoriesView()
-            .environmentObject(storyService)
-            .environment(\.modelContext, context)
+    XCTAssertEqual(storyService.stories.count, 3)
 
-        // Verify the title and number of stories displayed
-        // Note: Since we can't directly test SwiftUI rendering,
-        // we're primarily verifying that the view can be created with our test data
-        // In a real testing scenario, we might use ViewInspector to verify the view structure
+    // Create the view
+    let view = AllStoriesView()
+      .environmentObject(storyService)
+      .environment(\.modelContext, context)
 
-        // The view creation should not throw any errors
-        #expect(view.body is some View)
-    }
+    // Make sure the view can be created without errors
+    _ = view.body
+  }
 
-    @Test func testAllStoriesView_FiltersBySearchText() async throws {
-        // Create a model container
-        let container = try ModelContainer(
-            for: StoryModel.self, configurations: .init(isStoredInMemoryOnly: true))
-        let context = container.mainContext
+  @MainActor
+  func testAllStoriesView_FiltersBySearchText() async throws {
+    let container = try ModelContainer(
+      for: StoryModel.self, configurations: .init(isStoredInMemoryOnly: true))
+    let context = container.mainContext
 
-        // Create a mock story service with test stories
-        let storyService = try StoryService(context: context)
+    let storyService = TestMockStoryService()
 
-        // Add test stories with distinct titles
-        let testStory1 = Story(
-            title: "Adventure in Wonderland",
-            childName: "Test Child",
-            childAge: 5,
-            theme: "Adventure",
-            favoriteCharacter: "Dragon"
-        )
-        let testStory2 = Story(
-            title: "Magical Forest",
-            childName: "Test Child",
-            childAge: 5,
-            theme: "Fantasy",
-            favoriteCharacter: "Unicorn"
-        )
+    // Add test stories
+    let testStory1 = Story(
+      title: "Adventure in Wonderland",
+      pages: [Page(content: "Story content for Adventure in Wonderland", pageNumber: 1)],
+      parameters: StoryParameters(
+        childName: "Alice",
+        childAge: 7,
+        theme: "Adventure",
+        favoriteCharacter: "Rabbit"
+      )
+    )
+    let testStory2 = Story(
+      title: "The Magical Forest",
+      pages: [Page(content: "Story content for The Magical Forest", pageNumber: 1)],
+      parameters: StoryParameters(
+        childName: "Emma",
+        childAge: 6,
+        theme: "Fantasy",
+        favoriteCharacter: "Dragon"
+      )
+    )
 
-        // Add stories to service
-        await storyService.addMockStories([testStory1, testStory2])
+    await storyService.addMockStories([testStory1, testStory2])
 
-        // Verify the stories are loaded
-        #expect(storyService.stories.count == 2)
+    XCTAssertEqual(storyService.stories.count, 2)
 
-        // Create the view with search text that should filter to just one story
-        let view = AllStoriesView(searchText: "Adventure")
-            .environmentObject(storyService)
-            .environment(\.modelContext, context)
+    // Create the view with search text
+    let view = AllStoriesView(searchText: "Adventure")
+      .environmentObject(storyService)
+      .environment(\.modelContext, context)
 
-        // Verify the view can be created
-        #expect(view.body is some View)
+    // Make sure the view can be created without errors
+    _ = view.body
+  }
 
-        // In a real scenario, we would use ViewInspector to verify filtered results
-        // For now, we're just ensuring the view can be created with search text
-    }
+  @MainActor
+  func testAllStoriesView_EmptyState() async throws {
+    let container = try ModelContainer(
+      for: StoryModel.self, configurations: .init(isStoredInMemoryOnly: true))
+    let context = container.mainContext
 
-    @Test func testAllStoriesView_EmptyState() async throws {
-        // Create a model container
-        let container = try ModelContainer(
-            for: StoryModel.self, configurations: .init(isStoredInMemoryOnly: true))
-        let context = container.mainContext
+    let storyService = TestMockStoryService()
 
-        // Create an empty story service
-        let storyService = try StoryService(context: context)
+    XCTAssertEqual(storyService.stories.count, 0)
 
-        // Verify there are no stories
-        #expect(storyService.stories.isEmpty)
+    // Create the view
+    let view = AllStoriesView()
+      .environmentObject(storyService)
+      .environment(\.modelContext, context)
 
-        // Create the view
-        let view = AllStoriesView()
-            .environmentObject(storyService)
-            .environment(\.modelContext, context)
-
-        // Verify the view can be created
-        #expect(view.body is some View)
-
-        // In a real scenario, we would use ViewInspector to verify the empty state message is displayed
-    }
-}
-
-// Extension to add mock stories for testing
-extension StoryService {
-    func addMockStories(_ stories: [Story]) async {
-        for story in stories {
-            do {
-                try await self.persistenceService?.saveStory(story)
-            } catch {
-                print("Error saving mock story: \(error)")
-            }
-        }
-        await self.loadStories()
-    }
+    // Make sure the view can be created without errors
+    _ = view.body
+  }
 }

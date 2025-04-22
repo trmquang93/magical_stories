@@ -18,9 +18,10 @@ class MockIllustrationService: IllustrationServiceProtocol {
 
     // For the enhanced method
     var generateContextualIllustrationCallCount = 0
-    var lastContextualCallParameters: (description: String, pageNumber: Int, totalPages: Int)?
-    var contextualIllustrationPrompts: [(description: String, pageNumber: Int, totalPages: Int)] =
-        []
+    var lastContextualCallParameters:
+        (description: String, pageNumber: Int, totalPages: Int, previousPath: String?)?
+    var contextualIllustrationPrompts:
+        [(description: String, pageNumber: Int, totalPages: Int, previousPath: String?)] = []
 
     // Update signature to match protocol
     @MainActor
@@ -46,12 +47,18 @@ class MockIllustrationService: IllustrationServiceProtocol {
 
     // Implement the new method required by the protocol
     @MainActor
-    func generateIllustration(for illustrationDescription: String, pageNumber: Int, totalPages: Int)
-        async throws -> String?
-    {
+    func generateIllustration(
+        for illustrationDescription: String,
+        pageNumber: Int,
+        totalPages: Int,
+        previousIllustrationPath: String?
+    ) async throws -> String? {
         generateContextualIllustrationCallCount += 1
-        lastContextualCallParameters = (illustrationDescription, pageNumber, totalPages)
-        contextualIllustrationPrompts.append((illustrationDescription, pageNumber, totalPages))
+        lastContextualCallParameters = (
+            illustrationDescription, pageNumber, totalPages, previousIllustrationPath
+        )
+        contextualIllustrationPrompts.append(
+            (illustrationDescription, pageNumber, totalPages, previousIllustrationPath))
 
         if let error = generateIllustrationShouldThrowError {
             print(

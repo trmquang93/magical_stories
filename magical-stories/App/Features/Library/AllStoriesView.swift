@@ -3,6 +3,8 @@ import SwiftUI
 
 struct AllStoriesView: View {
     @EnvironmentObject private var storyService: StoryService
+    @EnvironmentObject private var persistenceService: PersistenceService
+    @EnvironmentObject private var collectionService: CollectionService
     @State private var searchText: String
     @State private var sortOption: SortOption = .newest
 
@@ -21,93 +23,93 @@ struct AllStoriesView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ZStack(alignment: .top) {
-                UITheme.Colors.background.ignoresSafeArea()
+        ZStack(alignment: .top) {
+            UITheme.Colors.background.ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    // Header
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("All Stories")
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundColor(UITheme.Colors.textPrimary)
-                            .accessibilityIdentifier("AllStoriesView_Header")
-                            .accessibilityLabel("AllStoriesView_Header")
-                        Text("Your complete magical collection")
-                            .font(.system(size: 15, weight: .regular, design: .rounded))
-                            .foregroundColor(UITheme.Colors.textSecondary)
-                            .accessibilityIdentifier("AllStoriesView_Subtitle")
-                            .accessibilityLabel("AllStoriesView_Subtitle")
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, 48)
-                    .padding(.horizontal, 16)
+            VStack(spacing: 0) {
+                // Header
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("All Stories")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(UITheme.Colors.textPrimary)
+                        .accessibilityIdentifier("AllStoriesView_Header")
+                        .accessibilityLabel("AllStoriesView_Header")
+                    Text("Your complete magical collection")
+                        .font(.system(size: 15, weight: .regular, design: .rounded))
+                        .foregroundColor(UITheme.Colors.textSecondary)
+                        .accessibilityIdentifier("AllStoriesView_Subtitle")
+                        .accessibilityLabel("AllStoriesView_Subtitle")
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 48)
+                .padding(.horizontal, 16)
 
-                    // Search Bar
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(UITheme.Colors.textSecondary)
-                            .padding(.leading, 12)
-                        TextField("Search stories", text: $searchText)
-                            .font(.system(size: 17, weight: .regular, design: .rounded))
-                            .padding(.vertical, 12)
-                            .padding(.horizontal, 4)
-                            .accessibilityIdentifier("AllStoriesView_SearchField")
-                            .accessibilityLabel("AllStoriesView_SearchField")
-                    }
-                    .background(UITheme.Colors.surfacePrimary)
-                    .cornerRadius(16)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(UITheme.Colors.surfaceSecondary, lineWidth: 1)
-                    )
-                    .padding(.top, 24)
-                    .padding(.horizontal, 16)
+                // Search Bar
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(UITheme.Colors.textSecondary)
+                        .padding(.leading, 12)
+                    TextField("Search stories", text: $searchText)
+                        .font(.system(size: 17, weight: .regular, design: .rounded))
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 4)
+                        .accessibilityIdentifier("AllStoriesView_SearchField")
+                        .accessibilityLabel("AllStoriesView_SearchField")
+                }
+                .background(UITheme.Colors.surfacePrimary)
+                .cornerRadius(16)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(UITheme.Colors.surfaceSecondary, lineWidth: 1)
+                )
+                .padding(.top, 24)
+                .padding(.horizontal, 16)
 
-                    // Sort Options
-                    HStack {
-                        Text("Sort by:")
-                            .font(.system(size: 15, weight: .medium, design: .rounded))
-                            .foregroundColor(UITheme.Colors.textSecondary)
+                // Sort Options
+                HStack {
+                    Text("Sort by:")
+                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                        .foregroundColor(UITheme.Colors.textSecondary)
 
-                        Picker("Sort", selection: $sortOption) {
-                            ForEach(SortOption.allCases) { option in
-                                Text(option.rawValue).tag(option)
-                            }
+                    Picker("Sort", selection: $sortOption) {
+                        ForEach(SortOption.allCases) { option in
+                            Text(option.rawValue).tag(option)
                         }
-                        .pickerStyle(.menu)
-                        .accessibilityIdentifier("AllStoriesView_SortPicker")
-
-                        Spacer()
                     }
-                    .padding(.top, 16)
-                    .padding(.horizontal, 16)
+                    .pickerStyle(.menu)
+                    .accessibilityIdentifier("AllStoriesView_SortPicker")
 
-                    if filteredAndSortedStories.isEmpty {
-                        emptyStateView
-                    } else {
-                        // Stories List
-                        ScrollView {
-                            LazyVStack(spacing: 16) {
-                                ForEach(filteredAndSortedStories) { story in
-                                    NavigationLink(value: story) {
-                                        LibraryStoryCard(story: story)
-                                            .accessibilityIdentifier(
-                                                "AllStoriesView_StoryCard_\(story.id)")
-                                    }
+                    Spacer()
+                }
+                .padding(.top, 16)
+                .padding(.horizontal, 16)
+
+                if filteredAndSortedStories.isEmpty {
+                    emptyStateView
+                } else {
+                    // Stories List
+                    ScrollView {
+                        LazyVStack(spacing: 16) {
+                            ForEach(filteredAndSortedStories) { story in
+                                NavigationLink(value: story) {
+                                    LibraryStoryCard(story: story)
+                                        .accessibilityIdentifier(
+                                            "AllStoriesView_StoryCard_\(story.id)")
                                 }
                             }
-                            .padding(.top, 16)
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 24)
                         }
-                        .accessibilityIdentifier("AllStoriesView_StoriesList")
+                        .padding(.top, 16)
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 24)
                     }
+                    .accessibilityIdentifier("AllStoriesView_StoriesList")
                 }
             }
-            .navigationDestination(for: Story.self) { story in
-                StoryDetailView(story: story)
-            }
+        }
+        .navigationDestination(for: Story.self) { story in
+            StoryDetailView(story: story)
+                .environmentObject(persistenceService)
+                .environmentObject(collectionService)
         }
     }
 
@@ -186,16 +188,34 @@ extension AllStoriesView {
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }
+
+        // Initialize services
+        let persistenceService = PersistenceService(context: container.mainContext)
         let storyService: StoryService
         do {
-            storyService = try StoryService(context: container.mainContext)
+            storyService = try StoryService(
+                context: container.mainContext, persistenceService: persistenceService)
         } catch {
             fatalError("Failed to create StoryService: \(error)")
         }
+
+        // Initialize repositories for CollectionService
+        let collectionRepository = CollectionRepository(modelContext: container.mainContext)
+        let achievementRepository = AchievementRepository(modelContext: container.mainContext)
+
+        // Create CollectionService with proper parameters
+        let collectionService = CollectionService(
+            repository: collectionRepository,
+            storyService: storyService,
+            achievementRepository: achievementRepository
+        )
+
         return NavigationStack {
             AllStoriesView()
                 .environment(\.modelContext, container.mainContext)
                 .environmentObject(storyService)
+                .environmentObject(persistenceService)
+                .environmentObject(collectionService)
         }
     }
 }
