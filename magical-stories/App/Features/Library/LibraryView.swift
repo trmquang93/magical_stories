@@ -1,29 +1,47 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 // MARK: - Category Mapping
 /// Maps design categories to icons and colors
 struct LibraryCategory: Identifiable {
     let id = UUID()
     let name: String
-    let icon: String // SF Symbol
+    let icon: String  // SF Symbol
     let color: Color
     let storyCount: Int
 }
 
-private let libraryCategories: [(name: String, icon: String, color: Color, themeKeywords: [String])] = [
-    ("Fantasy", "sparkles", Color(red: 1.0, green: 0.38, blue: 0.48), ["fantasy", "magic", "imagination"]),
-    ("Animals", "pawprint", Color(red: 0.31, green: 0.55, blue: 1.0), ["animal", "animals", "pet", "creature"]),
-    ("Bedtime", "moon.stars", Color(red: 0.48, green: 0.38, blue: 1.0), ["bedtime", "sleep", "night"]),
-    ("Adventure", "rocket", Color(red: 0.0, green: 0.72, blue: 0.66), ["adventure", "explore", "journey"])
-]
+private let libraryCategories:
+    [(name: String, icon: String, color: Color, themeKeywords: [String])] = [
+        (
+            "Fantasy", "sparkles", Color(red: 1.0, green: 0.38, blue: 0.48),
+            ["fantasy", "magic", "imagination"]
+        ),
+        (
+            "Animals", "pawprint", Color(red: 0.31, green: 0.55, blue: 1.0),
+            ["animal", "animals", "pet", "creature"]
+        ),
+        (
+            "Bedtime", "moon.stars", Color(red: 0.48, green: 0.38, blue: 1.0),
+            ["bedtime", "sleep", "night"]
+        ),
+        (
+            "Adventure", "rocket", Color(red: 0.0, green: 0.72, blue: 0.66),
+            ["adventure", "explore", "journey"]
+        ),
+    ]
 
 struct LibraryView: View {
     @EnvironmentObject private var storyService: StoryService
     @State private var searchText = ""
     @State private var showDeleteError = false
     @State private var deleteErrorMessage = ""
-    
+
+    // Define an enum for navigation destinations
+    enum ViewDestination: Hashable {
+        case allStories
+    }
+
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottom) {
@@ -69,14 +87,31 @@ struct LibraryView: View {
                         // Recent Stories
                         if !recentStories.isEmpty {
                             VStack(alignment: .leading, spacing: 16) {
-                                Text("Recent Stories")
-                                    .font(.system(size: 20, weight: .semibold, design: .rounded))
-                                    .foregroundColor(UITheme.Colors.textPrimary)
-                                    .padding(.top, 32)
-                                    .padding(.bottom, 8)
-                                    .padding(.horizontal, 0)
-                                    .accessibilityIdentifier("LibraryView_RecentStoriesSection")
-                                    .accessibilityLabel("LibraryView_RecentStoriesSection")
+                                HStack {
+                                    Text("Recent Stories")
+                                        .font(
+                                            .system(size: 20, weight: .semibold, design: .rounded)
+                                        )
+                                        .foregroundColor(UITheme.Colors.textPrimary)
+                                        .accessibilityIdentifier("LibraryView_RecentStoriesSection")
+                                        .accessibilityLabel("LibraryView_RecentStoriesSection")
+
+                                    Spacer()
+
+                                    NavigationLink(value: ViewDestination.allStories) {
+                                        Text("See All")
+                                            .font(
+                                                .system(
+                                                    size: 15, weight: .semibold, design: .rounded)
+                                            )
+                                            .foregroundColor(UITheme.Colors.primary)
+                                    }
+                                    .accessibilityIdentifier("LibraryView_SeeAllButton")
+                                }
+                                .padding(.top, 32)
+                                .padding(.bottom, 8)
+                                .padding(.horizontal, 0)
+
                                 ForEach(recentStories) { story in
                                     NavigationLink(value: story) {
                                         LibraryStoryCard(story: story)
@@ -96,7 +131,9 @@ struct LibraryView: View {
                                 .padding(.bottom, 8)
                                 .accessibilityIdentifier("LibraryView_CategoriesSection")
                                 .accessibilityLabel("LibraryView_CategoriesSection")
-                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                            LazyVGrid(
+                                columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16
+                            ) {
                                 ForEach(categories) { category in
                                     LibraryCategoryCard(category: category)
                                 }
@@ -109,26 +146,36 @@ struct LibraryView: View {
                 // Tab bar highlight is handled by MainTabView
             }
             .background(UITheme.Colors.background.ignoresSafeArea())
-            .alert("Delete Failed", isPresented: $showDeleteError, actions: {
-                Button("OK", role: .cancel) {}
-            }, message: {
-                Text(deleteErrorMessage)
-            })
+            .alert(
+                "Delete Failed", isPresented: $showDeleteError,
+                actions: {
+                    Button("OK", role: .cancel) {}
+                },
+                message: {
+                    Text(deleteErrorMessage)
+                }
+            )
             .navigationDestination(for: Story.self) { story in
                 StoryDetailView(story: story)
             }
+            .navigationDestination(for: ViewDestination.self) { destination in
+                switch destination {
+                case .allStories:
+                    AllStoriesView()
+                }
+            }
         }
     }
-    
+
     // MARK: - Data Logic
     private var filteredStories: [Story] {
         if searchText.isEmpty {
             return storyService.stories
         } else {
             return storyService.stories.filter { story in
-                story.title.localizedCaseInsensitiveContains(searchText) ||
-                story.parameters.childName.localizedCaseInsensitiveContains(searchText) ||
-                story.parameters.theme.localizedCaseInsensitiveContains(searchText)
+                story.title.localizedCaseInsensitiveContains(searchText)
+                    || story.parameters.childName.localizedCaseInsensitiveContains(searchText)
+                    || story.parameters.theme.localizedCaseInsensitiveContains(searchText)
             }
         }
     }
@@ -140,9 +187,12 @@ struct LibraryView: View {
     private var categories: [LibraryCategory] {
         libraryCategories.map { def in
             let count = storyService.stories.filter { story in
-                def.themeKeywords.contains(where: { story.parameters.theme.lowercased().contains($0) })
+                def.themeKeywords.contains(where: {
+                    story.parameters.theme.lowercased().contains($0)
+                })
             }.count
-            return LibraryCategory(name: def.name, icon: def.icon, color: def.color, storyCount: count)
+            return LibraryCategory(
+                name: def.name, icon: def.icon, color: def.color, storyCount: count)
         }
     }
 }
@@ -157,14 +207,18 @@ struct LibraryStoryCard: View {
         if theme.contains("animal") { return "pawprint" }
         if theme.contains("bedtime") || theme.contains("sleep") { return "moon.stars" }
         if theme.contains("fantasy") || theme.contains("magic") { return "sparkles" }
-        return "book" // fallback
+        return "book"  // fallback
     }
     var iconColor: Color {
         let theme = story.parameters.theme.lowercased()
         if theme.contains("adventure") { return Color(red: 0.0, green: 0.72, blue: 0.66) }
         if theme.contains("animal") { return Color(red: 0.31, green: 0.55, blue: 1.0) }
-        if theme.contains("bedtime") || theme.contains("sleep") { return Color(red: 0.48, green: 0.38, blue: 1.0) }
-        if theme.contains("fantasy") || theme.contains("magic") { return Color(red: 1.0, green: 0.38, blue: 0.48) }
+        if theme.contains("bedtime") || theme.contains("sleep") {
+            return Color(red: 0.48, green: 0.38, blue: 1.0)
+        }
+        if theme.contains("fantasy") || theme.contains("magic") {
+            return Color(red: 1.0, green: 0.38, blue: 0.48)
+        }
         return Color(red: 0.48, green: 0.38, blue: 1.0)
     }
     var body: some View {
@@ -181,9 +235,11 @@ struct LibraryStoryCard: View {
                 Text(story.title)
                     .font(.system(size: 17, weight: .medium, design: .rounded))
                     .foregroundColor(UITheme.Colors.textPrimary)
-                Text("Read \(relativeDateString(from: story.timestamp)) • \(storyDurationString(story: story))")
-                    .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundColor(UITheme.Colors.textSecondary)
+                Text(
+                    "Read \(relativeDateString(from: story.timestamp)) • \(storyDurationString(story: story))"
+                )
+                .font(.system(size: 14, weight: .regular, design: .rounded))
+                .foregroundColor(UITheme.Colors.textSecondary)
             }
             Spacer()
             Image(systemName: "ellipsis")
@@ -246,12 +302,12 @@ struct LibraryCategoryCard: View {
 
 struct StoryCard: View {
     let story: Story
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: UITheme.Spacing.xs) {
             // Theme Icon
             HStack {
-                Image(systemName: "book.closed") // TODO: Map theme string to icon
+                Image(systemName: "book.closed")  // TODO: Map theme string to icon
                     .foregroundColor(UITheme.Colors.primary)
                 Spacer()
                 Text(dateFormatter.string(from: story.timestamp))
@@ -259,14 +315,14 @@ struct StoryCard: View {
                     .foregroundColor(UITheme.Colors.textSecondary)
             }
             .padding(.bottom, UITheme.Spacing.xxs)
-            
+
             // Title
             Text(story.title)
                 .font(UITheme.Typography.headingSmall)
                 .foregroundColor(UITheme.Colors.textPrimary)
                 .accessibilityIdentifier("StoryTitle_\(story.title)")
                 .lineLimit(2)
-            
+
             // Child name
             Text("For: \(story.parameters.childName)")
                 .font(UITheme.Typography.bodySmall)
@@ -278,7 +334,7 @@ struct StoryCard: View {
         .cornerRadius(UITheme.Layout.cornerRadiusMedium)
         .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
     }
-    
+
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium

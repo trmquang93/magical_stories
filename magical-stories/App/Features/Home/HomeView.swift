@@ -27,6 +27,12 @@ struct HomeView: View {
                     .navigationDestination(for: Story.self) { story in
                         StoryDetailView(story: story)
                     }
+                    .navigationDestination(for: ViewDestination.self) { destination in
+                        switch destination {
+                        case .allStories:
+                            AllStoriesView()
+                        }
+                    }
             }
         }
         .sheet(isPresented: $showingStoryForm) {
@@ -42,6 +48,11 @@ struct HomeView: View {
             CollectionFormView()
                 .environmentObject(collectionService)
         }
+    }
+
+    // Define an enum for navigation destinations
+    enum ViewDestination: Hashable {
+        case allStories
     }
 
     private var mainContent: some View {
@@ -160,23 +171,19 @@ struct HomeView: View {
                 }
             }
             if storyService.stories.count > 2 {
-                Button(action: {
-                    selectedTabBinding?.wrappedValue = .library
-                }) {
+                NavigationLink(value: ViewDestination.allStories) {
                     Text("View All Stories")
                         .font(.headingSmall)
                         .foregroundColor(.magicalPrimary)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, Spacing.md).cornerRadius(12)
+                        .padding(.vertical, Spacing.md)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(UITheme.Colors.primary, lineWidth: 2)
+                        )
+                        .padding(.horizontal, Spacing.lg)
                 }
                 .accessibilityIdentifier("ViewAllStoriesButton")
-                .frame(width: .infinity)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)  // Adjust corner radius as needed
-                        .stroke(UITheme.Colors.primary, lineWidth: 2)  // Set border color and width
-                )
-                .padding(.trailing, Spacing.lg)
-                .padding(.leading, Spacing.lg)
             }
         }
         .padding(.top, 24)
