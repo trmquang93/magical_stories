@@ -1,13 +1,12 @@
 import SwiftData
 import SwiftUI
-import XCTest
+import Testing
 
 @testable import magical_stories
 
 @MainActor
-class AllStoriesView_Tests: XCTestCase {
-
-  // A simplified version of the filtering logic from AllStoriesView
+struct AllStoriesView_Tests {
+  // Helper: Filtering logic from AllStoriesView
   private func filterStories(stories: [Story], searchText: String) -> [Story] {
     if searchText.isEmpty {
       return stories
@@ -20,7 +19,7 @@ class AllStoriesView_Tests: XCTestCase {
     }
   }
 
-  // A simplified version of the sorting logic from AllStoriesView
+  // Helper: Sorting logic from AllStoriesView
   private func sortStories(stories: [Story], by sortOption: AllStoriesView.SortOption) -> [Story] {
     switch sortOption {
     case .newest:
@@ -34,9 +33,8 @@ class AllStoriesView_Tests: XCTestCase {
     }
   }
 
-  @MainActor
+  @Test("Filter by title")
   func testFilterByTitle() async throws {
-    // Create test stories
     let testStory1 = Story(
       title: "Adventure in Wonderland",
       pages: [Page(content: "Story content", pageNumber: 1)],
@@ -47,7 +45,6 @@ class AllStoriesView_Tests: XCTestCase {
         favoriteCharacter: "Rabbit"
       )
     )
-
     let testStory2 = Story(
       title: "The Magical Forest",
       pages: [Page(content: "Story content", pageNumber: 1)],
@@ -58,19 +55,14 @@ class AllStoriesView_Tests: XCTestCase {
         favoriteCharacter: "Dragon"
       )
     )
-
     let stories = [testStory1, testStory2]
-
-    // Test filtering by title
     let filteredStories = filterStories(stories: stories, searchText: "Adventure")
-
-    XCTAssertEqual(filteredStories.count, 1, "There should be 1 filtered story")
-    XCTAssertEqual(filteredStories.first?.title, "Adventure in Wonderland")
+    #expect(filteredStories.count == 1)
+    #expect(filteredStories.first?.title == "Adventure in Wonderland")
   }
 
-  @MainActor
+  @Test("Filter by child name")
   func testFilterByChildName() async throws {
-    // Create test stories
     let testStory1 = Story(
       title: "Adventure in Wonderland",
       pages: [Page(content: "Story content", pageNumber: 1)],
@@ -81,7 +73,6 @@ class AllStoriesView_Tests: XCTestCase {
         favoriteCharacter: "Rabbit"
       )
     )
-
     let testStory2 = Story(
       title: "The Magical Forest",
       pages: [Page(content: "Story content", pageNumber: 1)],
@@ -92,19 +83,14 @@ class AllStoriesView_Tests: XCTestCase {
         favoriteCharacter: "Dragon"
       )
     )
-
     let stories = [testStory1, testStory2]
-
-    // Test filtering by child name
     let filteredStories = filterStories(stories: stories, searchText: "Alice")
-
-    XCTAssertEqual(filteredStories.count, 1, "There should be 1 filtered story")
-    XCTAssertEqual(filteredStories.first?.title, "Adventure in Wonderland")
+    #expect(filteredStories.count == 1)
+    #expect(filteredStories.first?.title == "Adventure in Wonderland")
   }
 
-  @MainActor
+  @Test("Filter by theme")
   func testFilterByTheme() async throws {
-    // Create test stories
     let testStory1 = Story(
       title: "Adventure in Wonderland",
       pages: [Page(content: "Story content", pageNumber: 1)],
@@ -115,7 +101,6 @@ class AllStoriesView_Tests: XCTestCase {
         favoriteCharacter: "Rabbit"
       )
     )
-
     let testStory2 = Story(
       title: "The Magical Forest",
       pages: [Page(content: "Story content", pageNumber: 1)],
@@ -126,22 +111,16 @@ class AllStoriesView_Tests: XCTestCase {
         favoriteCharacter: "Dragon"
       )
     )
-
     let stories = [testStory1, testStory2]
-
-    // Test filtering by theme
     let filteredStories = filterStories(stories: stories, searchText: "Fantasy")
-
-    XCTAssertEqual(filteredStories.count, 1, "There should be 1 filtered story")
-    XCTAssertEqual(filteredStories.first?.title, "The Magical Forest")
+    #expect(filteredStories.count == 1)
+    #expect(filteredStories.first?.title == "The Magical Forest")
   }
 
-  @MainActor
+  @Test("Sort by newest")
   func testSortByNewest() async throws {
-    // Create test stories with different timestamps
-    let olderTimestamp = Date().addingTimeInterval(-3600)  // 1 hour ago
-    let newerTimestamp = Date()  // now
-
+    let olderTimestamp = Date().addingTimeInterval(-3600)
+    let newerTimestamp = Date()
     let testStory1 = Story(
       title: "Adventure in Wonderland",
       pages: [Page(content: "Story content", pageNumber: 1)],
@@ -153,7 +132,6 @@ class AllStoriesView_Tests: XCTestCase {
       ),
       timestamp: olderTimestamp
     )
-
     let testStory2 = Story(
       title: "The Magical Forest",
       pages: [Page(content: "Story content", pageNumber: 1)],
@@ -165,24 +143,16 @@ class AllStoriesView_Tests: XCTestCase {
       ),
       timestamp: newerTimestamp
     )
-
     let stories = [testStory1, testStory2]
-
-    // Test sorting by newest
     let sortedStories = sortStories(stories: stories, by: .newest)
-
-    XCTAssertEqual(sortedStories.count, 2, "There should be 2 stories")
-    XCTAssertEqual(
-      sortedStories.first?.title, "The Magical Forest", "The newest story should be first")
+    #expect(sortedStories.count == 2)
+    #expect(sortedStories.first?.title == "The Magical Forest")
   }
 
-  @MainActor
+  @Test("Empty filter returns empty array")
   func testEmptyFilter() async throws {
     let stories: [Story] = []
-
-    // Test filtering with empty search text
     let filteredStories = filterStories(stories: stories, searchText: "")
-
-    XCTAssertEqual(filteredStories.count, 0, "There should be 0 filtered stories")
+    #expect(filteredStories.count == 0)
   }
 }
