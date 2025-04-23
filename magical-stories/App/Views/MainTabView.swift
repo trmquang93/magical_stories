@@ -15,7 +15,7 @@ struct MainTabView: View {
             // Magical sparkle background for tab bar (magical accent)
             SparkleAnimationView(verticalRange: 0.7...1)
                 .frame(height: 80)  // Only show at the bottom
-                .ignoresSafeArea(edges: .bottom)
+                .ignoresSafeArea(.container, edges: .bottom)
             TabView(selection: $selectedTab) {
                 NavigationStack {
                     HomeView()
@@ -86,7 +86,7 @@ struct MainTabView: View {
                             RoundedRectangle(cornerRadius: 16)
                                 .stroke(Color.border, lineWidth: 1)
                         )
-                        .edgesIgnoringSafeArea(.bottom)
+                        .ignoresSafeArea(.container, edges: .bottom)
                 }
             )
         }

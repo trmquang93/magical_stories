@@ -80,53 +80,6 @@ class MockCollectionRepository: CollectionRepositoryProtocol {
     }
 }
 
-/// Mock for StoryService to use in tests
-class MockStoryService: StoryService {
-    var generateStoryCallCount = 0
-    var lastParameters: StoryParameters?
-    var storiesToReturn: [Story] = []
-    var shouldFailGeneration = false
-
-    // Handler for mocking story generation
-    var generateStoryHandler: ((StoryParameters) -> Story)? = nil
-
-    init() throws {
-        // Create an in-memory ModelContext for testing
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: Story.self, configurations: config)
-        let context = ModelContext(container)
-
-        // Initialize with the test context and no persistence service
-        try super.init(apiKey: "test_key", context: context)
-    }
-
-    override func generateStory(parameters: StoryParameters) async throws -> Story {
-        generateStoryCallCount += 1
-        lastParameters = parameters
-
-        if shouldFailGeneration {
-            throw StoryServiceError.generationFailed("Mock generation failure")
-        }
-
-        // Use the handler if provided
-        if let handler = generateStoryHandler {
-            return handler(parameters)
-        }
-
-        // Return a story from our prepared list, or create a new one
-        if !storiesToReturn.isEmpty && generateStoryCallCount <= storiesToReturn.count {
-            return storiesToReturn[generateStoryCallCount - 1]
-        }
-
-        return Story(
-            title: "Test Story \(generateStoryCallCount)",
-            pages: [],
-            parameters: parameters,
-            timestamp: Date()
-        )
-    }
-}
-
 /// Mock for AchievementRepositoryProtocol to use in tests
 class MockAchievementRepository: AchievementRepositoryProtocol {
     var achievements: [UUID: AchievementModel] = [:]
@@ -239,9 +192,17 @@ struct CollectionServiceTests {
         storyService: MockStoryService, achievementRepository: MockAchievementRepository
     ) {
         let repository = MockCollectionRepository()
+        // Use an in-memory ModelContext for MockStoryService
+        let modelContext: ModelContext = {
+            do {
+                return try ModelContext(ModelContainer(for: StoryCollection.self))
+            } catch {
+                fatalError("Failed to create ModelContext/ModelContainer: \(error)")
+            }
+        }()
         let storyService: MockStoryService
         do {
-            storyService = try MockStoryService()
+            storyService = try MockStoryService(context: modelContext)
         } catch {
             fatalError("Failed to initialize MockStoryService: \(error)")
         }

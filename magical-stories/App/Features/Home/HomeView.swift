@@ -18,9 +18,9 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
-            UITheme.Colors.background.ignoresSafeArea()
+            UITheme.Colors.background.ignoresSafeArea(.container)
             UITheme.Colors.background.opacity(0.9)
-                .ignoresSafeArea(edges: .top)
+                .ignoresSafeArea(.container, edges: .top)
                 .frame(height: 30)
             NavigationStack {
                 mainContent
