@@ -78,6 +78,31 @@ print_header "RUNNING TESTS"
 ONLY_TEST_ARG=""
 if [ $# -ge 1 ]; then
   TEST_NAME="$1"
+  
+  # Improved test name formatting
+  # Check if test name includes a test target
+  if [[ "$TEST_NAME" != *"magical-storiesTests"* && "$TEST_NAME" != *"magical-storiesUITests"* ]]; then
+    # If no target specified, default to the main test target
+    if [[ "$TEST_NAME" == *"/"* ]]; then
+      # If it looks like Class/testMethod format, add the target
+      TEST_NAME="magical-storiesTests/$TEST_NAME"
+    elif [[ "$TEST_NAME" =~ ^test[A-Z] ]]; then
+      # If it starts with 'test' followed by uppercase, assume it's just a method name
+      # Try to extract test class name from the method name (common naming convention)
+      CLASS_NAME=$(echo "$TEST_NAME" | sed -E 's/test([A-Za-z0-9_]+)_.*/\1/')
+      if [ -n "$CLASS_NAME" ]; then
+        TEST_NAME="magical-storiesTests/${CLASS_NAME}_Tests/$TEST_NAME"
+      else
+        print_warning "Could not determine test class from method name. Please specify full test path."
+        print_info "Example: magical-storiesTests/MyTestClass/testMyMethod"
+        exit 1
+      fi
+    else
+      # Assume it's a test class name
+      TEST_NAME="magical-storiesTests/$TEST_NAME"
+    fi
+  fi
+  
   print_info "Running only test: ${BOLD}$TEST_NAME${RESET}"
   ONLY_TEST_ARG="-only-testing $TEST_NAME"
 else
