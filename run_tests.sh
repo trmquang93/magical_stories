@@ -82,8 +82,11 @@ if [ $# -ge 1 ]; then
   # Improved test name formatting
   # Check if test name includes a test target
   if [[ "$TEST_NAME" != *"magical-storiesTests"* && "$TEST_NAME" != *"magical-storiesUITests"* ]]; then
-    # If no target specified, default to the main test target
-    if [[ "$TEST_NAME" == *"/"* ]]; then
+    # Check if this is a UI test based on filename pattern
+    if [[ "$TEST_NAME" == *"_UITests"* ]]; then
+      # This appears to be a UI test
+      TEST_NAME="magical-storiesUITests/$TEST_NAME"
+    elif [[ "$TEST_NAME" == *"/"* ]]; then
       # If it looks like Class/testMethod format, add the target
       TEST_NAME="magical-storiesTests/$TEST_NAME"
     elif [[ "$TEST_NAME" =~ ^test[A-Z] ]]; then

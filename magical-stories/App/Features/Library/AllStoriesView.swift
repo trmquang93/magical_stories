@@ -210,13 +210,13 @@ extension AllStoriesView {
             achievementRepository: achievementRepository
         )
 
-        return NavigationStack {
-            AllStoriesView()
-                .environment(\.modelContext, container.mainContext)
-                .environmentObject(storyService)
-                .environmentObject(persistenceService)
-                .environmentObject(collectionService)
-        }
+        // Note: Do not wrap in a NavigationStack - it's already wrapped in a NavigationStack
+        // by the parent view (MainTabView > LibraryView)
+        return AllStoriesView()
+            .environment(\.modelContext, container.mainContext)
+            .environmentObject(storyService)
+            .environmentObject(persistenceService)
+            .environmentObject(collectionService)
     }
 }
 

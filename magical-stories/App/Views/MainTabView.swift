@@ -28,6 +28,7 @@ struct MainTabView: View {
                             .font(.headingSmall)
                     }
                     .accessibilityLabel("Home Tab")
+                    .accessibilityIdentifier("HomeTabButton")
                 }
                 .tag(TabItem.home)
 
@@ -42,6 +43,7 @@ struct MainTabView: View {
                             .font(.headingSmall)
                     }
                     .accessibilityLabel("Library Tab")
+                    .accessibilityIdentifier("LibraryTabButton")
                 }
                 .tag(TabItem.library)
 
@@ -56,6 +58,7 @@ struct MainTabView: View {
                             .font(.headingSmall)
                     }
                     .accessibilityLabel("Collections Tab")
+                    .accessibilityIdentifier("CollectionsTabButton")
                 }
                 .tag(TabItem.collections)
 
@@ -70,6 +73,7 @@ struct MainTabView: View {
                             .font(.headingSmall)
                     }
                     .accessibilityLabel("Settings Tab")
+                    .accessibilityIdentifier("SettingsTabButton")
                 }
                 .tag(TabItem.settings)
             }
@@ -151,7 +155,6 @@ extension MainTabView {
             storyService: storyService,
             achievementRepository: achievementRepository
         )
-
 
         Task {
             await storyService.loadStories()

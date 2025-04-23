@@ -106,7 +106,10 @@ struct LibraryView: View {
                                             )
                                             .foregroundColor(UITheme.Colors.primary)
                                     }
+                                    .buttonStyle(PlainButtonStyle())
                                     .accessibilityIdentifier("LibraryView_SeeAllButton")
+                                    .accessibilityLabel("See All Stories")
+                                    .contentShape(Rectangle())
                                 }
                                 .padding(.top, 32)
                                 .padding(.bottom, 8)
@@ -115,6 +118,8 @@ struct LibraryView: View {
                                 ForEach(recentStories) { story in
                                     NavigationLink(value: story) {
                                         LibraryStoryCard(story: story)
+                                            .accessibilityIdentifier(
+                                                "LibraryView_StoryCard_\(story.id)")
                                     }
                                 }
                             }
