@@ -64,28 +64,7 @@ struct StoryReadingIntegrationTests {
     @MainActor
     func testFullProgressTrackingFlow() async throws {
         // Setup mocks and test data
-        class MockPersistenceService: PersistenceServiceProtocol {
-            var incrementedStoryId: UUID?
-            var updatedLastReadAt: (UUID, Date)?
-            var stories: [Story] = []
-            func saveStory(_ story: Story) async throws {}
-            func loadStories() async throws -> [Story] { stories }
-            func deleteStory(withId id: UUID) async throws {}
-            func saveStories(_ stories: [Story]) async throws {}
-            func incrementReadCount(for storyId: UUID) async throws { incrementedStoryId = storyId }
-            func toggleFavorite(for storyId: UUID) async throws {}
-            func updateLastReadAt(for storyId: UUID, date: Date) async throws { updatedLastReadAt = (storyId, date) }
-            // Achievement methods (empty for this test)
-            func saveAchievement(_ achievement: Achievement) async throws {}
-            func fetchAchievement(id: UUID) async throws -> Achievement? { nil }
-            func fetchAllAchievements() async throws -> [Achievement] { [] }
-            func fetchEarnedAchievements() async throws -> [Achievement] { [] }
-            func fetchAchievements(forCollection collectionId: UUID) async throws -> [Achievement] { [] }
-            func updateAchievementStatus(id: UUID, isEarned: Bool, earnedDate: Date?) async throws {}
-            func deleteAchievement(withId id: UUID) async throws {}
-            func associateAchievement(_ achievementId: String, withCollection collectionId: UUID) async throws {}
-            func removeAchievementAssociation(_ achievementId: String, fromCollection collectionId: UUID) async throws {}
-        }
+        
         class MockCollectionService {
             var markedCompleted: (UUID, UUID)?
             var updatedProgressFor: UUID?
