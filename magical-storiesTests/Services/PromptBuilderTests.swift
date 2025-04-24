@@ -34,7 +34,7 @@ struct PromptBuilderTests {
         #expect(prompt.contains("Bunny"))
         #expect(prompt.contains("Friendship"))
         #expect(prompt.contains("Social Skills"))
-        #expect(prompt.contains("Problem Solving")) // Updated assertion
+        #expect(prompt.contains("Problem Solving"))  // Updated assertion
         #expect(prompt.contains("joy"))
         #expect(prompt.contains("sharing"))
     }
@@ -151,7 +151,7 @@ struct PromptBuilderTests {
         #expect(prompt.contains("Use clear paragraph breaks"))
         #expect(prompt.contains("Include dialogue when appropriate"))
     }
-    
+
     @Test("Prompt includes page break delimiter instructions")
     func testPromptIncludesPageBreakDelimiterInstructions() {
         // Given
@@ -161,17 +161,70 @@ struct PromptBuilderTests {
             theme: "Adventure",
             favoriteCharacter: "Explorer Fox"
         )
-        
+
         // When
         let prompt = promptBuilder.buildPrompt(parameters: parameters)
-        
+
         // Then
         // Check in story structure guidelines
-        #expect(prompt.contains("Insert \"---\" (three hyphens) on a separate line between segments"))
+        #expect(
+            prompt.contains("Insert \"---\" (three hyphens) on a separate line between segments"))
         #expect(prompt.contains("page breaks"))
-        
+
         // Check in format guidelines
         #expect(prompt.contains("VERY IMPORTANT: Use \"---\" (three hyphens) on a separate line"))
         #expect(prompt.contains("to indicate where a new page should begin"))
+    }
+
+    @Test("PromptBuilder should include category instructions")
+    func testPromptBuilderIncludesCategoryInstructions() {
+        // Arrange
+        let promptBuilder = PromptBuilder()
+        let parameters = StoryParameters(
+            childName: "Alex",
+            childAge: 7,
+            theme: "Adventure",
+            favoriteCharacter: "Dragon"
+        )
+
+        // Act
+        let prompt = promptBuilder.buildPrompt(parameters: parameters)
+
+        // Assert
+        #expect(
+            prompt.contains(
+                "After writing the story, analyze its content and select the single most appropriate category"
+            ))
+        #expect(prompt.contains("Fantasy"))
+        #expect(prompt.contains("Animals"))
+        #expect(prompt.contains("Bedtime"))
+        #expect(prompt.contains("Adventure"))
+        #expect(prompt.contains("Return your response as a JSON object"))
+        #expect(prompt.contains("\"story\":"))
+        #expect(prompt.contains("\"category\":"))
+    }
+
+    @Test("PromptBuilder category list matches LibraryView categories")
+    func testPromptBuilderCategoryListMatchesLibraryCategories() {
+        // Arrange
+        let promptBuilder = PromptBuilder()
+        let parameters = StoryParameters(
+            childName: "Alex",
+            childAge: 7,
+            theme: "Adventure",
+            favoriteCharacter: "Dragon"
+        )
+
+        // Act
+        let prompt = promptBuilder.buildPrompt(parameters: parameters)
+
+        // Get the category names from LibraryView (these are the expected categories)
+        let expectedCategoryNames = ["Fantasy", "Animals", "Bedtime", "Adventure"]
+
+        // Assert that all expected category names are included in the prompt
+        for categoryName in expectedCategoryNames {
+            #expect(
+                prompt.contains(categoryName), "Prompt should include category '\(categoryName)'")
+        }
     }
 }

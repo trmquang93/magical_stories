@@ -9,6 +9,12 @@ alwaysApply: true
 
 ### 2025-04-23
 - **Navigation Fix for AllStoriesView:** Fixed an issue where tapping the back button in StoryDetailView when accessed from AllStoriesView would incorrectly navigate back to LibraryView (root). Removed the unnecessary nested NavigationStack in AllStoriesView and standardized navigation patterns across the app. Created a UI test to verify the fix, and documented navigation best practices in systemPatterns.md to prevent similar issues in the future.
+- **Story Model & Service Enhancements:**
+    - `Story` now includes `categoryName` (AI-assigned, e.g., Fantasy, Animals, Bedtime, Adventure) for improved filtering and UI display.
+    - `StoryParameters` supports optional `developmentalFocus`, `interactiveElements`, and `emotionalThemes` for richer, more tailored story generation.
+    - `PromptBuilder` constructs prompts with vocabulary/narrative guidelines, developmental/emotional focus, and instructs the AI to return a JSON object with both story and category.
+    - `StoryService` parses AI JSON responses, extracts category, and handles errors robustly. Supports dependency injection for easier testing.
+    - `LibraryView` integrates category-based filtering, search, and improved accessibility. UI patterns for category cards and story cards are standardized and leverage the design system.
 
 ### 2025-04-20
 - **Story Service Enhancement:** Updated `StoryParameters` model and `StoryService`'s internal `PromptBuilder` to incorporate optional `developmentalFocus`, `interactiveElements`, and `emotionalThemes`. Prompts are now engineered to generate stories with richer vocabulary, clearer narratives, emotional modeling, and optional interactive elements for enhanced developmental benefits.
@@ -24,8 +30,10 @@ alwaysApply: true
     -   UI (`StoryFormView`) exists for inputting parameters.
     -   `StoryService` uses the **real Google Generative AI API** (via `GenerativeModelProtocol`) to generate story content based on parameters.
     -   **Enhancement:** `StoryParameters` now includes optional `developmentalFocus`, `interactiveElements`, and `emotionalThemes`. The prompt building logic within `StoryService` incorporates these to generate more developmentally beneficial stories (richer vocabulary, clearer narrative, emotional modeling, interactive prompts).
+    -   **PromptBuilder** now instructs the AI to return a JSON object with both story and category, enabling automatic categorization and improved filtering in the UI.
+    -   **StoryService** parses the AI response, extracts the category, and handles errors robustly.
 -   **Story Library:**
-    -   `LibraryView` displays saved stories.
+    -   `LibraryView` displays saved stories, supports category-based filtering, search, and improved accessibility. UI patterns for category cards and story cards are standardized and leverage the design system.
     -   Stories are persisted locally using **SwiftData** as the primary storage.
 -   **Story Reading:**
     -   `StoryDetailView` displays story content, paginated using `TabView`.
@@ -71,9 +79,9 @@ alwaysApply: true
         6. **Create New Collection:** User initiates creation, fills out the form, and a new collection with stories is generated.
         7. **Ongoing Engagement:** User continues reading, tracking progress, and earning (future) achievements.
     *   **Integration Points:**
-        - Models: `StoryCollection`, `GrowthCategory`, `StoryModel` (with `readCount`, `lastReadAt`, `isCompleted`)
+        - Models: `StoryCollection`, `GrowthCategory`, `StoryModel` (with `readCount`, `lastReadAt`, `isCompleted`, `categoryName`)
         - Services: `CollectionService`, `CollectionRepository`, `StoryService`, `AchievementRepository`
-        - UI: `CollectionsListView`, `CollectionCardView`, `CollectionDetailView` (now with Achievements section), `CollectionFormView`, `StoryDetailView`
+        - UI: `CollectionsListView`, `CollectionCardView`, `CollectionDetailView` (now with Achievements section), `CollectionFormView`, `StoryDetailView`, `LibraryView`
         - Persistence: SwiftData via repositories
         - Progress Tracking: Implemented and tested (story completion updates collection progress)
         - Achievements: Achievements are now persisted on collection completion and displayed in the UI.

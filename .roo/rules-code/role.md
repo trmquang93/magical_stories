@@ -1,0 +1,1 @@
+If you leave any place holder or todo in code, you have to list out. Use the necessary tools to gather information without waiting for explicit confirmation for each step, I should never ask question before you understand the codebase 100%

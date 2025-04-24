@@ -36,6 +36,7 @@ struct LibraryView: View {
     @State private var searchText = ""
     @State private var showDeleteError = false
     @State private var deleteErrorMessage = ""
+    @State private var selectedCategoryName: String? = nil
 
     // Define an enum for navigation destinations
     enum ViewDestination: Hashable {
@@ -83,6 +84,35 @@ struct LibraryView: View {
                         )
                         .padding(.top, 24)
                         .padding(.horizontal, 16)
+
+                        // Active Category Filter (if any)
+                        if let selectedCategory = selectedCategoryName {
+                            HStack {
+                                Text("Category: \(selectedCategory)")
+                                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                                    .foregroundColor(UITheme.Colors.primary)
+
+                                Spacer()
+
+                                Button(action: {
+                                    selectedCategoryName = nil
+                                }) {
+                                    HStack(spacing: 4) {
+                                        Text("Clear")
+                                            .font(
+                                                .system(size: 14, weight: .medium, design: .rounded)
+                                            )
+                                        Image(systemName: "xmark.circle.fill")
+                                    }
+                                    .foregroundColor(UITheme.Colors.primary)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .accessibilityIdentifier("LibraryView_ClearFilterButton")
+                                .accessibilityLabel("Clear category filter")
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.top, 16)
+                        }
 
                         // Recent Stories
                         if !recentStories.isEmpty {
@@ -140,7 +170,27 @@ struct LibraryView: View {
                                 columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16
                             ) {
                                 ForEach(categories) { category in
-                                    LibraryCategoryCard(category: category)
+                                    Button(action: {
+                                        // If category is already selected, clear the filter
+                                        // Otherwise, set the selected category
+                                        if selectedCategoryName == category.name {
+                                            selectedCategoryName = nil
+                                        } else {
+                                            selectedCategoryName = category.name
+                                        }
+                                    }) {
+                                        LibraryCategoryCard(
+                                            category: category,
+                                            isSelected: category.name == selectedCategoryName
+                                        )
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    .accessibilityIdentifier(
+                                        "LibraryView_CategoryCard_\(category.name)"
+                                    )
+                                    .accessibilityLabel(
+                                        "Category: \(category.name), \(category.storyCount) stories"
+                                    )
                                 }
                             }
                         }
@@ -173,16 +223,24 @@ struct LibraryView: View {
     }
 
     // MARK: - Data Logic
-    private var filteredStories: [Story] {
-        if searchText.isEmpty {
-            return storyService.stories
-        } else {
-            return storyService.stories.filter { story in
+    var filteredStories: [Story] {
+        var stories = storyService.stories
+
+        // First filter by selected category if any
+        if let categoryName = selectedCategoryName {
+            stories = stories.filter { $0.categoryName == categoryName }
+        }
+
+        // Then filter by search text if any
+        if !searchText.isEmpty {
+            stories = stories.filter { story in
                 story.title.localizedCaseInsensitiveContains(searchText)
                     || story.parameters.childName.localizedCaseInsensitiveContains(searchText)
                     || story.parameters.theme.localizedCaseInsensitiveContains(searchText)
             }
         }
+
+        return stories
     }
 
     private var recentStories: [Story] {
@@ -191,117 +249,128 @@ struct LibraryView: View {
 
     private var categories: [LibraryCategory] {
         libraryCategories.map { def in
+            // Count stories for each category based on categoryName
             let count = storyService.stories.filter { story in
-                def.themeKeywords.contains(where: {
-                    story.parameters.theme.lowercased().contains($0)
-                })
+                story.categoryName == def.name
             }.count
+
             return LibraryCategory(
                 name: def.name, icon: def.icon, color: def.color, storyCount: count)
         }
     }
 }
 
-// MARK: - Story Card (Recent Stories)
-struct LibraryStoryCard: View {
-    let story: Story
-    var icon: String {
-        // Map theme to icon
-        let theme = story.parameters.theme.lowercased()
-        if theme.contains("adventure") { return "rocket" }
-        if theme.contains("animal") { return "pawprint" }
-        if theme.contains("bedtime") || theme.contains("sleep") { return "moon.stars" }
-        if theme.contains("fantasy") || theme.contains("magic") { return "sparkles" }
-        return "book"  // fallback
-    }
-    var iconColor: Color {
-        let theme = story.parameters.theme.lowercased()
-        if theme.contains("adventure") { return Color(red: 0.0, green: 0.72, blue: 0.66) }
-        if theme.contains("animal") { return Color(red: 0.31, green: 0.55, blue: 1.0) }
-        if theme.contains("bedtime") || theme.contains("sleep") {
-            return Color(red: 0.48, green: 0.38, blue: 1.0)
-        }
-        if theme.contains("fantasy") || theme.contains("magic") {
-            return Color(red: 1.0, green: 0.38, blue: 0.48)
-        }
-        return Color(red: 0.48, green: 0.38, blue: 1.0)
-    }
+// MARK: - LibraryCategoryCard
+struct LibraryCategoryCard: View {
+    var category: LibraryCategory
+    var isSelected: Bool = false
+
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(iconColor.opacity(0.1))
-                    .frame(width: 48, height: 48)
-                Image(systemName: icon)
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(iconColor)
-            }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(story.title)
-                    .font(.system(size: 17, weight: .medium, design: .rounded))
-                    .foregroundColor(UITheme.Colors.textPrimary)
-                Text(
-                    "Read \(relativeDateString(from: story.timestamp)) • \(storyDurationString(story: story))"
-                )
-                .font(.system(size: 14, weight: .regular, design: .rounded))
-                .foregroundColor(UITheme.Colors.textSecondary)
-            }
-            Spacer()
-            Image(systemName: "ellipsis")
-                .foregroundColor(UITheme.Colors.textSecondary)
-        }
-        .padding(16)
-        .background(UITheme.Colors.surfacePrimary)
-        .cornerRadius(16)
-        .overlay(
+        ZStack {
             RoundedRectangle(cornerRadius: 16)
-                .stroke(UITheme.Colors.surfaceSecondary, lineWidth: 1)
-        )
-    }
-    // Helper for relative date
-    private func relativeDateString(from date: Date) -> String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .full
-        return formatter.localizedString(for: date, relativeTo: Date())
-    }
-    // Helper for duration (estimate: 200 words/minute)
-    private func storyDurationString(story: Story) -> String {
-        let wordCount = story.pages.map { $0.content.split(separator: " ").count }.reduce(0, +)
-        let minutes = max(1, Int(round(Double(wordCount) / 200.0)))
-        return "\(minutes) min read"
+                .fill(UITheme.Colors.surfacePrimary)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(
+                            isSelected ? category.color : UITheme.Colors.surfaceSecondary,
+                            lineWidth: isSelected ? 2 : 1)
+                )
+                .shadow(
+                    color: Color.black.opacity(0.05),
+                    radius: 8,
+                    x: 0,
+                    y: 4
+                )
+
+            HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: category.icon)
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(category.color)
+
+                        if isSelected {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(category.color)
+                        }
+                    }
+
+                    Text(category.name)
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundColor(UITheme.Colors.textPrimary)
+
+                    Text("\(category.storyCount) stories")
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundColor(UITheme.Colors.textSecondary)
+                }
+                .padding(16)
+
+                Spacer()
+            }
+        }
+        .frame(height: 90)
     }
 }
 
-// MARK: - Category Card
-struct LibraryCategoryCard: View {
-    let category: LibraryCategory
+// MARK: - LibraryStoryCard
+struct LibraryStoryCard: View {
+    var story: Story
+
     var body: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(category.color.opacity(0.1))
-                    .frame(width: 40, height: 40)
-                Image(systemName: category.icon)
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(category.color)
-            }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(category.name)
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundColor(UITheme.Colors.textPrimary)
-                Text("\(category.storyCount) stories")
-                    .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundColor(UITheme.Colors.textSecondary)
-            }
-            Spacer()
-        }
-        .padding(16)
-        .background(UITheme.Colors.surfacePrimary)
-        .cornerRadius(16)
-        .overlay(
+        ZStack {
             RoundedRectangle(cornerRadius: 16)
-                .stroke(UITheme.Colors.surfaceSecondary, lineWidth: 1)
-        )
+                .fill(UITheme.Colors.surfacePrimary)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(UITheme.Colors.surfaceSecondary, lineWidth: 1)
+                )
+                .shadow(
+                    color: Color.black.opacity(0.05),
+                    radius: 8,
+                    x: 0,
+                    y: 4
+                )
+
+            HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(story.title)
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundColor(UITheme.Colors.textPrimary)
+                        .lineLimit(1)
+
+                    HStack {
+                        if let categoryName = story.categoryName {
+                            Text(categoryName)
+                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                                .foregroundColor(UITheme.Colors.textSecondary)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(UITheme.Colors.surfaceSecondary.opacity(0.5))
+                                .cornerRadius(8)
+                        }
+
+                        // Theme is displayed with or without category
+                        Text(story.parameters.theme)
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .foregroundColor(UITheme.Colors.textSecondary)
+                    }
+
+                    Text("For \(story.parameters.childName)")
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundColor(UITheme.Colors.textSecondary)
+                }
+                .padding(16)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(UITheme.Colors.textSecondary)
+                    .padding(.trailing, 16)
+            }
+        }
+        .frame(height: 90)
     }
 }
 

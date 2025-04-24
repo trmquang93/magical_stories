@@ -1,3 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
 # AI Coding Assistant: Mandatory Test-Driven Development (TDD) Protocol
 
 ## Preamble

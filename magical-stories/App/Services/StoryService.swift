@@ -130,8 +130,11 @@ class StoryService: ObservableObject {
                 throw StoryServiceError.generationFailed("No content generated")
             }
 
-            // Extract title and content from the actual response
-            let (title, content) = try extractTitleAndContent(from: text)
+            // Try to parse the response as JSON to extract story and category
+            let (storyText, category) = try extractStoryAndCategory(from: text)
+
+            // Extract title and content from the story text
+            let (title, content) = try extractTitleAndContent(from: storyText)
 
             // Process content into pages using StoryProcessor
             let pages = try await storyProcessor.processIntoPages(content, theme: parameters.theme)
@@ -139,7 +142,8 @@ class StoryService: ObservableObject {
             let story = Story(
                 title: title,
                 pages: pages,
-                parameters: parameters
+                parameters: parameters,
+                categoryName: category  // Set the category name from AI response
             )
             try await persistenceService.saveStory(story)
             // Immediately update the in-memory stories list so tests see the new story
@@ -235,6 +239,33 @@ class StoryService: ObservableObject {
         }
 
         return (title, content)
+    }
+
+    // Add this method near the extractTitleAndContent method
+    private func extractStoryAndCategory(from text: String) throws -> (String, String?) {
+        // Try to parse the text as JSON to extract story and category
+        do {
+            // Ensure the text is properly escaped for JSON parsing
+            let jsonData = text.data(using: .utf8)!
+            let jsonObject = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any]
+
+            guard let storyText = jsonObject?["story"] as? String else {
+                // If story field is missing, fall back to treating the entire text as the story
+                print(
+                    "[StoryService] JSON parsing successful but 'story' field missing, using plain text"
+                )
+                return (text, nil)
+            }
+
+            let category = jsonObject?["category"] as? String
+            return (storyText, category)
+        } catch {
+            // If JSON parsing fails, treat the entire text as the story content
+            print(
+                "[StoryService] JSON parsing failed, using plain text: \(error.localizedDescription)"
+            )
+            return (text, nil)
+        }
     }
 
     // MARK: - Story Deletion

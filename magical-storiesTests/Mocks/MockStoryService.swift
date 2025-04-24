@@ -49,7 +49,8 @@ class MockStoryService: StoryService {
             title: "The Magical Adventure of \(parameters.childName)",
             pages: createMockPages(for: parameters),
             parameters: parameters,
-            timestamp: Date()
+            timestamp: Date(),
+            categoryName: "Fantasy"
         )
     }
 

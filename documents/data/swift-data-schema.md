@@ -25,6 +25,7 @@ final class Story {
     var ageGroup: AgeGroup // Enum
     var theme: String
     var mainCharacter: String
+    var categoryName: String? // The AI-assigned category (Fantasy, Animals, Bedtime, Adventure)
     // var isGrowthPathStory: Bool // Consider if needed, or managed by Collection relationship
 
     // Content (Pages)
@@ -52,6 +53,7 @@ final class Story {
         ageGroup: AgeGroup,
         theme: String,
         mainCharacter: String,
+        categoryName: String? = nil,
         // isGrowthPathStory: Bool = false,
         createdAt: Date = Date(),
         pages: [Page] = []
@@ -63,6 +65,7 @@ final class Story {
         self.ageGroup = ageGroup
         self.theme = theme
         self.mainCharacter = mainCharacter
+        self.categoryName = categoryName
         // self.isGrowthPathStory = isGrowthPathStory
         self.pages = pages
         self.readCount = 0

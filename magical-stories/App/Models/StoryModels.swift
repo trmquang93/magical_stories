@@ -8,9 +8,9 @@ struct StoryParameters: Codable, Hashable {
     var theme: String
     var favoriteCharacter: String
     var storyLength: String?
-    var developmentalFocus: [GrowthCategory]? // Optional array for developmental themes
-    var interactiveElements: Bool? // Optional flag for interactive prompts
-    var emotionalThemes: [String]? // Optional array for specific emotions
+    var developmentalFocus: [GrowthCategory]?  // Optional array for developmental themes
+    var interactiveElements: Bool?  // Optional flag for interactive prompts
+    var emotionalThemes: [String]?  // Optional array for specific emotions
 }
 
 /// Represents a page in a story.
@@ -22,7 +22,7 @@ final class Page: Identifiable, Codable {
     var illustrationRelativePath: String?
     var illustrationStatus: IllustrationStatus
     var imagePrompt: String?
-    
+
     init(
         id: UUID = UUID(),
         content: String,
@@ -48,10 +48,15 @@ final class Page: Identifiable, Codable {
         let id = try container.decode(UUID.self, forKey: .id)
         let content = try container.decode(String.self, forKey: .content)
         let pageNumber = try container.decode(Int.self, forKey: .pageNumber)
-        let illustrationRelativePath = try container.decodeIfPresent(String.self, forKey: .illustrationRelativePath)
-        let illustrationStatus = try container.decode(IllustrationStatus.self, forKey: .illustrationStatus)
+        let illustrationRelativePath = try container.decodeIfPresent(
+            String.self, forKey: .illustrationRelativePath)
+        let illustrationStatus = try container.decode(
+            IllustrationStatus.self, forKey: .illustrationStatus)
         let imagePrompt = try container.decodeIfPresent(String.self, forKey: .imagePrompt)
-        self.init(id: id, content: content, pageNumber: pageNumber, illustrationRelativePath: illustrationRelativePath, illustrationStatus: illustrationStatus, imagePrompt: imagePrompt)
+        self.init(
+            id: id, content: content, pageNumber: pageNumber,
+            illustrationRelativePath: illustrationRelativePath,
+            illustrationStatus: illustrationStatus, imagePrompt: imagePrompt)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -75,7 +80,8 @@ final class Story: Identifiable, Codable {
     var timestamp: Date
     var isCompleted: Bool = false
     var collections: [StoryCollection]
-    
+    var categoryName: String?
+
     init(
         id: UUID = UUID(),
         title: String,
@@ -83,7 +89,8 @@ final class Story: Identifiable, Codable {
         parameters: StoryParameters,
         timestamp: Date = Date(),
         isCompleted: Bool = false,
-        collections: [StoryCollection] = []
+        collections: [StoryCollection] = [],
+        categoryName: String? = nil
     ) {
         self.id = id
         self.title = title
@@ -92,10 +99,11 @@ final class Story: Identifiable, Codable {
         self.timestamp = timestamp
         self.isCompleted = isCompleted
         self.collections = collections
+        self.categoryName = categoryName
     }
-    
+
     enum CodingKeys: String, CodingKey {
-        case id, title, pages, parameters, timestamp, isCompleted, collections
+        case id, title, pages, parameters, timestamp, isCompleted, collections, categoryName
     }
 
     convenience init(from decoder: Decoder) throws {
@@ -107,7 +115,10 @@ final class Story: Identifiable, Codable {
         let timestamp = try container.decode(Date.self, forKey: .timestamp)
         let isCompleted = try container.decode(Bool.self, forKey: .isCompleted)
         let collections = try container.decode([StoryCollection].self, forKey: .collections)
-        self.init(id: id, title: title, pages: pages, parameters: parameters, timestamp: timestamp, isCompleted: isCompleted, collections: collections)
+        let categoryName = try container.decodeIfPresent(String.self, forKey: .categoryName)
+        self.init(
+            id: id, title: title, pages: pages, parameters: parameters, timestamp: timestamp,
+            isCompleted: isCompleted, collections: collections, categoryName: categoryName)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -119,8 +130,9 @@ final class Story: Identifiable, Codable {
         try container.encode(timestamp, forKey: .timestamp)
         try container.encode(isCompleted, forKey: .isCompleted)
         try container.encode(collections, forKey: .collections)
+        try container.encodeIfPresent(categoryName, forKey: .categoryName)
     }
-    
+
     // Compatibility initializer
     convenience init(
         id: UUID = UUID(),
@@ -129,7 +141,8 @@ final class Story: Identifiable, Codable {
         parameters: StoryParameters,
         timestamp: Date = Date(),
         illustrationURL: URL? = nil,
-        imagePrompt: String? = nil
+        imagePrompt: String? = nil,
+        categoryName: String? = nil
     ) {
         let singlePage = Page(
             content: content,
@@ -142,31 +155,36 @@ final class Story: Identifiable, Codable {
             title: title,
             pages: [singlePage],
             parameters: parameters,
-            timestamp: timestamp
+            timestamp: timestamp,
+            categoryName: categoryName
         )
     }
 }
 
 /// Represents user-specific settings for the application.
-struct UserSettings: Codable { // Conform to Codable for saving
+struct UserSettings: Codable {  // Conform to Codable for saving
     /// Preference for enabling or disabling Text-to-Speech functionality.
-    var isTextToSpeechEnabled: Bool = false // Default value
+    var isTextToSpeechEnabled: Bool = false  // Default value
 }
 
 /// Represents errors that can occur during story generation or handling.
 enum StoryError: Error, LocalizedError {
     case generationFailed
     case invalidParameters
-    case persistenceFailed // Although persistence isn't implemented yet, keep the error case as defined.
+    case persistenceFailed  // Although persistence isn't implemented yet, keep the error case as defined.
 
     var errorDescription: String? {
         switch self {
         case .generationFailed:
-            return NSLocalizedString("Failed to generate the story. Please try again.", comment: "Story Generation Error")
+            return NSLocalizedString(
+                "Failed to generate the story. Please try again.", comment: "Story Generation Error"
+            )
         case .invalidParameters:
-            return NSLocalizedString("The provided parameters were invalid.", comment: "Invalid Story Parameters Error")
+            return NSLocalizedString(
+                "The provided parameters were invalid.", comment: "Invalid Story Parameters Error")
         case .persistenceFailed:
-            return NSLocalizedString("Failed to save or load the story.", comment: "Story Persistence Error")
+            return NSLocalizedString(
+                "Failed to save or load the story.", comment: "Story Persistence Error")
         }
     }
 }
@@ -174,7 +192,9 @@ enum StoryError: Error, LocalizedError {
 // MARK: - Preview Helpers
 
 extension Story {
-    static func previewStory(title: String = "The Magical Forest Adventure") -> Story {
+    static func previewStory(
+        title: String = "The Magical Forest Adventure", categoryName: String? = "Fantasy"
+    ) -> Story {
         let params = StoryParameters(
             childName: "Alex",
             childAge: 5,
@@ -184,13 +204,20 @@ extension Story {
         return Story(
             title: title,
             pages: [
-                Page(content: "Once upon a time, Alex and Brave Bear went into the forest.", pageNumber: 1, imagePrompt: "A child and a bear entering a forest"),
-                Page(content: "They met a lost squirrel and helped it find its way home.", pageNumber: 2, imagePrompt: "Bear and child helping a squirrel"),
-                Page(content: "They learned that helping friends is important. The end.", pageNumber: 3, imagePrompt: "Bear, child, and squirrel waving goodbye")
+                Page(
+                    content: "Once upon a time, Alex and Brave Bear went into the forest.",
+                    pageNumber: 1, imagePrompt: "A child and a bear entering a forest"),
+                Page(
+                    content: "They met a lost squirrel and helped it find its way home.",
+                    pageNumber: 2, imagePrompt: "Bear and child helping a squirrel"),
+                Page(
+                    content: "They learned that helping friends is important. The end.",
+                    pageNumber: 3, imagePrompt: "Bear, child, and squirrel waving goodbye"),
             ],
-            parameters: params
+            parameters: params,
+            categoryName: categoryName
         )
     }
-    
+
     static var preview: Story { previewStory() }
 }
