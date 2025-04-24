@@ -66,11 +66,11 @@ struct StoryFormView: View {
     var body: some View {
         NavigationView {
             ZStack {
+                // Background extends to bottom, but respects top safe area
                 backgroundView
+                    .ignoresSafeArea(.container, edges: .bottom)
                 formContentView
             }
-            .background(Theme.Colors.appBackground)
-            .ignoresSafeArea(.container)
             .navigationTitle("Create Story")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -110,10 +110,8 @@ struct StoryFormView: View {
                         value: animateBackground
                     )
                     .onAppear { animateBackground = true }
-                    .ignoresSafeArea(.container)
             } else {
                 Color(hex: "#121828")
-                    .ignoresSafeArea(.container)
             }
         }
     }

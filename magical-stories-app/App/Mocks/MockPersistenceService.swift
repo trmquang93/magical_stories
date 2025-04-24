@@ -15,6 +15,11 @@ class MockPersistenceService: PersistenceServiceProtocol {
     var loadStoriesCalled: Bool = false
     var saveStoryError: Error?
 
+    // Properties required by StoryReadingIntegrationTests
+    var stories: [Story] = []
+    var incrementedStoryId: UUID?
+    var updatedLastReadAt: (UUID, Date)?
+
     func saveStories(_ stories: [Story]) async throws {
         savedStories = stories
     }
@@ -40,8 +45,8 @@ class MockPersistenceService: PersistenceServiceProtocol {
 
     // Implementing the required methods from PersistenceServiceProtocol
     func incrementReadCount(for storyId: UUID) async throws {
-        // Implementation for testing - since Story doesn't have readCount, we'll just mark this as a no-op
-        print("Mock: incrementReadCount for \(storyId)")
+        incrementedStoryId = storyId
+        // Optionally update stories array if needed
     }
 
     func toggleFavorite(for storyId: UUID) async throws {
@@ -50,7 +55,8 @@ class MockPersistenceService: PersistenceServiceProtocol {
     }
 
     func updateLastReadAt(for storyId: UUID, date: Date) async throws {
-        // Implementation for testing - since Story doesn't have lastReadAt, we'll just mark this as a no-op
+        updatedLastReadAt = (storyId, date)
+        // Optionally update stories array if needed
         print("Mock: updateLastReadAt for \(storyId) to \(date)")
     }
 

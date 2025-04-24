@@ -35,7 +35,7 @@ struct HomeView: View {
                     }
             }
         }
-        .sheet(isPresented: $showingStoryForm) {
+        .fullScreenCover(isPresented: $showingStoryForm) {
             StoryFormView()
         }
         .sheet(
@@ -165,7 +165,7 @@ struct HomeView: View {
                 .accessibilityIdentifier("HomeView_LibraryHeading")
             ForEach(storyService.stories.prefix(2)) { story in
                 NavigationLink(value: story) {
-                    StoryCard(story: story)
+                    EnhancedStoryCard(story: story)
                         .padding(.horizontal, Spacing.lg)
                         .accessibilityIdentifier("HomeView_StoryCard_\(story.id)")
                 }
