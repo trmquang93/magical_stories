@@ -42,9 +42,9 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		4D5D563E2DA2D7DE001709F0 /* magical-stories */ = {
+		4D5D563E2DA2D7DE001709F0 /* magical-stories-app */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "magical-stories";
+			path = "magical-stories-app";
 			sourceTree = "<group>";
 		};
 		4DDF1B5C2D98B918005D882A /* magical-storiesTests */ = {
@@ -95,7 +95,7 @@
 			isa = PBXGroup;
 			children = (
 				4DB1D39A2DB48E06001E9287 /* magical-stories.xctestplan */,
-				4D5D563E2DA2D7DE001709F0 /* magical-stories */,
+				4D5D563E2DA2D7DE001709F0 /* magical-stories-app */,
 				4DDF1B5C2D98B918005D882A /* magical-storiesTests */,
 				4DDF1B662D98B918005D882A /* magical-storiesUITests */,
 				4DDF1B482D98B911005D882A /* Products */,
@@ -128,7 +128,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				4D5D563E2DA2D7DE001709F0 /* magical-stories */,
+				4D5D563E2DA2D7DE001709F0 /* magical-stories-app */,
 			);
 			name = "magical-stories";
 			packageProductDependencies = (
@@ -427,7 +427,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"magical-stories/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"magical-stories-app/Preview Content\"";
 				DEVELOPMENT_TEAM = 7Q6TVZ5NF3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -456,7 +456,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"magical-stories/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"magical-stories-app/Preview Content\"";
 				DEVELOPMENT_TEAM = 7Q6TVZ5NF3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
