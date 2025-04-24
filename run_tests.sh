@@ -65,6 +65,38 @@ if check_dependency "jq" "brew install jq"; then
   JQ_AVAILABLE=true
 fi
 
+# Helper function to check and fix ModuleCache issues
+check_module_cache() {
+  # Check if ModuleCache.noindex exists and has Session.modulevalidation
+  MODULE_CACHE="$HOME/Library/Developer/Xcode/DerivedData/ModuleCache.noindex"
+  if [ ! -d "$MODULE_CACHE" ] || [ ! -f "$MODULE_CACHE/Session.modulevalidation" ]; then
+    print_warning "ModuleCache issue detected. Attempting to fix..."
+    # Make sure directory exists
+    mkdir -p "$MODULE_CACHE"
+    # Create an empty Session.modulevalidation file if it doesn't exist
+    touch "$MODULE_CACHE/Session.modulevalidation"
+    print_success "Created missing ModuleCache files"
+    return 0
+  fi
+  return 0
+}
+
+# Helper function to check and fix SDKStatCache issues
+check_sdk_stat_cache() {
+  SDK_CACHE="$HOME/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex"
+  if [ ! -d "$SDK_CACHE" ]; then
+    print_warning "SDKStatCache directory missing. Creating..."
+    mkdir -p "$SDK_CACHE"
+    print_success "Created SDKStatCache directory"
+  fi
+  return 0
+}
+
+# Check for cache issues first
+print_header "CHECKING XCODE CACHE"
+check_module_cache
+check_sdk_stat_cache
+
 # Remove previous results if they exist
 print_header "CLEANING PREVIOUS TEST RESULTS"
 rm -rf TestResults.xcresult
@@ -151,7 +183,7 @@ fi
 $timeout_cmd xcodebuild test \
   -scheme magical-stories \
   -configuration Debug \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2' \
+  -destination 'platform=iOS Simulator,name=iPhone 16e,OS=18.4' \
   -enableCodeCoverage YES \
   $SANITIZER_FLAGS \
   -parallel-testing-enabled NO \
@@ -164,6 +196,32 @@ $timeout_cmd xcodebuild test \
   --is-ci
 TEST_EXIT_CODE=$?
 set -e # Re-enable exit on error
+
+# Check for module cache errors
+if [ $TEST_EXIT_CODE -ne 0 ]; then
+  if grep -q "ModuleCache.noindex/Session.modulevalidation" TestResults.xml 2>/dev/null || grep -q "SDKStatCaches.noindex" TestResults.xml 2>/dev/null; then
+    print_warning "Detected module cache or SDK stat cache errors. Trying to fix..."
+    
+    print_info "Cleaning module cache..."
+    rm -rf "$HOME/Library/Developer/Xcode/DerivedData/ModuleCache.noindex"
+    mkdir -p "$HOME/Library/Developer/Xcode/DerivedData/ModuleCache.noindex"
+    touch "$HOME/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation"
+    
+    print_info "Cleaning SDK stat cache..."
+    rm -rf "$HOME/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex"
+    mkdir -p "$HOME/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex"
+    
+    print_warning "Fixed cache issues. Consider running ./fix_build.sh for a complete cleanup."
+    print_info "You can try running the tests again now."
+    echo
+    read -p "Do you want to try running the tests again? [Y/n] " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+      exec $0 "$@"  # Re-execute the same script with the same arguments
+      exit $?  # This will never be reached if the exec succeeds
+    fi
+  fi
+fi
 
 # Function to extract and format test failures
 extract_test_failures() {
@@ -536,6 +594,20 @@ summarize_results() {
     print_warning "jq not installed. Cannot generate detailed test summary."
   fi
 }
+
+# If tests failed with any kind of module cache error, suggest using fix_build.sh
+if [ $TEST_EXIT_CODE -ne 0 ]; then
+  if grep -q "ModuleCache" TestResults.xml 2>/dev/null || grep -q "SDKStatCaches" TestResults.xml 2>/dev/null; then
+    print_warning "Tests failed with module cache-related issues."
+    print_info "For a complete fix, run the following command:"
+    echo "  ./fix_build.sh"
+  fi
+fi
+
+# Only call extract_test_failures if tests actually ran but failed
+if [ -f "TestResults.xcresult" ] && [ $TEST_EXIT_CODE -ne 0 ]; then
+  extract_test_failures
+fi
 
 # Process test results
 if [ $TEST_EXIT_CODE -ne 0 ]; then
