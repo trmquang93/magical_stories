@@ -152,3 +152,4 @@ magical-stories/Config.plist
 *.xcresult
 TestResults*
 boomerang-tasks.md
+test_results.log

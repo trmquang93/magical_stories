@@ -180,6 +180,13 @@ elif [ "$SANITIZER" = "undefined" ]; then
   SANITIZER_FLAGS="-enableUndefinedBehaviorSanitizer YES"
 fi
 
+# Create a log file to capture the test output
+TEST_LOG_FILE="crash_logs/test_output_$(date +%s).log"
+
+print_info "Test output will be displayed and saved to: ${TEST_LOG_FILE}"
+
+# Run xcodebuild and use tee to both display the output and save it to a file
+# We're not using the --quiet flag with xcbeautify so that print statements show up
 $timeout_cmd xcodebuild test \
   -scheme magical-stories \
   -configuration Debug \
@@ -189,11 +196,12 @@ $timeout_cmd xcodebuild test \
   -parallel-testing-enabled NO \
   -allowProvisioningUpdates \
   -resultBundlePath TestResults.xcresult \
-  $ONLY_TEST_ARG | xcbeautify \
-  --quiet \
+  $ONLY_TEST_ARG | tee $TEST_LOG_FILE | xcbeautify \
+  --preserve-unbeautified \
   --report junit \
   --report-path TestResults.xml \
   --is-ci
+
 TEST_EXIT_CODE=$?
 set -e # Re-enable exit on error
 

@@ -13,14 +13,18 @@ struct LibraryEmptyState: View {
                 .font(.system(size: mode == .empty ? 50 : 40))
                 .foregroundStyle(
                     mode == .empty
-                        ? AnyShapeStyle(LinearGradient(
+                        ? LinearGradient(
                             colors: [
                                 UITheme.Colors.surfaceSecondary, UITheme.Colors.textSecondary,
                             ],
                             startPoint: .top,
                             endPoint: .bottom
-                        ))
-                        : AnyShapeStyle(UITheme.Colors.textSecondary)
+                        )
+                        : LinearGradient(
+                            colors: [UITheme.Colors.textSecondary, UITheme.Colors.textSecondary],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
                 )
             Text(mode == .empty ? "Your library is empty" : "No stories found")
                 .font(UITheme.Typography.headingMedium)
