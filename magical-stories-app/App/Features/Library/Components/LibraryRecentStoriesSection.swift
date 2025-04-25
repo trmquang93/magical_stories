@@ -2,7 +2,6 @@ import SwiftUI
 
 struct LibraryRecentStoriesSection: View {
     let recentStories: [Story]
-    let onSeeAll: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -12,7 +11,7 @@ struct LibraryRecentStoriesSection: View {
                     .foregroundColor(UITheme.Colors.textPrimary)
                     .accessibilityIdentifier("LibraryView_RecentStoriesSection")
                 Spacer()
-                Button(action: onSeeAll) {
+                NavigationLink(value: LibraryView.ViewDestination.allStories) {
                     HStack(spacing: UITheme.Spacing.xxs) {
                         Text("See All")
                             .font(UITheme.Typography.bodySmall.weight(.semibold))
