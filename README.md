@@ -93,11 +93,12 @@ We follow Swift style guidelines and use SwiftLint for enforcement. See [Coding 
 
 Run tests using the provided script:
 ```bash
-./run_tests.sh
+./run_tests.sh                # Run all tests
+./run_tests.sh TestClass/testMethod  # Run a specific test or tests (see xcodebuild -only-testing syntax)
 ```
 
 This will:
-- Run all tests (unit, integration, UI)
+- Run all tests (unit, integration, UI) or only the specified test(s)
 - Generate coverage reports
 - Create JUnit test reports in TestResults directory
 - Install xcpretty if needed

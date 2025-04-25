@@ -391,97 +391,40 @@ class StoryService: ObservableObject {
 
     // Helper to normalize and clean JSON strings
     private func normalizeJSON(_ jsonString: String) -> String {
-        // Create a separate dictionary for parsing
-        do {
-            // Clean up the JSON string first
-            // Replace non-standard quotes with standard double quotes
-            var cleaned = jsonString
-            cleaned = cleaned.replacingOccurrences(of: "\u{201C}", with: "\"")  // left double quote
-            cleaned = cleaned.replacingOccurrences(of: "\u{201D}", with: "\"")  // right double quote
-
-            // Handle escaped quotes
-            cleaned = cleaned.replacingOccurrences(of: "\\\"", with: "\"")
-
-            // Extract key parts and rebuild the JSON
-            if let storyStartIdx = cleaned.range(of: "\"story\"")?.lowerBound,
-                let categoryStartIdx = cleaned.range(of: "\"category\"")?.lowerBound,
-                cleaned.range(of: "\"", range: categoryStartIdx..<cleaned.endIndex)?.lowerBound
-                    != nil
-            {
-
-                // Extract the story text
-                var storyText = ""
-                var inStory = false
-                var quoteCount = 0
-                var storyExtracted = false
-
-                for (i, char) in cleaned[storyStartIdx...].enumerated() {
-                    if char == "\"" {
-                        quoteCount += 1
-                        if quoteCount == 2 {  // Starting story content
-                            inStory = true
-                            continue
-                        } else if quoteCount > 2 && i > 10 {  // Potential end of story
-                            let nextChar =
-                                storyStartIdx < cleaned.endIndex
-                                ? cleaned[cleaned.index(storyStartIdx, offsetBy: i + 1)] : " "
-                            if nextChar == "," || nextChar == "}" || nextChar.isWhitespace {
-                                inStory = false
-                                storyExtracted = true
-                                break
-                            }
-                        }
-                    }
-
-                    if inStory {
-                        storyText.append(char)
-                    }
-                }
-
-                // Extract category text
-                var categoryRaw = ""
-                var inCategory = false
-                quoteCount = 0
-
-                for char in cleaned[categoryStartIdx...] {
-                    if char == "\"" {
-                        quoteCount += 1
-                        if quoteCount == 3 {  // Starting category content
-                            inCategory = true
-                            continue
-                        } else if quoteCount > 3 {  // End of category
-                            break
-                        }
-                    }
-
-                    if inCategory {
-                        categoryRaw.append(char)
-                    }
-                }
-
-                // Create a clean, minimal JSON
-                if storyExtracted {
-                    let cleanJSON =
-                        "{\n" + "  \"story\": \""
-                        + storyText.replacingOccurrences(of: "\"", with: "\\\"") + "\",\n"
-                        + "  \"category\": \"" + categoryRaw + "\"\n" + "}"
-                    print("[StoryService] Successfully rebuilt and cleaned JSON")
-                    return cleanJSON
-                }
-            }
-
-            // If we couldn't parse the structure, try different cleanup approach
-            // First, try manual format cleaning of the most common issues
-            cleaned = cleaned.replacingOccurrences(of: "\n", with: "\\n")
-            cleaned = cleaned.replacingOccurrences(of: "\r", with: "\\r")
-            cleaned = cleaned.replacingOccurrences(of: "\t", with: "\\t")
-
-            // Remove any control characters
-            let controlChars = (0..<32).map { Character(UnicodeScalar($0)!) }
-            cleaned = cleaned.filter { !controlChars.contains($0) }
-
+        // Robustly clean up the JSON string for parsing
+        var cleaned = jsonString
+        // Replace non-standard quotes with standard double quotes
+        cleaned = cleaned.replacingOccurrences(of: "\u{201C}", with: "\"")  // left double quote
+        cleaned = cleaned.replacingOccurrences(of: "\u{201D}", with: "\"")  // right double quote
+        // Remove leading/trailing whitespace and newlines
+        cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Remove any trailing or leading markdown code block markers if present
+        if cleaned.hasPrefix("```json") { cleaned = String(cleaned.dropFirst(7)) }
+        if cleaned.hasPrefix("```") { cleaned = String(cleaned.dropFirst(3)) }
+        if cleaned.hasSuffix("```") { cleaned = String(cleaned.dropLast(3)) }
+        cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Replace Windows line endings with Unix
+        cleaned = cleaned.replacingOccurrences(of: "\r\n", with: "\n")
+        cleaned = cleaned.replacingOccurrences(of: "\r", with: "\n")
+        // Remove any control characters except for tab and newline
+        cleaned = cleaned.filter { $0.isASCII && ($0 >= " " || $0 == "\n" || $0 == "\t") }
+        // If the cleaned string is valid JSON, return as is
+        if let data = cleaned.data(using: .utf8),
+            (try? JSONSerialization.jsonObject(with: data)) != nil
+        {
             return cleaned
         }
+        // If not valid, try to fix common issues: replace single backslashes with double
+        let fixed = cleaned.replacingOccurrences(
+            of: "\\([^\\nrt\"])", with: "\\\\$1", options: .regularExpression)
+        if let data = fixed.data(using: .utf8),
+            (try? JSONSerialization.jsonObject(with: data)) != nil
+        {
+            return fixed
+        }
+        // As a last resort, replace all newlines with \n (for multiline strings in JSON)
+        let final = fixed.replacingOccurrences(of: "\n", with: "\\n")
+        return final
     }
 
     // Helper to try to extract a category from text when JSON parsing fails
