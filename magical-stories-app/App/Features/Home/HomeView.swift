@@ -172,19 +172,17 @@ struct HomeView: View {
             }
             if storyService.stories.count > 2 {
                 NavigationLink(value: ViewDestination.allStories) {
-                    Button(action: {}) {
-                        Text("View All Stories")
-                            .font(.headingSmall)
-                            .foregroundColor(.magicalPrimary)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, Spacing.md)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(UITheme.Colors.primary, lineWidth: 2)
-                            )
-                            .padding(.horizontal, Spacing.lg)
-                            .accessibilityLabel("View All Stories")
-                    }
+                    Text("View All Stories")
+                        .font(.headingSmall)
+                        .foregroundColor(.magicalPrimary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, Spacing.md)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(UITheme.Colors.primary, lineWidth: 2)
+                        )
+                        .padding(.horizontal, Spacing.lg)
+                        .accessibilityLabel("View All Stories")
                 }
                 .buttonStyle(PlainButtonStyle())
                 .accessibilityIdentifier("ViewAllStoriesButton")

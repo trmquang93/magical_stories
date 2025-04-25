@@ -10,6 +10,7 @@ struct LibraryView: View {
     @State private var deleteErrorMessage = ""
     @State private var selectedCategoryName: String? = nil
     @State private var isSearchFocused = false
+    @State private var isShowingAllStories = false
 
     // Define an enum for navigation destinations
     enum ViewDestination: Hashable {
@@ -18,6 +19,13 @@ struct LibraryView: View {
 
     var body: some View {
         NavigationStack {
+            // Hidden NavigationLink for programmatic navigation to AllStoriesView
+            NavigationLink(
+                destination: AllStoriesView(),
+                isActive: $isShowingAllStories
+            ) { EmptyView() }
+            .hidden()
+
             ZStack(alignment: .top) {
                 // Background
                 UITheme.Colors.background.ignoresSafeArea()
@@ -124,9 +132,8 @@ struct LibraryView: View {
 
     // Navigation handler for See All
     private func navigateToAllStories() {
-        // Use NavigationLink programmatically if needed, or rely on navigationDestination
-        // For now, this is a placeholder for navigation logic
-        // TODO: Implement navigation to AllStoriesView if not already handled
+        // Trigger programmatic navigation to AllStoriesView
+        isShowingAllStories = true
     }
 }
 
