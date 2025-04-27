@@ -37,23 +37,28 @@ struct PageView: View {
                         switch phase {
                         case .empty:
                             ProgressView()
-                                .frame(maxWidth: .infinity) // Full width
-                                .aspectRatio(16/9, contentMode: .fit) // Maintain aspect ratio while loading
+                                .frame(height: 200)
+                                .frame(maxWidth: .infinity)
                                 .background(UITheme.Colors.surfaceSecondary)
+                                .cornerRadius(UITheme.Layout.cornerRadiusMedium)
                                 .accessibilityLabel("Loading illustration")
                                 .accessibilityAddTraits(.updatesFrequently)
                         case .success(let image):
                             image
                                 .resizable()
-                                .scaledToFit() // Maintain aspect ratio, fit within width
-                                .containerRelativeFrame(.horizontal) // Occupy full container width
+                                .scaledToFit()
+                                .frame(height: 200)
+                                .frame(maxWidth: .infinity)
+                                .cornerRadius(UITheme.Layout.cornerRadiusMedium)
                                 .accessibilityLabel(illustrationDescription)
                                 .accessibilityAddTraits(.isImage)
                         case .failure:
-                            Image("placeholder-illustration") // Placeholder on load failure
+                            Image("placeholder-illustration")
                                 .resizable()
                                 .scaledToFit()
-                                .containerRelativeFrame(.horizontal)
+                                .frame(height: 200)
+                                .frame(maxWidth: .infinity)
+                                .cornerRadius(UITheme.Layout.cornerRadiusMedium)
                                 .overlay(
                                     Text("Failed to load illustration")
                                         .font(UITheme.Typography.bodySmall)
@@ -69,13 +74,14 @@ struct PageView: View {
                             EmptyView()
                         }
                     }
-                    .frame(maxWidth: .infinity) // Ensure AsyncImage container takes full width
                 } else if page.illustrationStatus == .failed {
                     VStack {
-                        Image("placeholder-illustration") // Placeholder on generation failure
+                        Image("placeholder-illustration")
                             .resizable()
                             .scaledToFit()
-                            .containerRelativeFrame(.horizontal)
+                            .frame(height: 200)
+                            .frame(maxWidth: .infinity)
+                            .cornerRadius(UITheme.Layout.cornerRadiusMedium)
                             .overlay(
                                 Text("Illustration failed")
                                     .font(UITheme.Typography.bodySmall)
@@ -96,11 +102,12 @@ struct PageView: View {
                         .accessibilityLabel("Regenerate illustration button")
                     }
                 } else {
-                    // Placeholder if no illustration path exists or status is not success/failed
                     Image("placeholder-illustration")
                         .resizable()
                         .scaledToFit()
-                        .containerRelativeFrame(.horizontal)
+                        .frame(height: 200)
+                        .frame(maxWidth: .infinity)
+                        .cornerRadius(UITheme.Layout.cornerRadiusMedium)
                         .accessibilityLabel("Illustration placeholder")
                         .accessibilityAddTraits(.isImage)
                 }

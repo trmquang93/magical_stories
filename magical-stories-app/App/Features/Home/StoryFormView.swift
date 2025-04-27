@@ -23,18 +23,30 @@ struct StoryFormView: View {
     private let ageRanges = ["3-5", "6-8", "9-12"]  // Updated age ranges
     private let storyThemes: [StoryTheme] = StoryTheme.allCases
     private let languages = [  // Language codes and display names
+        // Common European
         ("en", "English"),
-        ("es", "Español"),
-        ("fr", "Français"),
-        ("de", "Deutsch"),
-        ("it", "Italiano"),
-        ("pt", "Português"),
-        ("ru", "Русский"),
-        ("zh", "中文"),
-        ("ja", "日本語"),
-        ("ko", "한국어"),
-        ("hi", "हिन्दी"),
-        ("ar", "العربية"),
+        ("es", "Español"), // Spanish
+        ("fr", "Français"), // French
+        ("de", "Deutsch"), // German
+        ("it", "Italiano"), // Italian
+        ("pt", "Português"), // Portuguese
+        ("ru", "Русский"), // Russian
+        ("pl", "Polski"), // Polish
+        ("nl", "Nederlands"), // Dutch
+        ("sv", "Svenska"), // Swedish
+        // Common Asian
+        ("zh", "中文"), // Chinese (Simplified)
+        ("ja", "日本語"), // Japanese
+        ("ko", "한국어"), // Korean
+        ("hi", "हिन्दी"), // Hindi
+        ("vi", "Tiếng Việt"), // Vietnamese
+        ("th", "ไทย"), // Thai
+        ("id", "Bahasa Indonesia"), // Indonesian
+        ("ms", "Bahasa Melayu"), // Malay
+        ("fil", "Filipino"), // Filipino
+        // Middle Eastern / Other
+        ("ar", "العربية"), // Arabic
+        ("tr", "Türkçe"), // Turkish
     ]
     private let storyLengthLabels = ["Short", "Medium", "Long"]
 
