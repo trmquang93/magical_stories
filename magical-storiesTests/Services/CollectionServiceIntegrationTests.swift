@@ -130,7 +130,7 @@ struct CollectionServiceIntegrationTests {
     }
 
     @Test("End-to-end Collection flow: create, generate stories, mark completed, get achievement")
-    @Tag(Tag.collectionIntegration)
+    @Tag(.integration)
     func testEndToEndCollectionFlow() async throws {
         // Setup
         let (

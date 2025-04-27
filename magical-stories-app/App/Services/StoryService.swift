@@ -70,6 +70,7 @@ class StoryService: ObservableObject {
     private let promptBuilder: PromptBuilder
     private let storyProcessor: StoryProcessor
     private let persistenceService: PersistenceServiceProtocol
+    private let settingsService: SettingsServiceProtocol?
     @Published private(set) var stories: [Story] = []
     @Published private(set) var isGenerating = false
 
@@ -80,11 +81,13 @@ class StoryService: ObservableObject {
         persistenceService: PersistenceServiceProtocol? = nil,
         model: GenerativeModelProtocol? = nil,
         storyProcessor: StoryProcessor? = nil,  // Allow injecting for testing
-        promptBuilder: PromptBuilder? = nil  // Added promptBuilder parameter for testing
+        promptBuilder: PromptBuilder? = nil,  // Added promptBuilder parameter for testing
+        settingsService: SettingsServiceProtocol? = nil  // Add settings service for vocabulary boost
     ) throws {  // Mark initializer as throwing
         self.model = model ?? GenerativeModelWrapper(name: "gemini-2.0-flash", apiKey: apiKey)  // Updated to more creative model
         self.promptBuilder = promptBuilder ?? PromptBuilder()  // Use injected or create new
         self.persistenceService = persistenceService ?? PersistenceService(context: context)
+        self.settingsService = settingsService  // Store the settings service
 
         // Initialize StoryProcessor, potentially injecting dependencies like IllustrationService
         // If storyProcessor is provided (e.g., in tests), use it. Otherwise, create a default one.
@@ -120,8 +123,8 @@ class StoryService: ObservableObject {
         isGenerating = true
         defer { isGenerating = false }
 
-        // Generate the prompt using the enhanced PromptBuilder
-        let prompt = promptBuilder.buildPrompt(parameters: parameters)
+        // Generate the prompt using the enhanced PromptBuilder with vocabulary boost setting
+        let prompt = buildPrompt(with: parameters)
 
         do {
             // --- Actual API Call ---
@@ -131,14 +134,16 @@ class StoryService: ObservableObject {
             }
 
             // Try to parse the response as XML to extract title, story content, and category
-            let (extractedTitle, storyContent, category) = try extractTitleCategoryAndContent(from: text)
+            let (extractedTitle, storyContent, category) = try extractTitleCategoryAndContent(
+                from: text)
 
             // Use extracted title or fallback
             let title = extractedTitle ?? "Magical Story"
 
             // Ensure content was extracted
             guard let content = storyContent, !content.isEmpty else {
-                throw StoryServiceError.generationFailed("Could not extract story content from XML response")
+                throw StoryServiceError.generationFailed(
+                    "Could not extract story content from XML response")
             }
 
             // Process content into pages using StoryProcessor
@@ -193,6 +198,17 @@ class StoryService: ObservableObject {
         }
     }
 
+    /// Helper to build prompts using settings and parameters
+    func buildPrompt(with parameters: StoryParameters, vocabularyBoostEnabled: Bool? = nil)
+        -> String
+    {
+        // Use the explicitly provided value, or get it from the settings service, or default to false
+        let useVocabularyBoost =
+            vocabularyBoostEnabled ?? settingsService?.vocabularyBoostEnabled ?? false
+        return promptBuilder.buildPrompt(
+            parameters: parameters, vocabularyBoostEnabled: useVocabularyBoost)
+    }
+
     func loadStories() async {
         do {
             let loadedStories = try await persistenceService.loadStories()
@@ -207,7 +223,9 @@ class StoryService: ObservableObject {
 
     // Removed extractTitleAndContent method as title is now extracted within extractTitleCategoryAndContent
 
-    private func extractTitleCategoryAndContent(from text: String) throws -> (String?, String?, String?) {
+    private func extractTitleCategoryAndContent(from text: String) throws -> (
+        String?, String?, String?
+    ) {
         // Try to parse the text as XML to extract story and category
         do {
             // Clean up the text first - sometimes the AI might include extra text before or after the XML
@@ -218,41 +236,53 @@ class StoryService: ObservableObject {
                 // Normalize the XML
                 let normalizedXml = normalizeXML(xmlText)
                 print("[StoryService] Found potential XML: \(normalizedXml.prefix(100))...")
-                
+
                 // Extract title, content, and category using regular expressions
                 let titlePattern = "<title>(.*?)</title>"
                 let contentPattern = "<content>(.*?)</content>"
                 let categoryPattern = "<category>(.*?)</category>"
-                
-                let titleRegex = try NSRegularExpression(pattern: titlePattern, options: [.dotMatchesLineSeparators])
-                let contentRegex = try NSRegularExpression(pattern: contentPattern, options: [.dotMatchesLineSeparators])
-                let categoryRegex = try NSRegularExpression(pattern: categoryPattern, options: [.dotMatchesLineSeparators])
-                
-                let titleMatches = titleRegex.matches(in: normalizedXml, range: NSRange(normalizedXml.startIndex..., in: normalizedXml))
-                let contentMatches = contentRegex.matches(in: normalizedXml, range: NSRange(normalizedXml.startIndex..., in: normalizedXml))
-                let categoryMatches = categoryRegex.matches(in: normalizedXml, range: NSRange(normalizedXml.startIndex..., in: normalizedXml))
+
+                let titleRegex = try NSRegularExpression(
+                    pattern: titlePattern, options: [.dotMatchesLineSeparators])
+                let contentRegex = try NSRegularExpression(
+                    pattern: contentPattern, options: [.dotMatchesLineSeparators])
+                let categoryRegex = try NSRegularExpression(
+                    pattern: categoryPattern, options: [.dotMatchesLineSeparators])
+
+                let titleMatches = titleRegex.matches(
+                    in: normalizedXml,
+                    range: NSRange(normalizedXml.startIndex..., in: normalizedXml))
+                let contentMatches = contentRegex.matches(
+                    in: normalizedXml,
+                    range: NSRange(normalizedXml.startIndex..., in: normalizedXml))
+                let categoryMatches = categoryRegex.matches(
+                    in: normalizedXml,
+                    range: NSRange(normalizedXml.startIndex..., in: normalizedXml))
 
                 var extractedTitle: String? = nil
                 var storyContent: String? = nil
                 var category: String? = nil
-                
+
                 // Extract title from matches
                 if let titleMatch = titleMatches.first,
-                   let titleRange = Range(titleMatch.range(at: 1), in: normalizedXml) {
+                    let titleRange = Range(titleMatch.range(at: 1), in: normalizedXml)
+                {
                     extractedTitle = String(normalizedXml[titleRange])
                     print("[StoryService] Found 'title' field in XML")
                 }
 
                 // Extract content from matches
                 if let contentMatch = contentMatches.first,
-                   let contentRange = Range(contentMatch.range(at: 1), in: normalizedXml) {
+                    let contentRange = Range(contentMatch.range(at: 1), in: normalizedXml)
+                {
                     storyContent = String(normalizedXml[contentRange])
                     print("[StoryService] Found 'content' field in XML")
                 }
 
                 // Extract category from matches
                 if let categoryMatch = categoryMatches.first,
-                   let categoryRange = Range(categoryMatch.range(at: 1), in: normalizedXml) {
+                    let categoryRange = Range(categoryMatch.range(at: 1), in: normalizedXml)
+                {
                     category = String(normalizedXml[categoryRange])
                     print("[StoryService] Category from XML: \(category ?? "None")")
                 }
@@ -289,11 +319,12 @@ class StoryService: ObservableObject {
         // Check if the text contains XML code block markers
         if text.contains("```xml") && text.contains("```") {
             if let startMarker = text.range(of: "```xml")?.upperBound,
-               let endMarker = text.range(of: "```", range: startMarker..<text.endIndex)?.lowerBound
+                let endMarker = text.range(of: "```", range: startMarker..<text.endIndex)?
+                    .lowerBound
             {
                 let xmlSubstring = text[startMarker..<endMarker].trimmingCharacters(
                     in: .whitespacesAndNewlines)
-                
+
                 print("[StoryService] Extracted XML from code block: \(xmlSubstring.prefix(30))...")
                 return xmlSubstring
             }
@@ -303,34 +334,37 @@ class StoryService: ObservableObject {
         let titleStart = text.range(of: "<title>")
         let contentStart = text.range(of: "<content>")
         let categoryStart = text.range(of: "<category>")
-        
+
         let titleEnd = text.range(of: "</title>")
         let contentEnd = text.range(of: "</content>")
         let categoryEnd = text.range(of: "</category>")
-        
+
         // If we have at least one complete tag, attempt to extract the XML
-        if (titleStart != nil && titleEnd != nil) ||
-           (contentStart != nil && contentEnd != nil) ||
-           (categoryStart != nil && categoryEnd != nil) {
-            
+        if (titleStart != nil && titleEnd != nil) || (contentStart != nil && contentEnd != nil)
+            || (categoryStart != nil && categoryEnd != nil)
+        {
+
             // Try to find the earliest start tag and latest end tag
-            var allRanges: [(Range<String.Index>, Bool)] = [] // (range, isStart)
-            
+            var allRanges: [(Range<String.Index>, Bool)] = []  // (range, isStart)
+
             if let range = titleStart { allRanges.append((range, true)) }
             if let range = contentStart { allRanges.append((range, true)) }
             if let range = categoryStart { allRanges.append((range, true)) }
             if let range = titleEnd { allRanges.append((range, false)) }
             if let range = contentEnd { allRanges.append((range, false)) }
             if let range = categoryEnd { allRanges.append((range, false)) }
-            
+
             // Sort by position in text
             allRanges.sort { $0.0.lowerBound < $1.0.lowerBound }
-            
+
             if let firstStart = allRanges.first(where: { $0.1 })?.0.lowerBound,
-               let lastEnd = allRanges.last(where: { !$0.1 })?.0.upperBound {
-                
+                let lastEnd = allRanges.last(where: { !$0.1 })?.0.upperBound
+            {
+
                 let xmlSubstring = String(text[firstStart..<lastEnd])
-                print("[StoryService] Extracted XML using tag matching: \(xmlSubstring.prefix(30))...")
+                print(
+                    "[StoryService] Extracted XML using tag matching: \(xmlSubstring.prefix(30))..."
+                )
                 return xmlSubstring
             }
         }
@@ -355,7 +389,7 @@ class StoryService: ObservableObject {
         cleaned = cleaned.replacingOccurrences(of: "\r", with: "\n")
         // Remove any control characters except for tab and newline
         cleaned = cleaned.filter { $0.isASCII && ($0 >= " " || $0 == "\n" || $0 == "\t") }
-        
+
         return cleaned
     }
 

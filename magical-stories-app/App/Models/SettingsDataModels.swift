@@ -8,19 +8,23 @@ final class AppSettingsModel {
     var hapticFeedbackEnabled: Bool
     var soundEffectsEnabled: Bool
     var darkModeEnabled: Bool
+    var vocabularyBoostEnabled: Bool
     // Add a unique identifier or assume only one instance exists
     // For simplicity, let's assume only one instance and fetch it directly.
     // If multiple profiles were needed, a unique ID would be essential.
 
-    init(fontScale: Double = 1.0,
-         hapticFeedbackEnabled: Bool = true,
-         soundEffectsEnabled: Bool = true,
-         darkModeEnabled: Bool = false)
-    {
+    init(
+        fontScale: Double = 1.0,
+        hapticFeedbackEnabled: Bool = true,
+        soundEffectsEnabled: Bool = true,
+        darkModeEnabled: Bool = false,
+        vocabularyBoostEnabled: Bool = false
+    ) {
         self.fontScale = fontScale
         self.hapticFeedbackEnabled = hapticFeedbackEnabled
         self.soundEffectsEnabled = soundEffectsEnabled
         self.darkModeEnabled = darkModeEnabled
+        self.vocabularyBoostEnabled = vocabularyBoostEnabled
     }
 
     // Convenience initializer from the non-persistent struct
@@ -29,7 +33,8 @@ final class AppSettingsModel {
             fontScale: settings.fontScale,
             hapticFeedbackEnabled: settings.hapticFeedbackEnabled,
             soundEffectsEnabled: settings.soundEffectsEnabled,
-            darkModeEnabled: settings.darkModeEnabled
+            darkModeEnabled: settings.darkModeEnabled,
+            vocabularyBoostEnabled: settings.vocabularyBoostEnabled
         )
     }
 
@@ -39,7 +44,8 @@ final class AppSettingsModel {
             fontScale: self.fontScale,
             hapticFeedbackEnabled: self.hapticFeedbackEnabled,
             soundEffectsEnabled: self.soundEffectsEnabled,
-            darkModeEnabled: self.darkModeEnabled
+            darkModeEnabled: self.darkModeEnabled,
+            vocabularyBoostEnabled: self.vocabularyBoostEnabled
         )
     }
 
@@ -48,7 +54,6 @@ final class AppSettingsModel {
         AppSettingsModel(from: AppSettings.default)
     }
 }
-
 
 // MARK: - Parental Controls SwiftData Model
 @Model
@@ -68,17 +73,18 @@ final class ParentalControlsModel {
             Set(allowedThemesRaw.compactMap { StoryTheme(rawValue: $0) })
         }
         set {
-            allowedThemesRaw = newValue.map { $0.rawValue }.sorted() // Store sorted for consistency
+            allowedThemesRaw = newValue.map { $0.rawValue }.sorted()  // Store sorted for consistency
         }
     }
 
-    init(contentFiltering: Bool = true,
-         screenTimeEnabled: Bool = false,
-         maxStoriesPerDay: Int = 3,
-         allowedThemes: Set<StoryTheme> = Set(StoryTheme.allCases),
-         minimumAge: Int = 3,
-         maximumAge: Int = 10)
-    {
+    init(
+        contentFiltering: Bool = true,
+        screenTimeEnabled: Bool = false,
+        maxStoriesPerDay: Int = 3,
+        allowedThemes: Set<StoryTheme> = Set(StoryTheme.allCases),
+        minimumAge: Int = 3,
+        maximumAge: Int = 10
+    ) {
         self.contentFiltering = contentFiltering
         self.screenTimeEnabled = screenTimeEnabled
         self.maxStoriesPerDay = maxStoriesPerDay
@@ -105,7 +111,7 @@ final class ParentalControlsModel {
             contentFiltering: self.contentFiltering,
             screenTimeEnabled: self.screenTimeEnabled,
             maxStoriesPerDay: self.maxStoriesPerDay,
-            allowedThemes: self.allowedThemes, // Use computed property
+            allowedThemes: self.allowedThemes,  // Use computed property
             minimumAge: self.minimumAge,
             maximumAge: self.maximumAge
         )

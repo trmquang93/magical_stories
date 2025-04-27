@@ -53,7 +53,7 @@ class PromptBuilder {
   // MARK: - Public Methods
 
   /// Builds a complete prompt for story generation based on the provided parameters
-  func buildPrompt(parameters: StoryParameters) -> String {
+  func buildPrompt(parameters: StoryParameters, vocabularyBoostEnabled: Bool = false) -> String {
     let vocabularyLevel = VocabularyLevel.forAge(parameters.childAge)
 
     // Create a unique randomization seed based on current timestamp
@@ -62,7 +62,9 @@ class PromptBuilder {
     var promptComponents = [
       basePrompt(parameters: parameters),
       "\nVocabulary Guidelines:",
-      vocabularyLevel.vocabularyGuideline,
+      vocabularyBoostEnabled
+        ? enhancedVocabularyGuidelines(forLevel: vocabularyLevel, childAge: parameters.childAge)
+        : vocabularyLevel.vocabularyGuideline,
       "\nNarrative Guidelines:",
       vocabularyLevel.narrativeGuideline,
       storyStructureGuidelines(),
@@ -78,6 +80,11 @@ class PromptBuilder {
     // Add emotional themes if specified
     if let emotions = parameters.emotionalThemes, !emotions.isEmpty {
       promptComponents.append(emotionalGuidelines(themes: emotions))
+    }
+
+    // Add interactive elements if requested
+    if let interactive = parameters.interactiveElements, interactive {
+      promptComponents.append(interactiveElementsGuidelines())
     }
 
     // Add category selection instructions
@@ -167,7 +174,7 @@ class PromptBuilder {
       Ensure the described scene is suitable for a 9:16 portrait aspect ratio illustration.
       Do NOT use JSON format. Each description must be highly detailed for consistent visualization.
       """
-      }
+  }
 
   /// Extract potential character names from story pages.
   private static func extractPotentialCharacters(from pages: [Page]) -> [String] {
@@ -202,9 +209,11 @@ class PromptBuilder {
 
   private func basePrompt(parameters: StoryParameters) -> String {
     // Determine language and code, defaulting to English if not provided or empty
-    let languageCode = parameters.languageCode?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    let languageCode =
+      parameters.languageCode?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     let targetLanguageCode = languageCode.isEmpty ? "en-US" : languageCode
-    let targetLanguageName = Locale.current.localizedString(forIdentifier: targetLanguageCode) ?? "English" // Attempt to get localized name
+    let targetLanguageName =
+      Locale.current.localizedString(forIdentifier: targetLanguageCode) ?? "English"  // Attempt to get localized name
 
     return """
       Create an engaging children's story with the following requirements:
@@ -247,9 +256,9 @@ class PromptBuilder {
   }
 
   private func categorySelectionGuidelines() -> String {
-      let categoriesList = allowedCategories.joined(separator: ", ")
+    let categoriesList = allowedCategories.joined(separator: ", ")
 
-      return """
+    return """
       Category Selection Instructions:
       After writing the story, analyze its content and select the single most appropriate category from this list:
       [\(categoriesList)]
@@ -290,6 +299,55 @@ class PromptBuilder {
       - Avoid formulaic storytelling - surprise the reader with unexpected twists
       - Create fresh characters and scenarios that stand out
       - Use this unique seed to ensure variability: \(seed)
+      """
+  }
+
+  // MARK: - Enhanced Vocabulary Methods
+
+  /// Provides enhanced vocabulary guidelines when vocabulary boost is enabled
+  private func enhancedVocabularyGuidelines(forLevel level: VocabularyLevel, childAge: Int)
+    -> String
+  {
+    let baseGuideline = level.vocabularyGuideline
+    var enhancedWords = ""
+    var countGuidance = ""
+
+    switch level {
+    case .beginner:
+      enhancedWords =
+        "Include 2-3 new vocabulary words that are slightly above a \(childAge)-year-old's typical vocabulary, but explain them through context and repetition."
+      countGuidance = "simple sentence structures"
+    case .intermediate:
+      enhancedWords =
+        "Include 3-5 new vocabulary words that are moderately above a \(childAge)-year-old's typical vocabulary, with contextual explanations or visual descriptions that make their meaning clear."
+      countGuidance = "varied sentence structures"
+    case .advanced:
+      enhancedWords =
+        "Include 4-6 new vocabulary words that are appropriately challenging for a \(childAge)-year-old, enhancing their language development while ensuring comprehension through context, definition, or explanation."
+      countGuidance = "complex sentence patterns"
+    }
+
+    return """
+      \(baseGuideline)
+
+      Include more advanced vocabulary words with these guidelines:
+      - Use vocabulary appropriate for a \(childAge)-year-old as the foundation
+      - \(enhancedWords)
+      - Use \(countGuidance)
+      - Each new vocabulary word should appear 2-3 times throughout the story for reinforcement
+      - Prefer vivid, descriptive words that enhance imagery and emotional understanding
+      """
+  }
+
+  /// Provides guidelines for interactive elements in stories
+  private func interactiveElementsGuidelines() -> String {
+    return """
+      Interactive Elements:
+      - Include 2-3 moments where the reader is prompted to participate
+      - Examples: "Can you spot the [object]?", "What do you think happens next?", "Try making the sound a [animal] makes!"
+      - Place interactive prompts at natural points in the narrative
+      - Design prompts to reinforce the story's theme or moral
+      - Ensure prompts are appropriate for the target age group
       """
   }
 }

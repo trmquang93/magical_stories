@@ -2,7 +2,7 @@
 # Usage:
 #   ./run_tests.sh                # Run all tests
 #   ./run_tests.sh TestClass/testMethod  # Run a specific test or tests (see xcodebuild -only-testing syntax)
-destination='platform=iOS Simulator,name=iPhone 16 Pro,OS=18.4'
+destination='platform=iOS Simulator,name=iPhone 16 Pro,OS=18.3.1'
 # Check if xcbeautify is installed
 if ! command -v xcbeautify &> /dev/null
 then

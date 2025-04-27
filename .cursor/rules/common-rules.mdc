@@ -5,44 +5,8 @@ alwaysApply: true
 ---
 # Common Rules
 
-## Version: 1.1
-
-### Swift Testing TDD Rule
-**Description:** Enforce Test-Driven Development using Swift Testing framework
-
-#### Checkpoints
-
-- **Test Syntax**
-  - Uses `@Test` macro appropriately
-  - Uses `#expect` for assertions
-  - Uses `#require` for optional unwrapping
-  - Implements parameterized tests where applicable
-  - Uses appropriate test traits
-
-- **Test Organization**
-  - Tests are properly grouped
-  - Uses descriptive test names
-  - Applies appropriate tags
-  - Handles async tests correctly
-
-- **TDD Workflow**
-  - **Files to Update:** `magical-storiesTests/*.swift`
-  - **Verification:**
-    - Red: Initial test fails
-    - Green: Minimal implementation passes
-    - Refactor: Maintains passing tests
-
-#### Memory Categories
-- **Test Patterns**
-  - **Description:** Swift Testing patterns and best practices
-  - **Retention:** Permanent
-  - **Memories:**
-    - **Name:** Test Target Imports
-      - **Description:** `@testable import magical_stories` is required in test files since test target and main app target are different targets. Unlike views within the same target, test files need explicit imports to access the main app's code.
-      - **Date Added:** 2025-03-30
-      - **Context:** This was learned during the implementation of `RootView_Tests.swift` when fixing test file imports.
-
----
+### Coding rules
+- File length MUST not longer than 250 lines
 
 ### Documentation Update Rule
 **Description:** Ensure documentation is updated when project changes occur
@@ -90,32 +54,3 @@ alwaysApply: true
 - Have you reviewed the changes with the team?
 - Have you updated the version numbers if applicable?
 - Have you validated all code examples in documentation?
-
----
-
-### Memory Tracking Rule
-**Description:** Track and manage system memories and important information
-
-#### Memory Categories
-- **Technical Decisions**
-  - **Description:** Architecture and technical choice rationales
-  - **Retention:** Permanent
-
-- **Requirements**
-  - **Description:** Project requirements and constraints
-  - **Retention:** Project Duration
-
-- **User Preferences**
-  - **Description:** User-specified preferences and configurations
-  - **Retention:** Permanent
-
-- **Context**
-  - **Description:** Project context and background information
-  - **Retention:** Project Duration
-
-#### Memories
-- **Type:** Technical Decisions
-  - **Name:** iOS Target Imports
-    - **Description:** Within the same iOS target project, views and components are automatically available without explicit imports. Only need to import external modules/frameworks not in the same target.
-    - **Date Added:** 2025-03-30
-    - **Context:** This was learned during the development of `RootView.swift` when attempting to unnecessarily import views from the same target.
