@@ -247,21 +247,20 @@ class PromptBuilder {
   }
 
   private func categorySelectionGuidelines() -> String {
-    let categoriesList = allowedCategories.joined(separator: ", ")
+      let categoriesList = allowedCategories.joined(separator: ", ")
 
-    return """
+      return """
       Category Selection Instructions:
       After writing the story, analyze its content and select the single most appropriate category from this list:
       [\(categoriesList)]
 
-      Return your response as a JSON object with two fields:
-      {
-        "story": "<full story text with page breaks as before>",
-        "category": "<selected category name from the list above>"
-      }
+      Return your response as XML with the following tags:
+      <title>Your Story Title</title>
+      <content>Full story text with page breaks as before</content>
+      <category>Selected category name from the list above</category>
 
-      The "story" field should contain the complete story text with title and page breaks as instructed earlier.
-      The "category" field should be exactly one of the category names listed above, based on your analysis of the story content.
+      The <content> tag should contain the complete story text with title and page breaks as instructed earlier.
+      The <category> tag should be exactly one of the category names listed above, based on your analysis of the story content.
       """
   }
 

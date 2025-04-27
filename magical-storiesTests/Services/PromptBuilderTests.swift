@@ -199,9 +199,9 @@ struct PromptBuilderTests {
         #expect(prompt.contains("Animals"))
         #expect(prompt.contains("Bedtime"))
         #expect(prompt.contains("Adventure"))
-        #expect(prompt.contains("Return your response as a JSON object"))
-        #expect(prompt.contains("\"story\":"))
-        #expect(prompt.contains("\"category\":"))
+        #expect(prompt.contains("Return your response as XML with the following tags:"))
+        #expect(prompt.contains("<content>"))
+        #expect(prompt.contains("<category>"))
     }
 
     @Test("PromptBuilder category list matches LibraryView categories")

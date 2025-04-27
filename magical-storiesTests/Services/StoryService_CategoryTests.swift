@@ -6,8 +6,8 @@ import Testing
 @MainActor
 struct StoryService_CategoryTests {
 
-    @Test("StoryService should extract category from JSON response")
-    func testStoryServiceExtractsCategoryFromJSON() async throws {
+    @Test("StoryService should extract category from XML response")
+    func testStoryServiceExtractsCategoryFromXML() async throws {
         // Arrange
         let container = try ModelContainer(
             for: Story.self, StoryCollection.self,
@@ -17,15 +17,16 @@ struct StoryService_CategoryTests {
         let mockModel = MockGenerativeModel()
         let mockPersistenceService = MockPersistenceService()
 
-        // Simulate JSON response from AI with story and category
-        let jsonResponse = """
-            {
-                "story": "Title: Test Story\\n\\nThis is the content of the story.\\n---\\nThis is the second page.",
-                "category": "Fantasy"
-            }
+        // Simulate XML response from AI with title, content, and category
+        let xmlResponse = """
+            <title>Test Story</title>
+            <content>This is the content of the story.
+            ---
+            This is the second page.</content>
+            <category>Fantasy</category>
             """
 
-        mockModel.generatedText = jsonResponse
+        mockModel.generatedText = xmlResponse
 
         let storyService = try StoryService(
             context: context,
@@ -51,7 +52,7 @@ struct StoryService_CategoryTests {
         #expect(mockPersistenceService.storyToSave?.categoryName == "Fantasy")
     }
 
-    @Test("StoryService should handle missing category in JSON response")
+    @Test("StoryService should handle missing category in XML response")
     func testStoryServiceHandlesMissingCategory() async throws {
         // Arrange
         let container = try ModelContainer(
@@ -62,14 +63,15 @@ struct StoryService_CategoryTests {
         let mockModel = MockGenerativeModel()
         let mockPersistenceService = MockPersistenceService()
 
-        // Simulate JSON response from AI with story but no category
-        let jsonResponse = """
-            {
-                "story": "Title: Test Story\\n\\nThis is the content of the story.\\n---\\nThis is the second page."
-            }
+        // Simulate XML response from AI with title and content but no category
+        let xmlResponse = """
+            <title>Test Story</title>
+            <content>This is the content of the story.
+            ---
+            This is the second page.</content>
             """
 
-        mockModel.generatedText = jsonResponse
+        mockModel.generatedText = xmlResponse
 
         let storyService = try StoryService(
             context: context,
@@ -92,8 +94,8 @@ struct StoryService_CategoryTests {
         #expect(story.title == "Test Story")
     }
 
-    @Test("StoryService should handle invalid JSON response gracefully")
-    func testStoryServiceHandlesInvalidJSONResponse() async throws {
+    @Test("StoryService should handle non-XML response gracefully")
+    func testStoryServiceHandlesNonXMLResponse() async throws {
         // Arrange
         let container = try ModelContainer(
             for: Story.self, StoryCollection.self,
@@ -103,7 +105,7 @@ struct StoryService_CategoryTests {
         let mockModel = MockGenerativeModel()
         let mockPersistenceService = MockPersistenceService()
 
-        // Simulate non-JSON response from AI
+        // Simulate plain text response from AI with no XML tags
         mockModel.generatedText =
             "Title: Test Story\n\nThis is the content of the story.\n---\nThis is the second page."
 
@@ -124,7 +126,7 @@ struct StoryService_CategoryTests {
         let story = try await storyService.generateStory(parameters: parameters)
 
         // Assert
-        #expect(story.categoryName == nil)
-        #expect(story.title == "Test Story")
+        #expect(story.categoryName == nil) // Fallback category extraction might still find something, but title should be fallback
+        #expect(story.title == "Magical Story") // Expect fallback title when no XML/Title found
     }
 }

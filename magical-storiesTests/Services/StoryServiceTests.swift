@@ -18,10 +18,13 @@ struct StoryServiceTests {
         var callCount = 0
         mockModel.generateContentHandler = { prompt in
             callCount += 1
-            // Return different content for each call
-            return MockStoryGenerationResponse(
-                text:
-                    "Title: Generated story #\(callCount)\n\nGenerated story content #\(callCount)")
+            // Return different XML content for each call
+            let xmlResponse = """
+                <title>Generated story #\(callCount)</title>
+                <content>Generated story content #\(callCount)</content>
+                <category>Adventure</category>
+                """
+            return MockStoryGenerationResponse(text: xmlResponse)
         }
         let mockPersistenceService = MockPersistenceService()
         let promptBuilder = PromptBuilder()

@@ -130,11 +130,16 @@ class StoryService: ObservableObject {
                 throw StoryServiceError.generationFailed("No content generated")
             }
 
-            // Try to parse the response as JSON to extract story and category
-            let (storyText, category) = try extractStoryAndCategory(from: text)
+            // Try to parse the response as XML to extract title, story content, and category
+            let (extractedTitle, storyContent, category) = try extractTitleCategoryAndContent(from: text)
 
-            // Extract title and content from the story text
-            let (title, content) = try extractTitleAndContent(from: storyText)
+            // Use extracted title or fallback
+            let title = extractedTitle ?? "Magical Story"
+
+            // Ensure content was extracted
+            guard let content = storyContent, !content.isEmpty else {
+                throw StoryServiceError.generationFailed("Could not extract story content from XML response")
+            }
 
             // Process content into pages using StoryProcessor
             let pages = try await storyProcessor.processIntoPages(content, theme: parameters.theme)
@@ -200,206 +205,148 @@ class StoryService: ObservableObject {
         }
     }
 
-    private func extractTitleAndContent(from text: String) throws -> (String, String) {
-        // First, try to extract using the expected "Title: " prefix format
-        let components = text.components(separatedBy: "\n")
+    // Removed extractTitleAndContent method as title is now extracted within extractTitleCategoryAndContent
 
-        // Check for the standard Title: format
-        if components.count >= 2, let titleLine = components.first, titleLine.hasPrefix("Title: ") {
-            let title = String(titleLine.dropFirst(7)).trimmingCharacters(
-                in: .whitespacesAndNewlines)
-            let contentStartIndex = text.index(text.startIndex, offsetBy: titleLine.count + 1)
-            let content = String(text[contentStartIndex...]).trimmingCharacters(
-                in: .whitespacesAndNewlines)
-
-            if !title.isEmpty && !content.isEmpty {
-                return (title, content)
-            }
-        }
-
-        // If standard format not found, try to identify title using other patterns
-        // Look for patterns like: "# Title" or "**Title**" or first line followed by blank line
-        let possibleTitleLine: String?
-        let possibleContent: String?
-
-        // Try markdown header format (# Title)
-        if let firstLine = components.first, firstLine.hasPrefix("# ") {
-            possibleTitleLine = String(firstLine.dropFirst(2)).trimmingCharacters(
-                in: .whitespacesAndNewlines)
-            let contentStartIndex = components.dropFirst().joined(separator: "\n")
-            possibleContent = contentStartIndex.trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-        // Try bold format (**Title**)
-        else if let firstLine = components.first,
-            firstLine.hasPrefix("**") && firstLine.hasSuffix("**")
-        {
-            possibleTitleLine = String(firstLine.dropFirst(2).dropLast(2)).trimmingCharacters(
-                in: .whitespacesAndNewlines)
-            let contentStartIndex = components.dropFirst().joined(separator: "\n")
-            possibleContent = contentStartIndex.trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-        // Try first line followed by blank line
-        else if components.count >= 3,
-            let firstLine = components.first,
-            components[1].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        {
-            possibleTitleLine = firstLine.trimmingCharacters(in: .whitespacesAndNewlines)
-            let contentStartIndex = components.dropFirst(2).joined(separator: "\n")
-            possibleContent = contentStartIndex.trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-        // Try first sentence as title
-        else if let firstLine = components.first,
-            let firstSentenceEnd = firstLine.firstIndex(where: { ".!?".contains($0) })
-        {
-            let firstSentence = firstLine[..<firstSentenceEnd].trimmingCharacters(
-                in: .whitespacesAndNewlines)
-            possibleTitleLine = String(firstSentence)
-
-            // Content is everything after the first sentence
-            let remainingFirstLine = firstLine[firstSentenceEnd...].dropFirst()
-            let restOfContent = components.dropFirst().joined(separator: "\n")
-            possibleContent = String(remainingFirstLine + "\n" + restOfContent).trimmingCharacters(
-                in: .whitespacesAndNewlines)
-        }
-        // Last resort: first line as title, rest as content
-        else if let firstLine = components.first, components.count >= 2 {
-            possibleTitleLine = firstLine.trimmingCharacters(in: .whitespacesAndNewlines)
-            let contentStartIndex = components.dropFirst().joined(separator: "\n")
-            possibleContent = contentStartIndex.trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-        // No reasonable format found - generate a generic title
-        else {
-            possibleTitleLine = "Magical Story"
-            possibleContent = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-
-        guard let title = possibleTitleLine, !title.isEmpty else {
-            let errorMessage = "Could not extract a valid title from AI response"
-            AIErrorManager.logError(
-                StoryServiceError.generationFailed(errorMessage),
-                source: "StoryService",
-                additionalInfo: "Raw response: \(text.prefix(100))...")
-            throw StoryServiceError.generationFailed(errorMessage)
-        }
-
-        guard let content = possibleContent, !content.isEmpty else {
-            let errorMessage = "Could not extract valid content from AI response"
-            AIErrorManager.logError(
-                StoryServiceError.generationFailed(errorMessage),
-                source: "StoryService",
-                additionalInfo: "Raw response: \(text.prefix(100))...")
-            throw StoryServiceError.generationFailed(errorMessage)
-        }
-
-        print("[StoryService] Used fallback title extraction method")
-        return (title, content)
-    }
-
-    private func extractStoryAndCategory(from text: String) throws -> (String, String?) {
-        // Try to parse the text as JSON to extract story and category
+    private func extractTitleCategoryAndContent(from text: String) throws -> (String?, String?, String?) {
+        // Try to parse the text as XML to extract story and category
         do {
-            // Clean up the text first - sometimes the AI might include extra text before or after the JSON
-            let possibleJsonText = extractJSONFromText(text)
+            // Clean up the text first - sometimes the AI might include extra text before or after the XML
+            let possibleXmlText = extractXMLFromText(text)
 
-            // If we found what looks like JSON, try to parse it
-            if let jsonText = possibleJsonText, !jsonText.isEmpty {
-                print("[StoryService] Found potential JSON: \(jsonText.prefix(100))...")
-                let jsonData = jsonText.data(using: .utf8)!
-                do {
-                    if let jsonObject = try JSONSerialization.jsonObject(with: jsonData)
-                        as? [String: Any]
-                    {
-                        print("[StoryService] Successfully parsed JSON")
-                        if let storyText = jsonObject["story"] as? String {
-                            print("[StoryService] Found 'story' field in JSON")
-                            let category = jsonObject["category"] as? String
-                            print("[StoryService] Category from JSON: \(category ?? "None")")
-                            return (storyText, category)
-                        } else {
-                            print(
-                                "[StoryService] JSON parsed successfully but no 'story' field found"
-                            )
-                        }
-                    } else {
-                        print("[StoryService] JSON parsed but not a dictionary")
-                    }
-                } catch {
-                    print("[StoryService] JSON parsing error: \(error.localizedDescription)")
+            // If we found what looks like XML, try to parse it
+            if let xmlText = possibleXmlText, !xmlText.isEmpty {
+                // Normalize the XML
+                let normalizedXml = normalizeXML(xmlText)
+                print("[StoryService] Found potential XML: \(normalizedXml.prefix(100))...")
+                
+                // Extract title, content, and category using regular expressions
+                let titlePattern = "<title>(.*?)</title>"
+                let contentPattern = "<content>(.*?)</content>"
+                let categoryPattern = "<category>(.*?)</category>"
+                
+                let titleRegex = try NSRegularExpression(pattern: titlePattern, options: [.dotMatchesLineSeparators])
+                let contentRegex = try NSRegularExpression(pattern: contentPattern, options: [.dotMatchesLineSeparators])
+                let categoryRegex = try NSRegularExpression(pattern: categoryPattern, options: [.dotMatchesLineSeparators])
+                
+                let titleMatches = titleRegex.matches(in: normalizedXml, range: NSRange(normalizedXml.startIndex..., in: normalizedXml))
+                let contentMatches = contentRegex.matches(in: normalizedXml, range: NSRange(normalizedXml.startIndex..., in: normalizedXml))
+                let categoryMatches = categoryRegex.matches(in: normalizedXml, range: NSRange(normalizedXml.startIndex..., in: normalizedXml))
+
+                var extractedTitle: String? = nil
+                var storyContent: String? = nil
+                var category: String? = nil
+                
+                // Extract title from matches
+                if let titleMatch = titleMatches.first,
+                   let titleRange = Range(titleMatch.range(at: 1), in: normalizedXml) {
+                    extractedTitle = String(normalizedXml[titleRange])
+                    print("[StoryService] Found 'title' field in XML")
                 }
+
+                // Extract content from matches
+                if let contentMatch = contentMatches.first,
+                   let contentRange = Range(contentMatch.range(at: 1), in: normalizedXml) {
+                    storyContent = String(normalizedXml[contentRange])
+                    print("[StoryService] Found 'content' field in XML")
+                }
+
+                // Extract category from matches
+                if let categoryMatch = categoryMatches.first,
+                   let categoryRange = Range(categoryMatch.range(at: 1), in: normalizedXml) {
+                    category = String(normalizedXml[categoryRange])
+                    print("[StoryService] Category from XML: \(category ?? "None")")
+                }
+
+                // Return extracted values (some might be nil if tags were missing)
+                return (extractedTitle, storyContent, category)
+
             }
 
-            // If we reach here, either JSON extraction failed or the "story" field wasn't found
-            // Fall back to treating the entire text as the story
-            print("[StoryService] JSON parsing failed or 'story' field missing, using plain text")
+            // If we reach here, XML extraction failed or tags weren't found
+            // Fall back to treating the entire text as the content, with nil title/category
+            print("[StoryService] XML parsing failed or tags missing, using plain text fallback")
 
-            // Try to extract a category from the text if JSON parsing failed
+            // Try to extract a category from the text as a last resort
             let fallbackCategory = extractFallbackCategory(from: text)
 
-            return (text, fallbackCategory)
+            // Use the original text as content, title will be handled by caller's fallback
+            return (nil, text, fallbackCategory)
         } catch {
-            // If JSON parsing fails, extract fallback category and use the entire text
+            // If XML parsing throws an error, use plain text fallback
             print(
-                "[StoryService] JSON parsing error: \(error.localizedDescription), using plain text"
+                "[StoryService] XML parsing error: \(error.localizedDescription), using plain text fallback"
             )
             let fallbackCategory = extractFallbackCategory(from: text)
-            return (text, fallbackCategory)
+            return (nil, text, fallbackCategory)
         }
     }
 
-    // Helper to extract JSON from potentially mixed text
-    private func extractJSONFromText(_ text: String) -> String? {
-        // Look for content that appears to be JSON (enclosed in curly braces)
-        print("[StoryService] Attempting to extract JSON from text: \(text.prefix(30))...")
+    // Helper to extract XML from potentially mixed text
+    private func extractXMLFromText(_ text: String) -> String? {
+        // Look for content that appears to be XML (containing the expected tags)
+        print("[StoryService] Attempting to extract XML from text: \(text.prefix(30))...")
 
-        // Check if the text contains '```json' markers (common in AI responses)
-        if text.contains("```json") && text.contains("```") {
-            if let startMarker = text.range(of: "```json")?.upperBound,
-                let endMarker = text.range(of: "```", range: startMarker..<text.endIndex)?
-                    .lowerBound
+        // Check if the text contains XML code block markers
+        if text.contains("```xml") && text.contains("```") {
+            if let startMarker = text.range(of: "```xml")?.upperBound,
+               let endMarker = text.range(of: "```", range: startMarker..<text.endIndex)?.lowerBound
             {
-                var jsonSubstring = text[startMarker..<endMarker].trimmingCharacters(
+                let xmlSubstring = text[startMarker..<endMarker].trimmingCharacters(
                     in: .whitespacesAndNewlines)
-
-                // Normalize the JSON by escaping problematic characters and replacing non-standard quotes
-                jsonSubstring = normalizeJSON(jsonSubstring)
-
-                print(
-                    "[StoryService] Extracted JSON from code block: \(jsonSubstring.prefix(30))...")
-                return jsonSubstring
+                
+                print("[StoryService] Extracted XML from code block: \(xmlSubstring.prefix(30))...")
+                return xmlSubstring
             }
         }
 
-        // Standard JSON extraction (looking for balanced { })
-        if let startIndex = text.firstIndex(of: "{"),
-            let endIndex = text.lastIndex(of: "}"),
-            startIndex < endIndex
-        {
-            var jsonSubstring = String(text[startIndex...endIndex])
-
-            // Normalize the JSON
-            jsonSubstring = normalizeJSON(jsonSubstring)
-
-            print(
-                "[StoryService] Extracted JSON using brace matching: \(jsonSubstring.prefix(30))..."
-            )
-            return jsonSubstring
+        // Check for complete XML structure with our expected tags
+        let titleStart = text.range(of: "<title>")
+        let contentStart = text.range(of: "<content>")
+        let categoryStart = text.range(of: "<category>")
+        
+        let titleEnd = text.range(of: "</title>")
+        let contentEnd = text.range(of: "</content>")
+        let categoryEnd = text.range(of: "</category>")
+        
+        // If we have at least one complete tag, attempt to extract the XML
+        if (titleStart != nil && titleEnd != nil) ||
+           (contentStart != nil && contentEnd != nil) ||
+           (categoryStart != nil && categoryEnd != nil) {
+            
+            // Try to find the earliest start tag and latest end tag
+            var allRanges: [(Range<String.Index>, Bool)] = [] // (range, isStart)
+            
+            if let range = titleStart { allRanges.append((range, true)) }
+            if let range = contentStart { allRanges.append((range, true)) }
+            if let range = categoryStart { allRanges.append((range, true)) }
+            if let range = titleEnd { allRanges.append((range, false)) }
+            if let range = contentEnd { allRanges.append((range, false)) }
+            if let range = categoryEnd { allRanges.append((range, false)) }
+            
+            // Sort by position in text
+            allRanges.sort { $0.0.lowerBound < $1.0.lowerBound }
+            
+            if let firstStart = allRanges.first(where: { $0.1 })?.0.lowerBound,
+               let lastEnd = allRanges.last(where: { !$0.1 })?.0.upperBound {
+                
+                let xmlSubstring = String(text[firstStart..<lastEnd])
+                print("[StoryService] Extracted XML using tag matching: \(xmlSubstring.prefix(30))...")
+                return xmlSubstring
+            }
         }
 
-        print("[StoryService] No JSON structure detected in text")
+        print("[StoryService] No XML structure detected in text")
         return nil
     }
 
-    // Helper to normalize and clean JSON strings
-    private func normalizeJSON(_ jsonString: String) -> String {
-        // Robustly clean up the JSON string for parsing
-        var cleaned = jsonString
-        // Replace non-standard quotes with standard double quotes
-        cleaned = cleaned.replacingOccurrences(of: "\u{201C}", with: "\"")  // left double quote
-        cleaned = cleaned.replacingOccurrences(of: "\u{201D}", with: "\"")  // right double quote
+    // Helper to normalize and clean XML strings
+    private func normalizeXML(_ xmlString: String) -> String {
+        // Robustly clean up the XML string for parsing
+        var cleaned = xmlString
         // Remove leading/trailing whitespace and newlines
         cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
         // Remove any trailing or leading markdown code block markers if present
-        if cleaned.hasPrefix("```json") { cleaned = String(cleaned.dropFirst(7)) }
+        if cleaned.hasPrefix("```xml") { cleaned = String(cleaned.dropFirst(6)) }
         if cleaned.hasPrefix("```") { cleaned = String(cleaned.dropFirst(3)) }
         if cleaned.hasSuffix("```") { cleaned = String(cleaned.dropLast(3)) }
         cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -408,23 +355,8 @@ class StoryService: ObservableObject {
         cleaned = cleaned.replacingOccurrences(of: "\r", with: "\n")
         // Remove any control characters except for tab and newline
         cleaned = cleaned.filter { $0.isASCII && ($0 >= " " || $0 == "\n" || $0 == "\t") }
-        // If the cleaned string is valid JSON, return as is
-        if let data = cleaned.data(using: .utf8),
-            (try? JSONSerialization.jsonObject(with: data)) != nil
-        {
-            return cleaned
-        }
-        // If not valid, try to fix common issues: replace single backslashes with double
-        let fixed = cleaned.replacingOccurrences(
-            of: "\\([^\\nrt\"])", with: "\\\\$1", options: .regularExpression)
-        if let data = fixed.data(using: .utf8),
-            (try? JSONSerialization.jsonObject(with: data)) != nil
-        {
-            return fixed
-        }
-        // As a last resort, replace all newlines with \n (for multiline strings in JSON)
-        let final = fixed.replacingOccurrences(of: "\n", with: "\\n")
-        return final
+        
+        return cleaned
     }
 
     // Helper to try to extract a category from text when JSON parsing fails
