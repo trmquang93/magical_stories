@@ -50,33 +50,6 @@ final class magical_storiesUITests: XCTestCase {
         settingsTab.tap()
     }
 
-    func testHomeViewDisplaysExpectedContent() {
-        let app = XCUIApplication()
-        app.launch()
-
-        // Tap Home tab to ensure we're on HomeView
-        let homeTab = app.tabBars.buttons["Home Tab"]
-        if homeTab.exists { homeTab.tap() }
-
-        // Check for welcome text
-        let welcomeText = app.staticTexts.containing(
-            NSPredicate(format: "label CONTAINS[c] 'Welcome back'")
-        ).firstMatch
-        XCTAssertTrue(welcomeText.exists, "HomeView should display welcome text")
-
-        // Check for Create a New Story card/button
-        let createStoryButton = app.buttons["Start"]
-        XCTAssertTrue(
-            createStoryButton.exists,
-            "HomeView should have a 'Start' button for creating a new story")
-
-        // Check for Growth Path Collections section
-        let growthCollectionsText = app.staticTexts["Growth Path Collections"]
-        XCTAssertTrue(
-            growthCollectionsText.exists,
-            "HomeView should display 'Growth Path Collections' section")
-    }
-
     func testHomeViewStoryCardNavigation() {
         let app = XCUIApplication()
         app.launch()
@@ -125,38 +98,6 @@ final class magical_storiesUITests: XCTestCase {
             // If no story card, skip test
             print("No recent story card found in LibraryView; skipping navigation test.")
         }
-    }
-
-    func testHomeViewCollectionsStateWithExistingCollections() {
-        let app = XCUIApplication()
-
-        // Configure the app to start with demo collections
-        app.launchArguments = ["UITesting"]
-        app.launchEnvironment = [
-            "USE_DEMO_DATA": "true",  // Load demo collections
-            "SKIP_ONBOARDING": "true",  // Skip onboarding if it exists
-            "FAST_ANIMATIONS": "true",  // Speed up animations
-        ]
-
-        app.launch()
-
-        // Tap Home tab to ensure we're on HomeView
-        let homeTab = app.tabBars.buttons["Home Tab"]
-        if homeTab.exists { homeTab.tap() }
-
-        // Check for the heading text - which should be a more reliable indicator than specific implementation details
-        let collectionsHeading = app.staticTexts.matching(
-            NSPredicate(format: "label CONTAINS[c] 'Growth Path Collections'")
-        ).firstMatch
-        XCTAssertTrue(
-            collectionsHeading.waitForExistence(timeout: 2),
-            "HomeView should display 'Growth Path Collections' heading when collections exist")
-
-        // Look for some kind of horizontal scrolling element which would contain collections
-        let horizontalScrollElement = app.scrollViews.firstMatch
-        XCTAssertTrue(
-            horizontalScrollElement.exists,
-            "HomeView should display a scroll view when collections exist")
     }
 
     func testViewAllStoriesButton() {

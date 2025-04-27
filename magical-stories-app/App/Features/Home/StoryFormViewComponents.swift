@@ -295,3 +295,18 @@ struct GenerateButton: View {
         .padding(.bottom, Theme.Spacing.xxl)
     }
 }
+
+// Add proper struct if needed
+#if DEBUG
+    struct StoryFormViewComponents_Previews: PreviewProvider {
+        static var previews: some View {
+            VStack {
+                FormHeader(animateBackground: .constant(true))
+                ChildNameField(childName: .constant("Alex"))
+                // Add other preview components as needed
+            }
+            .padding()
+            .previewLayout(.sizeThatFits)
+        }
+    }
+#endif
