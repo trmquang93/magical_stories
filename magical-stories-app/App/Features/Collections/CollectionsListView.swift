@@ -1,6 +1,3 @@
-/// CollectionsListView displays a list of StoryCollection items with search and navigation.
-/// NOTE: This view is not currently integrated into the main app UI. The collections list is rendered directly in HomeView.
-/// This view is intended for future use as a dedicated tab (see plan T6).
 import SwiftUI
 import SwiftData
 
@@ -9,7 +6,7 @@ struct CollectionsListView: View {
     @State private var searchText = ""
     @EnvironmentObject private var collectionService: CollectionService
     @State private var deletionError: String? = nil
-    
+
     private var filteredCollections: [StoryCollection] {
         if searchText.isEmpty {
             return collections
@@ -17,36 +14,57 @@ struct CollectionsListView: View {
             return collections.filter { $0.title.localizedCaseInsensitiveContains(searchText) }
         }
     }
-    
+
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(filteredCollections) { collection in
-                    NavigationLink(value: collection.id) {
-                        CollectionCardView(collection: collection)
+            if collections.isEmpty && searchText.isEmpty {
+                CollectionsEmptyStateView()
+                    .navigationTitle("Collections")
+            } else if filteredCollections.isEmpty && !searchText.isEmpty {
+                CollectionsNoSearchResultsView(searchText: searchText)
+                    .navigationTitle("Collections")
+            } else {
+                List {
+                    ForEach(filteredCollections) { collection in
+                        NavigationLink(value: collection.id) {
+                            CollectionCardView(collection: collection)
+                                .padding(.vertical, 4) // Add vertical padding to list items
+                                .contentShape(Rectangle()) // Improve tap target size
+                                .accessibilityElement(children: .combine) // Combine accessibility for the card
+                        }
+                    }
+                    .onDelete(perform: deleteCollections)
+                }
+                .accessibilityIdentifier("CollectionsList") // Identifier for the list
+                .navigationTitle("Collections")
+                .searchable(text: $searchText)
+                .refreshable { // Add pull-to-refresh
+                    await collectionService.loadCollections(forceReload: true)
+                    // Haptic feedback is typically handled by the system for .refreshable
+                }
+                .navigationDestination(for: UUID.self) { collectionId in
+                    // Find the collection using the ID from the full collections array,
+                    // not the filtered one, to ensure navigation works even with search active.
+                    if let collection = collections.first(where: { $0.id == collectionId }) {
+                        CollectionDetailView(collection: collection)
+                    } else {
+                        Text("Collection not found") // Should ideally not happen if ID is valid
                     }
                 }
-                .onDelete(perform: deleteCollections)
+                .alert("Error Deleting Collection", isPresented: .constant(deletionError != nil), actions: {
+                    Button("OK", role: .cancel) { deletionError = nil }
+                }, message: {
+                    if let error = deletionError {
+                        Text(error)
+                    }
+                })
+                .animation(.default, value: filteredCollections) // Animation for list changes
             }
-            .navigationTitle("Collections")
-            .searchable(text: $searchText)
-            .navigationDestination(for: UUID.self) { collectionId in
-                if let collection = collections.first(where: { $0.id == collectionId }) {
-                    CollectionDetailView(collection: collection)
-                } else {
-                    Text("Collection not found")
-                }
-            }
-            .alert("Error Deleting Collection", isPresented: .constant(deletionError != nil), actions: {
-                Button("OK", role: .cancel) { deletionError = nil }
-            }, message: {
-                if let error = deletionError {
-                    Text(error)
-                }
-            })
         }
+        .animation(.default, value: collections.isEmpty && searchText.isEmpty) // Animation for empty state transition
+        .animation(.default, value: filteredCollections.isEmpty && !searchText.isEmpty) // Animation for no search results transition
     }
-    
+
     private func deleteCollections(at offsets: IndexSet) {
         for index in offsets {
             let collection = filteredCollections[index]

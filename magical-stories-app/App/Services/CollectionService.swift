@@ -266,15 +266,22 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
                          userInfo: [NSLocalizedDescriptionKey: "Collection not found"])
         }
 
-        guard let story = collection.stories?.first(where: { $0.id == storyId }) else {
+        guard var stories = collection.stories else {
+            throw NSError(domain: "CollectionService", code: 404,
+                         userInfo: [NSLocalizedDescriptionKey: "No stories in collection"])
+        }
+
+        guard let storyIndex = stories.firstIndex(where: { $0.id == storyId }) else {
             throw NSError(domain: "CollectionService", code: 404,
                          userInfo: [NSLocalizedDescriptionKey: "Story not found in collection"])
         }
 
         // Update story completion status
-        story.isCompleted = true
+        stories[storyIndex].isCompleted = !stories[storyIndex].isCompleted
+        
+        collection.stories = stories
 
-        // Save collection which also saves the story due to relationship
+        // Save the updated collection
         try repository.saveCollection(collection)
 
         // Update collection progress

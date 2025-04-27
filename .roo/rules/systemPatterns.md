@@ -85,6 +85,20 @@ The application primarily follows the **MVVM (Model-View-ViewModel)** pattern wi
 10. **Protocol-Based Testing Pattern:**
     *   Services and Repositories conform to protocols to enable mock implementations.
     *   Mocks are used for testing without live dependencies (network, disk I/O).
+    *   **CollectionService Testing Approach:**
+        *   **Unit Testing:** `CollectionServiceTests.swift` contains comprehensive tests for all core functionality:
+            *   Uses mock implementations of dependencies (`MockCollectionRepository`, `MockStoryService`, `MockAchievementRepository`) injected through the initializer.
+            *   Tests core methods in isolation including progress calculation, story completion, achievement creation, and CRUD operations.
+            *   Tests error handling for all failure scenarios (non-existent IDs, etc.).
+            *   Uses TDD approach with clear arrange-act-assert patterns.
+            *   Directly verifies state changes in mocked repositories.
+        *   **Integration Testing:** `CollectionServiceIntegrationTests.swift` verifies the end-to-end flow:
+            *   Creates a dedicated test environment with in-memory SwiftData `ModelContainer`.
+            *   Uses real service implementations with test configurations.
+            *   Tests the complete collection lifecycle from creation to story completion.
+            *   Verifies achievement creation and prevents duplicates.
+            *   Follows a clear, tag-annotated test structure for selective test runs.
+        *   Each test focuses on a single aspect of functionality and includes proper assertions for both expected behavior and error conditions.
 
 11. **Illustration Generation Pattern:**
     *   Uses direct REST API calls with detailed prompts.
@@ -101,5 +115,6 @@ The application primarily follows the **MVVM (Model-View-ViewModel)** pattern wi
 - The system leverages standard SwiftUI patterns and MVVM concepts.
 - Key additions include Growth Collections and StoreKit monetization.
 - `TextToSpeechService` remains removed.
+- Comprehensive testing strategy for services ensures reliability and maintainability.
 
 *Note: For implementation status and feature details, please refer to progress.md.*

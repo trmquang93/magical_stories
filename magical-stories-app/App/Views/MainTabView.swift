@@ -9,6 +9,7 @@ struct MainTabView: View {
     @Binding var selectedTab: TabItem
     @EnvironmentObject private var storyService: StoryService
     @EnvironmentObject private var settingsService: SettingsService
+    @StateObject private var tabSelection = TabSelection()
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -94,6 +95,7 @@ struct MainTabView: View {
                 }
             )
         }
+        .environmentObject(tabSelection)
     }
 }
 

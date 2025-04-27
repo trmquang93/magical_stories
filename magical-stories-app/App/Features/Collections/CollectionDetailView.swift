@@ -29,9 +29,10 @@ struct CollectionDetailView: View {
                         .font(.subheadline)
                 }
 
-                ProgressView(value: collection.completionProgress)
-                    .padding(.vertical)
+                // 1. Improved Progress Visualization
+                circularProgressView
 
+                // 3. Enhance Achievement Badges Display
                 achievementsSection
 
                 Text("Stories")
@@ -40,6 +41,7 @@ struct CollectionDetailView: View {
                     .padding(.top)
 
                 ForEach(collection.stories ?? []) { story in
+                    // 4. Improve Story List Presentation
                     storyRow(story: story)
                 }
             }
@@ -56,6 +58,20 @@ struct CollectionDetailView: View {
         }
     }
 
+    // 1. Improved Progress Visualization
+    private var circularProgressView: some View {
+        ZStack {
+            CircularProgressView(progress: collection.completionProgress)
+                .frame(width: 100, height: 100)
+
+            Text("\(Int(collection.completionProgress * 100))%")
+                .font(.title3)
+                .bold()
+        }
+        .padding(.vertical)
+    }
+
+    // 3. Enhance Achievement Badges Display
     @ViewBuilder
     private var achievementsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -73,7 +89,19 @@ struct CollectionDetailView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
                         ForEach(achievements, id: \ .id) { achievement in
+                            // 3. Enhance Achievement Badges Display
                             achievementBadge(achievement)
+                                .onAppear {
+                                    // 2. Add Animations for Progress Updates
+                                    // Add a subtle celebration animation when progress reaches 100%
+                                    if collection.completionProgress == 1.0 {
+                                        // Trigger celebration animation
+                                        print("Celebration animation triggered!")
+                                        // 5. Add Haptic Feedback
+                                        let generator = UINotificationFeedbackGenerator()
+                                        generator.notificationOccurred(.success)
+                                    }
+                                }
                         }
                     }
                     .padding(.vertical, 4)
@@ -84,6 +112,7 @@ struct CollectionDetailView: View {
         .accessibilityLabel("Achievements section")
     }
 
+    // 3. Enhance Achievement Badges Display
     @ViewBuilder
     private func achievementBadge(_ achievement: AchievementModel) -> some View {
         VStack(spacing: 4) {
@@ -109,6 +138,9 @@ struct CollectionDetailView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Achievement: \(achievement.name)")
         .accessibilityHint(achievement.achievementDescription)
+        // 2. Add Animations for Progress Updates
+        .scaleEffect(collection.completionProgress == 1.0 ? 1.2 : 1.0)
+        .animation(.spring(response: 0.5, dampingFraction: 0.5, blendDuration: 0), value: collection.completionProgress)
     }
 
     private func loadAchievements() async {
@@ -143,7 +175,7 @@ struct CollectionDetailView: View {
         return nil
     }
 
-    // Helper function to break down the view complexity
+    // 4. Improve Story List Presentation
     @ViewBuilder
     private func storyRow(story: Story) -> some View {
         NavigationLink(value: story) {
@@ -155,6 +187,12 @@ struct CollectionDetailView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.green)
                         .accessibilityLabel("Completed")
+                    // 5. Add Haptic Feedback
+                        .onAppear {
+                            // Trigger haptic feedback when story is completed
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.success)
+                        }
                 } else {
                     Image(systemName: "circle")
                         .foregroundColor(.gray)
@@ -163,6 +201,46 @@ struct CollectionDetailView: View {
             }
         }
         .padding(.vertical, 8)
+        // 4. Improve Story List Presentation
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+        )
+        .listRowSeparator(.hidden)
+        // 5. Add Haptic Feedback
+        .onTapGesture {
+            let generator = UISelectionFeedbackGenerator()
+            generator.selectionChanged()
+        }
+    }
+}
+
+// 1. Improved Progress Visualization
+struct CircularProgressView: View {
+    let progress: Double
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(
+                    Color(.systemGray5),
+                    lineWidth: 8
+                )
+                .opacity(0.3)
+
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(
+                    AngularGradient(
+                        gradient: Gradient(colors: [.red, .yellow, .green]),
+                        center: .center
+                    ),
+                    style: StrokeStyle(lineWidth: 8, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90))
+                // 2. Add Animations for Progress Updates
+                .animation(.spring(), value: progress)
+        }
     }
 }
 

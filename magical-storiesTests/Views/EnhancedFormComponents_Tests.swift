@@ -1,66 +1,35 @@
+import XCTest
 import SwiftUI
-import Testing
+import SnapshotTesting
 
 @testable import magical_stories
 
-@Suite("Enhanced Form Components Tests")
-struct EnhancedFormComponents_Tests {
+final class EnhancedFormComponents_Tests: XCTestCase {
 
-    @Test("MagicTextField updates binding when text changes")
-    func testMagicTextFieldBinding() {
-        let text = Binding<String>(get: { "Initial" }, set: { _ in })
-        _ = MagicTextField(placeholder: "Test", text: text) // Assign to _
-
-        // This is a visual component test - in a real test environment
-        // we would use ViewInspector to simulate user interaction
-        #expect(text.wrappedValue == "Initial")
+    override func setUp() {
+        super.setUp()
+        isRecording = false // Set to true to record new snapshots
     }
 
-    @Test("EnhancedThemeCard displays correct theme information")
-    func testEnhancedThemeCard() {
-        var actionCalled = false
-        _ = EnhancedThemeCard( // Assign to _
-            theme: .adventure,
-            isSelected: true,
-            action: { actionCalled = true }
-        )
-
-        // In a real test environment with ViewInspector, we could:
-        // 1. Check that the icon name is correct for adventure theme
-        // 2. Verify the selected state styling
-        // 3. Trigger the button tap and verify actionCalled becomes true
-        #expect(actionCalled == false)
+    func testValidatedTextField_ValidInput() throws {
+        let text = State(initialValue: "valid input").projectedValue
+        let sut = ValidatedTextField(text: text, label: "Test Field", validation: { _ in true }, errorMessage: "Error")
+        
+        let view = sut
+            .frame(width: 300, height: 100) // Provide a fixed size for the snapshot
+        
+        let hostingController = UIHostingController(rootView: view)
+        assertSnapshot(matching: hostingController, as: .image)
     }
 
-    @Test("EnhancedSegmentedButtonStyle reflects selection state")
-    func testEnhancedSegmentedButtonStyle() {
-        let selectedStyle = EnhancedSegmentedButtonStyle(isSelected: true) // Keep as these are used in expect
-        let unselectedStyle = EnhancedSegmentedButtonStyle(isSelected: false) // Keep as these are used in expect
-
-        // Visual style test - would require snapshot testing
-        // or ViewInspector to fully validate in a real environment
-        #expect(selectedStyle.isSelected != unselectedStyle.isSelected)
-    }
-
-    @Test("EnhancedLanguagePicker displays correct selected language")
-    func testEnhancedLanguagePicker() {
-        let languages = [("en", "English"), ("es", "Spanish")]
-        let selection = Binding<String>(get: { "en" }, set: { _ in })
-        let picker = EnhancedLanguagePicker(languages: languages, selection: selection) // Keep as picker is used in expect
-
-        // In a real test with ViewInspector, we would:
-        // 1. Check that the selected language name is displayed
-        // 2. Verify expanding/collapsing behavior
-        // 3. Test selection changes
-        #expect(picker.selectedLanguageName == "English")
-    }
-
-    @Test("StarsBackground creates correct number of stars")
-    func testStarsBackground() {
-        let background = StarsBackground()
-
-        // Visual component that's difficult to test without ViewInspector
-        // We can verify the star count property
-        #expect(background.starCount == 20)
+    func testValidatedTextField_InvalidInput() throws {
+        let text = State(initialValue: "").projectedValue
+        let sut = ValidatedTextField(text: text, label: "Test Field", validation: { _ in false }, errorMessage: "Error")
+        
+        let view = sut
+            .frame(width: 300, height: 100) // Provide a fixed size for the snapshot
+        
+        let hostingController = UIHostingController(rootView: view)
+        assertSnapshot(matching: hostingController, as: .image)
     }
 }

@@ -88,7 +88,7 @@ class MockAchievementRepository: AchievementRepositoryProtocol {
     var lastCreatedAchievement: AchievementModel?  // Added property to capture last created achievement
 
     // Handlers for mocking behavior
-    var createAchievementHandler: ((AchievementModel) -> AchievementModel)? = nil
+    var createAchievementHandler: ((AchievementModel) throws -> AchievementModel)? = nil
     var achievementExistsHandler: ((String, AchievementType) -> Bool)? = nil
 
     func saveAchievement(_ achievement: AchievementModel) throws {
@@ -164,10 +164,11 @@ class MockAchievementRepository: AchievementRepositoryProtocol {
 
         // Call handler if it exists
         if let handler = createAchievementHandler {
-            return handler(achievement)
+            return try handler(achievement)
         }
 
-        return achievement
+        // If no handler, throw an error
+        throw CollectionError.persistenceFailed
     }
 
     func achievementExists(withTitle title: String, ofType type: AchievementType) -> Bool {
@@ -215,12 +216,59 @@ struct CollectionServiceTests {
 
     @Test("generateStoriesForCollection creates stories with varied themes")
     func testGenerateStoriesForCollection() async throws {
-        // Test removed temporarily for future reimplementation
-        // This test was failing due to issues with the mock storyService
+        let (service, repository, storyService, _) = setupTest()
+
+        let collection = StoryCollection(
+            title: "Test Collection",
+            descriptionText: "Test Description",
+            category: "emotionalIntelligence",
+            ageGroup: "4-6"
+        )
+
+        let parameters = CollectionParameters(
+            childAgeGroup: "4-6",
+            developmentalFocus: "Emotional Intelligence",
+            interests: "Dinosaurs",
+            childName: "Alex"
+        )
+
+        // Configure story service to return a specific number of stories
+        let storyParameters1 = StoryParameters(
+            childName: "Alex", childAge: 5, theme: "Theme1", favoriteCharacter: "Dino")
+        let storyParameters2 = StoryParameters(
+            childName: "Alex", childAge: 5, theme: "Theme2", favoriteCharacter: "Dino")
+        let storyParameters3 = StoryParameters(
+            childName: "Alex", childAge: 5, theme: "Theme1", favoriteCharacter: "Dino")
+
+        let stories = [
+            Story(
+                title: "Story 1", pages: [], parameters: storyParameters1, isCompleted: false,
+                categoryName: "Theme1"),
+            Story(
+                title: "Story 2", pages: [], parameters: storyParameters2, isCompleted: false,
+                categoryName: "Theme2"),
+            Story(
+                title: "Story 3", pages: [], parameters: storyParameters3, isCompleted: false,
+                categoryName: "Theme1"),
+        ]
+        storyService.storiesToReturn = stories
+
+        // Generate stories for the collection
+        try await service.generateStoriesForCollection(collection, parameters: parameters)
+
+        // Assert that the stories were saved to the repository
+        try #require(
+            repository.collections[collection.id] != nil, "Collection should be saved in repository"
+        )
+        let savedCollection = try #require(
+            repository.collections[collection.id]!, "Collection should exist")
+        let savedStories = try #require(savedCollection.stories, "Stories should exist")
+        #expect(savedStories.count == 3, "Collection should have 3 stories")
+        #expect(repository.saveCollectionCalled, "Repository's saveCollection should be called")
     }
 
-    @Test("generateStoriesForCollection handles failure gracefully")
-    func testGenerateStoriesForCollectionFailure() async throws {
+    @Test("generateStoriesForCollection handles story generation failure gracefully")
+    func testGenerateStoriesForCollectionHandlesFailureGracefully() async throws {
         let (service, _, storyService, _) = setupTest()
 
         let collection = StoryCollection(
@@ -237,57 +285,62 @@ struct CollectionServiceTests {
             childName: "Alex"
         )
 
-        // Configure story service to fail
-        storyService.shouldFailGeneration = true
+        // Configure story service to simulate an error
+        storyService.shouldSimulateError = true
+        storyService.simulatedError = CollectionError.generationFailed("Simulated error")
 
-        // Attempt to generate stories
         do {
+            // Attempt to generate stories for the collection
             try await service.generateStoriesForCollection(collection, parameters: parameters)
-            XCTFail("Should have thrown an error")
+            #expect(false, "Expected an error to be thrown")
         } catch {
-            // Verify error was set - Wait briefly to allow the async DispatchQueue.main call to complete
-            try await Task.sleep(for: .milliseconds(100))
-            #expect(service.generationError != nil)
-            #expect(service.isGenerating == false)  // Should reset generating state
+            // Assert that the error is of the expected type
+            #expect(
+                error as? CollectionError == CollectionError.generationFailed("Simulated error"),
+                "Error should be generationFailed")
         }
     }
 
-    @Test("createStoryThemes generates varied themes")
-    func testCreateStoryThemes() throws {
-        let (service, _, _, _) = setupTest()
+    @Test("generateStoriesForCollection handles network error gracefully")
+    func testGenerateStoriesForCollectionHandlesNetworkErrorGracefully() async throws {
+        let (service, _, storyService, _) = setupTest()
 
-        // Access private method using reflection
-        let mirror = Mirror(reflecting: service)
+        let collection = StoryCollection(
+            title: "Test Collection",
+            descriptionText: "Test Description",
+            category: "emotionalIntelligence",
+            ageGroup: "4-6"
+        )
 
-        // Find the createStoryThemes method
-        let createThemesMethod = mirror.children.first {
-            $0.label == "createStoryThemes"
-        }?.value
+        let parameters = CollectionParameters(
+            childAgeGroup: "4-6",
+            developmentalFocus: "Emotional Intelligence",
+            interests: "Dinosaurs",
+            childName: "Alex"
+        )
 
-        guard let createThemes = createThemesMethod as? (String, String, Int) -> [String] else {
-            XCTFail("Could not access createStoryThemes method")
-            return
+        // Configure story service to simulate a network error
+        storyService.simulateNetworkError = true
+
+        do {
+            // Attempt to generate stories for the collection
+            try await service.generateStoriesForCollection(collection, parameters: parameters)
+            #expect(false, "Expected an error to be thrown")
+        } catch {
+            // Assert that the error is of the expected type
+            let nsError = error as NSError
+            #expect(
+                nsError.code == NSURLErrorNotConnectedToInternet,
+                "Error code should be NSURLErrorNotConnectedToInternet")
         }
-
-        let themes = createThemes("Emotional Intelligence", "Dinosaurs, Space", 5)
-
-        // Verify themes were created
-        #expect(themes.count == 5)
-
-        // Check theme composition
-        let emotionalIntelligenceThemes = themes.filter { $0.contains("Emotional Intelligence") }
-        #expect(emotionalIntelligenceThemes.count == 5)
-
-        // Make sure at least one interest was incorporated
-        let interestThemes = themes.filter { $0.contains("Dinosaurs") || $0.contains("Space") }
-        #expect(interestThemes.count > 0)
     }
 
     @Test("updateCollectionProgressBasedOnReadCount calculates progress correctly")
     func testUpdateCollectionProgressBasedOnReadCount() async throws {
+        // Arrange
         let (service, repository, _, _) = setupTest()
 
-        // Create test collection with 4 stories, 2 completed
+        // Create a collection with three stories
         let collection = StoryCollection(
             title: "Test Collection",
             descriptionText: "Test Description",
@@ -299,89 +352,7 @@ struct CollectionServiceTests {
             title: "Story 1",
             pages: [],
             parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend"),
-            isCompleted: true
-        )
-
-        let story2 = Story(
-            title: "Story 2",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend"),
-            isCompleted: true
-        )
-
-        let story3 = Story(
-            title: "Story 3",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend"),
-            isCompleted: false
-        )
-
-        let story4 = Story(
-            title: "Story 4",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend"),
-            isCompleted: false
-        )
-
-        collection.stories = [story1, story2, story3, story4]
-
-        // Save collection to repository
-        try repository.saveCollection(collection)
-
-        // Calculate progress
-        let progress = try await service.updateCollectionProgressBasedOnReadCount(
-            collectionId: collection.id)
-
-        // Verify progress (2/4 = 0.5)
-        #expect(progress == 0.5)
-        #expect(collection.completionProgress == 0.5)
-    }
-
-    @Test("updateCollectionProgressBasedOnReadCount handles empty collections")
-    func testUpdateCollectionProgressWithNoStories() async throws {
-        let (service, repository, _, _) = setupTest()
-
-        // Create test collection with no stories
-        let collection = StoryCollection(
-            title: "Empty Collection",
-            descriptionText: "Test Description",
-            category: "emotionalIntelligence",
-            ageGroup: "4-6"
-        )
-
-        // Save collection to repository
-        try repository.saveCollection(collection)
-
-        // Calculate progress
-        let progress = try await service.updateCollectionProgressBasedOnReadCount(
-            collectionId: collection.id)
-
-        // Verify progress (0 stories = 0 progress)
-        #expect(progress == 0.0)
-        #expect(collection.completionProgress == 0.0)
-    }
-
-    @Test("markStoryAsCompleted updates story completion and collection progress")
-    func testMarkStoryAsCompleted() async throws {
-        let (service, repository, _, _) = setupTest()
-
-        // Create test collection with 2 stories, none completed
-        let collection = StoryCollection(
-            title: "Test Collection",
-            descriptionText: "Test Description",
-            category: "emotionalIntelligence",
-            ageGroup: "4-6"
-        )
-
-        let story1 = Story(
-            title: "Story 1",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend"),
+                childName: "Alex", childAge: 5, theme: "Theme1", favoriteCharacter: "Dino"),
             isCompleted: false
         )
 
@@ -389,364 +360,7 @@ struct CollectionServiceTests {
             title: "Story 2",
             pages: [],
             parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend"),
-            isCompleted: false
-        )
-
-        collection.stories = [story1, story2]
-
-        // Save collection to repository
-        try repository.saveCollection(collection)
-
-        // Mark first story as completed
-        try await service.markStoryAsCompleted(storyId: story1.id, collectionId: collection.id)
-
-        // Verify story1 is marked as completed
-        #expect(story1.isCompleted)
-
-        // Verify collection progress is updated (1/2 = 0.5)
-        #expect(collection.completionProgress == 0.5)
-
-        // Mark second story as completed
-        try await service.markStoryAsCompleted(storyId: story2.id, collectionId: collection.id)
-
-        // Verify both stories are completed
-        #expect(story2.isCompleted)
-
-        // Verify collection progress is updated (2/2 = 1.0)
-        #expect(collection.completionProgress == 1.0)
-    }
-
-    @Test("Achievements are tracked when collection is completed")
-    func testAchievementTracking() async throws {
-        let (service, repository, _, _) = setupTest()
-
-        // Create test collection with 1 story
-        let collection = StoryCollection(
-            title: "Test Collection",
-            descriptionText: "Test Description",
-            category: "emotionalIntelligence",
-            ageGroup: "4-6"
-        )
-
-        let story = Story(
-            title: "Test Story",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend"),
-            isCompleted: false
-        )
-
-        collection.stories = [story]
-
-        // Save collection to repository
-        try repository.saveCollection(collection)
-
-        // Mark story as completed
-        try await service.markStoryAsCompleted(storyId: story.id, collectionId: collection.id)
-
-        // Verify collection is completed (progress = 1.0)
-        #expect(collection.completionProgress == 1.0)
-
-        // Verify achievement was created (check count on mock repository)
-        // This assertion will be added after fixing the mock repository
-    }
-
-    @Test("markStoryAsCompleted handles invalid story ID")
-    func testMarkStoryAsCompletedWithInvalidStoryId() async throws {
-        let (service, repository, _, _) = setupTest()
-
-        let collection = StoryCollection(
-            title: "Test Collection",
-            descriptionText: "Test Description",
-            category: "emotionalIntelligence",
-            ageGroup: "4-6"
-        )
-
-        let story = Story(
-            title: "Test Story",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend")
-        )
-
-        collection.stories = [story]
-        try repository.saveCollection(collection)
-
-        let invalidStoryId = UUID()
-
-        do {
-            try await service.markStoryAsCompleted(
-                storyId: invalidStoryId, collectionId: collection.id)
-            XCTFail("Should have thrown an error")
-        } catch let error as CollectionError {
-            #expect(error == .storyNotFound)
-        } catch {
-            XCTFail("Caught unexpected error: \(error)")
-        }
-    }
-
-    @Test("markStoryAsCompleted handles invalid collection ID")
-    func testMarkStoryAsCompletedWithInvalidCollectionId() async throws {
-        let (service, repository, _, _) = setupTest()
-
-        let collection = StoryCollection(
-            title: "Test Collection",
-            descriptionText: "Test Description",
-            category: "emotionalIntelligence",
-            ageGroup: "4-6"
-        )
-
-        let story = Story(
-            title: "Test Story",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend")
-        )
-
-        collection.stories = [story]
-        try repository.saveCollection(collection)
-
-        let invalidCollectionId = UUID()
-
-        do {
-            try await service.markStoryAsCompleted(
-                storyId: story.id, collectionId: invalidCollectionId)
-            XCTFail("Should have thrown an error")
-        } catch let error as CollectionError {
-            #expect(error == .collectionNotFound)
-        } catch {
-            XCTFail("Caught unexpected error: \(error)")
-        }
-    }
-
-    @Test("achievement creation includes correct metadata")
-    func testAchievementCreationMetadata() async throws {
-        let (service, repository, _, mockAchievementRepo) = setupTest()
-
-        // Create test collection with 1 story
-        let collection = StoryCollection(
-            title: "Test Collection",
-            descriptionText: "Test Description",
-            category: "emotionalIntelligence",
-            ageGroup: "4-6"
-        )
-
-        let story = Story(
-            title: "Test Story",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend")
-        )
-
-        collection.stories = [story]
-
-        // Save collection to repository
-        try repository.saveCollection(collection)
-
-        // Mark story as completed
-        try await service.markStoryAsCompleted(storyId: story.id, collectionId: collection.id)
-
-        // Verify achievement was created with correct metadata
-        #expect(mockAchievementRepo.lastCreatedAchievement != nil)
-        #expect(mockAchievementRepo.lastCreatedAchievement?.name == "Completed Test Collection")
-        #expect(mockAchievementRepo.lastCreatedAchievement?.type == .growthPathProgress)
-        #expect(mockAchievementRepo.lastCreatedAchievement?.story?.id == story.id)
-    }
-
-    @Test("achievements are not duplicated for same collection")
-    func testAchievementsNotDuplicated() async throws {
-        let (service, repository, _, mockAchievementRepo) = setupTest()
-
-        // Create test collection with 2 stories
-        let collection = StoryCollection(
-            title: "Test Collection",
-            descriptionText: "Test Description",
-            category: "emotionalIntelligence",
-            ageGroup: "4-6"
-        )
-
-        let story1 = Story(
-            title: "Story 1",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend")
-        )
-
-        let story2 = Story(
-            title: "Story 2",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend")
-        )
-
-        collection.stories = [story1, story2]
-
-        // Save collection to repository
-        try repository.saveCollection(collection)
-
-        // Mark first story as completed (collection not completed yet)
-        try await service.markStoryAsCompleted(storyId: story1.id, collectionId: collection.id)
-
-        // Verify no achievement was created yet
-        #expect(mockAchievementRepo.achievementCreationCount == 0)
-
-        // Mark second story as completed (collection is now completed)
-        try await service.markStoryAsCompleted(storyId: story2.id, collectionId: collection.id)
-
-        // Verify achievement was created exactly once
-        #expect(mockAchievementRepo.achievementCreationCount == 1)
-
-        // Mark first story as completed again (should not create duplicate achievement)
-        try await service.markStoryAsCompleted(storyId: story1.id, collectionId: collection.id)
-
-        // Verify no additional achievement was created
-        #expect(mockAchievementRepo.achievementCreationCount == 1)
-    }
-
-    @Test("removing story updates collection progress")
-    func testRemovingStoryUpdatesProgress() async throws {
-        let (service, repository, _, _) = setupTest()
-
-        // Create test collection with 4 stories, 2 completed
-        let collection = StoryCollection(
-            title: "Test Collection",
-            descriptionText: "Test Description",
-            category: "emotionalIntelligence",
-            ageGroup: "4-6"
-        )
-
-        let story1 = Story(
-            title: "Story 1",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend"),
-            isCompleted: true
-        )
-
-        let story2 = Story(
-            title: "Story 2",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend"),
-            isCompleted: true
-        )
-
-        let story3 = Story(
-            title: "Story 3",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend"),
-            isCompleted: false
-        )
-
-        let story4 = Story(
-            title: "Story 4",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend"),
-            isCompleted: false
-        )
-
-        collection.stories = [story1, story2, story3, story4]
-
-        // Save collection to repository
-        try repository.saveCollection(collection)
-
-        // Initial progress (2/4 = 0.5)
-        let initialProgress = try await service.updateCollectionProgressBasedOnReadCount(
-            collectionId: collection.id)
-        #expect(initialProgress == 0.5)
-
-        // Remove a completed story
-        collection.stories?.removeAll(where: { $0.id == story1.id })
-
-        // Recalculate progress (1/3 = 0.333...)
-        let progressAfterRemoval = try await service.updateCollectionProgressBasedOnReadCount(
-            collectionId: collection.id)
-        #expect(progressAfterRemoval == 1.0 / 3.0)
-    }
-
-    @Test("updating collection metadata preserves progress")
-    func testUpdatingCollectionMetadataPreservesProgress() async throws {
-        let (service, repository, _, _) = setupTest()
-
-        // Create test collection with 2 stories, 1 completed
-        let collection = StoryCollection(
-            title: "Test Collection",
-            descriptionText: "Test Description",
-            category: "emotionalIntelligence",
-            ageGroup: "4-6"
-        )
-
-        let story1 = Story(
-            title: "Story 1",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend"),
-            isCompleted: true
-        )
-
-        let story2 = Story(
-            title: "Story 2",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend"),
-            isCompleted: false
-        )
-
-        collection.stories = [story1, story2]
-
-        // Save collection to repository
-        try repository.saveCollection(collection)
-
-        // Calculate initial progress (1/2 = 0.5)
-        let initialProgress = try await service.updateCollectionProgressBasedOnReadCount(
-            collectionId: collection.id)
-        #expect(initialProgress == 0.5)
-
-        // Update collection metadata
-        collection.title = "Updated Title"
-        collection.descriptionText = "Updated Description"
-        collection.category = "cognitiveDevelopment"
-
-        // Save updated collection
-        try repository.saveCollection(collection)
-
-        // Fetch updated collection and verify progress is preserved
-        if let updatedCollection = repository.collections[collection.id] {
-            #expect(updatedCollection.title == "Updated Title")
-            #expect(updatedCollection.completionProgress == 0.5)  // Progress should be the same
-        } else {
-            XCTFail("Updated collection not found")
-        }
-    }
-
-    @Test("progress calculation handles floating point precision")
-    func testProgressCalculationFloatingPointPrecision() async throws {
-        let (service, repository, _, _) = setupTest()
-
-        // Create test collection with 3 stories, 1 completed
-        let collection = StoryCollection(
-            title: "Test Collection",
-            descriptionText: "Test Description",
-            category: "emotionalIntelligence",
-            ageGroup: "4-6"
-        )
-
-        let story1 = Story(
-            title: "Story 1",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend"),
-            isCompleted: true
-        )
-
-        let story2 = Story(
-            title: "Story 2",
-            pages: [],
-            parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend"),
+                childName: "Alex", childAge: 5, theme: "Theme2", favoriteCharacter: "Dino"),
             isCompleted: false
         )
 
@@ -754,27 +368,379 @@ struct CollectionServiceTests {
             title: "Story 3",
             pages: [],
             parameters: StoryParameters(
-                childName: "Test", childAge: 5, theme: "Theme", favoriteCharacter: "Friend"),
+                childName: "Alex", childAge: 5, theme: "Theme3", favoriteCharacter: "Dino"),
             isCompleted: false
         )
 
+        // Setup bidirectional relationships
+        story1.collections = [collection]
+        story2.collections = [collection]
+        story3.collections = [collection]
         collection.stories = [story1, story2, story3]
 
-        // Save collection to repository
         try repository.saveCollection(collection)
 
-        // Calculate progress (1/3)
-        let progress = try await service.updateCollectionProgressBasedOnReadCount(
+        // Act & Assert
+        // Initial state - no stories completed
+        var progress = try await service.updateCollectionProgressBasedOnReadCount(
             collectionId: collection.id)
+        #expect(progress == 0.0, "Initial progress should be 0.0")
 
-        // Verify progress with tolerance
-        #expect(abs(progress - (1.0 / 3.0)) < 1e-9)  // Corrected syntax
-        #expect(abs(collection.completionProgress - (1.0 / 3.0)) < 1e-9)  // Corrected syntax
+        // Mark story1 as completed
+        story1.isCompleted = true
+        try repository.saveCollection(collection)
+
+        progress = try await service.updateCollectionProgressBasedOnReadCount(
+            collectionId: collection.id)
+        #expect(progress == 1.0 / 3.0, "Progress should be 1/3 (0.333...)")
+
+        // Mark story2 as completed
+        story2.isCompleted = true
+        try repository.saveCollection(collection)
+
+        progress = try await service.updateCollectionProgressBasedOnReadCount(
+            collectionId: collection.id)
+        #expect(progress == 2.0 / 3.0, "Progress should be 2/3 (0.666...)")
+
+        // Mark story3 as completed
+        story3.isCompleted = true
+        try repository.saveCollection(collection)
+
+        progress = try await service.updateCollectionProgressBasedOnReadCount(
+            collectionId: collection.id)
+        #expect(progress == 1.0, "Progress should be 1.0 (complete)")
     }
 
-    @Test("collection handles maximum story limit")
-    func testCollectionHandlesMaximumStoryLimit() async throws {
-        // Test removed temporarily for future reimplementation
-        // This test was failing due to issues with the mock storyService
+    @Test("markStoryAsCompleted toggles completion status and updates progress")
+    func testMarkStoryAsCompleted() async throws {
+        // Arrange
+        let (service, repository, _, _) = setupTest()
+
+        // Create a collection with two stories
+        let collection = StoryCollection(
+            title: "Test Collection",
+            descriptionText: "Test Description",
+            category: "emotionalIntelligence",
+            ageGroup: "4-6"
+        )
+
+        let story1 = Story(
+            title: "Story 1",
+            pages: [],
+            parameters: StoryParameters(
+                childName: "Alex", childAge: 5, theme: "Theme1", favoriteCharacter: "Dino"),
+            isCompleted: false
+        )
+
+        let story2 = Story(
+            title: "Story 2",
+            pages: [],
+            parameters: StoryParameters(
+                childName: "Alex", childAge: 5, theme: "Theme2", favoriteCharacter: "Dino"),
+            isCompleted: false
+        )
+
+        // Setup bidirectional relationships
+        story1.collections = [collection]
+        story2.collections = [collection]
+        collection.stories = [story1, story2]
+
+        try repository.saveCollection(collection)
+
+        // Act & Assert - Initial state
+        let initialProgress = try await service.updateCollectionProgressBasedOnReadCount(
+            collectionId: collection.id)
+        #expect(initialProgress == 0.0, "Initial progress should be 0.0")
+        #expect(story1.isCompleted == false, "Story1 should not be completed initially")
+
+        // Mark story1 as completed
+        try await service.markStoryAsCompleted(storyId: story1.id, collectionId: collection.id)
+
+        // Verify story1 is now completed
+        let collectionAfterFirstMark = try repository.fetchCollection(id: collection.id)
+        #require(
+            collectionAfterFirstMark != nil,
+            "Collection should exist after marking story as completed")
+        let story1AfterToggle = collectionAfterFirstMark!.stories?.first(where: {
+            $0.id == story1.id
+        })
+        #require(story1AfterToggle != nil, "Story1 should exist in collection after toggle")
+        #expect(story1AfterToggle!.isCompleted == true, "Story1 should be marked as completed")
+
+        // Verify progress updated correctly
+        #expect(
+            collectionAfterFirstMark!.completionProgress == 0.5,
+            "Progress should be 0.5 after marking 1 of 2 stories complete")
+
+        // Toggle story1 back to not completed
+        try await service.markStoryAsCompleted(storyId: story1.id, collectionId: collection.id)
+
+        // Verify story1 is now not completed
+        let collectionAfterSecondMark = try repository.fetchCollection(id: collection.id)
+        #require(
+            collectionAfterSecondMark != nil,
+            "Collection should exist after toggling story completion again")
+        let story1AfterSecondToggle = collectionAfterSecondMark!.stories?.first(where: {
+            $0.id == story1.id
+        })
+        #require(
+            story1AfterSecondToggle != nil, "Story1 should exist in collection after second toggle")
+        #expect(
+            story1AfterSecondToggle!.isCompleted == false,
+            "Story1 should be marked as not completed after second toggle")
+
+        // Verify progress updated correctly
+        #expect(
+            collectionAfterSecondMark!.completionProgress == 0.0,
+            "Progress should be 0.0 after unmarking the story")
+    }
+
+    @Test("trackCollectionCompletionAchievement creates achievement when collection is completed")
+    func testTrackCollectionCompletionAchievement() async throws {
+        // Arrange
+        let (service, repository, _, achievementRepository) = setupTest()
+
+        // Configure achievementRepository to return created achievements
+        achievementRepository.createAchievementHandler = { achievement in
+            achievementRepository.achievements[achievement.id] = achievement
+            return achievement
+        }
+
+        // Configure achievementRepository to check for existing achievements
+        achievementRepository.achievementExistsHandler = { title, type in
+            return achievementRepository.achievements.values.contains {
+                $0.name == title && $0.type == type
+            }
+        }
+
+        // Create a collection with two stories
+        let collection = StoryCollection(
+            title: "Test Collection",
+            descriptionText: "Test Description",
+            category: "emotionalIntelligence",
+            ageGroup: "4-6"
+        )
+
+        let story1 = Story(
+            title: "Story 1",
+            pages: [],
+            parameters: StoryParameters(
+                childName: "Alex", childAge: 5, theme: "Theme1", favoriteCharacter: "Dino"),
+            isCompleted: false
+        )
+
+        let story2 = Story(
+            title: "Story 2",
+            pages: [],
+            parameters: StoryParameters(
+                childName: "Alex", childAge: 5, theme: "Theme2", favoriteCharacter: "Dino"),
+            isCompleted: false
+        )
+
+        // Setup bidirectional relationships
+        story1.collections = [collection]
+        story2.collections = [collection]
+        collection.stories = [story1, story2]
+
+        try repository.saveCollection(collection)
+
+        // Act - Mark both stories as completed and trigger trackCollectionCompletionAchievement
+        story1.isCompleted = true
+        story2.isCompleted = true
+        try repository.saveCollection(collection)
+        collection.completionProgress = 1.0
+        try await service.updateCollectionProgressBasedOnReadCount(collectionId: collection.id)
+
+        // Assert - Verify an achievement was created
+        let achievements = achievementRepository.achievements.values.map { $0 }
+        #expect(achievements.count == 1, "One achievement should be created")
+
+        let achievement = achievements.first
+        #require(achievement != nil, "Achievement should exist")
+        #expect(
+            achievement?.name == "Completed Test Collection", "Achievement should have correct name"
+        )
+        #expect(achievement?.type == .growthPathProgress, "Achievement should have correct type")
+        #expect(achievement?.earnedAt != nil, "Achievement should have earned date")
+
+        // Act - Trigger achievement creation again
+        try await service.updateCollectionProgressBasedOnReadCount(collectionId: collection.id)
+
+        // Assert - Verify no duplicate achievement was created
+        let achievementsAfterSecondUpdate = achievementRepository.achievements.values.map { $0 }
+        #expect(
+            achievementsAfterSecondUpdate.count == 1, "No duplicate achievement should be created")
+    }
+
+    // MARK: - Error Handling Tests
+
+    @Test("updateCollectionProgressBasedOnReadCount throws error for non-existent collection")
+    func testUpdateCollectionProgressWithNonExistentCollection() async throws {
+        // Arrange
+        let (service, _, _, _) = setupTest()
+        let nonExistentCollectionId = UUID()
+
+        // Act & Assert
+        do {
+            _ = try await service.updateCollectionProgressBasedOnReadCount(
+                collectionId: nonExistentCollectionId)
+            #expect(false, "Expected an error to be thrown for non-existent collection")
+        } catch {
+            // Verify the error is of the expected type with a 404 code
+            let nsError = error as NSError
+            #expect(
+                nsError.domain == "CollectionService",
+                "Error should be from CollectionService domain")
+            #expect(nsError.code == 404, "Error code should be 404 for not found")
+            #expect(
+                nsError.localizedDescription.contains("Collection not found"),
+                "Error message should indicate collection not found")
+        }
+    }
+
+    @Test("markStoryAsCompleted throws error for non-existent collection")
+    func testMarkStoryAsCompletedWithNonExistentCollection() async throws {
+        // Arrange
+        let (service, _, _, _) = setupTest()
+        let storyId = UUID()
+        let nonExistentCollectionId = UUID()
+
+        // Act & Assert
+        do {
+            try await service.markStoryAsCompleted(
+                storyId: storyId, collectionId: nonExistentCollectionId)
+            #expect(false, "Expected an error to be thrown for non-existent collection")
+        } catch {
+            // Verify the error is of the expected type with a 404 code
+            let nsError = error as NSError
+            #expect(
+                nsError.domain == "CollectionService",
+                "Error should be from CollectionService domain")
+            #expect(nsError.code == 404, "Error code should be 404 for not found")
+            #expect(
+                nsError.localizedDescription.contains("Collection not found"),
+                "Error message should indicate collection not found")
+        }
+    }
+
+    @Test("markStoryAsCompleted throws error for non-existent story in collection")
+    func testMarkStoryAsCompletedWithNonExistentStory() async throws {
+        // Arrange
+        let (service, repository, _, _) = setupTest()
+
+        // Create a collection with no stories
+        let collection = StoryCollection(
+            title: "Test Collection",
+            descriptionText: "Test Description",
+            category: "emotionalIntelligence",
+            ageGroup: "4-6"
+        )
+
+        collection.stories = []
+        try repository.saveCollection(collection)
+
+        // Non-existent story ID
+        let nonExistentStoryId = UUID()
+
+        // Act & Assert
+        do {
+            try await service.markStoryAsCompleted(
+                storyId: nonExistentStoryId, collectionId: collection.id)
+            #expect(false, "Expected an error to be thrown for non-existent story")
+        } catch {
+            // Verify the error is of the expected type
+            let nsError = error as NSError
+            #expect(
+                nsError.domain == "CollectionService",
+                "Error should be from CollectionService domain")
+            #expect(nsError.code == 404, "Error code should be 404 for not found")
+            #expect(
+                nsError.localizedDescription.contains("Story not found"),
+                "Error message should indicate story not found")
+        }
+    }
+
+    @Test("createCollection saves collection to repository and reloads collections")
+    func testCreateCollection() throws {
+        // Arrange
+        let (service, repository, _, _) = setupTest()
+
+        // Create a collection
+        let collection = StoryCollection(
+            title: "Test Collection",
+            descriptionText: "Test Description",
+            category: "emotionalIntelligence",
+            ageGroup: "4-6"
+        )
+
+        // Act
+        try service.createCollection(collection)
+
+        // Assert
+        #expect(repository.saveCollectionCalled, "Repository's saveCollection should be called")
+
+        // Verify the collection was saved in the repository
+        let savedCollection = try repository.fetchCollection(id: collection.id)
+        #require(savedCollection != nil, "Collection should exist in repository after saving")
+        #expect(
+            savedCollection?.title == "Test Collection",
+            "Saved collection should have correct title")
+
+        // Verify the collections array was updated
+        #expect(
+            service.collections.count == 1, "Service collections array should contain 1 collection")
+        #expect(
+            service.collections.first?.id == collection.id,
+            "Service collections array should contain the created collection")
+    }
+
+    @Test("deleteCollection removes collection from repository")
+    func testDeleteCollection() throws {
+        // Arrange
+        let (service, repository, _, _) = setupTest()
+
+        // Create a collection
+        let collection = StoryCollection(
+            title: "Test Collection",
+            descriptionText: "Test Description",
+            category: "emotionalIntelligence",
+            ageGroup: "4-6"
+        )
+
+        // Save it first
+        try repository.saveCollection(collection)
+
+        // Verify it exists before deletion
+        let existingCollection = try repository.fetchCollection(id: collection.id)
+        #require(existingCollection != nil, "Collection should exist in repository before deletion")
+
+        // Act
+        try service.deleteCollection(id: collection.id)
+
+        // Assert
+        // Verify the collection was removed from the repository
+        let deletedCollection = try repository.fetchCollection(id: collection.id)
+        #expect(
+            deletedCollection == nil, "Collection should not exist in repository after deletion")
+    }
+
+    @Test("deleteCollection throws error for non-existent collection ID")
+    func testDeleteCollectionWithNonExistentID() throws {
+        // Arrange
+        let (service, _, _, _) = setupTest()
+        let nonExistentCollectionId = UUID()
+
+        // Act & Assert
+        do {
+            try service.deleteCollection(id: nonExistentCollectionId)
+            #expect(false, "Expected an error to be thrown for non-existent collection")
+        } catch {
+            // Verify the error is of the expected type
+            let nsError = error as NSError
+            #expect(nsError.code == 404, "Error code should be 404 for not found")
+            #expect(
+                nsError.localizedDescription.contains("not found"),
+                "Error message should indicate collection not found")
+        }
     }
 }

@@ -17,7 +17,7 @@ if [ -n "$1" ]; then
     -destination "$destination" \
     -enableCodeCoverage YES \
     -parallel-testing-enabled NO \
-    -only-testing "$1" | xcbeautify
+    -only-testing:"$1" | xcbeautify
 else
   echo "Running all tests"
   xcodebuild test \

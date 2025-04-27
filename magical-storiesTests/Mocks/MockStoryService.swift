@@ -9,8 +9,10 @@ class MockStoryService: StoryService {
     var generateStoryCallCount = 0
     var lastParameters: StoryParameters?
     var shouldFailGeneration = false
-    var storiesToReturn: [Story] = []
-    var nextStoryIndex = 0
+   var storiesToReturn: [Story] = []
+   var nextStoryIndex = 0
+   var simulateNetworkError = false
+    var numberOfStoriesToGenerate: Int = 0
 
     var shouldSimulateError = false
     var simulatedError: Error?
@@ -25,6 +27,15 @@ class MockStoryService: StoryService {
     }
 
     override func generateStory(parameters: StoryParameters) async throws -> Story {
+        // Simulate network error
+        if simulateNetworkError {
+            throw NSError(
+                domain: "MockStoryService", code: NSURLErrorNotConnectedToInternet,
+                userInfo: [
+                    NSLocalizedDescriptionKey: "Simulated network error"
+                ])
+        }
+
         // Simulate network delay
         try await Task.sleep(nanoseconds: simulatedDelay)
 
