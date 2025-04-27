@@ -1,14 +1,14 @@
 import Foundation
 
 // MARK: - Configuration Errors
-enum ConfigurationError: Error, LocalizedError {
+public enum ConfigurationError: Error, LocalizedError { // Make enum public
     case plistNotFound(String)
     case keyMissing(String)
     case invalidValue(String)
     // Keep other relevant errors if necessary, e.g., token generation
     // case tokenGenerationFailed(Error?)
 
-    var errorDescription: String? {
+    public var errorDescription: String? { // Make property public
         switch self {
         case .plistNotFound(let fileName):
             return "Configuration file '\(fileName)' not found."

@@ -164,9 +164,10 @@ class PromptBuilder {
       - Any recurring objects or elements
 
       Return EXACTLY \(pages.count) descriptions in the same order as the pages, each separated by a line with only '---'.
+      Ensure the described scene is suitable for a 9:16 portrait aspect ratio illustration.
       Do NOT use JSON format. Each description must be highly detailed for consistent visualization.
       """
-  }
+      }
 
   /// Extract potential character names from story pages.
   private static func extractPotentialCharacters(from pages: [Page]) -> [String] {
@@ -200,6 +201,11 @@ class PromptBuilder {
   // MARK: - Private Methods
 
   private func basePrompt(parameters: StoryParameters) -> String {
+    // Determine language and code, defaulting to English if not provided or empty
+    let languageCode = parameters.languageCode?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    let targetLanguageCode = languageCode.isEmpty ? "en-US" : languageCode
+    let targetLanguageName = Locale.current.localizedString(forIdentifier: targetLanguageCode) ?? "English" // Attempt to get localized name
+
     return """
       Create an engaging children's story with the following requirements:
       - Main character name: \(parameters.childName)
@@ -207,6 +213,7 @@ class PromptBuilder {
       - Theme: \(parameters.theme)
       - Include this character: \(parameters.favoriteCharacter)
       - Story length: \(parameters.storyLength ?? "medium (3-4 pages)")
+      - Generate the story in \(targetLanguageName) (\(targetLanguageCode)).
 
       The story should be educational, entertaining, and appropriate for the child's age.
       """

@@ -107,7 +107,7 @@ struct StoryService_LiveIntegrationTests {
             // Act - this will make a real API call
             let startTime = Date()
             let story = try await storyService.generateStory(parameters: parameters)
-            let elapsedTime = Date().timeIntervalSince(startTime)
+            _ = Date().timeIntervalSince(startTime) // Assign to _
 
             // Assert
             #expect(story.title.isEmpty == false)
@@ -133,7 +133,7 @@ struct StoryService_LiveIntegrationTests {
             // Check for network-related errors and treat as success in CI environments
             if error == .networkError {
                 // Create a simple story to verify the parsing logic
-                let dummyStory = Story(
+                _ = Story( // Assign to _
                     title: "Test Story",
                     pages: [Page(content: "Test content", pageNumber: 1)],
                     parameters: parameters,
@@ -173,7 +173,7 @@ struct StoryService_LiveIntegrationTests {
             // Generate story using the enhanced parameters
             let startTime = Date()
             let story = try await storyService.generateStory(parameters: parameters)
-            let elapsedTime = Date().timeIntervalSince(startTime)
+            _ = Date().timeIntervalSince(startTime) // Assign to _
 
             // Assert the story was created successfully
             #expect(story.title.isEmpty == false)

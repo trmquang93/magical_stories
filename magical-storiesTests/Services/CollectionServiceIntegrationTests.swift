@@ -31,11 +31,7 @@ class CollectionServiceIntegrationTests {
         // Clean up any existing test data if needed (implementation may be updated in later subtasks)
     }
 
-    // Helper function to clean up test data
-    private func cleanupTestData() async {
-        // Clean up collections created for testing
-        // Implementation will be updated in a later subtask to use the new repository
-    }
+    // Removed unused cleanupTestData function
 
     @Test("Can create and fetch a collection")
     func testCreateAndFetch() throws {

@@ -11,6 +11,7 @@ struct StoryParameters: Codable, Hashable {
     var developmentalFocus: [GrowthCategory]?  // Optional array for developmental themes
     var interactiveElements: Bool?  // Optional flag for interactive prompts
     var emotionalThemes: [String]?  // Optional array for specific emotions
+    var languageCode: String? // Make language code optional
 }
 
 /// Represents a page in a story.
@@ -200,6 +201,7 @@ extension Story {
             childAge: 5,
             theme: "Friendship",
             favoriteCharacter: "Brave Bear"
+            // languageCode is optional, no need to set in basic preview
         )
         return Story(
             title: title,

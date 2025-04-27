@@ -104,7 +104,7 @@ struct StoryCollectionTests {
     @Test("StoryCollection supports achievement tracking")
     func testAchievementTracking() throws {
         // Arrange
-        let achievement = Achievement(
+        _ = Achievement( // Assign to _ as achievement is not used directly in this placeholder test
             id: UUID().uuidString,
             name: "Test Achievement",
             description: "Earned for testing",

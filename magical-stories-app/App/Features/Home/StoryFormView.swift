@@ -804,7 +804,7 @@ class MockStoryService: StoryService {
 
     override func generateStory(parameters: StoryParameters) async throws -> Story {
         try await Task.sleep(nanoseconds: 2_000_000_000)  // 2 seconds
-        print("Mock generating story with params: \(parameters)")
+        print("Mock generating story with params: \(parameters)") // Includes languageCode now
 
         return Story(
             id: UUID(),

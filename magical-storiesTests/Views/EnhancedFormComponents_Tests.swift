@@ -9,7 +9,7 @@ struct EnhancedFormComponents_Tests {
     @Test("MagicTextField updates binding when text changes")
     func testMagicTextFieldBinding() {
         let text = Binding<String>(get: { "Initial" }, set: { _ in })
-        let textField = MagicTextField(placeholder: "Test", text: text)
+        _ = MagicTextField(placeholder: "Test", text: text) // Assign to _
 
         // This is a visual component test - in a real test environment
         // we would use ViewInspector to simulate user interaction
@@ -19,7 +19,7 @@ struct EnhancedFormComponents_Tests {
     @Test("EnhancedThemeCard displays correct theme information")
     func testEnhancedThemeCard() {
         var actionCalled = false
-        let card = EnhancedThemeCard(
+        _ = EnhancedThemeCard( // Assign to _
             theme: .adventure,
             isSelected: true,
             action: { actionCalled = true }
@@ -34,8 +34,8 @@ struct EnhancedFormComponents_Tests {
 
     @Test("EnhancedSegmentedButtonStyle reflects selection state")
     func testEnhancedSegmentedButtonStyle() {
-        let selectedStyle = EnhancedSegmentedButtonStyle(isSelected: true)
-        let unselectedStyle = EnhancedSegmentedButtonStyle(isSelected: false)
+        let selectedStyle = EnhancedSegmentedButtonStyle(isSelected: true) // Keep as these are used in expect
+        let unselectedStyle = EnhancedSegmentedButtonStyle(isSelected: false) // Keep as these are used in expect
 
         // Visual style test - would require snapshot testing
         // or ViewInspector to fully validate in a real environment
@@ -46,7 +46,7 @@ struct EnhancedFormComponents_Tests {
     func testEnhancedLanguagePicker() {
         let languages = [("en", "English"), ("es", "Spanish")]
         let selection = Binding<String>(get: { "en" }, set: { _ in })
-        let picker = EnhancedLanguagePicker(languages: languages, selection: selection)
+        let picker = EnhancedLanguagePicker(languages: languages, selection: selection) // Keep as picker is used in expect
 
         // In a real test with ViewInspector, we would:
         // 1. Check that the selected language name is displayed

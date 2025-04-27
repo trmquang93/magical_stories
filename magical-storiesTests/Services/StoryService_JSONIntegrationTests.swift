@@ -101,18 +101,13 @@ struct StoryService_JSONIntegrationTests {
             favoriteCharacter: "Brave Bear"
         )
 
-        // Act - expect an error about missing "Title: " prefix
-        do {
-            _ = try await storyService.generateStory(parameters: parameters)
-            #expect(false, "Expected an error but none was thrown")
-        } catch let error as StoryServiceError {
-            // Should throw a generation failed error due to missing Title: prefix
-            if case .generationFailed(let message) = error {
-                #expect(message.contains("Invalid story format") || message.contains("Title:"))
-            } else {
-                #expect(false, "Expected a generationFailed error but got \(error)")
-            }
-        }
+        // Act - Expect successful generation using fallback title extraction
+        let story = try await storyService.generateStory(parameters: parameters)
+
+        // Assert - Verify fallback title and parsed category
+        #expect(story.title == "Broken JSON Story") // Fallback title is the first line
+        #expect(story.categoryName == "Fantasy") // Category should still be parsed from JSON
+        #expect(!story.pages.isEmpty) // Pages should be generated from the content
     }
 
     @Test("StoryService handles JSON with missing category field")

@@ -227,4 +227,54 @@ struct PromptBuilderTests {
                 prompt.contains(categoryName), "Prompt should include category '\(categoryName)'")
         }
     }
+
+    @Test("Prompt includes language instruction")
+    func testPromptIncludesLanguageInstruction() {
+        // Given
+        let parameters = StoryParameters(
+            childName: "Léa",
+            childAge: 6,
+            theme: "Magic",
+            favoriteCharacter: "Fairy",
+            languageCode: "fr-FR" // French
+        )
+
+        // When
+        let prompt = promptBuilder.buildPrompt(parameters: parameters)
+
+        // Then
+        // Check for the core instruction structure and the language code
+        #expect(prompt.contains("- Generate the story in"))
+        #expect(prompt.contains("(fr-FR)."))
+    }
+
+    @Test("Prompt defaults to English if language code is missing or empty")
+    func testPromptDefaultsToEnglish() {
+        // Given
+        let parameters1 = StoryParameters(
+            childName: "Tom",
+            childAge: 5,
+            theme: "Animals",
+            favoriteCharacter: "Lion",
+            languageCode: nil // Missing language code
+        )
+        let parameters2 = StoryParameters(
+            childName: "Sue",
+            childAge: 7,
+            theme: "Space",
+            favoriteCharacter: "Astronaut",
+            languageCode: "" // Empty language code
+        )
+
+        // When
+        let prompt1 = promptBuilder.buildPrompt(parameters: parameters1)
+        let prompt2 = promptBuilder.buildPrompt(parameters: parameters2)
+
+        // Then
+        // Check for the core instruction structure and the language code for both cases
+        #expect(prompt1.contains("- Generate the story in"))
+        #expect(prompt1.contains("(en-US)."))
+        #expect(prompt2.contains("- Generate the story in"))
+        #expect(prompt2.contains("(en-US)."))
+    }
 }

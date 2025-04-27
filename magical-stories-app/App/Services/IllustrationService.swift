@@ -40,6 +40,16 @@ enum IllustrationError: Error, LocalizedError {
             return "The configured generative model does not support image generation."
         }
     }
+
+    // Helper to check if an IllustrationError is related to decoding
+    var isDecodingError: Bool {
+        switch self {
+        case .invalidResponse, .noImageDataFound, .imageProcessingError:
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 /// Service responsible for generating illustrations based on text prompts using the Google AI SDK.
@@ -49,6 +59,7 @@ public class IllustrationService: IllustrationServiceProtocol {
     // Update to the correct model that supports image generation
     private let modelName = "gemini-2.0-flash-exp-image-generation"
     private let apiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/"
+    private let urlSession: URLSession // Add URLSession property
 
     // Removed generativeModel property as we are using REST API directly
 
@@ -62,10 +73,19 @@ public class IllustrationService: IllustrationServiceProtocol {
             throw ConfigurationError.keyMissing("GeminiAPIKey")
         }
         self.apiKey = apiKey
+        self.urlSession = URLSession.shared // Initialize default session
         // No longer need to initialize generativeModel here
     }
 
-    // Internal initializer removed.
+    /// Public initializer for testing purposes. (Should ideally be internal, but trying public for visibility)
+    public init(apiKey: String, urlSession: URLSession) throws {
+         guard !apiKey.isEmpty else {
+             throw ConfigurationError.keyMissing("GeminiAPIKey")
+         }
+         self.apiKey = apiKey
+         self.urlSession = urlSession
+     }
+
 
     /// Generates an illustration URL for the given page text and theme using the Google AI SDK.
     /// This method remains unchanged for now, but might need updating or deprecation later
@@ -98,7 +118,8 @@ public class IllustrationService: IllustrationServiceProtocol {
                 // 2. Prepare Request Body (Imagen structure)
                 let requestBody = ImagenRequestBody(
                     instances: [ImagenInstance(prompt: combinedPrompt)],
-                    parameters: ImagenParameters(sampleCount: 1, aspectRatio: "1:1")
+                    // Specify exact dimensions instead of aspect ratio
+                    parameters: ImagenParameters(sampleCount: 1, width: 1024, height: 1792)
                 )
 
                 // 3. Prepare URLRequest
@@ -106,10 +127,20 @@ public class IllustrationService: IllustrationServiceProtocol {
                 request.httpMethod = "POST"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-                request.httpBody = try JSONEncoder().encode(requestBody)
+                // Add explicit do-catch for encoding
+                do {
+                    request.httpBody = try JSONEncoder().encode(requestBody)
+                    // DEBUG: Check if httpBody is set before network call
+                    print("--- IllustrationService (Legacy): DEBUG - Request body size after encoding: \(request.httpBody?.count ?? -1) bytes ---")
+                } catch {
+                    print("--- IllustrationService (Legacy): ERROR - Failed to encode request body: \(error.localizedDescription) ---")
+                    // Propagate encoding error as an invalidResponse or a new specific error type
+                    throw IllustrationError.invalidResponse("Failed to encode request body: \(error.localizedDescription)")
+                }
+
 
                 // 4. Perform Network Request
-                let (data, response) = try await URLSession.shared.data(for: request)
+                let (data, response) = try await self.urlSession.data(for: request) // Use injected session
 
                 guard let httpResponse = response as? HTTPURLResponse else {
                     throw IllustrationError.invalidResponse("Did not receive HTTP response.")
@@ -163,28 +194,60 @@ public class IllustrationService: IllustrationServiceProtocol {
                 )
                 return relativePath
 
-            } catch {
-                if let decodingError = error as? DecodingError {
-                    lastError = IllustrationError.invalidResponse(
-                        "Failed to decode API response: \(decodingError.localizedDescription)")
-                } else {
-                    lastError = error
-                }
+            } catch let error as URLError {
+                // Specific handling for network errors
+                lastError = IllustrationError.networkError(error)
                 print(
-                    "--- IllustrationService (Legacy): Attempt \(attempt) failed with error: \(error.localizedDescription) ---"
+                    "--- IllustrationService (Legacy): Attempt \(attempt) failed with network error: \(error.localizedDescription) ---"
                 )
-                if attempt < 5 {
-                    try? await Task.sleep(nanoseconds: 1_000_000_000)  // 1 second delay
-                }
+                // Optional: Decide if retrying makes sense for network errors
+                // if attempt < 5 { try? await Task.sleep(nanoseconds: 1_000_000_000) }
+            } catch let error as DecodingError {
+                // Specific handling for JSON decoding errors after successful network request
+                lastError = IllustrationError.invalidResponse(
+                    "Failed to decode API response: \(error.localizedDescription)")
+                print(
+                    "--- IllustrationService (Legacy): Attempt \(attempt) failed with decoding error: \(error.localizedDescription) ---"
+                )
+                // Probably don't retry on decoding errors
+                break // Exit retry loop for decoding errors
+            } catch let error as IllustrationError {
+                // Catch errors already wrapped by internal logic (e.g., apiError, noImageDataFound)
+                lastError = error
+                print(
+                    "--- IllustrationService (Legacy): Attempt \(attempt) failed with IllustrationError: \(error.localizedDescription) ---"
+                )
+                // Decide on retry logic based on the specific IllustrationError type if needed
+            } catch {
+                // Catch any other unexpected errors during the process
+                lastError = error // Store the generic error
+                print(
+                    "--- IllustrationService (Legacy): Attempt \(attempt) failed with unexpected error: \(error.localizedDescription) ---"
+                )
+                // Optional: Retry for generic errors or break
+                // if attempt < 5 { try? await Task.sleep(nanoseconds: 1_000_000_000) }
+            }
+
+            // Common retry delay logic (if retrying is enabled for the caught error type)
+            // This example assumes we retry for network and generic errors, but not decoding errors.
+            if !(lastError is IllustrationError && (lastError as! IllustrationError).isDecodingError) && attempt < 5 {
+                 try? await Task.sleep(nanoseconds: UInt64.random(in: 1_000_000_000...2_000_000_000)) // Exponential backoff might be better
             }
         }
 
-        if let lastError = lastError {
-            AIErrorManager.logError(
-                lastError, source: "IllustrationService (Legacy)",
-                additionalInfo: "All retries failed")
-        }
-        return nil
+        // After loop, check the last error and handle/log
+        if let finalError = lastError {
+             AIErrorManager.logError(
+                 finalError, source: "IllustrationService (Legacy)",
+                 additionalInfo: "All retries failed for pageText: \(pageText)")
+             // Re-throw the last error encountered after all retries
+             throw finalError
+         }
+
+        // Should only be reached if successful within the loop
+        // The original return nil is now effectively unreachable if an error occurred
+        print("--- IllustrationService (Legacy): Warning - Reached end of function unexpectedly after retries without success or throwing an error. ---")
+        return nil // Should ideally not happen if error handling is correct
     }
 
     /// Generates an illustration using a context-rich description and the previous page's illustration.
@@ -281,7 +344,7 @@ public class IllustrationService: IllustrationServiceProtocol {
                 // print("--- IllustrationService: Sending request to \(url) with body: \(String(data: request.httpBody ?? Data(), encoding: .utf8) ?? \"Invalid Body\") ---")
 
                 // 4. Perform Network Request
-                let (data, response) = try await URLSession.shared.data(for: request)
+                let (data, response) = try await self.urlSession.data(for: request) // Use injected session
 
                 guard let httpResponse = response as? HTTPURLResponse else {
                     throw IllustrationError.invalidResponse("Did not receive HTTP response.")
@@ -517,37 +580,47 @@ public class IllustrationService: IllustrationServiceProtocol {
 
 // Internal protocol and extension definitions removed.
 
-// MARK: - Codable Structs for REST API
+// MARK: - Internal Helper Structs for REST API (Made internal for testing)
 
-private struct ImagenRequestBody: Codable {
+struct ImagenRequestBody: Codable {
     let instances: [ImagenInstance]
     let parameters: ImagenParameters
 }
 
-private struct ImagenInstance: Codable {
+struct ImagenInstance: Codable {
     let prompt: String
 }
 
-private struct ImagenParameters: Codable {
+struct ImagenParameters: Codable {
     let sampleCount: Int
-    let aspectRatio: String
-    // Add other parameters here if needed, matching the API documentation (e.g., negativePrompt, seed)
+    let aspectRatio: String? // Keep optional for flexibility, though we'll prioritize width/height
+    let width: Int?          // Desired output width in pixels
+    let height: Int?         // Desired output height in pixels
+
+    // Provide a convenience initializer if needed, though default memberwise should work
+    init(sampleCount: Int, aspectRatio: String? = nil, width: Int? = nil, height: Int? = nil) {
+        self.sampleCount = sampleCount
+        self.aspectRatio = aspectRatio // Store it even if not used in primary call
+        self.width = width
+        self.height = height
+    }
+    // Note: Removed the comment about adding other parameters as we are adding width/height now.
 }
 
-private struct ImagenPredictionResponse: Codable {
+struct ImagenPredictionResponse: Codable {
     let predictions: [ImagenPrediction]
 }
 
-private struct ImagenPrediction: Codable {
+struct ImagenPrediction: Codable {
     // Assuming the key for base64 image data is 'bytesBase64Encoded' based on common Google API patterns
     let bytesBase64Encoded: String?
     let mimeType: String?  // Include if the API provides it
     // Include other potential fields like safetyAttributes if needed
 }
 
-// MARK: - Codable Structs for Gemini generateContent REST API
+// MARK: - Internal Helper Structs for Gemini generateContent REST API (Made internal for testing)
 
-private struct GenerateContentRequest: Codable {
+struct GenerateContentRequest: Codable {
     let contents: [Content]
     var generationConfig: GenerationConfig? = nil  // Make optional if not always needed
 
@@ -594,6 +667,7 @@ private struct GenerateContentRequest: Codable {
             }
         }
 
+        // Keep CodingKeys private as they are implementation details
         private enum CodingKeys: String, CodingKey {
             case text
             case inlineData
@@ -620,7 +694,7 @@ private struct GenerateContentRequest: Codable {
     }
 }
 
-private struct GenerateContentResponse: Codable {
+struct GenerateContentResponse: Codable {
     let candidates: [Candidate]?
     let promptFeedback: PromptFeedback?
 
@@ -631,17 +705,17 @@ private struct GenerateContentResponse: Codable {
     }
 
     struct Content: Codable {
-        let parts: [GenerateContentRequest.Part]
-        let role: String?
+        let parts: [GenerateContentRequest.Part] // Use the same Part enum
+        let role: String? // e.g., "model"
     }
 
     struct SafetyRating: Codable {
-        let category: String
-        let probability: String
+        let category: String // Non-optional based on observed responses
+        let probability: String // Non-optional based on observed responses
     }
 
     struct PromptFeedback: Codable {
-        let blockReason: String?
+        let blockReason: String? // Optional as it only appears when blocked
         let safetyRatings: [SafetyRating]?
     }
 }

@@ -11,12 +11,12 @@ class MockURLProtocol: URLProtocol {
     
     // Static registry of mock handlers
     static var responseHandlers: [String: URLResponseHandler] = [:]
-    
+
     // Reset all mock handlers - call this between tests
     static func reset() {
         responseHandlers.removeAll()
     }
-    
+
     // Register a mock response handler for a specific URL string
     static func registerMock(for urlString: String, handler: @escaping URLResponseHandler) {
         responseHandlers[urlString] = handler
@@ -61,10 +61,12 @@ class MockURLProtocol: URLProtocol {
     }
     
     override func startLoading() {
+        // Removed request body capture here
+
         guard let url = request.url?.absoluteString else {
             fatalError("URL is nil. This should never happen as we check in canInit.")
         }
-        
+
         // Find the handler for this URL
         guard let handler = Self.responseHandlers.first(where: { url.contains($0.key) })?.value else {
             fatalError("No mock response handler found for \(url)")

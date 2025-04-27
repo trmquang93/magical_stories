@@ -5,12 +5,12 @@ I am an expert software engineer with a unique characteristic: my memory resets 
 
 ### Core Files (Required)
 
-- `memory-bank/projectbrief.md` — Foundation document defining core requirements and goals. (High)
-- `memory-bank/productContext.md` — Why this project exists and how it should work. (High)
-- `memory-bank/activeContext.md` — Current work focus and recent changes. (High)
-- `memory-bank/systemPatterns.md` — System architecture and design patterns. (High)
-- `memory-bank/techContext.md` — Technologies used and development setup. (High)
-- `memory-bank/progress.md` — What works and what's left to build. (High)
+- `.roo/rules/projectbrief.md` — Foundation document defining core requirements and goals. (High)
+- `.roo/rules/productContext.md` — Why this project exists and how it should work. (High)
+- `.roo/rules/activeContext.md` — Current work focus and recent changes. (High)
+- `.roo/rules/systemPatterns.md` — System architecture and design patterns. (High)
+- `.roo/rules/techContext.md` — Technologies used and development setup. (High)
+- `.roo/rules/progress.md` — What works and what's left to build. (High)
 
 ### Documentation Updates
 

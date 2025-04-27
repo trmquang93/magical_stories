@@ -79,7 +79,7 @@ struct LibraryViewTests {
         ]
         let service = try await makeStoryService(with: stories)
         let controller = hostLibraryView(with: service)
-        let view = controller.view!
+        _ = controller.view! // Assign to _
         // Simulate entering search text (not possible without ViewInspector/UI automation)
         // TODO: Use ViewInspector or UI automation to test search filtering
         // Now covered by snapshot tests for search state.

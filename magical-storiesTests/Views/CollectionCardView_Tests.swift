@@ -23,8 +23,8 @@ struct CollectionCardView_Tests {
     @Test("CollectionCardView displays title correctly")
     func testCardDisplaysTitle() {
         let collection = createMockCollection()
-        let view = CollectionCardView(collection: collection)
-        
+        _ = CollectionCardView(collection: collection) // Assign to _
+
         // This is a high-level test since we can't directly inspect the view hierarchy
         // Using view.body would be discouraged in SwiftUI unit tests
         #expect(collection.title == "Forest Friends")
@@ -36,8 +36,8 @@ struct CollectionCardView_Tests {
     @Test("CollectionCardView displays story count")
     func testCardDisplaysStoryCount() {
         let collection = createMockCollection()
-        let view = CollectionCardView(collection: collection)
-        
+        _ = CollectionCardView(collection: collection) // Assign to _
+
         #expect(collection.stories?.count == 8)
         
         // Note: In a real environment with ViewInspector, we would test story count display
