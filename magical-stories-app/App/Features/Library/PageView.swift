@@ -80,6 +80,7 @@ struct PageView: View {
                     .dynamicTypeSize(...DynamicTypeSize.accessibility5)
                     .accessibilityLabel("Story text")
                     .accessibilitySortPriority(2)
+                    .accessibilityIdentifier("PageContentText")
 
                 Spacer()  // Push content to the top
             }
@@ -88,7 +89,9 @@ struct PageView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Page \(page.pageNumber)")
+            .accessibilityIdentifier("PageViewContent")
         }
+        .accessibilityIdentifier("StoryViewScrollView")
     }
 }
 

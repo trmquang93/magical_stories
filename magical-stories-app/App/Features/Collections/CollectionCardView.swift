@@ -8,13 +8,13 @@ struct CollectionCardView: View {
     @State private var isHovering = false
     @State private var animateProgress = false
 
-    private var storyCountText: String {
+    var storyCountText: String {
         let count = collection.stories?.count ?? 0
         return "\(count) \(count == 1 ? "story" : "stories")"
     }
 
     // Compute a thematic color based on the collection category
-    private var thematicColor: Color {
+    var thematicColor: Color {
         switch collection.category {
         case "emotionalIntelligence": return Color.magicalPrimary
         case "socialSkills": return Color.blue
@@ -27,7 +27,7 @@ struct CollectionCardView: View {
         }
     }
 
-    private var categoryIcon: String {
+    var categoryIcon: String {
         switch collection.category {
         case "emotionalIntelligence": return "heart.fill"
         case "socialSkills": return "person.2.fill"
@@ -40,7 +40,7 @@ struct CollectionCardView: View {
         }
     }
 
-    private var ageGroupDisplay: String {
+    var ageGroupDisplay: String {
         switch collection.ageGroup {
         case "preschool": return "3-5 years"
         case "earlyReader": return "6-8 years"
@@ -139,6 +139,7 @@ struct CollectionCardView: View {
                         Image(systemName: categoryIcon)
                             .font(.system(size: 20, weight: .semibold))
                             .foregroundColor(.white)
+                            .accessibilityIdentifier("categoryIcon")
                     }
 
                     Spacer()

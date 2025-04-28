@@ -93,6 +93,7 @@ struct StoryDetailView: View {
                         .tag(index)
                         .accessibilityLabel("Page \(index + 1)")
                         .accessibilityHint("Swipe left or right to navigate between pages")
+                        .accessibilityIdentifier("PageView-\(index)")
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))  // Use page style, hide default index dots
@@ -101,6 +102,7 @@ struct StoryDetailView: View {
                 }
                 .accessibilityElement(children: .contain)
                 .accessibilityLabel("Story pages")
+                .accessibilityIdentifier("StoryPageTabView")
 
                 // Custom Page Indicator and Progress Bar
                 pageIndicatorAndProgress
@@ -142,10 +144,12 @@ struct StoryDetailView: View {
                 .foregroundColor(UITheme.Colors.textSecondary)
                 .dynamicTypeSize(...DynamicTypeSize.accessibility5)
                 .accessibilityLabel("Page \(currentPageIndex + 1) of \(pages.count)")
+                .accessibilityIdentifier("PageIndicator")
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Reading progress")
         .accessibilityHint("Shows your current position in the story")
+        .accessibilityIdentifier("PageIndicatorAndProgress")
     }
 
     // MARK: - Helper Functions

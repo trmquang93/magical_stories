@@ -379,6 +379,7 @@ struct CollectionDetailView: View {
                     Image(systemName: "checkmark")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundColor(.white)
+                        .accessibilityIdentifier("checkmark")
                 }
             }
         }
@@ -393,6 +394,7 @@ struct CollectionDetailView: View {
         )
         .padding(.horizontal, 16)
         .contentShape(Rectangle())
+        .accessibilityIdentifier("StoryRow-\(story.id)")
     }
 
     // MARK: - About Tab
@@ -400,7 +402,7 @@ struct CollectionDetailView: View {
     private var aboutTab: some View {
         VStack(alignment: .leading, spacing: 16) {
             aboutSection(
-                title: "About This Collection",
+                title: "Description",
                 content: collection.descriptionText
             )
 
@@ -430,6 +432,7 @@ struct CollectionDetailView: View {
             Text(title)
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundColor(.primary)
+                .accessibilityIdentifier(title)
 
             Text(content)
                 .font(.system(size: 15))
