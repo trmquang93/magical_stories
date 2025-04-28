@@ -35,96 +35,103 @@ struct CollectionFormView: View {
     @Environment(\.dismiss) private var dismiss
     
     // State for validation
-    @State private var isChildNameValid = true
-    @State private var isInterestsValid = false
-    @State private var isCharactersValid = true
+    // Validation state derived directly from input
+    private var isInterestsValid: Bool {
+        !interests.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    
+    // State for showing error alert
+    @State private var showErrorAlert = false
     
     var body: some View {
-        NavigationView { // Embed in NavigationView for title and potential toolbar items
-            Form {
-                Section(header: Text("Child Information").font(.headline)) {
-                    ValidatedTextField(
-                        text: $childName,
-                        label: "Child's Name (Optional)",
-                        validation: { _ in true },
-                        errorMessage: ""
-                    )
-                    .accessibilityIdentifier("childNameField")
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Age Group").font(.body)
-                        Picker("Age Group", selection: $childAgeGroup) {
-                            ForEach(AgeGroup.allCases) { age in
-                                Text(age.rawValue).tag(age)
-                            }
-                        }
-                        .pickerStyle(SegmentedPickerStyle())
-                        .accessibilityIdentifier("ageGroupPicker")
-                    }
-                    .padding(.vertical, 4)
-                    
-                    ValidatedTextField(
-                        text: $characters,
-                        label: "Favorite Characters (Optional, comma-separated)",
-                        validation: { _ in true },
-                        errorMessage: ""
-                    )
-                    .accessibilityIdentifier("charactersField")
-                }
+        NavigationView {
+            ZStack { // Keep ZStack for background and overlays
+                CollectionFormBackgroundView(animateBackground: $isGenerating)
                 
-                Section(header: Text("Collection Focus").font(.headline)) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Developmental Focus").font(.body)
-                        Picker("Developmental Focus", selection: $developmentalFocus) {
-                            ForEach(DevelopmentalFocus.allCases) { focus in
-                                Text(focus.rawValue).tag(focus)
+                Form { // Use Form for standard layout and styling
+                    Section(header: Text("Child Details").font(.headline)) {
+                        ValidatedTextField(
+                            text: $childName,
+                            label: "Child's Name (Optional)",
+                            validation: { _ in true }, // No validation needed for optional field
+                            errorMessage: ""
+                        )
+                        .accessibilityIdentifier("childNameField")
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Age Group").font(.body)
+                            Picker("Age Group", selection: $childAgeGroup) {
+                                ForEach(AgeGroup.allCases) { age in
+                                    Text(age.rawValue).tag(age)
+                                }
                             }
+                            .pickerStyle(SegmentedPickerStyle())
+                            .accessibilityIdentifier("ageGroupPicker")
                         }
-                        .pickerStyle(MenuPickerStyle())
-                        .accessibilityIdentifier("developmentalFocusPicker")
+                        .padding(.vertical, 4)
+                        
+                        ValidatedTextField(
+                            text: $characters,
+                            label: "Favorite Characters (Optional, comma-separated)",
+                            validation: { _ in true }, // No validation needed for optional field
+                            errorMessage: ""
+                        )
+                        .accessibilityIdentifier("charactersField")
                     }
-                    .padding(.vertical, 4)
                     
-                    ValidatedTextField(
-                        text: $interests,
-                        label: "Interests (e.g., Dinosaurs, Space)",
-                        validation: { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty },
-                        errorMessage: "Interests are required"
-                    )
-                    .lineLimit(3...) // Allow multi-line input for interests
-                    .onChange(of: interests) { newValue in
-                        isInterestsValid = !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                    }
-                    .accessibilityIdentifier("interestsField")
-                }
-                
-                Section {
-                    Button {
-                        Task {
-                            await generateCollection()
-                        }
-                    } label: {
-                        HStack {
-                            Spacer()
-                            // Show ProgressView inside the button when generating
-                            if isGenerating {
-                                ProgressView("Generating...")
-                            } else {
-                                Text("Generate Collection")
-                                    .fontWeight(.semibold)
+                    Section(header: Text("Collection Focus").font(.headline)) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Developmental Focus").font(.body)
+                            Picker("Developmental Focus", selection: $developmentalFocus) {
+                                ForEach(DevelopmentalFocus.allCases) { focus in
+                                    Text(focus.rawValue).tag(focus)
+                                }
                             }
-                            Spacer()
+                            .pickerStyle(MenuPickerStyle())
+                            .accessibilityIdentifier("developmentalFocusPicker")
                         }
+                        .padding(.vertical, 4)
+                        
+                        ValidatedTextField(
+                            text: $interests,
+                            label: "Interests (e.g., Dinosaurs, Space)",
+                            validation: { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty },
+                            errorMessage: "Interests are required"
+                        )
+                        .lineLimit(3...) // Allow multi-line input for interests
+                        .accessibilityIdentifier("interestsField")
                     }
-                    .disabled(isGenerating || !isInterestsValid) // Disable if generating or form invalid
-                    .frame(maxWidth: .infinity)
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .padding(.vertical, 8)
-                    .accessibilityIdentifier("generateButton")
-                }
-                .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
-            }
+                    
+                    Section {
+                        Button {
+                            Task {
+                                await generateCollection()
+                            }
+                        } label: {
+                            HStack {
+                                Spacer()
+                                // Show ProgressView inside the button when generating
+                                if isGenerating {
+                                    ProgressView("Generating...")
+                                } else {
+                                    Text("Generate Collection")
+                                        .fontWeight(.semibold)
+                                }
+                                Spacer()
+                            }
+                        }
+                        .disabled(isGenerating || !isInterestsValid) // Disable if generating or interests invalid
+                        .frame(maxWidth: .infinity)
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .padding(.vertical, 8)
+                        .accessibilityIdentifier("generateButton")
+                    }
+                    // Apply listRowInsets to the Section for consistent padding
+                    .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                } // End Form
+                .disabled(isGenerating) // Disable the form while generating
+            } // End ZStack
             .navigationTitle("New Collection")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -135,46 +142,10 @@ struct CollectionFormView: View {
                 }
             }
             .disabled(isGenerating) // Disable the form while generating
-            // Overlay loading indicator for consistency with StoryFormView
+            // Conditional overlay for loading OR success animation
             .overlay {
                 if isGenerating {
-                    // Enhanced loading overlay
-                    ZStack {
-                        Color.black.opacity(0.5).ignoresSafeArea()
-                        VStack(spacing: 20) {
-                            ZStack {
-                                Circle()
-                                    .stroke(Color.gray.opacity(0.3), lineWidth: 8)
-                                    .frame(width: 80, height: 80)
-                                
-                                Circle()
-                                    .trim(from: 0, to: 0.7)
-                                    .stroke(Color.blue, lineWidth: 8)
-                                    .frame(width: 80, height: 80)
-                                    .rotationEffect(Angle(degrees: isGenerating ? 360 : 0))
-                                    .animation(Animation.linear(duration: 1).repeatForever(autoreverses: false), value: isGenerating)
-                            }
-                            
-                            Text("Creating Your Collection")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                            
-                            Text("Please wait while we craft your personalized stories...")
-                                .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.8))
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal)
-                            
-                            ProgressView()
-                                .progressViewStyle(LinearProgressViewStyle())
-                                .frame(width: 200)
-                                .padding(.top, 8)
-                        }
-                        .padding(32)
-                        .background(RoundedRectangle(cornerRadius: 20).fill(Color.gray.opacity(0.8)))
-                        .shadow(radius: 15)
-                    }
-                    .accessibilityIdentifier("loadingOverlay")
+                    CollectionLoadingOverlayView(isLoading: isGenerating)
                 } else if showSuccessAnimation {
                     // Success animation overlay
                     ZStack {
@@ -201,46 +172,43 @@ struct CollectionFormView: View {
                         .shadow(radius: 15)
                     }
                     .transition(.opacity.animation(.easeInOut(duration: 0.5)))
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                            showSuccessAnimation = false
-                            dismiss()
-                        }
-                    }
+                    // Removed redundant onAppear dismissal logic here
                     .accessibilityIdentifier("successOverlay")
                 }
             }
-            // Present error as alert for consistency with StoryFormView
-            .alert("Error Creating Collection", isPresented: .constant(errorMessage != nil), actions: {
+            // Present error as alert using the boolean state
+            .alert("Error Creating Collection", isPresented: $showErrorAlert, actions: {
                 Button("Try Again", role: .none) {
                     // Keep form data and allow retry
-                    errorMessage = nil
+                    errorMessage = nil // Clear message but keep alert state managed by showErrorAlert
                 }
                 Button("Cancel", role: .cancel) {
                     errorMessage = nil
-                    dismiss()
+                    dismiss() // Dismiss if user cancels the alert
                 }
             }, message: {
                 if let error = errorMessage {
                     Text(error + "\n\nPlease check your inputs and try again. If the problem persists, try again later.")
+                } else {
+                    Text("An unknown error occurred.") // Fallback message
                 }
             })
-            .onAppear {
-                // Initialize validation state
-                isInterestsValid = !interests.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            }
-        }
-    }
+            // No onAppear needed for validation initialization as it's a computed property now
+        } // End NavigationView
+    } // End body
     
     // Function to handle collection generation
     private func generateCollection() async {
+        // Validation check remains the same
         guard isInterestsValid else {
             errorMessage = "Please enter the child's interests."
+            showErrorAlert = true // Show the alert
             return
         }
         
         isGenerating = true
-        errorMessage = nil
+        errorMessage = nil // Clear previous errors
+        showErrorAlert = false // Hide alert if it was previously shown
         
         let parameters = CollectionParameters(
             childAgeGroup: childAgeGroup.rawValue, // Pass rawValue
@@ -282,6 +250,7 @@ struct CollectionFormView: View {
             // Handle error
             isGenerating = false
             errorMessage = "Failed to generate collection: \(error.localizedDescription)"
+            showErrorAlert = true // Show the alert on error
             hapticError()
             print("[CollectionFormView] Error generating collection: \(error)")
         }
