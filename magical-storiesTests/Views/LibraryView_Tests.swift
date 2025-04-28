@@ -53,7 +53,8 @@ struct LibraryViewTests {
         // Arrange
         let story = Story.preview
         let service = try await makeStoryService(with: [story])
-        let controller = hostLibraryView(with: service)
+        // Create controller but assign to _ since we're not asserting UI state
+        _ = hostLibraryView(with: service)
         // Precondition: Story is present
         #expect(service.stories.contains(where: { $0.id == story.id }))
         // Act: Delete the story

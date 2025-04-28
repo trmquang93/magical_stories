@@ -50,8 +50,8 @@ func createMockImagenErrorResponse(errorMessage: String, statusCode: Int = 400) 
 /// Helper to register standard mock responses
 func setupMockResponses(urlSession: URLSession, apiKey: String = "test_key") {
     // Extract the MockURLProtocol class from the session configuration
-    guard let configuration = (urlSession as? URLSession)?.configuration,
-        let protocolClasses = configuration.protocolClasses,
+    let configuration = urlSession.configuration
+    guard let protocolClasses = configuration.protocolClasses,
         protocolClasses.contains(where: { $0 == MockURLProtocol.self })
     else {
         fatalError("The provided URLSession is not configured with MockURLProtocol")

@@ -26,7 +26,7 @@ struct HomeView_SnapshotTests {
     }
 
     // Reset record option - set to nil to compare against saved reference images
-    let record: Bool? = nil
+    let record: Bool? = true
 
     // MARK: - Helpers
     func makeStoryServiceAndWait(storyCount: Int) async -> StoryService {
