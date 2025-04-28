@@ -1,14 +1,19 @@
+import SwiftData
 import SwiftUI
 
 struct StoryDetailView: View {
     @EnvironmentObject private var collectionService: CollectionService
     @EnvironmentObject private var persistenceService: PersistenceService
+    @EnvironmentObject private var illustrationService: IllustrationService
+    @Environment(\.modelContext) private var modelContext
+
     let story: Story
 
     @State private var pages: [Page] = []
     @State private var currentPageIndex = 0
     @State private var isLoadingPages = true
     @State private var readingProgress: Double = 0.0
+    @State private var illustrationProgress: (ready: Int, total: Int) = (0, 0)
 
     @State private var showCompletionAlert = false
     @State private var newAchievements: [Achievement] = []
@@ -16,6 +21,20 @@ struct StoryDetailView: View {
     // Accessibility description of the current reading progress
     private var progressDescription: String {
         "Reading progress: \(Int(readingProgress * 100))%"
+    }
+
+    // Status text for illustration generation
+    private var illustrationStatusText: String? {
+        guard illustrationProgress.total > 0 else { return nil }
+
+        let readyCount = illustrationProgress.ready
+        let totalCount = illustrationProgress.total
+
+        if readyCount == totalCount {
+            return nil  // Don't show if all illustrations are ready
+        }
+
+        return "\(readyCount) of \(totalCount) illustrations ready"
     }
 
     var body: some View {
@@ -38,13 +57,42 @@ struct StoryDetailView: View {
                 .accessibilityLabel("Story Error")
                 .accessibilityHint("Could not load story pages")
             } else {
+                // Illustration Status Header (only shown when illustrations are loading)
+                if let statusText = illustrationStatusText {
+                    VStack(spacing: 4) {
+                        Text(statusText)
+                            .font(UITheme.Typography.bodySmall)
+                            .foregroundColor(UITheme.Colors.textSecondary)
+
+                        ProgressView(
+                            value: Double(illustrationProgress.ready),
+                            total: Double(illustrationProgress.total)
+                        )
+                        .tint(UITheme.Colors.accent)
+                        .frame(maxWidth: .infinity)
+                    }
+                    .padding(.horizontal, Theme.Spacing.lg)
+                    .padding(.vertical, Theme.Spacing.sm)
+                    .background(UITheme.Colors.surfacePrimary)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(
+                        "Illustration progress: \(illustrationProgress.ready) of \(illustrationProgress.total) ready"
+                    )
+                    .transition(.opacity.animation(.easeInOut(duration: 0.3)))
+                }
+
                 // Page Content using TabView for pagination
                 TabView(selection: $currentPageIndex) {
                     ForEach(pages.indices, id: \.self) { index in
-                        PageView(page: pages[index])
-                            .tag(index)
-                            .accessibilityLabel("Page \(index + 1)")
-                            .accessibilityHint("Swipe left or right to navigate between pages")
+                        PageView(
+                            regenerateAction: {
+                                regenerateIllustration(for: pages[index])
+                            },
+                            page: pages[index]
+                        )
+                        .tag(index)
+                        .accessibilityLabel("Page \(index + 1)")
+                        .accessibilityHint("Swipe left or right to navigate between pages")
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))  // Use page style, hide default index dots
@@ -63,6 +111,9 @@ struct StoryDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task {  // Use .task for async operations on appear
             await loadPages()
+
+            // Start processing illustrations in background
+            processIllustrations()
         }
         .alert(
             "Achievement Unlocked!", isPresented: $showCompletionAlert, presenting: newAchievements
@@ -70,6 +121,9 @@ struct StoryDetailView: View {
             Button("Awesome!") {}
         } message: { achievements in
             Text("You've earned: \(achievements.map { $0.name }.joined(separator: ", "))")
+        }
+        .onChange(of: pages) { _, _ in
+            updateIllustrationProgress()
         }
     }
 
@@ -104,6 +158,8 @@ struct StoryDetailView: View {
         if !pages.isEmpty {
             readingProgress = StoryProcessor.calculateReadingProgress(
                 currentPage: currentPageIndex + 1, totalPages: pages.count)
+            // Also update illustration progress initially
+            updateIllustrationProgress()
         } else {
             readingProgress = 0.0
         }
@@ -112,6 +168,40 @@ struct StoryDetailView: View {
             UIAccessibility.post(
                 notification: .screenChanged,
                 argument: "\(pages.count) pages loaded. Page 1 is now displayed")
+        }
+    }
+
+    private func updateIllustrationProgress() {
+        let total = pages.count
+        let ready = pages.filter { $0.illustrationStatus == .ready }.count
+
+        illustrationProgress = (ready, total)
+    }
+
+    private func processIllustrations() {
+        // Start generating illustrations for the story in background
+        illustrationService.generateIllustrationsForStory(story, context: modelContext)
+
+        // Set up a timer to periodically update the illustration progress
+        // This is a simple approach - in a real app, you might use Combine or another observation mechanism
+        Task {
+            for _ in 1...20 {  // Check up to 20 times
+                try? await Task.sleep(for: .seconds(1))
+                if !Task.isCancelled {
+                    updateIllustrationProgress()
+                }
+            }
+        }
+    }
+
+    private func regenerateIllustration(for page: Page) {
+        Task {
+            do {
+                try await illustrationService.generateIllustration(for: page, context: modelContext)
+                updateIllustrationProgress()
+            } catch {
+                print("Failed to regenerate illustration: \(error)")
+            }
         }
     }
 
@@ -151,9 +241,12 @@ struct StoryDetailView: View {
 
         // Mark story as completed and update collection progress
         do {
-            try await collectionService.markStoryAsCompleted(storyId: story.id, collectionId: collectionId)
+            try await collectionService.markStoryAsCompleted(
+                storyId: story.id, collectionId: collectionId)
         } catch {
-            print("[StoryDetailView] Error marking story as completed or updating collection progress: \(error)")
+            print(
+                "[StoryDetailView] Error marking story as completed or updating collection progress: \(error)"
+            )
         }
     }
 }

@@ -1,9 +1,9 @@
+import Combine
+import SnapshotTesting
+import SwiftData
 import SwiftUI
 import Testing
 import XCTest
-import SnapshotTesting
-import SwiftData
-import Combine
 
 @testable import magical_stories
 
@@ -25,31 +25,31 @@ struct HomeView_Tests {
         let viewData = await createTestView(storyCount: 0, collectionCount: 0)
         let _ = viewData.0
         let collectionService = viewData.2
-        
+
         #expect(collectionService.collections.isEmpty)
-        
+
         // The original test was checking for strings in the view description
         // This approach is fragile and depends on internal implementation details
         // Instead, we'll verify the viewModel state which determines what's displayed
-        
+
         // Verify the HomeView is in the correct state to display createGrowthCollectionCard
         #expect(collectionService.collections.isEmpty)
     }
-    
+
     @Test("HomeView displays growthCollectionsPreview when collections is not empty")
     func testGrowthCollectionsPreview() async throws {
         let viewData = await createTestView(storyCount: 0, collectionCount: 2)
         let _ = viewData.0
         let collectionService = viewData.2
-        
+
         // Wait for collections to be loaded with Combine
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             var cancellable: AnyCancellable?
             var didResume = false
-            
+
             // Force reload of collections
             collectionService.loadCollections(forceReload: true)
-            
+
             cancellable = collectionService.$collections.sink { collections in
                 if !collections.isEmpty && collections.count == 2 && !didResume {
                     didResume = true
@@ -57,7 +57,7 @@ struct HomeView_Tests {
                     cancellable?.cancel()
                 }
             }
-            
+
             // Timeout after reasonable time
             Task {
                 try? await Task.sleep(for: .seconds(1))
@@ -67,32 +67,35 @@ struct HomeView_Tests {
                 }
             }
         }
-        
+
         // Verify the HomeView is in the correct state to display growthCollectionsPreview
         #expect(!collectionService.collections.isEmpty)
         #expect(collectionService.collections.count == 2)
     }
-    
+
     // Helper method for test setup
-    private func createTestView(storyCount: Int, collectionCount: Int) async -> (some View, StoryService, CollectionService) {
+    private func createTestView(storyCount: Int, collectionCount: Int) async -> (
+        some View, StoryService, CollectionService
+    ) {
         // Set up test data
         let schema = Schema([StoryModel.self, PageModel.self])
-        let container = try! ModelContainer(for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
+        let container = try! ModelContainer(
+            for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let context = ModelContext(container)
         let mockPersistence = MockPersistenceService()
-        
+
         // Create stories if needed
-        mockPersistence.storiesToLoad = (0..<storyCount).map { i in
+        mockPersistence.stories = (0..<storyCount).map { i in
             Story.previewStory(title: "Story #\(i+1)")
         }
-        
+
         // Create story service
         let storyService = try! StoryService(
             apiKey: "",
             context: context,
             persistenceService: mockPersistence
         )
-        
+
         // Create collection service with explicit collections
         let mockRepo = MockCollectionRepository()
         for i in 0..<collectionCount {
@@ -105,25 +108,27 @@ struct HomeView_Tests {
             try? mockRepo.saveCollection(collection)
         }
         let achievementRepo = MockAchievementRepository()
-        let collectionService = CollectionService(repository: mockRepo, storyService: storyService, achievementRepository: achievementRepo)
-        
+        let collectionService = CollectionService(
+            repository: mockRepo, storyService: storyService, achievementRepository: achievementRepo
+        )
+
         // Load stories if configured
         if storyCount > 0 {
             Task { await storyService.loadStories() }
         }
-        
+
         // Create the view with dependencies
         let selectedTabBinding = Binding<TabItem>(
             get: { .home },
             set: { _ in }
         )
-        
+
         // Create the HomeView directly without modifiers to ensure concrete type
         let homeView = HomeView()
             .environmentObject(storyService)
             .environmentObject(collectionService)
             .environment(\.selectedTabBinding, selectedTabBinding)
-        
+
         return (homeView, storyService, collectionService)
     }
 }

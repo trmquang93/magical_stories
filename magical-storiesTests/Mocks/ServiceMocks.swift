@@ -83,7 +83,7 @@ class MockGenerativeModel: GenerativeModelProtocol {
         if let error = error {
             throw error
         }
-        if let generatedText { 
+        if let generatedText {
             return MockStoryGenerationResponse(text: generatedText)
         }
         generateContentCalled = true
@@ -118,36 +118,36 @@ class MockGenerativeModel: GenerativeModelProtocol {
 // MARK: - MockCollectionService
 
 /// Minimal mock for CollectionServiceProtocol.
-class MockCollectionService: CollectionServiceProtocol {
+class CollectionServiceMock: CollectionServiceProtocol {
     var collections: [StoryCollection] = []
-    
+
     // Handler closures for testing callbacks
     var updateProgressHandler: ((UUID, Float) async throws -> Void)?
     var checkAchievementsHandler: ((UUID) async throws -> [Achievement])?
-    
+
     // Core CollectionServiceProtocol methods
     func createCollection(_ collection: StoryCollection) throws {
         collections.append(collection)
     }
-    
+
     func fetchCollection(id: UUID) throws -> StoryCollection? {
         return collections.first { $0.id == id }
     }
-    
+
     func fetchAllCollections() throws -> [StoryCollection] {
         return collections
     }
-    
+
     func updateCollectionProgress(id: UUID, progress: Float) throws {
         if let index = collections.firstIndex(where: { $0.id == id }) {
             collections[index].completionProgress = Double(progress)
         }
     }
-    
+
     func deleteCollection(id: UUID) throws {
         collections.removeAll { $0.id == id }
     }
-    
+
     // Additional methods needed for StoryDetailViewTests
     func updateProgress(for collectionId: UUID, progress: Float) async throws {
         if let handler = updateProgressHandler {
@@ -159,17 +159,17 @@ class MockCollectionService: CollectionServiceProtocol {
             }
         }
     }
-    
+
     func checkAchievements(for collectionId: UUID) async throws -> [Achievement] {
         if let handler = checkAchievementsHandler {
             return try await handler(collectionId)
         }
-        return [] // Default empty array if no handler
+        return []  // Default empty array if no handler
     }
-    
+
     // Method to simulate loadCollections from the real CollectionService
     func loadCollections(forceReload: Bool = false) {
-        // This mock implementation just keeps the collections as is 
+        // This mock implementation just keeps the collections as is
         // No need to do anything since the collections are already set directly in the test
     }
 }
@@ -181,17 +181,21 @@ class MockAIService {
     var generateIllustrationShouldFail = false
     var generatedStoryContent = "Once upon a time..."
     var generatedIllustrationPath = "path/to/illustration.png"
-    
+
     func generateStory(parameters: StoryParameters) async throws -> String {
         if generateStoryShouldFail {
-            throw NSError(domain: "MockAIService", code: 500, userInfo: [NSLocalizedDescriptionKey: "Story generation failed"])
+            throw NSError(
+                domain: "MockAIService", code: 500,
+                userInfo: [NSLocalizedDescriptionKey: "Story generation failed"])
         }
         return generatedStoryContent
     }
-    
+
     func generateIllustration(for pageText: String, theme: String) async throws -> String? {
         if generateIllustrationShouldFail {
-            throw NSError(domain: "MockAIService", code: 500, userInfo: [NSLocalizedDescriptionKey: "Illustration generation failed"])
+            throw NSError(
+                domain: "MockAIService", code: 500,
+                userInfo: [NSLocalizedDescriptionKey: "Illustration generation failed"])
         }
         return generatedIllustrationPath
     }

@@ -1,15 +1,15 @@
-import Testing
-import SwiftUI
-import SnapshotTesting
-import CoreData
 import Combine
-import XCTest
+import CoreData
+import SnapshotTesting
 import SwiftData
+import SwiftUI
+import Testing
+import XCTest
 
 @testable import magical_stories
 
 // Helper struct for binding
-fileprivate struct TestSupport {
+private struct TestSupport {
     static func createBindingForTest<T>(_ value: T) -> Binding<T> {
         var mutableValue = value
         return Binding(
@@ -21,21 +21,23 @@ fileprivate struct TestSupport {
 
 @MainActor
 final class LibraryView_SnapshotTests: XCTestCase {
-    let diff: Snapshotting<UIViewController, UIImage> = .image(precision: 0.95, perceptualPrecision: 0.95)
+    let diff: Snapshotting<UIViewController, UIImage> = .image(
+        precision: 0.95, perceptualPrecision: 0.95)
     let iPhone11Frame = CGRect(x: 0, y: 0, width: 375, height: 812)
     // Reset record option - set to nil to compare against saved reference images
     let record: Bool? = nil
-    
+
     // Helper to create a mock StoryService with demo stories
     func makeMockStoryService() -> StoryService {
         // If you have StoryService.mockWithDemoStories(), use it. Otherwise, create a minimal mock:
         let schema = Schema([StoryModel.self, PageModel.self])
-        let container = try! ModelContainer(for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
+        let container = try! ModelContainer(
+            for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let context = ModelContext(container)
         let mockPersistence = MockPersistenceService()
-        mockPersistence.storiesToLoad = [
+        mockPersistence.stories = [
             Story.previewStory(title: "The Magic Garden"),
-            Story.previewStory(title: "Dragon's Birthday")
+            Story.previewStory(title: "Dragon's Birthday"),
         ]
         let service = try! StoryService(
             apiKey: "",
@@ -50,10 +52,11 @@ final class LibraryView_SnapshotTests: XCTestCase {
 
     func makeEmptyStoryService() -> StoryService {
         let schema = Schema([StoryModel.self, PageModel.self])
-        let container = try! ModelContainer(for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
+        let container = try! ModelContainer(
+            for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let context = ModelContext(container)
         let mockPersistence = MockPersistenceService()
-        mockPersistence.storiesToLoad = []
+        mockPersistence.stories = []
         let service = try! StoryService(
             apiKey: "",
             context: context,
@@ -122,14 +125,15 @@ final class LibraryView_SnapshotTests: XCTestCase {
     // Helper to create a mock StoryService with 3+ stories for recent stories section
     func makeRecentStoriesServiceAndWait(_ expectation: XCTestExpectation) -> StoryService {
         let schema = Schema([StoryModel.self, PageModel.self])
-        let container = try! ModelContainer(for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
+        let container = try! ModelContainer(
+            for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let context = ModelContext(container)
         let mockPersistence = MockPersistenceService()
         let now = Date()
-        mockPersistence.storiesToLoad = [
+        mockPersistence.stories = [
             Story.previewStory(title: "Newest Story").withTimestamp(now),
             Story.previewStory(title: "Middle Story").withTimestamp(now.addingTimeInterval(-3600)),
-            Story.previewStory(title: "Oldest Story").withTimestamp(now.addingTimeInterval(-7200))
+            Story.previewStory(title: "Oldest Story").withTimestamp(now.addingTimeInterval(-7200)),
         ]
         let service = try! StoryService(
             apiKey: "",
@@ -158,7 +162,8 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .light
-        assertSnapshot(of: host, as: diff, named: "LibraryView_RecentStoriesSection_Light", record: record)
+        assertSnapshot(
+            of: host, as: diff, named: "LibraryView_RecentStoriesSection_Light", record: record)
     }
 
     func testLibraryView_RecentStoriesSection_DarkMode() {
@@ -169,7 +174,8 @@ final class LibraryView_SnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .dark
-        assertSnapshot(of: host, as: diff, named: "LibraryView_RecentStoriesSection_Dark", record: record)
+        assertSnapshot(
+            of: host, as: diff, named: "LibraryView_RecentStoriesSection_Dark", record: record)
     }
 }
 
@@ -190,4 +196,4 @@ extension Story {
         self.timestamp = date
         return self
     }
-} 
+}

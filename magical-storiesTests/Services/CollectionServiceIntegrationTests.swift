@@ -125,18 +125,18 @@ class TestStoryService: StoryService {
                 content:
                     "Once upon a time, there was a child named \(parameters.childName) who loved \(parameters.theme).",
                 pageNumber: 1,
-                illustrationStatus: .placeholder
+                illustrationStatus: .pending
             ),
             Page(
                 content:
                     "They had many adventures with their friend, the \(parameters.favoriteCharacter).",
                 pageNumber: 2,
-                illustrationStatus: .placeholder
+                illustrationStatus: .pending
             ),
             Page(
                 content: "The end.",
                 pageNumber: 3,
-                illustrationStatus: .placeholder
+                illustrationStatus: .pending
             ),
         ]
 

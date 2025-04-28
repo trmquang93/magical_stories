@@ -38,26 +38,23 @@ class DetailedResponseWrapper: StoryGenerationResponse {
                 let jsonSubstring = responseText[jsonStartIndex...jsonEndIndex]
                 print("\nPOTENTIAL JSON DETECTED:")
                 print(jsonSubstring)
-                do {
-                    let jsonData = String(jsonSubstring).data(using: .utf8)!
-                    if let jsonObject = try? JSONSerialization.jsonObject(with: jsonData)
-                        as? [String: Any]
-                    {
-                        print("\nPARSED JSON:")
-                        if let story = jsonObject["story"] as? String {
-                            print("story: \"\(String(story.prefix(100)))...\"")
-                            self.processedText = story
-                            if let category = jsonObject["category"] as? String {
-                                print("category: \"\(category)\"")
-                            }
-                            print(
-                                "\n=================================================================\n"
-                            )
-                            return story
+
+                let jsonData = String(jsonSubstring).data(using: .utf8)!
+                if let jsonObject = try? JSONSerialization.jsonObject(with: jsonData)
+                    as? [String: Any]
+                {
+                    print("\nPARSED JSON:")
+                    if let story = jsonObject["story"] as? String {
+                        print("story: \"\(String(story.prefix(100)))...\"")
+                        self.processedText = story
+                        if let category = jsonObject["category"] as? String {
+                            print("category: \"\(category)\"")
                         }
+                        print(
+                            "\n=================================================================\n"
+                        )
+                        return story
                     }
-                } catch {
-                    print("Failed to parse JSON: \(error)")
                 }
             }
             print("\nNo valid JSON structure detected or no 'story' field found in JSON.")

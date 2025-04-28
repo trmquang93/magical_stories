@@ -1,14 +1,14 @@
-import Testing
-import SwiftUI
-import SnapshotTesting
-import CoreData
-import SwiftData
 import Combine
+import CoreData
+import SnapshotTesting
+import SwiftData
+import SwiftUI
+import Testing
 
 @testable import magical_stories
 
 // Helper for selectedTabBinding
-fileprivate struct TestSupport {
+private struct TestSupport {
     static func createBindingForTest<T>(_ value: T) -> Binding<T> {
         var mutableValue = value
         return Binding(
@@ -24,20 +24,21 @@ struct HomeView_SnapshotTests {
     var diff: Snapshotting<UIViewController, UIImage> {
         return .imageWithRootDirectory(precision: 0.9, perceptualPrecision: 0.9)
     }
-    
+
     // Reset record option - set to nil to compare against saved reference images
     let record: Bool? = nil
 
     // MARK: - Helpers
     func makeStoryServiceAndWait(storyCount: Int) async -> StoryService {
         let schema = Schema([StoryModel.self, PageModel.self])
-        let container = try! ModelContainer(for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
+        let container = try! ModelContainer(
+            for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let context = ModelContext(container)
         let mockPersistence = MockPersistenceService()
         let now = Date()
-        mockPersistence.storiesToLoad = (0..<storyCount).map { i in
+        mockPersistence.stories = (0..<storyCount).map { i in
             let story = Story.previewStory(title: "Story #\(i+1)")
-            story.timestamp = now.addingTimeInterval(TimeInterval(-i * 60)) // Unique timestamp
+            story.timestamp = now.addingTimeInterval(TimeInterval(-i * 60))  // Unique timestamp
             return story
         }
         let service = try! StoryService(
@@ -61,7 +62,9 @@ struct HomeView_SnapshotTests {
         return service
     }
 
-    func makeCollectionService(collectionCount: Int = 0, storyService: StoryService) -> CollectionService {
+    func makeCollectionService(collectionCount: Int = 0, storyService: StoryService)
+        -> CollectionService
+    {
         let mockRepo = MockCollectionRepository()
         for i in 0..<collectionCount {
             let collection = StoryCollection(
@@ -73,12 +76,17 @@ struct HomeView_SnapshotTests {
             try? mockRepo.saveCollection(collection)
         }
         let achievementRepo = MockAchievementRepository()
-        return CollectionService(repository: mockRepo, storyService: storyService, achievementRepository: achievementRepo)
+        return CollectionService(
+            repository: mockRepo, storyService: storyService, achievementRepository: achievementRepo
+        )
     }
 
-    func makeHomeView(storyCount: Int, collectionCount: Int = 0, scrollToBottom: Bool = false) async -> some View {
+    func makeHomeView(storyCount: Int, collectionCount: Int = 0, scrollToBottom: Bool = false) async
+        -> some View
+    {
         let storyService = await makeStoryServiceAndWait(storyCount: storyCount)
-        let collectionService = makeCollectionService(collectionCount: collectionCount, storyService: storyService)
+        let collectionService = makeCollectionService(
+            collectionCount: collectionCount, storyService: storyService)
         collectionService.loadCollections(forceReload: true)
 
         // Wait for collections to be published if expecting collections
@@ -96,15 +104,15 @@ struct HomeView_SnapshotTests {
 
         let selectedTabBinding = TestSupport.createBindingForTest(TabItem.home)
         #if DEBUG
-        return HomeView(scrollToBottom: scrollToBottom)
-            .environmentObject(storyService)
-            .environmentObject(collectionService)
-            .environment(\.selectedTabBinding, selectedTabBinding)
+            return HomeView(scrollToBottom: scrollToBottom)
+                .environmentObject(storyService)
+                .environmentObject(collectionService)
+                .environment(\.selectedTabBinding, selectedTabBinding)
         #else
-        return HomeView()
-            .environmentObject(storyService)
-            .environmentObject(collectionService)
-            .environment(\.selectedTabBinding, selectedTabBinding)
+            return HomeView()
+                .environmentObject(storyService)
+                .environmentObject(collectionService)
+                .environment(\.selectedTabBinding, selectedTabBinding)
         #endif
     }
 
@@ -151,7 +159,8 @@ struct HomeView_SnapshotTests {
         let host = UIHostingController(rootView: view)
         host.view.frame = SnapshotTestExtensions.Frames.enlarged
         host.overrideUserInterfaceStyle = .light
-        assertSnapshot(of: host, as: diff, named: "HomeView_MoreThanTwoStories_Light", record: record)
+        assertSnapshot(
+            of: host, as: diff, named: "HomeView_MoreThanTwoStories_Light", record: record)
     }
 
     @Test("Test HomeView with more than two stories in dark mode")
@@ -160,9 +169,10 @@ struct HomeView_SnapshotTests {
         let host = UIHostingController(rootView: view)
         host.view.frame = SnapshotTestExtensions.Frames.enlarged
         host.overrideUserInterfaceStyle = .dark
-        assertSnapshot(of: host, as: diff, named: "HomeView_MoreThanTwoStories_Dark", record: record)
+        assertSnapshot(
+            of: host, as: diff, named: "HomeView_MoreThanTwoStories_Dark", record: record)
     }
-    
+
     // New snapshot tests for collections
     @Test("Test HomeView with collections in light mode")
     func testHomeView_WithCollections_LightMode() async {
@@ -172,7 +182,7 @@ struct HomeView_SnapshotTests {
         host.overrideUserInterfaceStyle = .light
         assertSnapshot(of: host, as: diff, named: "HomeView_WithCollections_Light", record: record)
     }
-    
+
     @Test("Test HomeView with collections in dark mode")
     func testHomeView_WithCollections_DarkMode() async {
         let view = await makeHomeView(storyCount: 2, collectionCount: 3)
@@ -181,41 +191,45 @@ struct HomeView_SnapshotTests {
         host.overrideUserInterfaceStyle = .dark
         assertSnapshot(of: host, as: diff, named: "HomeView_WithCollections_Dark", record: record)
     }
-    
+
     @Test("Test HomeView with no collections but with stories in light mode")
     func testHomeView_NoCollections_WithStories_LightMode() async {
         let view = await makeHomeView(storyCount: 3, collectionCount: 0)
         let host = UIHostingController(rootView: view)
         host.view.frame = SnapshotTestExtensions.Frames.enlarged
         host.overrideUserInterfaceStyle = .light
-        assertSnapshot(of: host, as: diff, named: "HomeView_NoCollections_WithStories_Light", record: record)
+        assertSnapshot(
+            of: host, as: diff, named: "HomeView_NoCollections_WithStories_Light", record: record)
     }
-    
+
     @Test("Test HomeView with no collections but with stories in dark mode")
     func testHomeView_NoCollections_WithStories_DarkMode() async {
         let view = await makeHomeView(storyCount: 3, collectionCount: 0)
         let host = UIHostingController(rootView: view)
         host.view.frame = SnapshotTestExtensions.Frames.enlarged
         host.overrideUserInterfaceStyle = .dark
-        assertSnapshot(of: host, as: diff, named: "HomeView_NoCollections_WithStories_Dark", record: record)
+        assertSnapshot(
+            of: host, as: diff, named: "HomeView_NoCollections_WithStories_Dark", record: record)
     }
-    
+
     @Test("Test HomeView with collections but no stories in light mode")
     func testHomeView_WithCollections_NoStories_LightMode() async {
         let view = await makeHomeView(storyCount: 0, collectionCount: 3)
         let host = UIHostingController(rootView: view)
         host.view.frame = SnapshotTestExtensions.Frames.enlarged
         host.overrideUserInterfaceStyle = .light
-        assertSnapshot(of: host, as: diff, named: "HomeView_WithCollections_NoStories_Light", record: record)
+        assertSnapshot(
+            of: host, as: diff, named: "HomeView_WithCollections_NoStories_Light", record: record)
     }
-    
+
     @Test("Test HomeView with collections but no stories in dark mode")
     func testHomeView_WithCollections_NoStories_DarkMode() async {
         let view = await makeHomeView(storyCount: 0, collectionCount: 3)
         let host = UIHostingController(rootView: view)
         host.view.frame = SnapshotTestExtensions.Frames.enlarged
         host.overrideUserInterfaceStyle = .dark
-        assertSnapshot(of: host, as: diff, named: "HomeView_WithCollections_NoStories_Dark", record: record)
+        assertSnapshot(
+            of: host, as: diff, named: "HomeView_WithCollections_NoStories_Dark", record: record)
     }
 
     @Test("Test HomeView with scroll to bottom in light mode")

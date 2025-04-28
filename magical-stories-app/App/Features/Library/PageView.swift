@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PageView: View {
     var regenerateAction: (() -> Void)? = nil  // Optional regenerate callback
+    let page: Page
 
     private func fullImageURL(for relativePath: String) -> URL? {
         let fileManager = FileManager.default
@@ -15,7 +16,6 @@ struct PageView: View {
             return nil
         }
     }
-    let page: Page
 
     /// Generate an accessibility description for the illustration based on the image prompt or create a default one
     private var illustrationDescription: String {
@@ -29,88 +29,50 @@ struct PageView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: UITheme.Spacing.lg) {
-                // Display illustration if available
-                if page.illustrationStatus == .success, let relPath = page.illustrationRelativePath,
-                    let url = fullImageURL(for: relPath)
-                {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView()
-                                .frame(height: 200)
-                                .frame(maxWidth: .infinity)
-                                .background(UITheme.Colors.surfaceSecondary)
-                                .cornerRadius(UITheme.Layout.cornerRadiusMedium)
-                                .accessibilityLabel("Loading illustration")
-                                .accessibilityAddTraits(.updatesFrequently)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 200)
-                                .frame(maxWidth: .infinity)
-                                .cornerRadius(UITheme.Layout.cornerRadiusMedium)
-                                .accessibilityLabel(illustrationDescription)
-                                .accessibilityAddTraits(.isImage)
-                        case .failure:
-                            Image("placeholder-illustration")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 200)
-                                .frame(maxWidth: .infinity)
-                                .cornerRadius(UITheme.Layout.cornerRadiusMedium)
-                                .overlay(
-                                    Text("Failed to load illustration")
-                                        .font(UITheme.Typography.bodySmall)
-                                        .padding(6)
-                                        .background(UITheme.Colors.surfaceSecondary.opacity(0.8))
-                                        .cornerRadius(UITheme.Layout.cornerRadiusSmall)
-                                        .padding(8),
-                                    alignment: .bottom
+                // Illustration or placeholder based on status
+                Group {
+                    if page.illustrationStatus == .ready,
+                        let relPath = page.illustrationRelativePath,
+                        let url = fullImageURL(for: relPath)
+                    {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .empty:
+                                IllustrationPlaceholderView(
+                                    status: .generating,
+                                    height: 200,
+                                    onRetry: nil
                                 )
-                                .accessibilityLabel("Failed to load illustration")
-                                .accessibilityAddTraits(.isImage)
-                        @unknown default:
-                            EmptyView()
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 200)
+                                    .frame(maxWidth: .infinity)
+                                    .cornerRadius(UITheme.Layout.cornerRadiusMedium)
+                                    .accessibilityLabel(illustrationDescription)
+                                    .accessibilityAddTraits(.isImage)
+                                    .transition(.opacity.animation(.easeIn(duration: 0.3)))
+                            case .failure:
+                                IllustrationPlaceholderView(
+                                    status: .failed,
+                                    height: 200,
+                                    onRetry: regenerateAction
+                                )
+                            @unknown default:
+                                EmptyView()
+                            }
                         }
+                    } else {
+                        // Use our placeholder component for all other states
+                        IllustrationPlaceholderView(
+                            status: page.illustrationStatus,
+                            height: 200,
+                            onRetry: page.illustrationStatus == .failed ? regenerateAction : nil
+                        )
                     }
-                } else if page.illustrationStatus == .failed {
-                    VStack {
-                        Image("placeholder-illustration")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 200)
-                            .frame(maxWidth: .infinity)
-                            .cornerRadius(UITheme.Layout.cornerRadiusMedium)
-                            .overlay(
-                                Text("Illustration failed")
-                                    .font(UITheme.Typography.bodySmall)
-                                    .padding(6)
-                                    .background(UITheme.Colors.surfaceSecondary.opacity(0.8))
-                                    .cornerRadius(UITheme.Layout.cornerRadiusSmall)
-                                    .padding(8),
-                                alignment: .bottom
-                            )
-                            .accessibilityLabel("Failed illustration placeholder")
-                            .accessibilityAddTraits(.isImage)
-
-                        Button("Regenerate Illustration") {
-                            regenerateAction?()
-                        }
-                        .padding(.top, 8)
-                        .buttonStyle(.borderedProminent)
-                        .accessibilityLabel("Regenerate illustration button")
-                    }
-                } else {
-                    Image("placeholder-illustration")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 200)
-                        .frame(maxWidth: .infinity)
-                        .cornerRadius(UITheme.Layout.cornerRadiusMedium)
-                        .accessibilityLabel("Illustration placeholder")
-                        .accessibilityAddTraits(.isImage)
                 }
+
                 Text(page.content)
                     .font(UITheme.Typography.bodyLarge)
                     .lineSpacing(8)  // Consistent line spacing
@@ -130,14 +92,65 @@ struct PageView: View {
     }
 }
 
-#Preview {
+#Preview("Various States") {
+    VStack {
+        PageView(
+            page: Page(
+                content:
+                    "Once upon a time, in a land far, far away, there lived a curious little fox named Finley.",
+                pageNumber: 1,
+                illustrationStatus: .pending,
+                imagePrompt:
+                    "A small red fox entering a mystical forest with sunlight filtering through the trees"
+            )
+        )
+
+        PageView(
+            page: Page(
+                content: "Finley loved exploring the Whispering Woods behind his cozy den.",
+                pageNumber: 2,
+                illustrationStatus: .generating,
+                imagePrompt: "A small red fox looking at a magical forest"
+            )
+        )
+
+        PageView(
+            regenerateAction: {},
+            page: Page(
+                content:
+                    "One sunny morning, Finley decided to venture deeper into the woods than ever before.",
+                pageNumber: 3,
+                illustrationStatus: .failed,
+                imagePrompt: "A small red fox venturing deeper into a mysterious forest"
+            )
+        )
+    }
+}
+
+#Preview("Ready State") {
     PageView(
         page: Page(
             content:
                 "Once upon a time, in a land far, far away, there lived a curious little fox named Finley. Finley loved exploring the Whispering Woods behind his cozy den. One sunny morning, Finley decided to venture deeper into the woods than ever before.",
             pageNumber: 1,
+            illustrationRelativePath: "Illustrations/sample.png",  // This won't load in preview
+            illustrationStatus: .ready,
             imagePrompt:
                 "A small red fox entering a mystical forest with sunlight filtering through the trees"
         )
     )
+}
+
+#Preview("Dark Mode") {
+    PageView(
+        page: Page(
+            content:
+                "Once upon a time, in a land far, far away, there lived a curious little fox named Finley.",
+            pageNumber: 1,
+            illustrationStatus: .pending,
+            imagePrompt:
+                "A small red fox entering a mystical forest with sunlight filtering through the trees"
+        )
+    )
+    .preferredColorScheme(.dark)
 }

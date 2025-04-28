@@ -1,12 +1,13 @@
 import Foundation  // For UUID
 import SwiftUI  // For MainActor
 import Testing
+
 @testable import magical_stories
 
 @MainActor
 struct StoryDetailViewTests {
     // Mocks (reuse from ServiceMocks.swift if applicable, or define specific ones)
-    var mockCollectionService: MockCollectionService!  // Need MockCollectionService
+    var mockCollectionService: CollectionServiceMock!  // Need CollectionServiceMock
     var story: Story!  // The story being viewed
     var view: StoryDetailView!  // Instance of the view (might not be needed directly)
 
@@ -16,7 +17,7 @@ struct StoryDetailViewTests {
 
     init() {
         // Setup before each test
-        mockCollectionService = MockCollectionService()
+        mockCollectionService = CollectionServiceMock()
 
         // Create a story that belongs to a collection
         story = Story.previewStory(title: "Test Story for Completion")
@@ -24,9 +25,9 @@ struct StoryDetailViewTests {
         let storyCollection = StoryCollection(
             id: collectionId,
             title: "Test Collection",
-            descriptionText: "A collection for testing.", // Added
-            category: "TestCategory", // Added
-            ageGroup: "5-7" // Added
+            descriptionText: "A collection for testing.",  // Added
+            category: "TestCategory",  // Added
+            ageGroup: "5-7"  // Added
         )
         story.collections = [storyCollection]
         story.pages = [  // Ensure it has pages
@@ -39,15 +40,15 @@ struct StoryDetailViewTests {
         let initialCollection = StoryCollection(
             id: collectionId,
             title: "Test Collection",
-            descriptionText: "A test collection for completion", // Renamed/Added
-            category: "Testing", // Added (using theme value)
-            ageGroup: "5-7", // Added (using targetAgeGroup value)
+            descriptionText: "A test collection for completion",  // Renamed/Added
+            category: "Testing",  // Added (using theme value)
+            ageGroup: "5-7",  // Added (using targetAgeGroup value)
             stories: [story]  // Include the story
             // progress is handled by StoryCollection's default or internal logic now
         )
         // Assuming mockCollectionService.collections expects [StoryCollection]
         // If it expects [GrowthCollection], this needs adjustment based on GrowthCollection definition
-        mockCollectionService.collections = [initialCollection] // Type needs to match mock service expectation
+        mockCollectionService.collections = [initialCollection]  // Type needs to match mock service expectation
 
         // If testing UI interactions, instantiate the view
         // view = StoryDetailView(story: story).environmentObject(mockCollectionService)
@@ -62,7 +63,8 @@ struct StoryDetailViewTests {
         let expectedProgress: Float = 1.0  // Only one story in collection for this test
 
         // Configure mock updateProgress
-        mockCollectionService.updateProgressHandler = { (id: UUID, progress: Float) async throws -> Void in
+        mockCollectionService.updateProgressHandler = {
+            (id: UUID, progress: Float) async throws -> Void in
             #expect(id == self.collectionId)
             #expect(progress == expectedProgress)
             didUpdateProgress = true
@@ -75,7 +77,8 @@ struct StoryDetailViewTests {
         }
 
         // Configure mock checkAchievements
-        mockCollectionService.checkAchievementsHandler = { (id: UUID) async throws -> [Achievement] in
+        mockCollectionService.checkAchievementsHandler = {
+            (id: UUID) async throws -> [Achievement] in
             #expect(id == self.collectionId)
             didCheckAchievements = true
             // Return a mock achievement
@@ -109,9 +112,9 @@ struct StoryDetailViewTests {
         let storyCollection = StoryCollection(
             id: collectionId,
             title: "Multi Story Collection",
-            descriptionText: "A collection with multiple stories.", // Added
-            category: "TestCategory", // Added
-            ageGroup: "5-7" // Added
+            descriptionText: "A collection with multiple stories.",  // Added
+            category: "TestCategory",  // Added
+            ageGroup: "5-7"  // Added
         )
         story1.collections = [storyCollection]
         story2.collections = [storyCollection]
@@ -120,20 +123,23 @@ struct StoryDetailViewTests {
         let initialCollection = StoryCollection(
             id: collectionId,
             title: "Multi Story Collection",
-            descriptionText: "A collection with two stories", // Renamed/Added
-            category: "Testing", // Added (using theme value)
-            ageGroup: "5-7", // Added (using targetAgeGroup value)
+            descriptionText: "A collection with two stories",  // Renamed/Added
+            category: "Testing",  // Added (using theme value)
+            ageGroup: "5-7",  // Added (using targetAgeGroup value)
             stories: [story1, story2]  // Two stories
             // progress handled by StoryCollection
         )
-        mockCollectionService.collections = [initialCollection] // Type needs to match mock service
+        mockCollectionService.collections = [initialCollection]  // Type needs to match mock service
         self.story = story1  // Simulate completing story1
 
         var updatedProgress: Float? = nil
-        mockCollectionService.updateProgressHandler = { (_: UUID, progress: Float) async throws -> Void in
+        mockCollectionService.updateProgressHandler = {
+            (_: UUID, progress: Float) async throws -> Void in
             updatedProgress = progress
         }
-        mockCollectionService.checkAchievementsHandler = { (_: UUID) async throws -> [Achievement] in [] }  // Ignore achievements
+        mockCollectionService.checkAchievementsHandler = {
+            (_: UUID) async throws -> [Achievement] in []
+        }  // Ignore achievements
 
         // Act
         await simulateHandleStoryCompletion()
@@ -149,9 +155,9 @@ struct StoryDetailViewTests {
         let storyCollection = StoryCollection(
             id: collectionId,
             title: "Already Complete Collection",
-            descriptionText: "A collection already complete.", // Added
-            category: "TestCategory", // Added
-            ageGroup: "5-7" // Added
+            descriptionText: "A collection already complete.",  // Added
+            category: "TestCategory",  // Added
+            ageGroup: "5-7"  // Added
         )
         story1.collections = [storyCollection]
 
@@ -159,21 +165,23 @@ struct StoryDetailViewTests {
         let initialCollection = StoryCollection(
             id: collectionId,
             title: "Already Complete Collection",
-            descriptionText: "A collection that is already complete", // Renamed/Added
-            category: "Testing", // Added (using theme value)
-            ageGroup: "5-7", // Added (using targetAgeGroup value)
+            descriptionText: "A collection that is already complete",  // Renamed/Added
+            category: "Testing",  // Added (using theme value)
+            ageGroup: "5-7",  // Added (using targetAgeGroup value)
             stories: [story1]
             // progress handled by StoryCollection
         )
-        initialCollection.completionProgress = 1.0 // Set progress after init
-        mockCollectionService.collections = [initialCollection] // Type needs to match mock service
+        initialCollection.completionProgress = 1.0  // Set progress after init
+        mockCollectionService.collections = [initialCollection]  // Type needs to match mock service
         self.story = story1  // Simulate completing the only story
 
         var didCallUpdateProgress = false
         mockCollectionService.updateProgressHandler = { (_: UUID, _: Float) async throws -> Void in
             didCallUpdateProgress = true
         }
-        mockCollectionService.checkAchievementsHandler = { (_: UUID) async throws -> [Achievement] in [] }
+        mockCollectionService.checkAchievementsHandler = {
+            (_: UUID) async throws -> [Achievement] in []
+        }
 
         // Act
         await simulateHandleStoryCompletion()
@@ -187,8 +195,11 @@ struct StoryDetailViewTests {
         story.collections = []  // Story does not belong to a collection
         var didCallUpdateProgress = false
         var didCallCheckAchievements = false
-        mockCollectionService.updateProgressHandler = { (_: UUID, _: Float) async throws -> Void in didCallUpdateProgress = true }
-        mockCollectionService.checkAchievementsHandler = { (_: UUID) async throws -> [Achievement] in
+        mockCollectionService.updateProgressHandler = { (_: UUID, _: Float) async throws -> Void in
+            didCallUpdateProgress = true
+        }
+        mockCollectionService.checkAchievementsHandler = {
+            (_: UUID) async throws -> [Achievement] in
             didCallCheckAchievements = true
             return []
         }
@@ -218,12 +229,13 @@ struct StoryDetailViewTests {
         guard totalStories > 0 else { return }
         let progressPerStory = 1.0 / totalStories
         // Use completionProgress property (ensure Double for calculation)
-        let potentialNewProgress = min(collection.completionProgress + Double(progressPerStory), 1.0)
+        let potentialNewProgress = min(
+            collection.completionProgress + Double(progressPerStory), 1.0)
 
         // Use completionProgress property
         guard potentialNewProgress > collection.completionProgress else { return }
 
-        let finalProgress = Float(potentialNewProgress) // Ensure Float type for updateProgress call
+        let finalProgress = Float(potentialNewProgress)  // Ensure Float type for updateProgress call
 
         do {
             try await mockCollectionService.updateProgress(

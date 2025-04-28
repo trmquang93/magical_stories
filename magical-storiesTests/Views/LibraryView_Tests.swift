@@ -1,6 +1,7 @@
-import Testing
 import SwiftData
 import SwiftUI
+import Testing
+
 @testable import magical_stories
 
 // Duplicate category names for test visibility (must match LibraryView.swift)
@@ -11,11 +12,12 @@ struct LibraryViewTests {
     @MainActor
     func makeStoryService(with stories: [Story]) async throws -> StoryService {
         let schema = Schema([StoryModel.self, PageModel.self])
-        let container = try ModelContainer(for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
+        let container = try ModelContainer(
+            for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let context = ModelContext(container)
 
         let mockPersistence = MockPersistenceService()
-        mockPersistence.storiesToLoad = stories
+        mockPersistence.stories = stories
 
         let service = try StoryService(
             apiKey: "",
@@ -29,7 +31,7 @@ struct LibraryViewTests {
     @MainActor
     func hostLibraryView(with service: StoryService) -> UIHostingController<some View> {
         let controller = UIHostingController(rootView: LibraryView().environmentObject(service))
-        _ = controller.view // Force view load
+        _ = controller.view  // Force view load
         return controller
     }
 
@@ -75,11 +77,11 @@ struct LibraryViewTests {
     func testSearchFiltersStories() async throws {
         let stories = [
             Story.previewStory(title: "The Magic Garden"),
-            Story.previewStory(title: "Dragon's Birthday")
+            Story.previewStory(title: "Dragon's Birthday"),
         ]
         let service = try await makeStoryService(with: stories)
         let controller = hostLibraryView(with: service)
-        _ = controller.view! // Assign to _
+        _ = controller.view!  // Assign to _
         // Simulate entering search text (not possible without ViewInspector/UI automation)
         // TODO: Use ViewInspector or UI automation to test search filtering
         // Now covered by snapshot tests for search state.
@@ -102,9 +104,13 @@ extension UIView {
         return nil
     }
     func findView(withAccessibilityIdentifier identifier: String) -> UIView? {
-        if self.accessibilityIdentifier == identifier || self.accessibilityLabel == identifier { return self }
+        if self.accessibilityIdentifier == identifier || self.accessibilityLabel == identifier {
+            return self
+        }
         for subview in subviews {
-            if let found = subview.findView(withAccessibilityIdentifier: identifier) { return found }
+            if let found = subview.findView(withAccessibilityIdentifier: identifier) {
+                return found
+            }
         }
         return nil
     }

@@ -10,6 +10,7 @@ struct MagicalStoriesApp: App {
     @StateObject private var storyService: StoryService
     @StateObject private var collectionService: CollectionService
     @StateObject private var persistenceService: PersistenceService
+    @StateObject private var illustrationService: IllustrationService
     private let container: ModelContainer
 
     // Initialization to handle dependencies between services
@@ -50,15 +51,26 @@ struct MagicalStoriesApp: App {
         }
 
         let collectionService = CollectionService(
-            repository: collectionRepository, storyService: story, achievementRepository: achievementRepository)
-        
+            repository: collectionRepository, storyService: story,
+            achievementRepository: achievementRepository)
+
         let persistenceService = PersistenceService(context: context)
+
+        // Initialize IllustrationService
+        let illustration: IllustrationService
+        do {
+            illustration = try IllustrationService(apiKey: AppConfig.geminiApiKey)
+            print("[MagicalStoriesApp] Successfully created IllustrationService")
+        } catch {
+            fatalError("Failed to create IllustrationService: \(error)")
+        }
 
         // Assign to StateObjects
         _settingsService = StateObject(wrappedValue: settings)
         _storyService = StateObject(wrappedValue: story)
         _collectionService = StateObject(wrappedValue: collectionService)
         _persistenceService = StateObject(wrappedValue: persistenceService)
+        _illustrationService = StateObject(wrappedValue: illustration)
 
         // Store container for environment injection
         self.container = container
@@ -72,6 +84,7 @@ struct MagicalStoriesApp: App {
                 .environmentObject(storyService)
                 .environmentObject(collectionService)
                 .environmentObject(persistenceService)
+                .environmentObject(illustrationService)
                 .modelContainer(container)
         }
     }

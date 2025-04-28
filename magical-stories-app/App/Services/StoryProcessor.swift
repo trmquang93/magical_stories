@@ -493,7 +493,7 @@ class StoryProcessor {
                     // page context
                     let previousIllustrationPath =
                         i > 0 ? pages[i - 1].illustrationRelativePath : nil
-                        
+
                     relativePath =
                         try await illustrationService
                         .generateIllustration(
@@ -514,7 +514,7 @@ class StoryProcessor {
 
                 if let relativePath = relativePath {
                     pages[i].illustrationRelativePath = relativePath
-                    pages[i].illustrationStatus = .success
+                    pages[i].illustrationStatus = .ready
                 } else {
                     AIErrorManager.logError(
                         NSError(
