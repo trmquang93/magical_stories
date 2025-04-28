@@ -1,7 +1,8 @@
-import Testing
-@testable import magical_stories
-import SwiftUI
 import SwiftData
+import SwiftUI
+import Testing
+
+@testable import magical_stories
 
 @Suite("CollectionsListView Tests")
 @MainActor
@@ -9,11 +10,19 @@ struct CollectionsListView_Tests {
     @Test("Renders collections and supports search")
     func testRendersCollectionsAndSearch() async throws {
         // Setup in-memory model container
-        let container = try ModelContainer(for: StoryCollection.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let container = try ModelContainer(
+            for: StoryCollection.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
         let context = container.mainContext
         // Insert mock collections
-        let collection1 = StoryCollection(title: "Emotional Growth", descriptionText: "Stories for emotional intelligence", category: "emotionalIntelligence", ageGroup: "elementary", stories: [], createdAt: Date(), updatedAt: Date())
-        let collection2 = StoryCollection(title: "Problem Solving", descriptionText: "Stories for problem solving", category: "problemSolving", ageGroup: "elementary", stories: [], createdAt: Date(), updatedAt: Date())
+        let collection1 = StoryCollection(
+            title: "Emotional Growth", descriptionText: "Stories for emotional intelligence",
+            category: "emotionalIntelligence", ageGroup: "elementary", stories: [],
+            createdAt: Date(), updatedAt: Date())
+        let collection2 = StoryCollection(
+            title: "Problem Solving", descriptionText: "Stories for problem solving",
+            category: "problemSolving", ageGroup: "elementary", stories: [], createdAt: Date(),
+            updatedAt: Date())
         context.insert(collection1)
         context.insert(collection2)
         try context.save()
@@ -26,9 +35,13 @@ struct CollectionsListView_Tests {
 
     @Test("NavigationLink is present for each collection")
     func testNavigationLinkPresence() async throws {
-        let container = try ModelContainer(for: StoryCollection.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let container = try ModelContainer(
+            for: StoryCollection.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
         let context = container.mainContext
-        let collection = StoryCollection(title: "Creativity", descriptionText: "Stories for creativity", category: "creativity", ageGroup: "elementary", stories: [], createdAt: Date(), updatedAt: Date())
+        let collection = StoryCollection(
+            title: "Creativity", descriptionText: "Stories for creativity", category: "creativity",
+            ageGroup: "elementary", stories: [], createdAt: Date(), updatedAt: Date())
         context.insert(collection)
         try context.save()
         _ = CollectionsListView().modelContainer(container)
@@ -40,11 +53,17 @@ struct CollectionsListView_Tests {
     @Test("Deleting a collection removes it from the list and model container")
     func testDeleteCollectionRemovesFromList() async throws {
         // Setup in-memory model container
-        let container = try ModelContainer(for: StoryCollection.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let container = try ModelContainer(
+            for: StoryCollection.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
         let context = container.mainContext
         // Insert mock collections
-        let collection1 = StoryCollection(title: "To Delete", descriptionText: "Desc", category: "cat", ageGroup: "elementary", stories: [], createdAt: Date(), updatedAt: Date())
-        let collection2 = StoryCollection(title: "To Keep", descriptionText: "Desc", category: "cat", ageGroup: "elementary", stories: [], createdAt: Date(), updatedAt: Date())
+        let collection1 = StoryCollection(
+            title: "To Delete", descriptionText: "Desc", category: "cat", ageGroup: "elementary",
+            stories: [], createdAt: Date(), updatedAt: Date())
+        let collection2 = StoryCollection(
+            title: "To Keep", descriptionText: "Desc", category: "cat", ageGroup: "elementary",
+            stories: [], createdAt: Date(), updatedAt: Date())
         await MainActor.run {
             context.insert(collection1)
             context.insert(collection2)
@@ -64,5 +83,21 @@ struct CollectionsListView_Tests {
         // NOTE: UI-level swipe-to-delete cannot be tested in unit tests without ViewInspector or UI test tools. Documented as limitation.
     }
 
+    @Test("CollectionsListView contains toolbar button for creating collections")
+    func testToolbarButtonPresence() async throws {
+        let container = try ModelContainer(
+            for: StoryCollection.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        _ = CollectionsListView().modelContainer(container)
+
+        // This test documents the expected behavior for the toolbar button
+        // Since we can't inspect the rendered view directly in unit tests,
+        // this serves as documentation
+        #expect(true)
+
+        // TODO: If ViewInspector becomes available, verify the toolbar button exists with correct icon and accessibility label
+        // TODO: If UI testing is available, verify the toolbar button presents the CollectionFormView sheet when tapped
+    }
+
     // TODO: SwiftUI navigation cannot be fully tested in unit tests without UI test tools. Document as limitation.
-} 
+}

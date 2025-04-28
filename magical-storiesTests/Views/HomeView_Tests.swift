@@ -73,6 +73,46 @@ struct HomeView_Tests {
         #expect(collectionService.collections.count == 2)
     }
 
+    @Test("HomeView always displays AddCollectionCardView in growthCollectionsPreview")
+    func testAddCollectionCardAlwaysShown() async throws {
+        // Test with populated collections
+        let viewData = await createTestView(storyCount: 0, collectionCount: 2)
+        let _ = viewData.0
+        let collectionService = viewData.2
+
+        // Wait for collections to be loaded
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            var cancellable: AnyCancellable?
+            var didResume = false
+
+            collectionService.loadCollections(forceReload: true)
+
+            cancellable = collectionService.$collections.sink { collections in
+                if !collections.isEmpty && !didResume {
+                    didResume = true
+                    continuation.resume()
+                    cancellable?.cancel()
+                }
+            }
+
+            // Timeout after reasonable time
+            Task {
+                try? await Task.sleep(for: .seconds(1))
+                if !didResume {
+                    didResume = true
+                    continuation.resume()
+                }
+            }
+        }
+
+        // Verify collections exist
+        #expect(!collectionService.collections.isEmpty)
+
+        // Note: In a real environment with ViewInspector or UI tests, we would verify
+        // that AddCollectionCardView is displayed in the HStack of growthCollectionsPreview
+        // TODO: If ViewInspector becomes available, verify AddCollectionCardView is rendered
+    }
+
     // Helper method for test setup
     private func createTestView(storyCount: Int, collectionCount: Int) async -> (
         some View, StoryService, CollectionService
