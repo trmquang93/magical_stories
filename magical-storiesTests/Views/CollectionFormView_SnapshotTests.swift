@@ -1,27 +1,31 @@
 import Combine
+import CoreData
 import SnapshotTesting
 import SwiftData
 import SwiftUI
+import Testing
 import XCTest
 
 @testable import magical_stories
 
+// Helper struct for binding
+private struct TestSupport {
+    static func createBindingForTest<T>(_ value: T) -> Binding<T> {
+        var mutableValue = value
+        return Binding(
+            get: { mutableValue },
+            set: { mutableValue = $0 }
+        )
+    }
+}
+
 @MainActor
 final class CollectionFormView_SnapshotTests: XCTestCase {
-    var diff: Snapshotting<UIViewController, UIImage> {
-        return .image(precision: 0.95, perceptualPrecision: 0.95)
-    }
-
+    let diff: Snapshotting<UIViewController, UIImage> = .image(
+        precision: 0.95, perceptualPrecision: 0.95)
     let iPhone11Frame = CGRect(x: 0, y: 0, width: 375, height: 812)
-
-    // Record flag - set to true to always record new reference images
-    var isRecording: Bool = true
-
-    override func setUp() {
-        super.setUp()
-        // Set recording flag
-        isRecording = true
-    }
+    // Reset record option - set to nil to compare against saved reference images
+    let record: Bool? = true
 
     // MARK: - Helpers
 
@@ -38,13 +42,11 @@ final class CollectionFormView_SnapshotTests: XCTestCase {
 
     func makeStoryService() -> StoryService {
         // Create a mock persistence service
-        let mockPersistence = MockPersistenceService()
-
-        // Create a dummy ModelContext using the app's schema
         let schema = Schema([StoryModel.self, PageModel.self])
         let container = try! ModelContainer(
             for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let context = ModelContext(container)
+        let mockPersistence = MockPersistenceService()
 
         // We don't need to load stories for this test
         let service = try! StoryService(
@@ -121,8 +123,6 @@ final class CollectionFormView_SnapshotTests: XCTestCase {
     // MARK: - Tests
 
     func testCollectionFormView_DefaultState_LightMode() {
-        let expectation = expectation(description: "Render view")
-
         let collectionService = makeCollectionService()
         let view = CollectionFormViewTestWrapper(
             collectionService: collectionService,
@@ -133,20 +133,11 @@ final class CollectionFormView_SnapshotTests: XCTestCase {
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .light
 
-        // Give SwiftUI time to render before taking snapshot
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            assertSnapshot(
-                of: host, as: self.diff, named: "CollectionFormView_Default_Light",
-                record: self.isRecording)
-            expectation.fulfill()
-        }
-
-        wait(for: [expectation], timeout: 1.0)
+        assertSnapshot(
+            of: host, as: diff, named: "CollectionFormView_Default_Light", record: record)
     }
 
     func testCollectionFormView_DefaultState_DarkMode() {
-        let expectation = expectation(description: "Render view")
-
         let collectionService = makeCollectionService()
         let view = CollectionFormViewTestWrapper(
             collectionService: collectionService,
@@ -157,20 +148,10 @@ final class CollectionFormView_SnapshotTests: XCTestCase {
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .dark
 
-        // Give SwiftUI time to render before taking snapshot
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            assertSnapshot(
-                of: host, as: self.diff, named: "CollectionFormView_Default_Dark",
-                record: self.isRecording)
-            expectation.fulfill()
-        }
-
-        wait(for: [expectation], timeout: 1.0)
+        assertSnapshot(of: host, as: diff, named: "CollectionFormView_Default_Dark", record: record)
     }
 
     func testCollectionFormView_Loading_LightMode() {
-        let expectation = expectation(description: "Render view")
-
         let collectionService = makeCollectionService()
         let view = CollectionFormViewTestWrapper(
             collectionService: collectionService,
@@ -181,20 +162,11 @@ final class CollectionFormView_SnapshotTests: XCTestCase {
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .light
 
-        // Give SwiftUI time to render before taking snapshot
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            assertSnapshot(
-                of: host, as: self.diff, named: "CollectionFormView_Loading_Light",
-                record: self.isRecording)
-            expectation.fulfill()
-        }
-
-        wait(for: [expectation], timeout: 1.0)
+        assertSnapshot(
+            of: host, as: diff, named: "CollectionFormView_Loading_Light", record: record)
     }
 
     func testCollectionFormView_Loading_DarkMode() {
-        let expectation = expectation(description: "Render view")
-
         let collectionService = makeCollectionService()
         let view = CollectionFormViewTestWrapper(
             collectionService: collectionService,
@@ -205,14 +177,6 @@ final class CollectionFormView_SnapshotTests: XCTestCase {
         host.view.frame = iPhone11Frame
         host.overrideUserInterfaceStyle = .dark
 
-        // Give SwiftUI time to render before taking snapshot
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            assertSnapshot(
-                of: host, as: self.diff, named: "CollectionFormView_Loading_Dark",
-                record: self.isRecording)
-            expectation.fulfill()
-        }
-
-        wait(for: [expectation], timeout: 1.0)
+        assertSnapshot(of: host, as: diff, named: "CollectionFormView_Loading_Dark", record: record)
     }
 }
