@@ -121,7 +121,7 @@ struct AddCollectionCardView: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
-        .aspectRatio(0.75, contentMode: .fit)
+        .aspectRatio(0.9, contentMode: .fit)
         .frame(minWidth: 160, maxWidth: 220)
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.2)) {
