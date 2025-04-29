@@ -132,16 +132,16 @@ struct HomeView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(collectionService.collections) { collection in
-                        NavigationLink(value: collection) {
+                        NavigationLink(destination: CollectionDetailView(collection: collection)) {
                             CollectionCardView(collection: collection)
-                                .frame(width: 220)
+                                .frame(width: 180)
                         }
                         .buttonStyle(PlainButtonStyle())  // Prevent blue tint on card
                     }
 
                     // Always show the Add card at the end - use it directly since it already contains a Button
                     AddCollectionCardView(action: { showingGrowthStoryForm = true })
-                        .frame(width: 220)  // Ensure consistent width
+                        .frame(width: 180)  // Reduced from 220 to 180 for consistency
                 }
                 .padding(.horizontal, Spacing.lg)
             }

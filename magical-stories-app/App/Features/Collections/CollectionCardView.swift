@@ -4,10 +4,16 @@ import SwiftUI
 struct CollectionCardView: View {
     let collection: StoryCollection
 
-    // State properties for hover and animation effects
+    // State properties for animation and interaction
     @State private var isHovering = false
+    @State private var isPressing = false
     @State private var animateProgress = false
+    @State private var showTitleReveal = false
 
+    // Environment for color scheme
+    @Environment(\.colorScheme) private var colorScheme
+
+    // Derived properties
     var storyCountText: String {
         let count = collection.stories?.count ?? 0
         return "\(count) \(count == 1 ? "story" : "stories")"
@@ -16,14 +22,14 @@ struct CollectionCardView: View {
     // Compute a thematic color based on the collection category
     var thematicColor: Color {
         switch collection.category {
-        case "emotionalIntelligence": return Color.magicalPrimary
+        case "emotionalIntelligence": return UITheme.Colors.primary
         case "socialSkills": return Color.blue
         case "cognitiveDevelopment": return Color.purple
         case "creativityImagination": return Color(hex: "#FF617B")
         case "problemSolving": return Color(hex: "#00B8A9")
         case "resilienceGrit": return Color(hex: "#F9A826")
         case "kindnessEmpathy": return Color(hex: "#7ED957")
-        default: return Color.magicalAccent
+        default: return UITheme.Colors.accent
         }
     }
 
@@ -51,214 +57,183 @@ struct CollectionCardView: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            // Background card with gradient
-            RoundedRectangle(cornerRadius: 20)
-                .fill(
-                    LinearGradient(
-                        gradient: Gradient(
-                            colors: [
-                                Color(.systemBackground),
-                                Color(.systemBackground).opacity(0.95),
-                            ]
-                        ),
-                        startPoint: .top,
-                        endPoint: .bottom
+            // Clean background with soft shadow and accent top
+            RoundedRectangle(cornerRadius: UITheme.Layout.cornerRadiusLarge)
+                .fill(UITheme.Colors.surfacePrimary)
+                .overlay(
+                    // Top accent indicator - thin elegant line
+                    VStack {
+                        Rectangle()
+                            .fill(thematicColor)
+                            .frame(height: 6)
+                        Spacer()
+                    }
+                    .mask(
+                        RoundedRectangle(cornerRadius: UITheme.Layout.cornerRadiusLarge)
                     )
                 )
                 .overlay(
-                    // Top decorative accent
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(
-                            LinearGradient(
-                                gradient: Gradient(
-                                    colors: [
-                                        thematicColor.opacity(0.8),
-                                        thematicColor.opacity(0.5),
-                                        thematicColor.opacity(0.2),
-                                        Color.clear,
-                                    ]
-                                ),
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .frame(height: 80)
-                        .clipped()
-                        .mask(
-                            RoundedRectangle(cornerRadius: 20)
-                                .frame(height: 80)
-                        ),
-                    alignment: .top
-                )
-                .overlay(
-                    // Border with subtle gradient
-                    RoundedRectangle(cornerRadius: 20)
+                    // Elegant border
+                    RoundedRectangle(cornerRadius: UITheme.Layout.cornerRadiusLarge)
                         .strokeBorder(
-                            LinearGradient(
-                                gradient: Gradient(
-                                    colors: [
-                                        thematicColor.opacity(0.5),
-                                        Color(.separator).opacity(0.2),
-                                    ]
-                                ),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1.5
+                            thematicColor.opacity(isHovering ? 0.2 : 0.1),
+                            lineWidth: 1
                         )
                 )
                 .shadow(
-                    color: Color.black.opacity(0.08),
-                    radius: isHovering ? 12 : 6,
+                    color: Color.black.opacity(0.05),
+                    radius: isHovering ? 10 : 5,
                     x: 0,
-                    y: isHovering ? 8 : 4
+                    y: isHovering ? 5 : 2
                 )
+                .scaleEffect(isPressing ? 0.98 : (isHovering ? 1.02 : 1.0))
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovering)
+                .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressing)
 
-            // Content
-            VStack(alignment: .leading, spacing: 12) {
-                // Top icon and category badge
-                HStack(alignment: .top) {
-                    // Icon with thematic background
+            // Content with clean layout
+            VStack(alignment: .leading, spacing: UITheme.Spacing.md) {
+                // Top section with aligned icon and badge
+                HStack(alignment: .center) {
+                    // Minimal icon with thematic background
                     ZStack {
                         Circle()
-                            .fill(
-                                LinearGradient(
-                                    gradient: Gradient(
-                                        colors: [
-                                            thematicColor,
-                                            thematicColor.opacity(0.8),
-                                        ]
-                                    ),
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
+                            .fill(thematicColor.opacity(0.1))
                             .frame(width: 44, height: 44)
-                            .shadow(color: thematicColor.opacity(0.3), radius: 5, x: 0, y: 3)
 
                         Image(systemName: categoryIcon)
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(.white)
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(thematicColor)
                             .accessibilityIdentifier("categoryIcon")
                     }
+                    .offset(y: showTitleReveal ? 0 : -5)
+                    .opacity(showTitleReveal ? 1 : 0)
+                    .animation(.easeOut.delay(0.1), value: showTitleReveal)
 
                     Spacer()
 
-                    // Age group badge
+                    // Clean age group badge
                     Text(ageGroupDisplay)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
+                        .font(UITheme.Typography.bodySmall.weight(.medium))
+                        .foregroundColor(thematicColor)
+                        .padding(.horizontal, UITheme.Spacing.sm)
+                        .padding(.vertical, UITheme.Spacing.xxs)
                         .background(
                             Capsule()
-                                .fill(thematicColor.opacity(0.8))
+                                .fill(thematicColor.opacity(0.1))
                         )
+                        .offset(y: showTitleReveal ? 0 : -5)
+                        .opacity(showTitleReveal ? 1 : 0)
+                        .animation(.easeOut.delay(0.2), value: showTitleReveal)
                 }
-                .padding(.bottom, 4)
 
-                // Title with vertically stacked text for better hierarchy
-                VStack(alignment: .leading, spacing: 4) {
+                // Title and story count with reveal animation
+                VStack(alignment: .leading, spacing: UITheme.Spacing.xxs) {
                     Text(collection.title)
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(Color.primary)
+                        .font(UITheme.Typography.headingSmall)
+                        .foregroundStyle(UITheme.Colors.textPrimary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader)
+                        .offset(y: showTitleReveal ? 0 : 10)
+                        .opacity(showTitleReveal ? 1 : 0)
+                        .animation(.easeOut.delay(0.3), value: showTitleReveal)
 
-                    Text(storyCountText)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.secondary)
+                    // Story count with subtle icon
+                    HStack(spacing: UITheme.Spacing.xxs) {
+                        Image(systemName: "book")
+                            .font(.system(size: 12))
+                            .foregroundStyle(UITheme.Colors.textSecondary.opacity(0.8))
+
+                        Text(storyCountText)
+                            .font(UITheme.Typography.bodySmall.weight(.medium))
+                            .foregroundStyle(UITheme.Colors.textSecondary)
+                    }
+                    .offset(y: showTitleReveal ? 0 : 10)
+                    .opacity(showTitleReveal ? 1 : 0)
+                    .animation(.easeOut.delay(0.4), value: showTitleReveal)
                 }
 
                 Spacer()
 
-                // Progress section
-                VStack(alignment: .leading, spacing: 6) {
-                    // Progress indicator with text
-                    if collection.stories?.isEmpty == false {
+                // Progress section with clean visuals
+                if collection.stories?.isEmpty == false {
+                    VStack(alignment: .leading, spacing: UITheme.Spacing.xs) {
+                        // Progress indicator with text
                         HStack {
                             Text("Progress")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(Color.secondary)
+                                .font(UITheme.Typography.bodySmall.weight(.medium))
+                                .foregroundColor(UITheme.Colors.textSecondary)
 
                             Spacer()
 
                             Text("\(Int(collection.completionProgress * 100))%")
-                                .font(.system(size: 12, weight: .bold))
+                                .font(UITheme.Typography.bodySmall.weight(.bold))
                                 .foregroundColor(thematicColor)
                         }
+                        .opacity(animateProgress ? 1 : 0)
+                        .animation(.easeIn.delay(0.6), value: animateProgress)
 
-                        // Custom animated progress bar
+                        // Clean, elegant progress bar
                         GeometryReader { geometry in
                             ZStack(alignment: .leading) {
                                 // Background track
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(Color(.systemGray5))
-                                    .frame(height: 8)
+                                RoundedRectangle(cornerRadius: UITheme.Layout.cornerRadiusSmall)
+                                    .fill(UITheme.Colors.surfaceSecondary.opacity(0.3))
+                                    .frame(height: 6)
 
-                                // Progress bar with animation
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(
-                                        LinearGradient(
-                                            gradient: Gradient(
-                                                colors: [
-                                                    thematicColor.opacity(0.8),
-                                                    thematicColor,
-                                                ]
-                                            ),
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
+                                // Progress indicator
+                                RoundedRectangle(cornerRadius: UITheme.Layout.cornerRadiusSmall)
+                                    .fill(thematicColor)
                                     .frame(
                                         width: geometry.size.width
                                             * (animateProgress ? collection.completionProgress : 0),
-                                        height: 8
+                                        height: 6
                                     )
                                     .animation(
-                                        .spring(response: 0.8, dampingFraction: 0.7),
-                                        value: animateProgress)
+                                        .easeInOut(duration: 1.0).delay(0.5), value: animateProgress
+                                    )
                             }
                         }
-                        .frame(height: 8)
-                    }
-
-                    // Completed badge with animation
-                    if collection.completionProgress >= 1.0 {
-                        HStack(spacing: 6) {
-                            Image(systemName: "star.fill")
-                                .foregroundStyle(Color(hex: "#FFD700"))
-                                .font(.system(size: 16))
-                                .symbolEffect(.bounce, options: .repeating, value: isHovering)
-
-                            Text("Collection Completed!")
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [Color(hex: "#FFD700"), Color(hex: "#FFA500")],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                        }
-                        .padding(.vertical, 5)
-                        .padding(.horizontal, 10)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color(.systemBackground))
-                                .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
-                        )
-                        .accessibilityLabel("Collection completed")
+                        .frame(height: 6)
+                        .opacity(animateProgress ? 1 : 0)
+                        .animation(.easeIn.delay(0.5), value: animateProgress)
                     }
                 }
+
+                // Minimal completion indicator
+                if collection.completionProgress >= 1.0 {
+                    HStack(spacing: UITheme.Spacing.xs) {
+                        // Subtle checkmark indicator
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(thematicColor)
+                            .font(.system(size: 16))
+
+                        Text("Collection Completed")
+                            .font(UITheme.Typography.bodySmall.weight(.medium))
+                            .foregroundStyle(thematicColor)
+                    }
+                    .padding(.vertical, UITheme.Spacing.xxs)
+                    .padding(.horizontal, UITheme.Spacing.sm)
+                    .background(
+                        RoundedRectangle(cornerRadius: UITheme.Layout.cornerRadiusSmall)
+                            .fill(thematicColor.opacity(0.1))
+                    )
+                    .accessibilityLabel("Collection completed")
+                    .opacity(animateProgress ? 1 : 0)
+                    .offset(y: animateProgress ? 0 : 10)
+                    .animation(.easeOut.delay(0.7), value: animateProgress)
+                }
             }
-            .padding(16)
+            .padding(UITheme.Spacing.md)
         }
-        .aspectRatio(0.75, contentMode: .fit)
-        .frame(minWidth: 160, maxWidth: 220)
+        .aspectRatio(0.9, contentMode: .fit)
+        .frame(minWidth: 140, maxWidth: 180)
         .onAppear {
-            // Delay the animation slightly for a nice effect
+            // Subtle, elegant animations
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                showTitleReveal = true
+            }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 animateProgress = true
             }
@@ -268,12 +243,40 @@ struct CollectionCardView: View {
                 isHovering = hovering
             }
         }
+        .pressAction {
+            isPressing = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isPressing = false
+            }
+        }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("CollectionCardView-\(collection.id)")
-        // Add haptic feedback on press
-        .sensoryFeedback(.impact(weight: .light), trigger: isHovering)
-        .scaleEffect(isHovering ? 1.03 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovering)
+    }
+}
+
+// Conditional symbol effect modifier
+struct ConditionalSymbolEffect: ViewModifier {
+    let isActive: Bool
+
+    func body(content: Content) -> some View {
+        if isActive {
+            content.symbolEffect(.bounce.byLayer, options: .speed(1.5))
+        } else {
+            content
+        }
+    }
+}
+
+// Conditional star effect modifier
+struct ConditionalStarEffect: ViewModifier {
+    let isActive: Bool
+
+    func body(content: Content) -> some View {
+        if isActive {
+            content.symbolEffect(.bounce.up.byLayer, options: .repeating)
+        } else {
+            content
+        }
     }
 }
 
