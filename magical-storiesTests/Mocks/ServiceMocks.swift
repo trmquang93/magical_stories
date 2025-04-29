@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI // Import SwiftUI for ObservableObject and Published
 
 @testable import magical_stories
 
@@ -118,12 +119,16 @@ class MockGenerativeModel: GenerativeModelProtocol {
 // MARK: - MockCollectionService
 
 /// Minimal mock for CollectionServiceProtocol.
-class CollectionServiceMock: CollectionServiceProtocol {
-    var collections: [StoryCollection] = []
+class CollectionServiceMock: CollectionServiceProtocol, ObservableObject { // Conform to ObservableObject
+    @Published var collections: [StoryCollection] = [] // Use @Published
+    @Published var isGenerating: Bool = false // Add and publish isGenerating
+    @Published var errorMessage: String? = nil // Add and publish errorMessage
+@Published var isFormValid: Bool = false // Add and publish isFormValid
 
     // Handler closures for testing callbacks
     var updateProgressHandler: ((UUID, Float) async throws -> Void)?
     var checkAchievementsHandler: ((UUID) async throws -> [Achievement])?
+    var generateStoriesForCollectionHandler: ((StoryCollection, CollectionParameters) async throws -> Void)? // Add handler for generateStoriesForCollection
 
     // Core CollectionServiceProtocol methods
     func createCollection(_ collection: StoryCollection) throws {
@@ -171,6 +176,19 @@ class CollectionServiceMock: CollectionServiceProtocol {
     func loadCollections(forceReload: Bool = false) {
         // This mock implementation just keeps the collections as is
         // No need to do anything since the collections are already set directly in the test
+    }
+
+    // Implement generateStoriesForCollection from the protocol
+    func generateStoriesForCollection(_ collection: StoryCollection, parameters: CollectionParameters) async throws {
+        isGenerating = true // Simulate loading state
+        if let handler = generateStoriesForCollectionHandler {
+            try await handler(collection, parameters)
+        } else {
+            // Default successful generation after a delay
+            try await Task.sleep(nanoseconds: 100_000_000) // Simulate work
+            // In a real mock, you might add mock stories here
+        }
+        isGenerating = false // Simulate end of loading
     }
 }
 

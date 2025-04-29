@@ -18,7 +18,7 @@ class CollectionsUITests: XCTestCase {
 
     func testCollectionsTabNavigation() throws {
         // Navigate to the Collections tab
-        app.tabBars.buttons["Collections"].tap()
+        app.tabBars.buttons["CollectionsTabButton"].tap()
 
         // Verify the navigation title is correct
         XCTAssertTrue(app.navigationBars["Growth Collections"].exists)
@@ -36,7 +36,7 @@ class CollectionsUITests: XCTestCase {
 
     func testCollectionCardInteraction() throws {
         // Navigate to Collections tab
-        app.tabBars.buttons["Collections"].tap()
+        app.tabBars.buttons["CollectionsTabButton"].tap()
 
         // Find a collection card and tap it (assuming there's at least one collection)
         // Note: We need to make the test more robust if there are no collections
@@ -66,7 +66,7 @@ class CollectionsUITests: XCTestCase {
 
     func testCollectionFilters() throws {
         // Navigate to Collections tab
-        app.tabBars.buttons["Collections"].tap()
+        app.tabBars.buttons["CollectionsTabButton"].tap()
 
         // Try different filters
         app.buttons["Completed"].tap()
@@ -81,7 +81,7 @@ class CollectionsUITests: XCTestCase {
 
     func testCollectionSearch() throws {
         // Navigate to Collections tab
-        app.tabBars.buttons["Collections"].tap()
+        app.tabBars.buttons["CollectionsTabButton"].tap()
 
         // Enter search text
         let searchField = app.searchFields["Search collections..."]
@@ -99,7 +99,7 @@ class CollectionsUITests: XCTestCase {
 
     func testCreateCollectionButton() throws {
         // Navigate to Collections tab
-        app.tabBars.buttons["Collections"].tap()
+        app.tabBars.buttons["CollectionsTabButton"].tap()
 
         // Tap the create button in the toolbar
         app.buttons["CollectionsListView_AddButton"].tap()
@@ -115,7 +115,7 @@ class CollectionsUITests: XCTestCase {
 
     func testCollectionDetailNavigation() throws {
         // Navigate to Collections tab
-        app.tabBars.buttons["Collections"].tap()
+        app.tabBars.buttons["CollectionsTabButton"].tap()
 
         // Find a collection card (if any exist)
         let collectionCards = app.descendants(matching: .any).matching(
