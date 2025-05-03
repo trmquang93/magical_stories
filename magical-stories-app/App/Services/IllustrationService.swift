@@ -271,51 +271,37 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
         for illustrationDescription: String,
         pageNumber: Int,
         totalPages: Int,
-        previousIllustrationPath: String?  // Added parameter
+        previousIllustrationPath: String? = nil
     ) async throws -> String? {
+        // Create an enhanced prompt that focuses on the specific illustration
+        let enhancedPrompt = """
+            Generate a high-quality illustration for page \(pageNumber) of \(totalPages) of a children's story.
 
-        // Load previous image data if path is provided and it's not the first page
-        var previousImageData: Data? = nil
-        var previousImageMimeType: String? = nil
+            ILLUSTRATION CONTENT:
+            \(illustrationDescription)
 
-        if pageNumber > 1, let path = previousIllustrationPath {
-            do {
-                let loadedData = try loadImageDataFromPersistentDirectory(relativePath: path)
-                previousImageData = loadedData.data
-                previousImageMimeType = loadedData.mimeType
-                print(
-                    "--- IllustrationService: Successfully loaded previous illustration: \(path)")
-            } catch {
-                print(
-                    "--- IllustrationService: Warning - Failed to load previous illustration at path \(path): \(error.localizedDescription). Proceeding without image context. ---"
-                )
-                // Log this error but continue without the image context
-                AIErrorManager.logError(
-                    error, source: "IllustrationService",
-                    additionalInfo: "Failed to load previous illustration for context")
-                previousImageData = nil  // Ensure it's nil if loading failed
-            }
-        }
+            REQUIREMENTS:
+            - Create a 9:16 landscape-orientation illustration in a vibrant, whimsical children's book style
+            - Follow the description EXACTLY, including all specified character details, colors, and elements
+            - Create high-quality art with good composition, color balance, and visual appeal
+            - Ensure all described characters and elements are clearly visible
+            - Pay close attention to character appearances exactly as described
+            - Render backgrounds and settings with appropriate detail
+            - Use lighting and color to create the mood described
+            - Ensure appropriate scaling and proportions between characters and environment
 
-        // Construct the prompt, indicating if a reference image is provided
-        let promptText: String
-        if previousImageData != nil {
-            promptText =
-                "Generate an illustration for page \(pageNumber) of \(totalPages) in a children's story. **Use the provided image as a reference for visual consistency** (style, characters, setting). Adapt the scene based on the following description: \(illustrationDescription). Style: Whimsical, colorful, suitable for young children. IMPORTANT: Maintain visual consistency with the reference image and setting. DO NOT depict animals performing human-like actions (like talking or wearing clothes)."
-        } else {
-            // Prompt for the first page or if loading previous image failed
-            promptText =
-                "Generate an illustration for page \(pageNumber) of \(totalPages) in a children's story based *only* on the following description: \(illustrationDescription). Style: Whimsical, colorful, suitable for young children. IMPORTANT: Establish the initial visual style. DO NOT depict animals performing human-like actions (like talking or wearing clothes)."
-        }
+            The illustration should be high quality, child-friendly, and look like it belongs in a professional children's picture book.
+            """
+
+        print(
+            "[IllustrationService] Generating illustration for page \(pageNumber) with description length: \(illustrationDescription.count) characters"
+        )
 
         var lastError: Error?
 
         for attempt in 1...5 {
             do {
-                print(
-                    "--- IllustrationService: Attempt \(attempt) to generate contextual illustration for page \(pageNumber)/\(totalPages) \(previousImageData != nil ? "with" : "without") previous image context ---"
-                )
-
+                // 1. Construct URL
                 let urlString = "\(apiEndpoint)\(modelName):generateContent?key=\(apiKey)"
                 guard let url = URL(string: urlString) else {
                     throw IllustrationError.invalidURL
@@ -325,13 +311,7 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
                 var parts: [GenerateContentRequest.Part] = []
 
                 // Add the text part first
-                parts.append(.text(promptText))
-
-                // Add the image part if available
-                if let imageData = previousImageData, let mimeType = previousImageMimeType {
-                    let base64Image = imageData.base64EncodedString()
-                    parts.append(.inlineData(mimeType: mimeType, data: base64Image))
-                }
+                parts.append(.text(enhancedPrompt))
 
                 let requestBody = GenerateContentRequest(
                     contents: [GenerateContentRequest.Content(parts: parts)],

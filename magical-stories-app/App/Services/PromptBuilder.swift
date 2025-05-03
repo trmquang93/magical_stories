@@ -91,7 +91,6 @@ class PromptBuilder {
     promptComponents.append(categorySelectionGuidelines())
 
     let prompt = promptComponents.joined(separator: "\n\n")
-    print(">>>Prompt: \(prompt)")
     return prompt
   }
 
@@ -173,7 +172,7 @@ class PromptBuilder {
       - Any recurring objects or elements
 
       Return EXACTLY \(pages.count) descriptions in the same order as the pages, each separated by a line with only '---'.
-      Ensure the described scene is suitable for a 9:16 portrait aspect ratio illustration.
+      Ensure the described scene is suitable for a 9:16 landscape aspect ratio illustration.
       Do NOT use JSON format. Each description must be highly detailed for consistent visualization.
       """
   }
@@ -267,26 +266,38 @@ class PromptBuilder {
       1. Analyze the story content and select the single most appropriate category from this list:
       [\(categoriesList)]
 
-      2. For each page of your story (marked by "---" separators), create a detailed illustration description that captures the essence of that page. Each description should:
-         - Include key characters, setting, and action from the page
-         - Provide details about character appearance, expressions, and positioning
-         - Describe environmental elements, lighting, mood, and colors
-         - Be self-contained with full context (not dependent on other illustrations)
-         - Be suitable for a 9:16 portrait aspect ratio illustration
+      2. For each page of your story (marked by "---" separators), create a detailed illustration description. Each description must be COMPLETELY SELF-CONTAINED with all necessary information:
+
+         CRITICAL REQUIREMENTS FOR EACH ILLUSTRATION DESCRIPTION:
+         - First, develop a clear VISUAL STYLE GUIDE with specific details for the entire story:
+           * Decide on exact character appearances (age, height, clothing colors/style, hair color/style, facial features)
+           * Choose consistent environment details (location style, color palette, lighting, key landmarks)
+         
+         - For EVERY illustration description, always include:
+           * FULL character details (exact appearance, clothing, hair, facial features) even if repeated
+           * Complete environment/setting descriptions
+           * Specific colors, lighting, and mood details
+           * Positioning of all elements in the scene
+           * Character expressions and actions
+         
+         - Make each description a complete, stand-alone prompt (250-400 characters)
+         - Use precise, detailed language focusing on visual elements
+         - Ensure each description contains everything needed to visualize the scene WITHOUT needing context from other pages
+         - Make descriptions suitable for a 9:16 landscape aspect ratio illustration
 
       Return your response as XML with the following tags:
       <title>Your Story Title</title>
       <content>Full story text with page breaks as before</content>
       <category>Selected category name from the list above</category>
       <illustrations>
-        <illustration page="1">Detailed description for page 1</illustration>
-        <illustration page="2">Detailed description for page 2</illustration>
+        <illustration page="1">Complete, self-contained description for page 1 with ALL character/setting details</illustration>
+        <illustration page="2">Complete, self-contained description for page 2 with ALL character/setting details</illustration>
         <!-- Include one <illustration> tag for each page in your story -->
       </illustrations>
 
       The <content> tag should contain the complete story text with title and page breaks as instructed earlier.
       The <category> tag should be exactly one of the category names listed above, based on your analysis of the story content.
-      The <illustrations> section should contain one <illustration> tag for each page, with a detailed description that can be used directly for image generation.
+      The <illustrations> section should contain one <illustration> tag for each page, with each description containing ALL necessary details for that illustration without requiring context from other pages.
       """
   }
 

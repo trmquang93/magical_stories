@@ -41,10 +41,16 @@ class StoryProcessor {
     /// back to paragraph-based pagination if needed.
     func processIntoPages(
         _ content: String,
+        illustrations: [IllustrationDescription],
         theme: String
     ) async throws -> [Page] {
         // First attempt to paginate using the delimiter-based approach
         var pages = paginateStory(content)
+
+        // Apply illustration descriptions to pages if provided
+        if !illustrations.isEmpty {
+            pages = applyIllustrationDescriptions(to: pages, illustrations: illustrations)
+        }
 
         // The image prompts will be set later in StoryService if they are provided in the AI response
         // No need to preprocess descriptions here anymore
@@ -52,6 +58,28 @@ class StoryProcessor {
         // Generate illustrations using the existing or default prompts
         await generateIllustrationsForPages(&pages, theme: theme)
         return pages
+    }
+
+    // Helper method to apply illustration descriptions to pages
+    private func applyIllustrationDescriptions(
+        to pages: [Page], illustrations: [IllustrationDescription]
+    ) -> [Page] {
+        let updatedPages = pages
+        for illustration in illustrations {
+            // Find the matching page by page number
+            if illustration.pageNumber > 0 && illustration.pageNumber <= pages.count {
+                // Page numbers in our array are 0-indexed, but illustrations use 1-indexed
+                let pageIndex = illustration.pageNumber - 1
+                // Set the illustration description as the image prompt
+                updatedPages[pageIndex].imagePrompt = illustration.description
+            }
+        }
+
+        print(
+            "[StoryService] Applied \(illustrations.count) illustration descriptions to \(pages.count) pages"
+        )
+
+        return updatedPages
     }
 
     /// Paginates story content using explicit delimiters, with fallback to
@@ -451,14 +479,26 @@ class StoryProcessor {
             additionalInfo: "Starting illustration generation"
         )
 
+        // First, prepare all the prompts to ensure we have consistent descriptions
         for i in pages.indices {
-            let pageContent = pages[i].content
-
-            // Store the page content as imagePrompt if not already set
             if pages[i].imagePrompt == nil {
-                pages[i].imagePrompt = pageContent
+                // If no image prompt is set from illustrations XML, generate a description
+                // from the page content
+                pages[i].imagePrompt = pages[i].content
+            } else {
+                // Add page context to the existing prompt to ensure it includes all relevant information
+                let enhancedPrompt = enhanceIllustrationPrompt(
+                    existingPrompt: pages[i].imagePrompt!,
+                    pageIndex: i,
+                    totalPages: pages.count,
+                    theme: theme
+                )
+                pages[i].imagePrompt = enhancedPrompt
             }
+        }
 
+        // Now generate the illustrations using the prepared prompts
+        for i in pages.indices {
             if i > 0 {
                 do {
                     try await Task.sleep(nanoseconds: 1_000_000_000)
@@ -471,15 +511,17 @@ class StoryProcessor {
             }
 
             do {
-                let relativePath: String?
-                let imagePrompt = pages[i].imagePrompt ?? pageContent
+                let imagePrompt = pages[i].imagePrompt!
+                print(
+                    "[StoryProcessor] Generating illustration for page \(i+1) with prompt: \(imagePrompt.prefix(100))..."
+                )
 
-                // Generate illustration using the prompt directly, not referencing previous illustrations
-                relativePath = try await illustrationService.generateIllustration(
+                // Generate illustration using the enhanced prompt
+                let relativePath = try await illustrationService.generateIllustration(
                     for: imagePrompt,
                     pageNumber: i + 1,
                     totalPages: pages.count,
-                    previousIllustrationPath: nil  // Not using previous illustrations for reference
+                    previousIllustrationPath: nil  // Not using previous illustrations reference
                 )
 
                 if let relativePath = relativePath {
@@ -509,6 +551,33 @@ class StoryProcessor {
                 pages[i].illustrationStatus = .failed
             }
         }
+    }
+
+    /// Enhances an illustration prompt with context if needed
+    private func enhanceIllustrationPrompt(
+        existingPrompt: String,
+        pageIndex: Int,
+        totalPages: Int,
+        theme: String
+    ) -> String {
+        // If the prompt is already detailed (more than 150 characters), assume it's good
+        if existingPrompt.count > 150 {
+            return existingPrompt
+        }
+
+        // Otherwise, add context for this specific illustration
+        return """
+            Create a detailed illustration for page \(pageIndex + 1) of \(totalPages):
+
+            \(existingPrompt)
+
+            Theme: \(theme)
+
+            IMPORTANT: Follow the description exactly with all specified details.
+            Create a vibrant, colorful illustration suitable for a children's book.
+            Include rich backgrounds and clear character details as described.
+            The illustration should be in landscape (9:16) orientation.
+            """
     }
 
     // MARK: - Reading Progress

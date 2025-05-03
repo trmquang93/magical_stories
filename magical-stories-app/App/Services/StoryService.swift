@@ -91,7 +91,8 @@ class StoryService: ObservableObject {
         promptBuilder: PromptBuilder? = nil,  // Added promptBuilder parameter for testing
         settingsService: SettingsServiceProtocol? = nil  // Add settings service for vocabulary boost
     ) throws {  // Mark initializer as throwing
-        self.model = model ?? GenerativeModelWrapper(name: "gemini-2.0-flash", apiKey: apiKey)  // Updated to more creative model
+        self.model =
+            model ?? GenerativeModelWrapper(name: "gemini-2.5-flash-preview-04-17", apiKey: apiKey)  // Updated to more creative model
         self.promptBuilder = promptBuilder ?? PromptBuilder()  // Use injected or create new
         self.persistenceService = persistenceService ?? PersistenceService(context: context)
         self.settingsService = settingsService  // Store the settings service
@@ -132,7 +133,7 @@ class StoryService: ObservableObject {
 
         // Generate the prompt using the enhanced PromptBuilder with vocabulary boost setting
         let prompt = buildPrompt(with: parameters)
-
+        print(">>>Prompt: \(prompt)")
         do {
             // --- Actual API Call ---
             let response = try await model.generateContent(prompt)
@@ -155,12 +156,9 @@ class StoryService: ObservableObject {
             }
 
             // Process content into pages using StoryProcessor
-            var pages = try await storyProcessor.processIntoPages(content, theme: parameters.theme)
-
-            // Apply illustration descriptions to pages if available
-            if let illustrations = illustrations {
-                applyIllustrationDescriptions(to: &pages, illustrations: illustrations)
-            }
+            let pages = try await storyProcessor.processIntoPages(
+                content, illustrations: illustrations ?? [],
+                theme: parameters.theme)
 
             let story = Story(
                 title: title,
@@ -530,25 +528,6 @@ class StoryService: ObservableObject {
         }
 
         return illustrations
-    }
-
-    // Helper method to apply illustration descriptions to pages
-    private func applyIllustrationDescriptions(
-        to pages: inout [Page], illustrations: [IllustrationDescription]
-    ) {
-        for illustration in illustrations {
-            // Find the matching page by page number
-            if illustration.pageNumber > 0 && illustration.pageNumber <= pages.count {
-                // Page numbers in our array are 0-indexed, but illustrations use 1-indexed
-                let pageIndex = illustration.pageNumber - 1
-                // Set the illustration description as the image prompt
-                pages[pageIndex].imagePrompt = illustration.description
-            }
-        }
-
-        print(
-            "[StoryService] Applied \(illustrations.count) illustration descriptions to \(pages.count) pages"
-        )
     }
 
     // MARK: - Story Deletion
