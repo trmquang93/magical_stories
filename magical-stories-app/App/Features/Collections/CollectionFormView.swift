@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 enum DevelopmentalFocus: String, CaseIterable, Identifiable {
@@ -23,6 +24,10 @@ struct CollectionFormView: View {
     @State internal var interests: String = ""
     @State private var childName: String = ""
     @State private var characters: String = ""
+    @State private var selectedLanguage: String = "en"
+
+    // Language options from StoryLanguages
+    private let languages: [(String, String)] = StoryLanguages.languageOptions
 
     // State for loading indicator
     @State internal var isGenerating = false
@@ -71,6 +76,9 @@ struct CollectionFormView: View {
                     )
 
                     InterestsField(interests: $interests)
+
+                    LanguageField(
+                        selectedLanguage: $selectedLanguage, languages: languages)
 
                     GenerateCollectionButton(
                         isGenerating: isGenerating,
@@ -182,7 +190,8 @@ struct CollectionFormView: View {
                 ? nil
                 : characters.components(separatedBy: ",").map {
                     $0.trimmingCharacters(in: .whitespaces)
-                }
+                },
+            languageCode: selectedLanguage
         )
 
         do {

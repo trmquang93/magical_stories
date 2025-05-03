@@ -11,7 +11,7 @@ struct CollectionParameters: Codable, Hashable {
 
     /// Specific interests of the child to incorporate into the stories (e.g., "Dinosaurs", "Space Exploration", "Fairy Tales").
     /// Could be a comma-separated string or an array of strings.
-    var interests: String // Or [String]?
+    var interests: String  // Or [String]?
 
     /// Optional: Child's name to personalize stories within the collection.
     var childName: String?
@@ -19,13 +19,20 @@ struct CollectionParameters: Codable, Hashable {
     /// Optional: Specific characters to include.
     var characters: [String]?
 
+    /// Optional: Language code for stories in this collection (e.g., "en", "fr", "es").
+    var languageCode: String?
+
     /// Initializer
-    init(childAgeGroup: String, developmentalFocus: String, interests: String, childName: String? = nil, characters: [String]? = nil) {
+    init(
+        childAgeGroup: String, developmentalFocus: String, interests: String,
+        childName: String? = nil, characters: [String]? = nil, languageCode: String? = nil
+    ) {
         self.childAgeGroup = childAgeGroup
         self.developmentalFocus = developmentalFocus
         self.interests = interests
         self.childName = childName
         self.characters = characters
+        self.languageCode = languageCode
     }
 }
 
@@ -35,7 +42,8 @@ extension CollectionParameters {
         CollectionParameters(
             childAgeGroup: "4-6",
             developmentalFocus: "Sharing and Cooperation",
-            interests: "Animals, Playground"
+            interests: "Animals, Playground",
+            languageCode: "en"
         )
     }
-} 
+}

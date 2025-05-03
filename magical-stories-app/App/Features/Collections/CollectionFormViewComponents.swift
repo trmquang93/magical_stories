@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 // MARK: - Collection Form Components
@@ -502,6 +503,7 @@ struct CollectionLoadingOverlayView: View {
                     selectedFocus: .constant(.creativity), focuses: DevelopmentalFocus.allCases)
                 InterestsField(interests: .constant("Drawing, Reading"))
                 CharactersField(characters: .constant("Dragon, Princess"))
+                LanguageField(selectedLanguage: .constant("en"), languages: [])
                 GenerateCollectionButton(isGenerating: false, action: {})
                 CollectionLoadingOverlayView(isVisible: .constant(true))
             }

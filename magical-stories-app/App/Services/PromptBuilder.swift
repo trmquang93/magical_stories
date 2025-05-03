@@ -90,7 +90,9 @@ class PromptBuilder {
     // Add category selection instructions
     promptComponents.append(categorySelectionGuidelines())
 
-    return promptComponents.joined(separator: "\n\n")
+    let prompt = promptComponents.joined(separator: "\n\n")
+    print(">>>Prompt: \(prompt)")
+    return prompt
   }
 
   /// Builds a fallback prompt for generating illustration descriptions for a single page, with context.

@@ -195,7 +195,8 @@ struct StoryFormView: View {
             storyLength: lengthString,
             developmentalFocus: [.emotionalIntelligence, .problemSolving],
             interactiveElements: true,
-            emotionalThemes: emotionalThemes
+            emotionalThemes: emotionalThemes,
+            languageCode: selectedLanguage
         )
 
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {

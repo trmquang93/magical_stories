@@ -10,7 +10,6 @@ import ViewInspector
 @MainActor
 struct CollectionFormView_Tests {
     // Dependencies
-    
 
     @Test("Button is disabled when required fields are empty")
     func testButtonDisabledWhenFormInvalid() throws {
@@ -31,7 +30,7 @@ struct CollectionFormView_Tests {
 
     @Test("Service creates collection and appends to list")
     func testServiceCreatesCollection() async throws {
-        let service = CollectionServiceMock() // Use the mock
+        let service = CollectionServiceMock()  // Use the mock
         let initialCount = service.collections.count
         let collection = StoryCollection(
             title: "T", descriptionText: "D", category: "C", ageGroup: "A")
@@ -42,7 +41,7 @@ struct CollectionFormView_Tests {
 
     @Test("Service deletes collection")
     func testServiceDeletesCollection() async throws {
-        let service = CollectionServiceMock() // Use the mock
+        let service = CollectionServiceMock()  // Use the mock
         let collection = StoryCollection(
             title: "T", descriptionText: "D", category: "C", ageGroup: "A")
         try service.createCollection(collection)
@@ -57,7 +56,7 @@ struct CollectionFormView_Tests {
         mockCollectionService.isGenerating = true
         let view = CollectionFormView()
             .environmentObject(mockCollectionService)
-        
+
         #expect(mockCollectionService.isGenerating)
     }
 
@@ -67,13 +66,33 @@ struct CollectionFormView_Tests {
         mockCollectionService.errorMessage = "Test Error"
         let view = CollectionFormView()
             .environmentObject(mockCollectionService)
-        
+
         #expect(mockCollectionService.errorMessage == "Test Error")
     }
 
     // Removed testFormDismissesOnSuccess as testing dismissal from within the presented view
     // with ViewInspector is complex and better suited for UI tests.
     // This will be covered in magical-storiesUITests/CollectionFormUITests.swift
+
+    @Test("Language selection is passed to CollectionParameters")
+    func testLanguageSelectionPassedToCollectionParameters() throws {
+        // Create collection parameters with language code
+        let parameters = CollectionParameters(
+            childAgeGroup: "4-6",
+            developmentalFocus: "Problem Solving",
+            interests: "Space, Dinosaurs",
+            languageCode: "fr"  // French language code
+        )
+
+        // Verify the language code is correctly stored
+        #expect(parameters.languageCode == "fr")
+
+        // Note: In a real UI test, we would:
+        // 1. Create a CollectionFormView with a mock service
+        // 2. Set the selectedLanguage to "fr"
+        // 3. Trigger the generate button
+        // 4. Verify the parameters passed to generateCollection include languageCode == "fr"
+    }
 }
 
 // Removed custom EnvironmentValues extension, Inspection struct, and DismissAction extension

@@ -387,8 +387,23 @@ class StoryService: ObservableObject {
         // Replace Windows line endings with Unix
         cleaned = cleaned.replacingOccurrences(of: "\r\n", with: "\n")
         cleaned = cleaned.replacingOccurrences(of: "\r", with: "\n")
-        // Remove any control characters except for tab and newline
-        cleaned = cleaned.filter { $0.isASCII && ($0 >= " " || $0 == "\n" || $0 == "\t") }
+
+        // Filter out only control characters while preserving all Unicode characters
+        // This preserves characters from all languages including Vietnamese
+        cleaned = cleaned.filter { char in
+            guard let firstScalar = char.unicodeScalars.first else { return true }
+
+            // Keep newlines and tabs
+            if char == "\n" || char == "\t" {
+                return true
+            }
+
+            // Filter out only control characters (C0 and C1 control character sets)
+            // This preserves all printable characters including non-ASCII ones like Vietnamese
+            let isControlChar =
+                (firstScalar.value < 32) || (firstScalar.value >= 127 && firstScalar.value < 160)
+            return !isControlChar
+        }
 
         return cleaned
     }
