@@ -76,7 +76,7 @@ protocol IllustrationServiceProtocol {
     ///   - illustrationDescription: The detailed, preprocessed description for the illustration.
     ///   - pageNumber: The current page number.
     ///   - totalPages: The total number of pages in the story.
-    ///   - previousIllustrationPath: The relative path to the previous page's illustration, if available.
+    ///   - previousIllustrationPath: The relative path to the previous page's illustration, if available. Defaults to nil.
     /// - Returns: A relative path string pointing to the generated illustration, or `nil` if generation fails gracefully.
     /// - Throws: `IllustrationError` for configuration, network, or API issues.
     func generateIllustration(

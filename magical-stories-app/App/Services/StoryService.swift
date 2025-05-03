@@ -6,6 +6,13 @@ import SwiftUI
 
 // MARK: - Story Models
 
+// MARK: - Illustration Description
+/// Represents a description for generating an illustration for a specific page
+struct IllustrationDescription {
+    let pageNumber: Int
+    let description: String
+}
+
 // MARK: - Story Service Errors
 enum StoryServiceError: LocalizedError, Equatable {
     case generationFailed(String)
@@ -134,8 +141,9 @@ class StoryService: ObservableObject {
             }
 
             // Try to parse the response as XML to extract title, story content, and category
-            let (extractedTitle, storyContent, category) = try extractTitleCategoryAndContent(
-                from: text)
+            let (extractedTitle, storyContent, category, illustrations) =
+                try extractTitleCategoryAndContent(
+                    from: text)
 
             // Use extracted title or fallback
             let title = extractedTitle ?? "Magical Story"
@@ -147,7 +155,12 @@ class StoryService: ObservableObject {
             }
 
             // Process content into pages using StoryProcessor
-            let pages = try await storyProcessor.processIntoPages(content, theme: parameters.theme)
+            var pages = try await storyProcessor.processIntoPages(content, theme: parameters.theme)
+
+            // Apply illustration descriptions to pages if available
+            if let illustrations = illustrations {
+                applyIllustrationDescriptions(to: &pages, illustrations: illustrations)
+            }
 
             let story = Story(
                 title: title,
@@ -224,7 +237,7 @@ class StoryService: ObservableObject {
     // Removed extractTitleAndContent method as title is now extracted within extractTitleCategoryAndContent
 
     private func extractTitleCategoryAndContent(from text: String) throws -> (
-        String?, String?, String?
+        String?, String?, String?, [IllustrationDescription]?
     ) {
         // Try to parse the text as XML to extract story and category
         do {
@@ -241,6 +254,7 @@ class StoryService: ObservableObject {
                 let titlePattern = "<title>(.*?)</title>"
                 let contentPattern = "<content>(.*?)</content>"
                 let categoryPattern = "<category>(.*?)</category>"
+                let illustrationsPattern = "<illustrations>(.*?)</illustrations>"
 
                 let titleRegex = try NSRegularExpression(
                     pattern: titlePattern, options: [.dotMatchesLineSeparators])
@@ -248,6 +262,8 @@ class StoryService: ObservableObject {
                     pattern: contentPattern, options: [.dotMatchesLineSeparators])
                 let categoryRegex = try NSRegularExpression(
                     pattern: categoryPattern, options: [.dotMatchesLineSeparators])
+                let illustrationsRegex = try NSRegularExpression(
+                    pattern: illustrationsPattern, options: [.dotMatchesLineSeparators])
 
                 let titleMatches = titleRegex.matches(
                     in: normalizedXml,
@@ -258,10 +274,14 @@ class StoryService: ObservableObject {
                 let categoryMatches = categoryRegex.matches(
                     in: normalizedXml,
                     range: NSRange(normalizedXml.startIndex..., in: normalizedXml))
+                let illustrationsMatches = illustrationsRegex.matches(
+                    in: normalizedXml,
+                    range: NSRange(normalizedXml.startIndex..., in: normalizedXml))
 
                 var extractedTitle: String? = nil
                 var storyContent: String? = nil
                 var category: String? = nil
+                var illustrations: [IllustrationDescription]? = nil
 
                 // Extract title from matches
                 if let titleMatch = titleMatches.first,
@@ -287,9 +307,18 @@ class StoryService: ObservableObject {
                     print("[StoryService] Category from XML: \(category ?? "None")")
                 }
 
-                // Return extracted values (some might be nil if tags were missing)
-                return (extractedTitle, storyContent, category)
+                // Extract illustrations from matches
+                if let illustrationsMatch = illustrationsMatches.first,
+                    let illustrationsRange = Range(
+                        illustrationsMatch.range(at: 1), in: normalizedXml)
+                {
+                    let illustrationsContent = String(normalizedXml[illustrationsRange])
+                    illustrations = extractIllustrationDescriptions(from: illustrationsContent)
+                    print("[StoryService] Found \(illustrations?.count ?? 0) illustrations in XML")
+                }
 
+                // Return extracted values (some might be nil if tags were missing)
+                return (extractedTitle, storyContent, category, illustrations)
             }
 
             // If we reach here, XML extraction failed or tags weren't found
@@ -300,14 +329,14 @@ class StoryService: ObservableObject {
             let fallbackCategory = extractFallbackCategory(from: text)
 
             // Use the original text as content, title will be handled by caller's fallback
-            return (nil, text, fallbackCategory)
+            return (nil, text, fallbackCategory, nil)
         } catch {
             // If XML parsing throws an error, use plain text fallback
             print(
                 "[StoryService] XML parsing error: \(error.localizedDescription), using plain text fallback"
             )
             let fallbackCategory = extractFallbackCategory(from: text)
-            return (nil, text, fallbackCategory)
+            return (nil, text, fallbackCategory, nil)
         }
     }
 
@@ -456,6 +485,70 @@ class StoryService: ObservableObject {
 
         // If no clear category found, return nil
         return nil
+    }
+
+    // Helper to extract illustration descriptions from the illustrations XML content
+    private func extractIllustrationDescriptions(from illustrationsXml: String)
+        -> [IllustrationDescription]
+    {
+        var illustrations = [IllustrationDescription]()
+
+        // Use regex to extract individual illustration tags with their page numbers and descriptions
+        do {
+            let illustrationPattern = "<illustration\\s+page=\"(\\d+)\">(.*?)</illustration>"
+            let regex = try NSRegularExpression(
+                pattern: illustrationPattern, options: [.dotMatchesLineSeparators])
+
+            let matches = regex.matches(
+                in: illustrationsXml,
+                range: NSRange(illustrationsXml.startIndex..., in: illustrationsXml))
+
+            for match in matches {
+                if match.numberOfRanges >= 3,
+                    let pageRange = Range(match.range(at: 1), in: illustrationsXml),
+                    let descriptionRange = Range(match.range(at: 2), in: illustrationsXml)
+                {
+
+                    let pageNumberString = String(illustrationsXml[pageRange])
+                    let description = String(illustrationsXml[descriptionRange])
+
+                    if let pageNumber = Int(pageNumberString) {
+                        illustrations.append(
+                            IllustrationDescription(
+                                pageNumber: pageNumber, description: description))
+                    }
+                }
+            }
+
+            // Sort illustrations by page number to ensure correct order
+            illustrations.sort { $0.pageNumber < $1.pageNumber }
+
+        } catch {
+            print(
+                "[StoryService] Error extracting illustration descriptions: \(error.localizedDescription)"
+            )
+        }
+
+        return illustrations
+    }
+
+    // Helper method to apply illustration descriptions to pages
+    private func applyIllustrationDescriptions(
+        to pages: inout [Page], illustrations: [IllustrationDescription]
+    ) {
+        for illustration in illustrations {
+            // Find the matching page by page number
+            if illustration.pageNumber > 0 && illustration.pageNumber <= pages.count {
+                // Page numbers in our array are 0-indexed, but illustrations use 1-indexed
+                let pageIndex = illustration.pageNumber - 1
+                // Set the illustration description as the image prompt
+                pages[pageIndex].imagePrompt = illustration.description
+            }
+        }
+
+        print(
+            "[StoryService] Applied \(illustrations.count) illustration descriptions to \(pages.count) pages"
+        )
     }
 
     // MARK: - Story Deletion

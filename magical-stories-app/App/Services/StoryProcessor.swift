@@ -46,23 +46,11 @@ class StoryProcessor {
         // First attempt to paginate using the delimiter-based approach
         var pages = paginateStory(content)
 
-        // Preprocess illustration descriptions for all pages for consistency
-        let illustrationDescriptions = await preprocessIllustrationDescriptions(
-            pages: pages,
-            theme: theme
-        )
+        // The image prompts will be set later in StoryService if they are provided in the AI response
+        // No need to preprocess descriptions here anymore
 
-        // Update the pages with the preprocessed descriptions
-        for i in pages.indices where i < illustrationDescriptions.count {
-            pages[i].imagePrompt = illustrationDescriptions[i]
-        }
-
-        // Generate illustrations using the preprocessed descriptions
-        await generateIllustrationsForPages(
-            &pages,
-            theme: theme,
-            usePreprocessedDescriptions: true
-        )
+        // Generate illustrations using the existing or default prompts
+        await generateIllustrationsForPages(&pages, theme: theme)
         return pages
     }
 
@@ -466,9 +454,8 @@ class StoryProcessor {
         for i in pages.indices {
             let pageContent = pages[i].content
 
-            // Store the page content as imagePrompt if not already set and not
-            // using preprocessed descriptions
-            if pages[i].imagePrompt == nil, !usePreprocessedDescriptions {
+            // Store the page content as imagePrompt if not already set
+            if pages[i].imagePrompt == nil {
                 pages[i].imagePrompt = pageContent
             }
 
@@ -485,32 +472,15 @@ class StoryProcessor {
 
             do {
                 let relativePath: String?
+                let imagePrompt = pages[i].imagePrompt ?? pageContent
 
-                if usePreprocessedDescriptions,
-                    let imagePrompt = pages[i].imagePrompt
-                {
-                    // Use the enhanced method with preprocessed description and
-                    // page context
-                    let previousIllustrationPath =
-                        i > 0 ? pages[i - 1].illustrationRelativePath : nil
-
-                    relativePath =
-                        try await illustrationService
-                        .generateIllustration(
-                            for: imagePrompt,
-                            pageNumber: i + 1,
-                            totalPages: pages.count,
-                            previousIllustrationPath: previousIllustrationPath
-                        )
-                } else {
-                    // Fallback to the original method
-                    relativePath =
-                        try await illustrationService
-                        .generateIllustration(
-                            for: pageContent,
-                            theme: theme
-                        )
-                }
+                // Generate illustration using the prompt directly, not referencing previous illustrations
+                relativePath = try await illustrationService.generateIllustration(
+                    for: imagePrompt,
+                    pageNumber: i + 1,
+                    totalPages: pages.count,
+                    previousIllustrationPath: nil  // Not using previous illustrations for reference
+                )
 
                 if let relativePath = relativePath {
                     pages[i].illustrationRelativePath = relativePath

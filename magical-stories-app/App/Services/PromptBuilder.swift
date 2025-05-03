@@ -261,17 +261,32 @@ class PromptBuilder {
     let categoriesList = allowedCategories.joined(separator: ", ")
 
     return """
-      Category Selection Instructions:
-      After writing the story, analyze its content and select the single most appropriate category from this list:
+      Category Selection and Illustration Instructions:
+      After writing the story, follow these steps:
+
+      1. Analyze the story content and select the single most appropriate category from this list:
       [\(categoriesList)]
+
+      2. For each page of your story (marked by "---" separators), create a detailed illustration description that captures the essence of that page. Each description should:
+         - Include key characters, setting, and action from the page
+         - Provide details about character appearance, expressions, and positioning
+         - Describe environmental elements, lighting, mood, and colors
+         - Be self-contained with full context (not dependent on other illustrations)
+         - Be suitable for a 9:16 portrait aspect ratio illustration
 
       Return your response as XML with the following tags:
       <title>Your Story Title</title>
       <content>Full story text with page breaks as before</content>
       <category>Selected category name from the list above</category>
+      <illustrations>
+        <illustration page="1">Detailed description for page 1</illustration>
+        <illustration page="2">Detailed description for page 2</illustration>
+        <!-- Include one <illustration> tag for each page in your story -->
+      </illustrations>
 
       The <content> tag should contain the complete story text with title and page breaks as instructed earlier.
       The <category> tag should be exactly one of the category names listed above, based on your analysis of the story content.
+      The <illustrations> section should contain one <illustration> tag for each page, with a detailed description that can be used directly for image generation.
       """
   }
 
