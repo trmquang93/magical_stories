@@ -486,6 +486,8 @@ struct CollectionDetailView: View {
                 .font(.system(size: 15))
                 .foregroundColor(.secondary)
                 .lineSpacing(4)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
