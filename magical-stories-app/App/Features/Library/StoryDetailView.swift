@@ -248,11 +248,11 @@ struct StoryDetailView: View {
             illustrationTaskManager.addTask(task)
             
             // Save the task to the repository for persistence
-            Task {
+            Task { @MainActor in
+                let repository = IllustrationTaskRepository(modelContext: modelContext)
                 do {
-                    // Get current context from main actor
-                    let repository = try IllustrationTaskRepository(modelContext: modelContext)
-                    try await repository.saveTask(
+                    // Remove the unnecessary await keyword since saveTask might not be async
+                    _ = try repository.saveTask(
                         task,
                         pageNumber: page.pageNumber,
                         totalPages: pages.count,
@@ -287,7 +287,9 @@ struct StoryDetailView: View {
     private func startIllustrationTaskProcessing() async {
         // Start processing if not already processing
         if !illustrationTaskManager.isProcessing {
-            await illustrationTaskManager.startProcessing { task in
+            // The result of startProcessing is intentionally ignored here because 
+            // the task processing logic is handled via the provided closure.
+            _ = await illustrationTaskManager.startProcessing { task in
                 // Process the task by generating an illustration
                 do {
                     // Find the corresponding page
@@ -356,12 +358,29 @@ struct StoryDetailView: View {
     }
 
     private func regenerateIllustration(for page: Page) {
-        Task {
+        // Using MainActor for the entire task to safely access modelContext
+        Task { @MainActor in
+            // Store image prompt and other necessary data before starting illustration generation
+            let imagePrompt = page.imagePrompt ?? page.content
+            let pageNumber = page.pageNumber
+            let totalPages = pages.count
+            
             do {
-                try await illustrationService.generateIllustration(for: page, context: modelContext)
-                updateIllustrationProgress()
+                // Use the image prompt directly instead of passing the modelContext
+                if let relativePath = try await illustrationService.generateIllustration(
+                    for: imagePrompt,
+                    pageNumber: pageNumber,
+                    totalPages: totalPages,
+                    previousIllustrationPath: nil
+                ) {
+                    // Update page with the new illustration path
+                    page.illustrationPath = relativePath
+                    page.illustrationStatus = .ready
+                    updateIllustrationProgress()
+                }
             } catch {
                 print("Failed to regenerate illustration: \(error)")
+                page.illustrationStatus = .failed
             }
         }
     }
