@@ -1,13 +1,52 @@
 import SwiftData
 import SwiftUI
 
+// Height reader helper to measure content size
+struct HeightPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+struct HeightReaderView: View {
+    @Binding var height: CGFloat
+    
+    var body: some View {
+        GeometryReader { geometry in
+            Color.clear
+                .preference(key: HeightPreferenceKey.self, value: geometry.frame(in: .local).height)
+        }
+        .onPreferenceChange(HeightPreferenceKey.self) { height in
+            self.height = height
+        }
+    }
+}
+
 struct CollectionDetailView: View {
     @EnvironmentObject private var collectionService: CollectionService
     @State private var achievements: [AchievementModel] = []
     @State private var isLoadingAchievements = false
     @State private var selectedTab = 0
     @State private var animateElements = false
+    @State private var storiesTabHeight: CGFloat = 0
+    @State private var aboutTabHeight: CGFloat = 0
+    @State private var achievementsTabHeight: CGFloat = 0
     @Bindable var collection: StoryCollection  // Use @Bindable for live updates
+    
+    // Determine the appropriate height based on the selected tab
+    private var dynamicTabHeight: CGFloat {
+        switch selectedTab {
+        case 0:
+            return max(storiesTabHeight, 100)  // Use a minimum height if content is empty
+        case 1:
+            return max(aboutTabHeight, 100)
+        case 2:
+            return max(achievementsTabHeight, 100)
+        default:
+            return 100
+        }
+    }
 
     init(collection: StoryCollection) {
         self.collection = collection
@@ -84,18 +123,27 @@ struct CollectionDetailView: View {
                 TabView(selection: $selectedTab) {
                     // Stories tab
                     storiesTab
+                        .background(
+                            HeightReaderView(height: $storiesTabHeight)
+                        )
                         .tag(0)
 
                     // About tab
                     aboutTab
+                        .background(
+                            HeightReaderView(height: $aboutTabHeight)
+                        )
                         .tag(1)
 
                     // Achievements tab
                     achievementsTab
+                        .background(
+                            HeightReaderView(height: $achievementsTabHeight)
+                        )
                         .tag(2)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(minHeight: 600)
+                .frame(height: dynamicTabHeight)
             }
         }
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
