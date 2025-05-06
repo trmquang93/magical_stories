@@ -100,7 +100,7 @@ struct LibraryView: View {
         if !searchText.isEmpty {
             stories = stories.filter { story in
                 story.title.localizedCaseInsensitiveContains(searchText)
-                    || story.parameters.childName.localizedCaseInsensitiveContains(searchText)
+                    || story.parameters.childName?.localizedCaseInsensitiveContains(searchText) == true
                     || story.parameters.theme.localizedCaseInsensitiveContains(searchText)
             }
         }

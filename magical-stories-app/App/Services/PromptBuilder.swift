@@ -216,17 +216,27 @@ class PromptBuilder {
     let targetLanguageName =
       Locale.current.localizedString(forIdentifier: targetLanguageCode) ?? "English"  // Attempt to get localized name
 
-    return """
-      Create an engaging children's story with the following requirements:
-      - Main character name: \(parameters.childName)
-      - Age group: \(parameters.childAge) years old
-      - Theme: \(parameters.theme)
-      - Include this character: \(parameters.favoriteCharacter)
-      - Story length: \(parameters.storyLength ?? "medium (3-4 pages)")
-      - Generate the story in \(targetLanguageName) (\(targetLanguageCode)).
-
-      The story should be educational, entertaining, and appropriate for the child's age.
-      """
+    var promptLines = [
+      "Create an engaging children's story with the following requirements:",
+      "- Age group: \(parameters.childAge) years old",
+      "- Theme: \(parameters.theme)",
+      "- Story length: \(parameters.storyLength ?? "medium (3-4 pages)")",
+      "- Generate the story in \(targetLanguageName) (\(targetLanguageCode))."
+    ]
+    
+    // Only include character name if provided
+    if let childName = parameters.childName {
+      promptLines.insert("- Main character name: \(childName)", at: 1)
+    }
+    
+    // Only include favorite character if provided
+    if let favoriteCharacter = parameters.favoriteCharacter {
+      promptLines.insert("- Include this character: \(favoriteCharacter)", at: promptLines.count - 1)
+    }
+    
+    promptLines.append("\nThe story should be educational, entertaining, and appropriate for the child's age.")
+    
+    return promptLines.joined(separator: "\n")
   }
 
   private func storyStructureGuidelines() -> String {

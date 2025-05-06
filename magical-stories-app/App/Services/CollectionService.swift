@@ -113,17 +113,31 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
                 let childAge = ageRange.count >= 2
                     ? (ageRange[0] + ageRange[1]) / 2  // Average of age range
                     : (ageRange.first ?? 5)  // Default to first number or 5
-
+                
+                // Remove the older implementation and keep only the new one
                 // Prepare story parameters for each story with unique theme
+                
+                // Get character name for this story, cycling through available characters if provided
+                let characterName: String? = {
+                    if let availableCharacters = parameters.characters, !availableCharacters.isEmpty {
+                    // Cycle through characters if multiple are provided
+                    let characterIndex = index % availableCharacters.count
+                    return availableCharacters[characterIndex]
+                } else {
+                    return nil // Don't provide any character name if none are available
+                }
+                }()
+                
                 let storyParams = StoryParameters(
-                    childName: parameters.childName ?? "Child",
+                    childName: parameters.childName,
                     childAge: childAge,
                     theme: theme,
-                    favoriteCharacter: parameters.characters?.first ?? "Friend"
+                    favoriteCharacter: characterName,
+                    languageCode: parameters.languageCode // Pass the language code from collection parameters
                 )
 
                 print(
-                    "[CollectionService] Generating story \(index + 1)/\(numberOfStories) for collection \(collection.title) with theme: \(theme)"
+                    "[CollectionService] Generating story \(index + 1)/\(numberOfStories) for collection \(collection.title) with theme: \(theme), language: \(parameters.languageCode ?? "en"), character: \(characterName)"
                 )
 
                 // Generate story using StoryService

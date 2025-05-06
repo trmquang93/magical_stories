@@ -7,7 +7,7 @@ struct StoryFormView: View {
     @EnvironmentObject private var storyService: StoryService
 
     // State Variables
-    @State private var childName = ""
+    @State private var childName: String? = nil
     @State private var selectedAgeRange: String = "3-5"
     @State private var selectedTheme: StoryTheme = .friendship
     @State private var favoriteCharacter = ""
@@ -52,7 +52,7 @@ struct StoryFormView: View {
                     LoadingOverlayView(
                         isLoading: isGenerating,
                         title: "Creating your magical story...",
-                        subtitle: "Weaving enchantment and wonder just for \(childName)..."
+                        subtitle: "Weaving enchantment and wonder just for \(childName ?? "")..."
                     )
                 }
             }
@@ -162,8 +162,6 @@ struct StoryFormView: View {
 
     // MARK: - Helper Functions
     private func generateStory() {
-        guard !childName.isEmpty else { return }
-
         // Convert age range string to an approximate integer age
         let estimatedAge: Int
         let components = selectedAgeRange.split(separator: "-").compactMap { Int($0) }

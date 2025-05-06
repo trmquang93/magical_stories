@@ -13,10 +13,10 @@ enum IllustrationStatus: String, Codable, CaseIterable, Equatable {
 
 /// Represents the input parameters provided by the user to generate a story.
 struct StoryParameters: Codable, Hashable {
-    var childName: String
+    var childName: String?
     var childAge: Int
     var theme: String
-    var favoriteCharacter: String
+    var favoriteCharacter: String?
     var storyLength: String?
     var developmentalFocus: [GrowthCategory]?  // Optional array for developmental themes
     var interactiveElements: Bool?  // Optional flag for interactive prompts

@@ -124,9 +124,9 @@ class StoryService: ObservableObject {
     func generateStory(parameters: StoryParameters) async throws -> Story {
         print("[StoryService] generateStory START (main thread: \(Thread.isMainThread))")
 
-        guard !parameters.childName.isEmpty else {
-            throw StoryServiceError.invalidParameters
-        }
+        // Updated validation for optional childName
+        // We no longer need this validation since childName is optional
+        // If we want to enforce childName in certain contexts, we can add specific validation
 
         isGenerating = true
         defer { isGenerating = false }

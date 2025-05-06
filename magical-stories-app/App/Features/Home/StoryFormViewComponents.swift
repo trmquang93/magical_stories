@@ -42,14 +42,17 @@ struct FormHeader: View {
 }
 
 struct ChildNameField: View {
-    @Binding var childName: String
+    @Binding var childName: String?
 
     var body: some View {
         FormFieldContainer {
             Text("Child's Name")
                 .formSectionLabel(iconName: "person.fill")
 
-            TextField("Enter child's name", text: $childName)
+            TextField("Enter child's name", text: Binding(
+                get: { childName ?? "" },
+                set: { childName = $0.isEmpty ? nil : $0 }
+            ))
                 .formFieldStyle()
         }
     }
@@ -222,7 +225,7 @@ struct LanguageField: View {
 struct GenerateButton: View {
     @Environment(\.colorScheme) private var colorScheme
     let isGenerating: Bool
-    let childName: String
+    let childName: String?
     let action: () -> Void
 
     private var primaryGradient: LinearGradient {
@@ -275,20 +278,10 @@ struct GenerateButton: View {
                     color: Color(hex: "#7B61FF").opacity(0.4), radius: 15, x: 0,
                     y: 8)
             }
-            .disabled(isGenerating || childName.isEmpty)
-            .scaleEffect(childName.isEmpty ? 0.98 : 1.0)
+            .disabled(isGenerating)
             .animation(
                 .spring(response: 0.3, dampingFraction: 0.7),
-                value: childName.isEmpty)
-
-            if childName.isEmpty {
-                Text("Please enter the child's name to continue")
-                    .font(.system(size: 14))
-                    .foregroundColor(Color(hex: "#FF617B"))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, Theme.Spacing.lg)
-                    .padding(.top, 4)
-            }
+                value: isGenerating)
         }
         .padding(.horizontal, Theme.Spacing.lg)
         .padding(.top, Theme.Spacing.md)
