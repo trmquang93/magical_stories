@@ -19,7 +19,7 @@ final class EnhancedPageView_Tests: XCTestCase {
         // Since we can't directly inspect SwiftUI view structure in unit tests,
         // we'll test that the PageView correctly uses the illustrationStatus
         XCTAssertEqual(page.illustrationStatus, .pending)
-        XCTAssertNil(page.illustrationRelativePath)
+        XCTAssertNil(page.illustrationPath)
     }
 
     func testPageView_WithGeneratingIllustration() {
@@ -36,7 +36,7 @@ final class EnhancedPageView_Tests: XCTestCase {
         // Since we can't directly inspect SwiftUI view structure in unit tests,
         // we'll test that the PageView correctly uses the illustrationStatus
         XCTAssertEqual(page.illustrationStatus, .generating)
-        XCTAssertNil(page.illustrationRelativePath)
+        XCTAssertNil(page.illustrationPath)
     }
 
     func testPageView_WithFailedIllustration() {
@@ -61,7 +61,7 @@ final class EnhancedPageView_Tests: XCTestCase {
         // Since we can't directly inspect SwiftUI view structure in unit tests,
         // we'll test that the PageView correctly uses the illustrationStatus
         XCTAssertEqual(page.illustrationStatus, .failed)
-        XCTAssertNil(page.illustrationRelativePath)
+        XCTAssertNil(page.illustrationPath)
 
         // We can't directly trigger the button in a unit test,
         // but we've verified the structure is correct
@@ -72,7 +72,7 @@ final class EnhancedPageView_Tests: XCTestCase {
         let page = Page(
             content: "Test content",
             pageNumber: 1,
-            illustrationRelativePath: "test/path/image.png",
+            illustrationPath: "test/path/image.png",
             illustrationStatus: .ready
         )
 
@@ -82,7 +82,7 @@ final class EnhancedPageView_Tests: XCTestCase {
         // Since we can't directly inspect SwiftUI view structure in unit tests,
         // we'll test that the PageView correctly uses the illustrationStatus
         XCTAssertEqual(page.illustrationStatus, .ready)
-        XCTAssertEqual(page.illustrationRelativePath, "test/path/image.png")
+        XCTAssertEqual(page.illustrationPath, "test/path/image.png")
     }
 
     func testAccessibilityLabels() {
@@ -94,7 +94,7 @@ final class EnhancedPageView_Tests: XCTestCase {
         let readyPage = Page(
             content: "Test content",
             pageNumber: 1,
-            illustrationRelativePath: "test/path.png",
+            illustrationPath: "test/path.png",
             illustrationStatus: .ready
         )
 

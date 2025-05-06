@@ -31,36 +31,6 @@ protocol CollectionServiceProtocol {
     @MainActor func deleteCollection(id: UUID) throws
 }
 
-/// Protocol defining the requirements for Story services.
-protocol StoryServiceProtocol {
-    /// Creates a new Story.
-    /// - Parameter story: The `StoryModel` to create.
-    /// - Throws: An error if creation fails.
-    func createStory(_ story: StoryModel) throws
-
-    /// Fetches a specific Story by its ID.
-    /// - Parameter id: The `UUID` of the story to fetch.
-    /// - Returns: The `StoryModel` if found, otherwise `nil`.
-    /// - Throws: An error if fetching fails.
-    func fetchStory(id: UUID) throws -> StoryModel?
-
-    /// Fetches all Stories for a specific collection.
-    /// - Parameter collectionId: The `UUID` of the collection.
-    /// - Returns: An array of `StoryModel` objects.
-    /// - Throws: An error if fetching fails.
-    func fetchStories(forCollection collectionId: UUID) throws -> [StoryModel]
-
-    /// Updates a specific Story.
-    /// - Parameter story: The `StoryModel` to update.
-    /// - Throws: An error if updating fails.
-    func updateStory(_ story: StoryModel) throws
-
-    /// Deletes a specific Story.
-    /// - Parameter id: The `UUID` of the story to delete.
-    /// - Throws: An error if deletion fails.
-    func deleteStory(id: UUID) throws
-}
-
 /// Protocol defining the requirements for Illustration services.
 protocol IllustrationServiceProtocol {
     /// Generates an illustration URL for the given page text and theme.

@@ -118,7 +118,7 @@ struct HomeView_Tests {
         some View, StoryService, CollectionService
     ) {
         // Set up test data
-        let schema = Schema([StoryModel.self, PageModel.self])
+        let schema = Schema([Story.self, Page.self])
         let container = try! ModelContainer(
             for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let context = ModelContext(container)

@@ -19,7 +19,7 @@ final class PersistenceServiceTests: XCTestCase {
         testUserDefaults.removePersistentDomain(forName: testSuiteName)  // Clear previous test data
 
         // Create an in-memory SwiftData model container for testing
-        let schema = Schema([StoryModel.self, PageModel.self])
+        let schema = Schema([Story.self, Page.self])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         let modelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
         modelContext = ModelContext(modelContainer)
@@ -41,12 +41,12 @@ final class PersistenceServiceTests: XCTestCase {
     ) -> Story {
         let page1 = Page(
             content: "Page 1 content.", pageNumber: 1,
-            illustrationRelativePath: includeIllustration ? "Illustrations/page1.png" : nil,
+            illustrationPath: includeIllustration ? "Illustrations/page1.png" : nil,
             illustrationStatus: includeIllustration ? .ready : .failed,
             imagePrompt: includeIllustration ? "Prompt 1" : nil)
         let page2 = Page(
             content: "Page 2 content.", pageNumber: 2,
-            illustrationRelativePath: includeIllustration ? "Illustrations/page2.png" : nil,
+            illustrationPath: includeIllustration ? "Illustrations/page2.png" : nil,
             illustrationStatus: includeIllustration ? .ready : .failed,
             imagePrompt: includeIllustration ? "Prompt 2" : nil)
         let params = StoryParameters(
@@ -71,11 +71,11 @@ final class PersistenceServiceTests: XCTestCase {
         XCTAssertEqual(loadedStory.pages.count, story.pages.count)
         XCTAssertEqual(loadedStory.pages[0].content, story.pages[0].content)
         XCTAssertEqual(
-            loadedStory.pages[0].illustrationRelativePath, story.pages[0].illustrationRelativePath)
+            loadedStory.pages[0].illustrationPath, story.pages[0].illustrationPath)
         XCTAssertEqual(loadedStory.pages[0].illustrationStatus, story.pages[0].illustrationStatus)
         XCTAssertEqual(loadedStory.pages[0].imagePrompt, story.pages[0].imagePrompt)
         XCTAssertEqual(
-            loadedStory.pages[1].illustrationRelativePath, story.pages[1].illustrationRelativePath)
+            loadedStory.pages[1].illustrationPath, story.pages[1].illustrationPath)
         XCTAssertEqual(loadedStory.pages[1].illustrationStatus, story.pages[1].illustrationStatus)
     }
 
@@ -95,9 +95,9 @@ final class PersistenceServiceTests: XCTestCase {
         let loadedStory2 = try XCTUnwrap(loadedStories.first(where: { $0.id == story2.id }))
 
         XCTAssertEqual(loadedStory1.pages.count, 2)
-        XCTAssertNotNil(loadedStory1.pages[0].illustrationRelativePath)
+        XCTAssertNotNil(loadedStory1.pages[0].illustrationPath)
         XCTAssertEqual(loadedStory2.pages.count, 2)
-        XCTAssertNil(loadedStory2.pages[0].illustrationRelativePath)  // Verify nil path is handled
+        XCTAssertNil(loadedStory2.pages[0].illustrationPath)  // Verify nil path is handled
     }
 
     func testLoadEmptyStories() async throws {

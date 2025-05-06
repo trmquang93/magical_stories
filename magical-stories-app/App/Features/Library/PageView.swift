@@ -32,7 +32,7 @@ struct PageView: View {
                 // Illustration or placeholder based on status
                 Group {
                     if page.illustrationStatus == .ready,
-                        let relPath = page.illustrationRelativePath,
+                        let relPath = page.illustrationPath,
                         let url = fullImageURL(for: relPath)
                     {
                         AsyncImage(url: url) { phase in
@@ -136,7 +136,7 @@ struct PageView: View {
             content:
                 "Once upon a time, in a land far, far away, there lived a curious little fox named Finley. Finley loved exploring the Whispering Woods behind his cozy den. One sunny morning, Finley decided to venture deeper into the woods than ever before.",
             pageNumber: 1,
-            illustrationRelativePath: "Illustrations/sample.png",  // This won't load in preview
+            illustrationPath: "Illustrations/sample.png",  // This won't load in preview
             illustrationStatus: .ready,
             imagePrompt:
                 "A small red fox entering a mystical forest with sunlight filtering through the trees"

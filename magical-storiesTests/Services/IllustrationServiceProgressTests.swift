@@ -113,7 +113,7 @@ final class IllustrationServiceProgressTests: XCTestCase {
         // Assert - Verify status is updated to .ready
         XCTAssertEqual(
             page.illustrationStatus, .ready, "Page status should be updated to .ready on success")
-        XCTAssertNotNil(page.illustrationRelativePath, "Illustration path should be set")
+        XCTAssertNotNil(page.illustrationPath, "Illustration path should be set")
     }
 
     func testGenerateIllustration_Failure_UpdatesStatusToFailed() async throws {
@@ -144,7 +144,7 @@ final class IllustrationServiceProgressTests: XCTestCase {
             XCTAssertEqual(
                 page.illustrationStatus, .failed,
                 "Page status should be updated to .failed on error")
-            XCTAssertNil(page.illustrationRelativePath, "Illustration path should remain nil")
+            XCTAssertNil(page.illustrationPath, "Illustration path should remain nil")
         }
     }
 }

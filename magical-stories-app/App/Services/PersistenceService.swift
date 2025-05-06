@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 // MARK: - Persistence Service Protocol
-@MainActor // Ensure methods are called on the main actor if they interact with SwiftData context directly
+@MainActor  // Ensure methods are called on the main actor if they interact with SwiftData context directly
 protocol PersistenceServiceProtocol {
     // Story Management
     func saveStories(_ stories: [Story]) async throws
@@ -13,7 +13,7 @@ protocol PersistenceServiceProtocol {
     // Story State Updates
     func incrementReadCount(for storyId: UUID) async throws
     func toggleFavorite(for storyId: UUID) async throws
-    func updateLastReadAt(for storyId: UUID, date: Date) async throws // Added default value removal as protocols define interface
+    func updateLastReadAt(for storyId: UUID, date: Date) async throws  // Added default value removal as protocols define interface
 
     // Achievement Management
     func saveAchievement(_ achievement: Achievement) async throws
@@ -23,10 +23,11 @@ protocol PersistenceServiceProtocol {
     func fetchAchievements(forCollection collectionId: UUID) async throws -> [Achievement]
     func updateAchievementStatus(id: UUID, isEarned: Bool, earnedDate: Date?) async throws
     func deleteAchievement(withId id: UUID) async throws
-    func associateAchievement(_ achievementId: String, withCollection collectionId: UUID) async throws
-    func removeAchievementAssociation(_ achievementId: String, fromCollection collectionId: UUID) async throws
+    func associateAchievement(_ achievementId: String, withCollection collectionId: UUID)
+        async throws
+    func removeAchievementAssociation(_ achievementId: String, fromCollection collectionId: UUID)
+        async throws
 }
-
 
 /// Errors that can occur during persistence operations
 enum PersistenceError: Error {
@@ -43,22 +44,21 @@ public class PersistenceService: PersistenceServiceProtocol, ObservableObject {
     private let storyRepository: StoryRepository
     private let swiftDataAchievementRepository: AchievementRepository
     private let decoder = JSONDecoder()
-    
+
     public init(context: ModelContext) {
         self.context = context
         self.storyRepository = StoryRepository(modelContext: context)
         self.swiftDataAchievementRepository = AchievementRepository(modelContext: context)
     }
-    
+
     func saveStories(_ stories: [Story]) async throws {
         try await storyRepository.saveStories(stories)
     }
-    
+
     func loadStories() async throws -> [Story] {
-        let storyModels = try await storyRepository.fetchAllStories()
-        return storyRepository.toDomainModels(storyModels)
+        return try await storyRepository.fetchAllStories()
     }
-    
+
     @MainActor
     func saveStory(_ story: Story) async throws {
         print("[PersistenceService] saveStory START")
@@ -70,7 +70,7 @@ public class PersistenceService: PersistenceServiceProtocol, ObservableObject {
             throw error
         }
     }
-    
+
     func deleteStory(withId id: UUID) async throws {
         guard let storyModel = try await storyRepository.fetchStory(withId: id) else {
             // Optionally throw an error if the story doesn't exist
@@ -79,23 +79,23 @@ public class PersistenceService: PersistenceServiceProtocol, ObservableObject {
         }
         try await storyRepository.delete(storyModel)
     }
-    
+
     // MARK: - Story State Updates -
-    
+
     func incrementReadCount(for storyId: UUID) async throws {
         try await storyRepository.incrementReadCount(for: storyId)
     }
-    
+
     func toggleFavorite(for storyId: UUID) async throws {
         try await storyRepository.toggleFavorite(for: storyId)
     }
-    
+
     func updateLastReadAt(for storyId: UUID, date: Date = Date()) async throws {
         try await storyRepository.updateLastReadAt(for: storyId, date: date)
     }
-    
+
     // MARK: - Achievement Management -
-    
+
     /// Saves an achievement using the appropriate repository based on migration status
     /// - Parameter achievement: The Achievement to save
     func saveAchievement(_ achievement: Achievement) async throws {
@@ -103,7 +103,7 @@ public class PersistenceService: PersistenceServiceProtocol, ObservableObject {
         let achievementModel = AchievementModel(from: achievement)
         try await swiftDataAchievementRepository.save(achievementModel)
     }
-    
+
     /// Fetches an achievement by ID using the appropriate repository
     /// - Parameter id: The UUID of the achievement
     /// - Returns: The Achievement if found
@@ -111,64 +111,73 @@ public class PersistenceService: PersistenceServiceProtocol, ObservableObject {
         let model = try await swiftDataAchievementRepository.fetchAchievement(withId: id)
         return model?.toDomainModel()
     }
-    
+
     /// Fetches all achievements using the appropriate repository
     /// - Returns: Array of Achievement objects
     func fetchAllAchievements() async throws -> [Achievement] {
         let models = try await swiftDataAchievementRepository.fetchAllAchievements()
         return models.map { $0.toDomainModel() }
     }
-    
+
     /// Fetches earned achievements using the appropriate repository
     /// - Returns: Array of Achievement objects
     func fetchEarnedAchievements() async throws -> [Achievement] {
         let models = try await swiftDataAchievementRepository.fetchEarnedAchievements()
         return models.map { $0.toDomainModel() }
     }
-    
+
     /// Fetches achievements for a specific collection using the appropriate repository
     /// - Parameter collectionId: The UUID of the collection
     /// - Returns: Array of Achievement objects associated with the collection
     func fetchAchievements(forCollection collectionId: UUID) async throws -> [Achievement] {
         // Note: Uses the placeholder implementation in AchievementRepository
-        let models = try await swiftDataAchievementRepository.fetchAchievements(forCollection: collectionId)
+        let models = try await swiftDataAchievementRepository.fetchAchievements(
+            forCollection: collectionId)
         return models.map { $0.toDomainModel() }
     }
-    
+
     /// Updates achievement status using the appropriate repository
     /// - Parameters:
     ///   - id: The UUID of the achievement
     ///   - isEarned: Whether the achievement is earned
     ///   - earnedDate: The date when earned (if applicable)
     func updateAchievementStatus(id: UUID, isEarned: Bool, earnedDate: Date?) async throws {
-        try await swiftDataAchievementRepository.updateAchievementStatus(id: id, isEarned: isEarned, earnedDate: earnedDate)
+        try await swiftDataAchievementRepository.updateAchievementStatus(
+            id: id, isEarned: isEarned, earnedDate: earnedDate)
     }
-    
+
     /// Deletes an achievement using the appropriate repository
     /// - Parameter id: The UUID of the achievement to delete
     func deleteAchievement(withId id: UUID) async throws {
-        guard let model = try await swiftDataAchievementRepository.fetchAchievement(withId: id) else {
-            return // Already deleted or doesn't exist
+        guard let model = try await swiftDataAchievementRepository.fetchAchievement(withId: id)
+        else {
+            return  // Already deleted or doesn't exist
         }
         try await swiftDataAchievementRepository.delete(model)
     }
-    
+
     /// Associates an achievement with a collection using the appropriate repository
     /// - Parameters:
     ///   - achievementId: The ID of the achievement
     ///   - collectionId: The UUID of the collection
-    func associateAchievement(_ achievementId: String, withCollection collectionId: UUID) async throws {
+    func associateAchievement(_ achievementId: String, withCollection collectionId: UUID)
+        async throws
+    {
         // Note: Uses the placeholder implementation in AchievementRepository
-        try await swiftDataAchievementRepository.associateAchievement(achievementId, withCollection: collectionId)
+        try await swiftDataAchievementRepository.associateAchievement(
+            achievementId, withCollection: collectionId)
     }
-    
+
     /// Removes an achievement's association with a collection using the appropriate repository
     /// - Parameters:
     ///   - achievementId: The ID of the achievement
     ///   - collectionId: The UUID of the collection
-    func removeAchievementAssociation(_ achievementId: String, fromCollection collectionId: UUID) async throws {
+    func removeAchievementAssociation(_ achievementId: String, fromCollection collectionId: UUID)
+        async throws
+    {
         // Note: Uses the placeholder implementation in AchievementRepository
-        try await swiftDataAchievementRepository.removeAchievementAssociation(achievementId, fromCollection: collectionId)
+        try await swiftDataAchievementRepository.removeAchievementAssociation(
+            achievementId, fromCollection: collectionId)
     }
 }
 
@@ -185,7 +194,7 @@ extension AchievementModel {
             iconName: achievement.iconName
         )
     }
-    
+
     func toDomainModel() -> Achievement {
         Achievement(
             id: id.uuidString,
@@ -197,41 +206,3 @@ extension AchievementModel {
         )
     }
 }
-
-// MARK: - Conversion Helpers
-
-extension StoryModel {
-    func toStory() -> Story {
-        let parameters = StoryParameters(
-            childName: self.childName,
-            childAge: self.childAge,
-            theme: self.theme,
-            favoriteCharacter: self.favoriteCharacter
-        )
-        let pages = self.pages.sorted { $0.pageNumber < $1.pageNumber }.map { $0.toPage() }
-        return Story(
-            id: self.id,
-            title: self.title,
-            pages: pages,
-            parameters: parameters,
-            timestamp: self.timestamp
-        )
-    }
-}
-
-extension PageModel {
-    func toPage() -> Page {
-        Page(
-            id: self.id,
-            content: self.content,
-            pageNumber: self.pageNumber,
-            illustrationRelativePath: self.illustrationRelativePath,
-            illustrationStatus: self.illustrationStatus,
-            imagePrompt: self.imagePrompt
-        )
-    }
-}
-
-// MARK: - UserDefaults Keys (Unrelated to stories, keep as is)
-
-// UserDefaults extension for usage analytics removed as data is now managed by UsageAnalyticsService via UserProfile model.

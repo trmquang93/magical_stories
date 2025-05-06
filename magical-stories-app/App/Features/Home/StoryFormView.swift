@@ -184,7 +184,7 @@ struct StoryFormView: View {
             : characterSuggestions.randomElement() ?? "Lion"
 
         // Create emotional themes based on age (optional parameter)
-        var emotionalThemes: [String]? =
+        let emotionalThemes: [String]? =
             estimatedAge > 6 ? ["empathy", "courage", "curiosity"] : nil
 
         let parameters = StoryParameters(
@@ -231,7 +231,7 @@ struct StoryFormView_Previews: PreviewProvider {
     static var previews: some View {
         let mockModelContext = ModelContext(
             try! ModelContainer(
-                for: StoryModel.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+                for: Story.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true)
             ))
         StoryFormView()
             .environmentObject(MockStoryService(context: mockModelContext))

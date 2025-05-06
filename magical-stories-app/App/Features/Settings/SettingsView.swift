@@ -1,11 +1,11 @@
-import SwiftUI
-import SwiftData
 import Foundation
+import SwiftData
+import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject private var settingsService: SettingsService
     @Environment(\.colorScheme) private var colorScheme
-    
+
     @State private var childName = ""
     @State private var isDarkMode: Bool = false
     @State private var contentFiltering: Bool = true
@@ -17,7 +17,7 @@ struct SettingsView: View {
     @State private var hapticFeedbackEnabled: Bool = true
     @State private var soundEffectsEnabled: Bool = true
     @State private var selectedThemes: Set<StoryTheme> = Set(StoryTheme.allCases)
-    
+
     var body: some View {
         NavigationStack {
             Form {
@@ -29,7 +29,7 @@ struct SettingsView: View {
                             UserDefaults.standard.set(childName, forKey: "childName")
                         }
                 }
-                
+
                 // Preferences Section
                 Section("Preferences") {
                     Toggle("Dark Mode", isOn: $isDarkMode)
@@ -38,41 +38,41 @@ struct SettingsView: View {
                             settings.darkModeEnabled = newValue
                             settingsService.updateAppSettings(settings)
                         }
-                    
+
                     Toggle("Haptic Feedback", isOn: $hapticFeedbackEnabled)
                         .onChange(of: hapticFeedbackEnabled) { _, newValue in
                             var settings = settingsService.appSettings
                             settings.hapticFeedbackEnabled = newValue
                             settingsService.updateAppSettings(settings)
                         }
-                    
+
                     Toggle("Sound Effects", isOn: $soundEffectsEnabled)
                         .onChange(of: soundEffectsEnabled) { _, newValue in
                             var settings = settingsService.appSettings
                             settings.soundEffectsEnabled = newValue
                             settingsService.updateAppSettings(settings)
                         }
-                    
+
                     VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                         Text("Text Size")
-                        
+
                         HStack {
                             Text("A")
                                 .font(Theme.Fonts.caption)
-                            
+
                             Slider(value: $fontScale, in: 0.8...1.3, step: 0.1)
                                 .onChange(of: fontScale) { _, newValue in
                                     var settings = settingsService.appSettings
                                     settings.fontScale = newValue
                                     settingsService.updateAppSettings(settings)
                                 }
-                            
+
                             Text("A")
                                 .font(Theme.Fonts.header)
                         }
                     }
                 }
-                
+
                 // Parental Controls Section
                 Section("Parental Controls") {
                     Toggle("Content Filtering", isOn: $contentFiltering)
@@ -81,14 +81,14 @@ struct SettingsView: View {
                             controls.contentFiltering = newValue
                             settingsService.updateParentalControls(controls)
                         }
-                    
+
                     Toggle("Screen Time Limits", isOn: $screenTimeEnabled)
                         .onChange(of: screenTimeEnabled) { _, newValue in
                             var controls = settingsService.parentalControls
                             controls.screenTimeEnabled = newValue
                             settingsService.updateParentalControls(controls)
                         }
-                    
+
                     if screenTimeEnabled {
                         Stepper(value: $maxStoriesPerDay, in: 1...10) {
                             HStack {
@@ -104,12 +104,14 @@ struct SettingsView: View {
                             settingsService.updateParentalControls(controls)
                         }
                     }
-                    
+
                     NavigationLink("Content Filters") {
-                        ContentFiltersView(selectedThemes: $selectedThemes, minimumAge: $minimumAge, maximumAge: $maximumAge)
+                        ContentFiltersView(
+                            selectedThemes: $selectedThemes, minimumAge: $minimumAge,
+                            maximumAge: $maximumAge)
                     }
                 }
-                
+
                 // About Section
                 Section("About") {
                     HStack {
@@ -118,11 +120,11 @@ struct SettingsView: View {
                         Text("1.0.0")
                             .foregroundColor(.secondary)
                     }
-                    
+
                     Link(destination: URL(string: "https://www.magical-stories.app/privacy")!) {
                         Text("Privacy Policy")
                     }
-                    
+
                     Link(destination: URL(string: "https://www.magical-stories.app/terms")!) {
                         Text("Terms of Service")
                     }
@@ -139,14 +141,14 @@ struct SettingsView: View {
             }
         }
     }
-    
+
     private func loadAllSettings() {
         // Load app settings
         isDarkMode = settingsService.appSettings.darkModeEnabled
         fontScale = settingsService.appSettings.fontScale
         hapticFeedbackEnabled = settingsService.appSettings.hapticFeedbackEnabled
         soundEffectsEnabled = settingsService.appSettings.soundEffectsEnabled
-        
+
         // Load parental controls
         contentFiltering = settingsService.parentalControls.contentFiltering
         screenTimeEnabled = settingsService.parentalControls.screenTimeEnabled
@@ -154,7 +156,7 @@ struct SettingsView: View {
         minimumAge = settingsService.parentalControls.minimumAge
         maximumAge = settingsService.parentalControls.maximumAge
         selectedThemes = settingsService.parentalControls.allowedThemes
-        
+
         // Load child name from user defaults
         childName = UserDefaults.standard.string(forKey: "childName") ?? ""
     }
@@ -166,7 +168,7 @@ struct ContentFiltersView: View {
     @Binding var selectedThemes: Set<StoryTheme>
     @Binding var minimumAge: Int
     @Binding var maximumAge: Int
-    
+
     var body: some View {
         Form {
             ageRangeSection
@@ -174,7 +176,7 @@ struct ContentFiltersView: View {
         }
         .navigationTitle("Content Filters")
     }
-    
+
     // Extract age range section to simplify the body
     private var ageRangeSection: some View {
         Section("Age Range") {
@@ -182,7 +184,7 @@ struct ContentFiltersView: View {
             maximumAgeRow
         }
     }
-    
+
     // Extract minimum age row to simplify the body
     private var minimumAgeRow: some View {
         HStack {
@@ -194,7 +196,7 @@ struct ContentFiltersView: View {
             handleMinimumAgeChange(newValue)
         }
     }
-    
+
     // Extract picker to simplify the row
     private var minimumAgePicker: some View {
         Picker("", selection: $minimumAge) {
@@ -205,7 +207,7 @@ struct ContentFiltersView: View {
         .pickerStyle(.menu)
         .frame(width: 80)
     }
-    
+
     // Extract maximum age row to simplify the body
     private var maximumAgeRow: some View {
         HStack {
@@ -217,7 +219,7 @@ struct ContentFiltersView: View {
             updateAgeRange()
         }
     }
-    
+
     // Extract picker to simplify the row
     private var maximumAgePicker: some View {
         Picker("", selection: $maximumAge) {
@@ -228,7 +230,7 @@ struct ContentFiltersView: View {
         .pickerStyle(.menu)
         .frame(width: 80)
     }
-    
+
     // Extract allowed themes section to simplify the body
     private var allowedThemesSection: some View {
         Section("Allowed Themes") {
@@ -240,7 +242,7 @@ struct ContentFiltersView: View {
             updateAllowedThemes(newValue)
         }
     }
-    
+
     // Extract theme row to simplify the section
     private func themeRow(_ theme: StoryTheme) -> some View {
         Button(action: {
@@ -249,11 +251,11 @@ struct ContentFiltersView: View {
             HStack {
                 Image(systemName: theme.iconName)
                     .foregroundColor(Theme.Colors.appPrimary)
-                
+
                 Text(theme.title)
-                
+
                 Spacer()
-                
+
                 if selectedThemes.contains(theme) {
                     Image(systemName: "checkmark")
                         .foregroundColor(Theme.Colors.appPrimary)
@@ -262,7 +264,7 @@ struct ContentFiltersView: View {
         }
         .buttonStyle(.plain)
     }
-    
+
     // Helper methods
     private func handleMinimumAgeChange(_ newValue: Int) {
         if newValue > maximumAge {
@@ -270,13 +272,13 @@ struct ContentFiltersView: View {
         }
         updateAgeRange()
     }
-    
+
     private func updateAllowedThemes(_ newValue: Set<StoryTheme>) {
         var controls = settingsService.parentalControls
         controls.allowedThemes = newValue
         settingsService.updateParentalControls(controls)
     }
-    
+
     private func toggleTheme(_ theme: StoryTheme) {
         if selectedThemes.contains(theme) {
             // Only allow deselection if at least one theme remains selected
@@ -287,7 +289,7 @@ struct ContentFiltersView: View {
             selectedThemes.insert(theme)
         }
     }
-    
+
     private func updateAgeRange() {
         var controls = settingsService.parentalControls
         controls.minimumAge = minimumAge
@@ -301,24 +303,24 @@ struct ContentFiltersView: View {
 #Preview {
     // Create the preview model container
     let container = createPreviewModelContainer()
-    
+
     // Return the view with dependencies using a separate function for actor-isolated work
     return createPreviewView(container: container)
 }
 
 // Helper function to create a preview model container
-fileprivate func createPreviewModelContainer() -> ModelContainer {
+private func createPreviewModelContainer() -> ModelContainer {
     let schema = Schema([
         UserProfile.self,
         AppSettingsModel.self,
         ParentalControlsModel.self,
-        StoryModel.self,
-        PageModel.self,
-        AchievementModel.self
+        Story.self,
+        Page.self,
+        AchievementModel.self,
     ])
-    
+
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    
+
     do {
         return try ModelContainer(for: schema, configurations: config)
     } catch {
@@ -327,23 +329,24 @@ fileprivate func createPreviewModelContainer() -> ModelContainer {
 }
 
 // Helper function to create the view with all dependencies
-@MainActor // Mark this function as running on the main actor
-fileprivate func createPreviewView(container: ModelContainer) -> some View {
+@MainActor  // Mark this function as running on the main actor
+private func createPreviewView(container: ModelContainer) -> some View {
     let settingsService = createSettingsService(container: container)
-    
+
     return SettingsView()
         .modelContainer(container)
         .environmentObject(settingsService)
 }
 
 // Helper function to create settings service
-@MainActor // Mark this function as running on the main actor
-fileprivate func createSettingsService(container: ModelContainer) -> SettingsService {
+@MainActor  // Mark this function as running on the main actor
+private func createSettingsService(container: ModelContainer) -> SettingsService {
     let context = container.mainContext
     let userProfileRepo = UserProfileRepository(modelContext: context)
     let settingsRepo = SettingsRepository(modelContext: context)
     let usageService = UsageAnalyticsService(userProfileRepository: userProfileRepo)
-    let settingsService = SettingsService(repository: settingsRepo, usageAnalyticsService: usageService)
-    
+    let settingsService = SettingsService(
+        repository: settingsRepo, usageAnalyticsService: usageService)
+
     return settingsService
 }

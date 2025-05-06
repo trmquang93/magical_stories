@@ -196,7 +196,7 @@ These instructions supersede any conflicting general instructions. Only perform 
   - `id: UUID`
   - `pageNumber: Int`
   - `text: String`
-  - `illustrationRelativePath: String?`
+  - `illustrationPath: String?`
   - `illustrationStatus: IllustrationStatus`
   - `story: Story`
 - **Achievement**

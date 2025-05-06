@@ -17,7 +17,7 @@ final class StoryRepositoryTests: XCTestCase {
 
         // Create an in-memory SwiftData model container for testing
         // Include ALL models involved in the tests
-        let schema = Schema([StoryModel.self, PageModel.self, AchievementModel.self])
+        let schema = Schema([Story.self, Page.self, AchievementModel.self])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         modelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
         modelContext = ModelContext(modelContainer)
@@ -43,7 +43,7 @@ final class StoryRepositoryTests: XCTestCase {
             pages.append(
                 Page(
                     content: "Page \(i) content.", pageNumber: i,
-                    illustrationRelativePath: "Illustrations/page\(i).png",
+                    illustrationPath: "Illustrations/page\(i).png",
                     illustrationStatus: .ready, imagePrompt: "Prompt \(i)"))
         }
         let params = StoryParameters(
@@ -54,7 +54,7 @@ final class StoryRepositoryTests: XCTestCase {
     // Helper function to create a sample achievement model
     private func createSampleAchievementModel(
         name: String = "Test Achievement", type: AchievementType = .storiesCompleted,
-        story: StoryModel? = nil
+        story: Story? = nil
     ) -> AchievementModel {
         return AchievementModel(name: name, type: type, story: story)
     }
@@ -81,7 +81,7 @@ final class StoryRepositoryTests: XCTestCase {
         XCTAssertEqual(loadedModel.readCount, 0)  // Verify new field default
         XCTAssertFalse(loadedModel.isFavorite)  // Verify new field default
         XCTAssertNil(loadedModel.lastReadAt)  // Verify new field default
-        XCTAssertTrue(loadedModel.achievements?.isEmpty ?? true)  // Verify new relationship default
+        XCTAssertTrue(loadedModel.achievements.isEmpty)  // Verify new relationship default
     }
 
     func testSaveAndLoadMultipleStories() async throws {
@@ -228,8 +228,8 @@ final class StoryRepositoryTests: XCTestCase {
         // Then - Verify Added
         var updatedStoryModel = try await storyRepository.fetchStory(withId: savedStoryModel.id)
         XCTAssertNotNil(updatedStoryModel)
-        XCTAssertEqual(updatedStoryModel?.achievements?.count, 1)
-        XCTAssertEqual(updatedStoryModel?.achievements?.first?.id, achievement.id)
+        XCTAssertEqual(updatedStoryModel?.achievements.count, 1)
+        XCTAssertEqual(updatedStoryModel?.achievements.first?.id, achievement.id)
         // Verify inverse relationship is set
         let fetchedAchievement = try await achievementRepository.fetchAchievement(
             withId: achievement.id)
@@ -241,7 +241,7 @@ final class StoryRepositoryTests: XCTestCase {
         // Then - Verify Removed
         updatedStoryModel = try await storyRepository.fetchStory(withId: savedStoryModel.id)
         XCTAssertNotNil(updatedStoryModel)
-        XCTAssertTrue(updatedStoryModel?.achievements?.isEmpty ?? false)
+        XCTAssertTrue(updatedStoryModel?.achievements.isEmpty ?? false)
         // Verify inverse relationship is unset
         let fetchedAchievementAfterRemove = try await achievementRepository.fetchAchievement(
             withId: achievement.id)
@@ -261,7 +261,7 @@ final class StoryRepositoryTests: XCTestCase {
 
         // Verify setup
         var storyCheck = try await storyRepository.fetchStory(withId: savedStoryModel.id)
-        XCTAssertEqual(storyCheck?.achievements?.count, 2)
+        XCTAssertEqual(storyCheck?.achievements.count, 2)
         var achievementCheck = try await achievementRepository.fetch(
             FetchDescriptor<AchievementModel>())
         XCTAssertEqual(achievementCheck.count, 2)

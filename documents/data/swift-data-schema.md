@@ -91,7 +91,7 @@ final class Page {
     @Attribute(.unique) var id: UUID
     var pageNumber: Int       // Order within the story
     var text: String          // Text content of the page
-    var illustrationRelativePath: String? // Path relative to app support/documents dir
+    var illustrationPath: String? // Path relative to app support/documents dir
     var illustrationStatus: IllustrationStatus // Enum: notStarted, generating, generated, failed
 
     // Relationship back to the owning Story
@@ -101,14 +101,14 @@ final class Page {
         id: UUID = UUID(),
         pageNumber: Int,
         text: String,
-        illustrationRelativePath: String? = nil,
+        illustrationPath: String? = nil,
         illustrationStatus: IllustrationStatus = .notStarted,
         story: Story? = nil
     ) {
         self.id = id
         self.pageNumber = pageNumber
         self.text = text
-        self.illustrationRelativePath = illustrationRelativePath
+        self.illustrationPath = illustrationPath
         self.illustrationStatus = illustrationStatus
         self.story = story
     }

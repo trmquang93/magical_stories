@@ -17,7 +17,7 @@ class AchievementRepository: BaseRepository<AchievementModel>, AchievementReposi
     func fetchAchievements(for storyId: UUID) async throws -> [AchievementModel] {
         let descriptor = FetchDescriptor<AchievementModel>(
             predicate: #Predicate { $0.story?.id == storyId },
-            sortBy: [SortDescriptor(\.earnedAt, order: .reverse)] // Sort by most recent first
+            sortBy: [SortDescriptor(\.earnedAt, order: .reverse)]  // Sort by most recent first
         )
         return try await fetch(descriptor)
     }
@@ -50,12 +50,14 @@ class AchievementRepository: BaseRepository<AchievementModel>, AchievementReposi
 
 // MARK: - Protocol Conformance (Implied)
 
-extension AchievementRepository { // Using extension for clarity
+extension AchievementRepository {  // Using extension for clarity
 
     /// Fetches all achievements sorted by earned date (most recent first).
     /// - Returns: An array of all AchievementModel objects.
     func fetchAllAchievements() async throws -> [AchievementModel] {
-        let descriptor = FetchDescriptor<AchievementModel>(sortBy: [SortDescriptor(\.earnedAt, order: .reverse)])
+        let descriptor = FetchDescriptor<AchievementModel>(sortBy: [
+            SortDescriptor(\.earnedAt, order: .reverse)
+        ])
         return try await fetch(descriptor)
     }
 
@@ -76,7 +78,7 @@ extension AchievementRepository { // Using extension for clarity
     ///   - earnedDate: The date the achievement was earned (defaults to now if isEarned is true and date is nil).
     func updateAchievementStatus(id: UUID, isEarned: Bool, earnedDate: Date?) async throws {
         guard let achievement = try await fetchAchievement(withId: id) else {
-            throw PersistenceError.dataNotFound // Or handle appropriately
+            throw PersistenceError.dataNotFound  // Or handle appropriately
         }
         achievement.earnedAt = isEarned ? (earnedDate ?? Date()) : nil
         // SwiftData tracks changes, saving happens at a higher level or explicitly if needed
@@ -91,7 +93,7 @@ extension AchievementRepository { // Using extension for clarity
     func fetchAchievements(forCollection collectionId: UUID) async throws -> [AchievementModel] {
         // Placeholder: This requires knowing how achievements relate to collections.
         // Example if Achievement links to Story, and Story links to Collection:
-        // let storyPredicate = #Predicate<StoryModel> { story in
+        // let storyPredicate = #Predicate<Story> { story in
         //     story.collections.contains { $0.id == collectionId }
         // }
         // let achievementPredicate = #Predicate<AchievementModel> { achievement in
@@ -100,8 +102,10 @@ extension AchievementRepository { // Using extension for clarity
         // let descriptor = FetchDescriptor<AchievementModel>(predicate: achievementPredicate)
         // return try await fetch(descriptor)
 
-        print("Warning: fetchAchievements(forCollection:) needs implementation based on actual data model relationships.")
-        return [] // Return empty until implemented correctly
+        print(
+            "Warning: fetchAchievements(forCollection:) needs implementation based on actual data model relationships."
+        )
+        return []  // Return empty until implemented correctly
     }
 
     /// Associates an achievement with a collection.
@@ -109,17 +113,22 @@ extension AchievementRepository { // Using extension for clarity
     /// - Parameters:
     ///   - achievementId: The ID of the achievement (assuming String for consistency with UserDefaults version, adjust if needed).
     ///   - collectionId: The UUID of the collection.
-    func associateAchievement(_ achievementId: String, withCollection collectionId: UUID) async throws {
+    func associateAchievement(_ achievementId: String, withCollection collectionId: UUID)
+        async throws
+    {
         // Placeholder: Implementation depends on how the relationship is modeled.
         // Might involve fetching the achievement and collection models and updating their relationship properties.
         guard let achievementUUID = UUID(uuidString: achievementId),
-              let _ = try await fetchAchievement(withId: achievementUUID) else {
+            (try await fetchAchievement(withId: achievementUUID)) != nil
+        else {
             throw PersistenceError.dataNotFound
         }
         // Fetch the CollectionModel (requires CollectionRepository)
         // Update the relationship (e.g., achievement.collections.append(collection) or collection.achievements.append(achievement))
         // Save changes if needed.
-        print("Warning: associateAchievement(_:withCollection:) needs implementation based on actual data model relationships.")
+        print(
+            "Warning: associateAchievement(_:withCollection:) needs implementation based on actual data model relationships."
+        )
         // throw PersistenceError.repositoryError(NSError(domain: "Not implemented", code: -1))
     }
 
@@ -128,17 +137,22 @@ extension AchievementRepository { // Using extension for clarity
     /// - Parameters:
     ///   - achievementId: The ID of the achievement (assuming String).
     ///   - collectionId: The UUID of the collection.
-    func removeAchievementAssociation(_ achievementId: String, fromCollection collectionId: UUID) async throws {
+    func removeAchievementAssociation(_ achievementId: String, fromCollection collectionId: UUID)
+        async throws
+    {
         // Placeholder: Implementation depends on how the relationship is modeled.
         // Might involve fetching models and removing links from their relationship properties.
-         guard let achievementUUID = UUID(uuidString: achievementId),
-               let _ = try await fetchAchievement(withId: achievementUUID) else {
-             throw PersistenceError.dataNotFound
-         }
+        guard let achievementUUID = UUID(uuidString: achievementId),
+            (try await fetchAchievement(withId: achievementUUID)) != nil
+        else {
+            throw PersistenceError.dataNotFound
+        }
         // Fetch the CollectionModel
         // Remove the relationship link
         // Save changes if needed.
-        print("Warning: removeAchievementAssociation(_:fromCollection:) needs implementation based on actual data model relationships.")
+        print(
+            "Warning: removeAchievementAssociation(_:fromCollection:) needs implementation based on actual data model relationships."
+        )
         // throw PersistenceError.repositoryError(NSError(domain: "Not implemented", code: -1))
     }
 }
@@ -147,7 +161,7 @@ extension AchievementRepository { // Using extension for clarity
 // TODO: This is a temporary workaround to satisfy AchievementRepositoryProtocol, which requires synchronous methods.
 // In the future, refactor the protocol and all usages to be async/await throughout.
 extension AchievementRepository {
-    
+
     /// Creates a new Achievement.
     /// - Parameters:
     ///   - title: The title of the achievement.
@@ -171,23 +185,23 @@ extension AchievementRepository {
             type: type,
             earnedAt: earnedAt
         )
-        
+
         // If there's a related story, fetch and link it
         if let storyId = relatedStoryId, let story = try fetchStory(withId: storyId) {
             achievement.story = story
         }
-        
+
         try saveAchievement(achievement)
         return achievement
     }
-    
+
     /// Fetches a story by its ID (synchronous version).
     /// This is a helper method for the createAchievement method.
-    private func fetchStory(withId id: UUID) throws -> StoryModel? {
-        var result: StoryModel?
+    private func fetchStory(withId id: UUID) throws -> Story? {
+        var result: Story?
         let semaphore = DispatchSemaphore(value: 0)
         Task {
-            let descriptor = FetchDescriptor<StoryModel>(predicate: #Predicate { $0.id == id })
+            let descriptor = FetchDescriptor<Story>(predicate: #Predicate { $0.id == id })
             let stories = try await modelContext.fetch(descriptor)
             result = stories.first
             semaphore.signal()
@@ -195,7 +209,7 @@ extension AchievementRepository {
         semaphore.wait()
         return result
     }
-    
+
     /// Checks if an achievement with the given title and type exists.
     /// - Parameters:
     ///   - title: The title of the achievement.
@@ -204,7 +218,7 @@ extension AchievementRepository {
     func achievementExists(withTitle title: String, ofType type: AchievementType) -> Bool {
         var exists = false
         let semaphore = DispatchSemaphore(value: 0)
-        
+
         Task {
             do {
                 let typeRawValue = type.rawValue
@@ -218,11 +232,11 @@ extension AchievementRepository {
             }
             semaphore.signal()
         }
-        
+
         semaphore.wait()
         return exists
     }
-    
+
     func saveAchievement(_ achievement: AchievementModel) throws {
         // If async save is needed, implement here. For now, assume context auto-saves.
         // If explicit save is needed, add: try await save(achievement)
@@ -267,15 +281,33 @@ extension AchievementRepository {
         semaphore.wait()
         return result
     }
+
     func updateAchievementStatus(id: UUID, isEarned: Bool, earnedDate: Date?) throws {
         let semaphore = DispatchSemaphore(value: 0)
         Task {
-            _ = try? await updateAchievementStatus(id: id, isEarned: isEarned, earnedDate: earnedDate)
+            do {
+                try await updateAchievementStatus(
+                    id: id, isEarned: isEarned, earnedDate: earnedDate)
+            } catch {
+                print("Error updating achievement status: \(error)")
+            }
             semaphore.signal()
         }
         semaphore.wait()
     }
+
     func deleteAchievement(id: UUID) throws {
-        // Implement if needed. For now, assume context auto-deletes or add explicit delete logic.
+        let semaphore = DispatchSemaphore(value: 0)
+        Task {
+            do {
+                if let achievement = try await fetchAchievement(withId: id) {
+                    try await delete(achievement)
+                }
+            } catch {
+                print("Error deleting achievement: \(error)")
+            }
+            semaphore.signal()
+        }
+        semaphore.wait()
     }
 }

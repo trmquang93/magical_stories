@@ -6,10 +6,12 @@ struct StoryDetailView: View {
     @EnvironmentObject private var persistenceService: PersistenceService
     @EnvironmentObject private var illustrationService: IllustrationService
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var illustrationTaskManager: IllustrationTaskManager
 
     let story: Story
 
     @State private var pages: [Page] = []
+    @State private var isFirstAppearance = true
     @State private var currentPageIndex = 0
     @State private var isLoadingPages = true
     @State private var readingProgress: Double = 0.0
@@ -156,8 +158,22 @@ struct StoryDetailView: View {
 
     private func loadPages() async {
         isLoadingPages = true
-        pages = story.pages
-        print("StoryDetailView: Loaded \(pages.count) pages directly from story model.")
+        
+        // Log the pages before sorting to see their original order
+        print("[StoryDetailView] Original page order:")
+        for (index, page) in story.pages.enumerated() {
+            print("[StoryDetailView] Page \(index): pageNumber=\(page.pageNumber), id=\(page.id)")
+        }
+        
+        // Sort pages by pageNumber to ensure correct order
+        pages = story.pages.sorted(by: { $0.pageNumber < $1.pageNumber })
+        
+        // Log the pages after sorting to confirm correct order
+        print("[StoryDetailView] After sorting - page count: \(pages.count)")
+        for (index, page) in pages.enumerated() {
+            print("[StoryDetailView] Page \(index): pageNumber=\(page.pageNumber), id=\(page.id)")
+        }
+        
         isLoadingPages = false
         if !pages.isEmpty {
             readingProgress = StoryProcessor.calculateReadingProgress(
@@ -183,16 +199,157 @@ struct StoryDetailView: View {
     }
 
     private func processIllustrations() {
-        // Start generating illustrations for the story in background
-        illustrationService.generateIllustrationsForStory(story, context: modelContext)
-
-        // Set up a timer to periodically update the illustration progress
-        // This is a simple approach - in a real app, you might use Combine or another observation mechanism
+        // Only process illustrations once
+        guard isFirstAppearance else { return }
+        isFirstAppearance = false
+        
+        // Check if any pages need illustration generation
+        let pagesNeedingIllustrations = pages.filter { $0.illustrationStatus == .pending }
+        
+        // If no pages need illustrations, we're done
+        if (pagesNeedingIllustrations.isEmpty) {
+            print("[StoryDetailView] All illustrations are already generated")
+            return
+        }
+        
+        print("[StoryDetailView] Adding \(pagesNeedingIllustrations.count) illustration tasks for story: \(story.title)")
+        
+        // Create tasks for each page with appropriate priorities
+        for page in pagesNeedingIllustrations {
+            // Set first viewed timestamp if not already set
+            if page.firstViewedAt == nil {
+                page.firstViewedAt = Date()
+            }
+            
+            // Determine priority based on page number
+            let priority: IllustrationPriority
+            if page.pageNumber == 1 {
+                priority = .critical  // First page is critical priority
+            } else if page.pageNumber == 2 {
+                priority = .high      // Second page is high priority
+            } else if page.pageNumber <= 4 {
+                priority = .medium    // Pages 3-4 are medium priority
+            } else {
+                priority = .low       // All other pages are low priority
+            }
+            
+            // Create task
+            let task = IllustrationTask(
+                pageId: page.id,
+                storyId: story.id,
+                priority: priority
+            )
+            
+            // Get previous illustration path if available
+            let previousIllustrationPath: String? = page.pageNumber > 1 ? 
+                pages[page.pageNumber - 2].illustrationPath : nil
+                
+            // Add task to manager and persist it
+            illustrationTaskManager.addTask(task)
+            
+            // Save the task to the repository for persistence
+            Task {
+                do {
+                    // Get current context from main actor
+                    let repository = try IllustrationTaskRepository(modelContext: modelContext)
+                    try await repository.saveTask(
+                        task,
+                        pageNumber: page.pageNumber,
+                        totalPages: pages.count,
+                        description: page.imagePrompt,
+                        previousIllustrationPath: previousIllustrationPath
+                    )
+                } catch {
+                    print("[StoryDetailView] Failed to save illustration task: \(error)")
+                }
+            }
+            
+            // Update page status to scheduled
+            page.illustrationStatus = .scheduled
+        }
+        
+        // Set up a task processor if not already running
         Task {
-            for _ in 1...20 {  // Check up to 20 times
+            await startIllustrationTaskProcessing()
+        }
+        
+        // Set up a timer to periodically update the UI
+        Task {
+            for _ in 1...40 {  // Check up to 40 times (40 seconds)
                 try? await Task.sleep(for: .seconds(1))
                 if !Task.isCancelled {
                     updateIllustrationProgress()
+                }
+            }
+        }
+    }
+    
+    private func startIllustrationTaskProcessing() async {
+        // Start processing if not already processing
+        if !illustrationTaskManager.isProcessing {
+            await illustrationTaskManager.startProcessing { task in
+                // Process the task by generating an illustration
+                do {
+                    // Find the corresponding page
+                    guard let page = pages.first(where: { $0.id == task.pageId }) else {
+                        print("[StoryDetailView] Page not found for task: \(task.id)")
+                        var failedTask = task
+                        failedTask.updateStatus(.failed)
+                        return failedTask
+                    }
+                    
+                    // Update page status
+                    page.illustrationStatus = .generating
+                    
+                    // Get illustration description
+                    let description = page.imagePrompt ?? page.content
+                    
+                    // Get previous illustration path if available
+                    let previousPage = page.pageNumber > 1 ? 
+                        pages.first(where: { $0.pageNumber == page.pageNumber - 1 }) : nil
+                    let previousIllustrationPath = previousPage?.illustrationPath
+                    
+                    // Generate illustration
+                    if let relativePath = try await illustrationService.generateIllustration(
+                        for: description,
+                        pageNumber: page.pageNumber,
+                        totalPages: pages.count,
+                        previousIllustrationPath: previousIllustrationPath
+                    ) {
+                        // Update page with generated illustration
+                        page.illustrationPath = relativePath
+                        page.illustrationStatus = .ready
+                        
+                        // Update task status
+                        var completedTask = task
+                        completedTask.updateStatus(.ready)
+                        
+                        // Update UI immediately on main thread
+                        await MainActor.run {
+                            updateIllustrationProgress()
+                        }
+                        
+                        return completedTask
+                    } else {
+                        // Failed to generate illustration
+                        page.illustrationStatus = .failed
+                        
+                        var failedTask = task
+                        failedTask.updateStatus(.failed)
+                        return failedTask
+                    }
+                } catch {
+                    print("[StoryDetailView] Error generating illustration: \(error)")
+                    
+                    // Find the page and update its status
+                    if let page = pages.first(where: { $0.id == task.pageId }) {
+                        page.illustrationStatus = .failed
+                    }
+                    
+                    // Update task status
+                    var failedTask = task
+                    failedTask.updateStatus(.failed)
+                    return failedTask
                 }
             }
         }

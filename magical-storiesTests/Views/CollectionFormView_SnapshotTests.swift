@@ -42,7 +42,7 @@ final class CollectionFormView_SnapshotTests: XCTestCase {
 
     func makeStoryService() -> StoryService {
         // Create a mock persistence service
-        let schema = Schema([StoryModel.self, PageModel.self])
+        let schema = Schema([Story.self, Page.self])
         let container = try! ModelContainer(
             for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let context = ModelContext(container)

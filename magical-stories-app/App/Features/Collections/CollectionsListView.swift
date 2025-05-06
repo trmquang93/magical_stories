@@ -2,9 +2,11 @@ import SwiftData
 import SwiftUI
 
 struct CollectionsListView: View {
-    @Query private var collections: [StoryCollection]
-    @State private var searchText = ""
+    // Replace direct @Query with a method using the collectionService
+    // This avoids the SwiftData macro generation error
     @EnvironmentObject private var collectionService: CollectionService
+    @State private var collections: [StoryCollection] = []
+    @State private var searchText = ""
     @State private var deletionError: String? = nil
     @State private var showingGrowthStoryForm = false
     @State private var scrollOffset: CGFloat = 0
@@ -61,6 +63,15 @@ struct CollectionsListView: View {
         return Array(categories).sorted()
     }
 
+    // Determine if we should show filters
+    private var shouldShowFilters: Bool {
+        return !collections.isEmpty || !searchText.isEmpty || isLoading
+    }
+
+    private var shouldShowSearch: Bool {
+        return !collections.isEmpty
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -69,44 +80,36 @@ struct CollectionsListView: View {
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    // Collection filters
-                    collectionFilters
-
                     if isLoading {
                         loadingView
                     } else if collections.isEmpty && searchText.isEmpty {
-                        CollectionsEmptyStateView()
-                    } else if filteredCollections.isEmpty && !searchText.isEmpty {
-                        CollectionsNoSearchResultsView(searchText: searchText)
-                    } else {
-                        // Main content with grid layout
                         ScrollView {
-                            collectionGrid
-                                .padding(.horizontal)
-                                .padding(.top, 16)
+                            CollectionsEmptyStateView(onCreateTapped: {
+                                showingGrowthStoryForm = true
+                            })
                         }
-                        .refreshable {
-                            // Smooth loading animation with feedback
-                            withAnimation {
-                                isLoading = true
+                    } else {
+                        collectionFilters
+
+                        if filteredCollections.isEmpty && !searchText.isEmpty && shouldShowSearch {
+                            CollectionsNoSearchResultsView(searchText: searchText)
+                        } else {
+                            // Main content with grid layout
+                            ScrollView {
+                                collectionGrid
+                                    .padding(.horizontal)
+                                    .padding(.top, 16)
                             }
-
-                            await collectionService.loadCollections(forceReload: true)
-
-                            // Haptic feedback for refresh completion
-                            let generator = UINotificationFeedbackGenerator()
-                            generator.notificationOccurred(.success)
-
-                            withAnimation {
-                                isLoading = false
-                            }
+                            .searchable(text: $searchText, prompt: "Search collections...")
                         }
                     }
+
+                    // Add spacer to push content up and prevent overlap with tab bar
+                    Spacer(minLength: 0)
                 }
             }
             .navigationTitle("Growth Collections")
             .navigationBarTitleDisplayMode(.large)
-            .searchable(text: $searchText, prompt: "Search collections...")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     createButton
@@ -133,15 +136,30 @@ struct CollectionsListView: View {
             .onAppear {
                 // Simulate loading for smoother transitions
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    // Load collections from service
+                    refreshCollectionData()
+                    
                     withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
                         isLoading = false
                     }
                 }
             }
+            // Listen for changes to the CollectionService.collections property
+            .onChange(of: collectionService.collections) { _, newCollections in
+                self.collections = newCollections
+            }
+            // Ensure content is not covered by the tab bar
+            .safeAreaInset(edge: .bottom) {
+                Color.clear.frame(height: 10)
+            }
         }
         .sheet(isPresented: $showingGrowthStoryForm) {
             CollectionFormView()
                 .environmentObject(collectionService)
+                .onDisappear {
+                    // Refresh collections when form is dismissed
+                    refreshCollectionData()
+                }
         }
         .sensoryFeedback(.impact(weight: .light), trigger: showingGrowthStoryForm)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: filteredCollections)
@@ -263,7 +281,15 @@ struct CollectionsListView: View {
                 .buttonStyle(PlainButtonStyle())
                 .contextMenu {
                     Button {
-                        try? collectionService.deleteCollection(id: collection.id)
+                        do {
+                            try collectionService.deleteCollection(id: collection.id)
+                            // Update local collection array after deletion
+                            if let index = self.collections.firstIndex(where: { $0.id == collection.id }) {
+                                self.collections.remove(at: index)
+                            }
+                        } catch {
+                            deletionError = error.localizedDescription
+                        }
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
@@ -299,9 +325,21 @@ struct CollectionsListView: View {
             let collection = filteredCollections[index]
             do {
                 try collectionService.deleteCollection(id: collection.id)
+                // Update local collection array
+                if let collectionIndex = collections.firstIndex(where: { $0.id == collection.id }) {
+                    collections.remove(at: collectionIndex)
+                }
             } catch {
                 deletionError = error.localizedDescription
             }
+        }
+    }
+
+    private func refreshCollectionData() {
+        do {
+            self.collections = try collectionService.fetchAllCollections()
+        } catch {
+            print("Failed to load collections: \(error)")
         }
     }
 }
@@ -325,4 +363,85 @@ enum CollectionFilter: Equatable {
             return false
         }
     }
+}
+
+#if DEBUG
+    class MockCollectionRepository: CollectionRepositoryProtocol {
+        var collections: [UUID: StoryCollection] = [:]
+        var saveCollectionCalled = false
+        var updateProgressCalled = false
+
+        func saveCollection(_ collection: StoryCollection) throws {
+            saveCollectionCalled = true
+            collections[collection.id] = collection
+        }
+
+        func fetchCollection(id: UUID) throws -> StoryCollection? {
+            return collections[id]
+        }
+
+        func getCollection(id: UUID) throws -> StoryCollection {
+            guard let collection = collections[id] else {
+                throw NSError(
+                    domain: "CollectionRepository",
+                    code: 404,
+                    userInfo: [NSLocalizedDescriptionKey: "Collection with ID \(id) not found."]
+                )
+            }
+            return collection
+        }
+
+        func fetchAllCollections() throws -> [StoryCollection] {
+            return Array(collections.values)
+        }
+
+        func updateCollectionProgress(id: UUID, progress: Float) throws {
+            updateProgressCalled = true
+            if let collection = collections[id] {
+                collection.completionProgress = Double(progress)
+                collection.updatedAt = Date()
+            }
+        }
+
+        func deleteCollection(id: UUID) throws {
+            collections.removeValue(forKey: id)
+        }
+    }
+#endif
+#Preview("Collections List") {
+    let service: CollectionService = {
+        // Use an in-memory ModelContext for MockStoryService
+        let modelContext: ModelContext = {
+            do {
+                // Include all required models in the schema
+                let schema = Schema([
+                    StoryCollection.self, Story.self, Page.self, AchievementModel.self,
+                ])
+                let config = ModelConfiguration(isStoredInMemoryOnly: true)
+                return try ModelContext(ModelContainer(for: schema, configurations: [config]))
+            } catch {
+                fatalError("Failed to create ModelContext/ModelContainer: \(error)")
+            }
+        }()
+        let repository = MockCollectionRepository()
+        repository.collections[UUID()] = StoryCollection(
+            title: "Test",
+            descriptionText: "Test description",
+            category: "test category", ageGroup: "All")
+        let storyService: MockStoryService
+        do {
+            storyService = try MockStoryService(context: modelContext)
+        } catch {
+            fatalError("Failed to initialize MockStoryService: \(error)")
+        }
+        let achievementRepository = AchievementRepository(modelContext: modelContext)
+        let service = CollectionService(
+            repository: repository, storyService: storyService,
+            achievementRepository: achievementRepository)
+
+        // Return the service
+        return service
+    }()
+    CollectionsListView()
+        .environmentObject(service)
 }

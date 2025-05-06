@@ -132,7 +132,7 @@ extension LibraryView {
     static func makePreview() -> some View {
         // Use a fully mocked preview environment
         let mockStoryService = StoryServiceMock()
-        let schema = Schema([StoryModel.self, PageModel.self])
+        let schema = Schema([Story.self, Page.self])
         let container = try! ModelContainer(
             for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let context = ModelContext(container)

@@ -12,15 +12,15 @@ struct StoryReadingIntegrationTests {
         let pages = [
             Page(
                 content: "Page 1 content", pageNumber: 1,
-                illustrationRelativePath: "Illustrations/img1.png", illustrationStatus: .ready,
+                illustrationPath: "Illustrations/img1.png", illustrationStatus: .ready,
                 imagePrompt: "prompt1"),
             Page(
                 content: "Page 2 content", pageNumber: 2,
-                illustrationRelativePath: "Illustrations/img2.png", illustrationStatus: .ready,
+                illustrationPath: "Illustrations/img2.png", illustrationStatus: .ready,
                 imagePrompt: "prompt2"),
             Page(
                 content: "Page 3 content", pageNumber: 3,
-                illustrationRelativePath: "Illustrations/img3.png", illustrationStatus: .ready,
+                illustrationPath: "Illustrations/img3.png", illustrationStatus: .ready,
                 imagePrompt: "prompt3"),
         ]
 
@@ -51,15 +51,15 @@ struct StoryReadingIntegrationTests {
         let pages = [
             Page(
                 content: "Page 1 content", pageNumber: 1,
-                illustrationRelativePath: "Illustrations/img1.png", illustrationStatus: .ready,
+                illustrationPath: "Illustrations/img1.png", illustrationStatus: .ready,
                 imagePrompt: "prompt1"),
             Page(
                 content: "Page 2 content", pageNumber: 2,
-                illustrationRelativePath: "Illustrations/img2.png", illustrationStatus: .ready,
+                illustrationPath: "Illustrations/img2.png", illustrationStatus: .ready,
                 imagePrompt: "prompt2"),
             Page(
                 content: "Page 3 content", pageNumber: 3,
-                illustrationRelativePath: "Illustrations/img3.png", illustrationStatus: .ready,
+                illustrationPath: "Illustrations/img3.png", illustrationStatus: .ready,
                 imagePrompt: "prompt3"),
         ]
 

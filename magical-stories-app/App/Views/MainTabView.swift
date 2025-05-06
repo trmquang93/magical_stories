@@ -13,10 +13,7 @@ struct MainTabView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Magical sparkle background for tab bar (magical accent)
-            SparkleAnimationView(verticalRange: 0.7...1)
-                .frame(height: 80)  // Only show at the bottom
-                .ignoresSafeArea(.container, edges: .bottom)
+            // Main TabView
             TabView(selection: $selectedTab) {
                 NavigationStack {
                     HomeView()
@@ -79,21 +76,27 @@ struct MainTabView: View {
                 .tag(TabItem.settings)
             }
             .accentColor(.magicalPrimary)
-            .background(
-                // Custom tab bar background with corner radius and shadow
-                VStack {
-                    Spacer()
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.surface)
-                        .frame(height: 60)
-                        .shadow(color: Color.black.opacity(0.05), radius: 8, y: -2)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.border, lineWidth: 1)
-                        )
-                        .ignoresSafeArea(.container, edges: .bottom)
+            .onAppear {
+                // Set a solid color UITabBar appearance for the entire app
+                let appearance = UITabBarAppearance()
+                appearance.configureWithOpaqueBackground()
+                appearance.backgroundColor = UIColor.systemBackground
+
+                // Apply the appearance to all tab bars
+                UITabBar.appearance().standardAppearance = appearance
+                if #available(iOS 15.0, *) {
+                    UITabBar.appearance().scrollEdgeAppearance = appearance
                 }
-            )
+            }
+
+            // Optional: Magical sparkle effect behind the tab bar
+            // This is now layered properly behind the solid tab bar
+            VStack {
+                Spacer()
+                SparkleAnimationView(verticalRange: 0.7...1)
+                    .frame(height: 50)
+                    .ignoresSafeArea(.container, edges: .bottom)
+            }
         }
         .environmentObject(tabSelection)
     }
@@ -110,8 +113,8 @@ extension MainTabView {
                 UserProfile.self,
                 AppSettingsModel.self,
                 ParentalControlsModel.self,
-                StoryModel.self,
-                StoryPage.self,
+                Story.self,
+                Page.self,
                 AchievementModel.self,
             ])
             let config = ModelConfiguration(isStoredInMemoryOnly: true)

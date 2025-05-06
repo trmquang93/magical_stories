@@ -30,7 +30,7 @@ struct HomeView_SnapshotTests {
 
     // MARK: - Helpers
     func makeStoryServiceAndWait(storyCount: Int) async -> StoryService {
-        let schema = Schema([StoryModel.self, PageModel.self])
+        let schema = Schema([Story.self, Page.self])
         let container = try! ModelContainer(
             for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let context = ModelContext(container)

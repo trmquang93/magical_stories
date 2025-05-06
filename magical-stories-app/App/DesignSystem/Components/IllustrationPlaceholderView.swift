@@ -17,6 +17,8 @@ struct IllustrationPlaceholderView: View {
         switch status {
         case .pending:
             return "Illustration will be created soon"
+        case .scheduled:
+            return "Illustration scheduled for generation"
         case .generating:
             return "Generating illustration"
         case .failed:

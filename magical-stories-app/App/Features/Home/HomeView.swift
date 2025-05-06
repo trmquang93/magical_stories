@@ -25,6 +25,7 @@ struct HomeView: View {
             NavigationStack {
                 mainContent
                     .navigationDestination(for: Story.self) { story in
+                        // Get services from the environment instead of trying to access private properties
                         StoryDetailView(story: story)
                     }
                     .navigationDestination(for: ViewDestination.self) { destination in

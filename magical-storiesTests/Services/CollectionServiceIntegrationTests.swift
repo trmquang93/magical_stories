@@ -15,7 +15,7 @@ struct CollectionServiceIntegrationTests {
             Story.self,
             Page.self,
             AchievementModel.self,
-            StoryModel.self,
+            Story.self,
         ])
 
         let configuration = ModelConfiguration(

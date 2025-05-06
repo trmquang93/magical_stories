@@ -41,7 +41,7 @@ class StoryProcessor {
     /// back to paragraph-based pagination if needed.
     func processIntoPages(
         _ content: String,
-        illustrations: [IllustrationDescription],
+        illustrations: [IllustrationDescription] = [],
         theme: String
     ) async throws -> [Page] {
         // First attempt to paginate using the delimiter-based approach
@@ -55,8 +55,8 @@ class StoryProcessor {
         // The image prompts will be set later in StoryService if they are provided in the AI response
         // No need to preprocess descriptions here anymore
 
-        // Generate illustrations using the existing or default prompts
-        await generateIllustrationsForPages(&pages, theme: theme)
+        // No longer generate illustrations here; it'll be handled by IllustrationTaskManager
+        // await generateIllustrationsForPages(&pages, theme: theme)
         return pages
     }
 
@@ -525,7 +525,7 @@ class StoryProcessor {
                 )
 
                 if let relativePath = relativePath {
-                    pages[i].illustrationRelativePath = relativePath
+                    pages[i].illustrationPath = relativePath
                     pages[i].illustrationStatus = .ready
                 } else {
                     AIErrorManager.logError(
@@ -538,7 +538,7 @@ class StoryProcessor {
                         source: "StoryProcessor",
                         additionalInfo: "Marking as failed for page \(pages[i].pageNumber)"
                     )
-                    pages[i].illustrationRelativePath = nil
+                    pages[i].illustrationPath = nil
                     pages[i].illustrationStatus = .failed
                 }
             } catch {
@@ -547,7 +547,7 @@ class StoryProcessor {
                     additionalInfo:
                         "Failed to generate illustration for page \(pages[i].pageNumber)"
                 )
-                pages[i].illustrationRelativePath = nil
+                pages[i].illustrationPath = nil
                 pages[i].illustrationStatus = .failed
             }
         }

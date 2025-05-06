@@ -16,7 +16,7 @@ struct StoryScreenNavigation_Tests {
     @Test func testLibraryView_SeeAllButton_NavigatesToAllStoriesView() async throws {
         // Create a model container
         let container = try ModelContainer(
-            for: StoryModel.self, configurations: .init(isStoredInMemoryOnly: true))
+            for: Story.self, configurations: .init(isStoredInMemoryOnly: true))
         let context = container.mainContext
 
         // Create a story service with test stories
@@ -57,7 +57,7 @@ struct StoryScreenNavigation_Tests {
     @Test func testAllStoriesView_CreatedSuccessfully() async throws {
         // Create a model container
         let container = try ModelContainer(
-            for: StoryModel.self, configurations: .init(isStoredInMemoryOnly: true))
+            for: Story.self, configurations: .init(isStoredInMemoryOnly: true))
         let context = container.mainContext
 
         // Create a story service with test stories
@@ -96,7 +96,7 @@ struct StoryScreenNavigation_Tests {
     func testStoryScreenNavigation_StoryCreation() async throws {
         // Create a model container and run everything on MainActor
         let container = try ModelContainer(
-            for: StoryModel.self, configurations: .init(isStoredInMemoryOnly: true))
+            for: Story.self, configurations: .init(isStoredInMemoryOnly: true))
         let context = container.mainContext
         let storyService = TestMockStoryService()
 
@@ -134,7 +134,7 @@ struct StoryScreenNavigation_Tests {
     func testStoryScreenNavigation_StoryDetails() async throws {
         // Create a model container and run everything on MainActor
         let container = try ModelContainer(
-            for: StoryModel.self, configurations: .init(isStoredInMemoryOnly: true))
+            for: Story.self, configurations: .init(isStoredInMemoryOnly: true))
         let context = container.mainContext
         let storyService = TestMockStoryService()
 
@@ -184,7 +184,7 @@ struct StoryScreenNavigation_Tests {
     func testStoryScreenNavigation_EmptyState() async throws {
         // Create a model container and run everything on MainActor
         let container = try ModelContainer(
-            for: StoryModel.self, configurations: .init(isStoredInMemoryOnly: true))
+            for: Story.self, configurations: .init(isStoredInMemoryOnly: true))
         let context = container.mainContext
         let storyService = TestMockStoryService()
 

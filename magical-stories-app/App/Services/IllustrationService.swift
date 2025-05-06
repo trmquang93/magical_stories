@@ -571,7 +571,7 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
     /// - Parameters:
     ///   - page: The page for which to generate an illustration.
     ///   - context: The ModelContext to use for updating the page.
-    /// - Returns: Nothing, but updates the page's illustrationStatus and illustrationRelativePath.
+    /// - Returns: Nothing, but updates the page's illustrationStatus and illustrationPath.
     /// - Throws: IllustrationError if the generation fails.
     func generateIllustration(for page: Page, context: ModelContext) async throws {
         print("--- IllustrationService: Starting generation for page \(page.id) ---")
@@ -592,7 +592,7 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
             // Call our existing method to generate the illustration
             if let relativePath = try await generateIllustrationWithPrompt(imagePrompt) {
                 // Update the page with the result path and set status to ready
-                page.illustrationRelativePath = relativePath
+                page.illustrationPath = relativePath
                 page.illustrationStatus = .ready
                 try context.save()
 
@@ -806,7 +806,7 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
     func migrateIllustrationStatus(for pages: [Page], context: ModelContext) throws {
         for page in pages {
             // If the page has an illustration path but status is pending, update to ready
-            if page.illustrationStatus == .pending && page.illustrationRelativePath != nil {
+            if page.illustrationStatus == .pending && page.illustrationPath != nil {
                 page.illustrationStatus = .ready
             }
         }

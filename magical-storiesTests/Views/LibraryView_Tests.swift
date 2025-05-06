@@ -11,7 +11,7 @@ let testLibraryCategoryNames = ["Fantasy", "Animals", "Bedtime", "Adventure"]
 struct LibraryViewTests {
     @MainActor
     func makeStoryService(with stories: [Story]) async throws -> StoryService {
-        let schema = Schema([StoryModel.self, PageModel.self])
+        let schema = Schema([Story.self, Page.self])
         let container = try ModelContainer(
             for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let context = ModelContext(container)

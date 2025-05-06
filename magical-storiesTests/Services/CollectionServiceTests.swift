@@ -132,18 +132,28 @@ class MockAchievementRepository: AchievementRepositoryProtocol {
         earnedAt: Date?
     ) throws -> AchievementModel {
         // In a real repository, we would find the story by ID
-        var story: StoryModel? = nil
+        var story: Story? = nil
 
         // Find or create a story with the specified ID
         if let storyId = relatedStoryId {
             // Create a mock story with the provided ID for testing purpose
-            story = StoryModel(
+            story = Story(
                 id: storyId,
                 title: "Test Story",
-                childName: "Test",
-                childAge: 5,
-                theme: "Test Theme",
-                favoriteCharacter: "Friend"
+                pages: [],
+                parameters: StoryParameters(
+                    childName: "Test",
+                    childAge: 5,
+                    theme: "Test Theme",
+                    favoriteCharacter: "Friend"
+                ),
+                isCompleted: false,
+                collections: [],
+                categoryName: nil,
+                readCount: 0,
+                lastReadAt: nil,
+                isFavorite: false,
+                achievements: []
             )
         }
 

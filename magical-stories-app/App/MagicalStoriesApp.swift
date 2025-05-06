@@ -11,6 +11,7 @@ struct MagicalStoriesApp: App {
     @StateObject private var collectionService: CollectionService
     @StateObject private var persistenceService: PersistenceService
     @StateObject private var illustrationService: IllustrationService
+    @StateObject private var illustrationTaskManager: IllustrationTaskManager
     private let container: ModelContainer
 
     // Initialization to handle dependencies between services
@@ -19,7 +20,7 @@ struct MagicalStoriesApp: App {
         let container: ModelContainer
         do {
             container = try ModelContainer(
-                for: StoryModel.self, PageModel.self, AchievementModel.self, StoryCollection.self,
+                for: Story.self, Page.self, AchievementModel.self, StoryCollection.self,
                 configurations: ModelConfiguration()
             )
             print(
@@ -64,6 +65,10 @@ struct MagicalStoriesApp: App {
         } catch {
             fatalError("Failed to create IllustrationService: \(error)")
         }
+        
+        // Initialize IllustrationTaskManager
+        let taskManager = IllustrationTaskManager()
+        print("[MagicalStoriesApp] Successfully created IllustrationTaskManager")
 
         // Assign to StateObjects
         _settingsService = StateObject(wrappedValue: settings)
@@ -71,6 +76,7 @@ struct MagicalStoriesApp: App {
         _collectionService = StateObject(wrappedValue: collectionService)
         _persistenceService = StateObject(wrappedValue: persistenceService)
         _illustrationService = StateObject(wrappedValue: illustration)
+        _illustrationTaskManager = StateObject(wrappedValue: taskManager)
 
         // Store container for environment injection
         self.container = container
@@ -85,6 +91,7 @@ struct MagicalStoriesApp: App {
                 .environmentObject(collectionService)
                 .environmentObject(persistenceService)
                 .environmentObject(illustrationService)
+                .environmentObject(illustrationTaskManager)
                 .modelContainer(container)
         }
     }

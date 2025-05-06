@@ -1,7 +1,7 @@
+import Combine
 import Foundation
 import SwiftData
 import SwiftUI
-import Combine
 
 /// Protocol defining the requirements for managing Story Collection data.
 protocol CollectionRepositoryProtocol {
@@ -101,44 +101,3 @@ protocol AchievementRepositoryProtocol {
     /// - Returns: `true` if an achievement exists, `false` otherwise.
     func achievementExists(withTitle title: String, ofType type: AchievementType) -> Bool
 }
-
-/// Protocol defining the requirements for managing Story data.
-protocol StoryRepositoryProtocol {
-    /// Saves a new Story or updates an existing one.
-    /// - Parameter story: The `StoryModel` object to save.
-    /// - Throws: An error if saving fails (e.g., `PersistenceError.encodingFailed`).
-    func saveStory(_ story: StoryModel) throws
-
-    /// Fetches a specific Story by its ID.
-    /// - Parameter id: The `UUID` of the story to fetch.
-    /// - Returns: The `StoryModel` if found, otherwise `nil`.
-    /// - Throws: An error if fetching fails (e.g., `PersistenceError.decodingFailed`).
-    func fetchStory(id: UUID) throws -> StoryModel?
-
-    /// Fetches all saved Stories.
-    /// - Returns: An array of `StoryModel` objects. Returns an empty array if none are found.
-    /// - Throws: An error if fetching fails (e.g., `PersistenceError.decodingFailed`).
-    func fetchAllStories() throws -> [StoryModel]
-
-    /// Deletes a specific Story.
-    /// - Parameter id: The `UUID` of the story to delete.
-    /// - Throws: An error if deletion fails.
-    func deleteStory(id: UUID) throws
-
-    /// Increments the read count for a specific story.
-    /// - Parameter id: The `UUID` of the story to update.
-    /// - Throws: An error if the story is not found or updating fails.
-    func incrementReadCount(id: UUID) throws
-
-    /// Updates the last read date for a specific story.
-    /// - Parameter id: The `UUID` of the story to update.
-    /// - Throws: An error if the story is not found or updating fails.
-    func updateLastReadAt(id: UUID) throws
-
-    /// Toggles the favorite status for a specific story.
-    /// - Parameter id: The `UUID` of the story to update.
-    /// - Throws: An error if the story is not found or updating fails.
-    func toggleFavorite(id: UUID) throws
-}
-
-// Removed duplicate SettingsRepositoryProtocol, UserProfileRepositoryProtocol, and PersistenceError definitions

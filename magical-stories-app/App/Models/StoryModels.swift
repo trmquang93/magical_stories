@@ -1,5 +1,15 @@
+import Combine
 import Foundation
 import SwiftData
+
+// MARK: - Illustration Status Enum
+enum IllustrationStatus: String, Codable, CaseIterable, Equatable {
+    case pending    // Not yet processed
+    case scheduled  // In queue, awaiting generation
+    case generating // API call in progress
+    case ready      // Successfully generated
+    case failed     // Failed to generate
+}
 
 /// Represents the input parameters provided by the user to generate a story.
 struct StoryParameters: Codable, Hashable {
@@ -11,37 +21,45 @@ struct StoryParameters: Codable, Hashable {
     var developmentalFocus: [GrowthCategory]?  // Optional array for developmental themes
     var interactiveElements: Bool?  // Optional flag for interactive prompts
     var emotionalThemes: [String]?  // Optional array for specific emotions
-    var languageCode: String? // Make language code optional
+    var languageCode: String?  // Make language code optional
 }
 
 /// Represents a page in a story.
 @Model
-final class Page: Identifiable, Codable {
+final class Page: Identifiable, Codable, ObservableObject {
     @Attribute(.unique) var id: UUID
     var content: String
     var pageNumber: Int
-    var illustrationRelativePath: String?
+    var illustrationPath: String?
     var illustrationStatus: IllustrationStatus
     var imagePrompt: String?
+    var firstViewedAt: Date?  // Added from the deleted Page.swift
+
+    @Relationship(inverse: \Story.pages) var story: Story?
 
     init(
         id: UUID = UUID(),
         content: String,
         pageNumber: Int,
-        illustrationRelativePath: String? = nil,
+        illustrationPath: String? = nil,
         illustrationStatus: IllustrationStatus = .pending,
-        imagePrompt: String? = nil
+        imagePrompt: String? = nil,
+        firstViewedAt: Date? = nil,
+        story: Story? = nil
     ) {
         self.id = id
         self.content = content
         self.pageNumber = pageNumber
-        self.illustrationRelativePath = illustrationRelativePath
+        self.illustrationPath = illustrationPath
         self.illustrationStatus = illustrationStatus
         self.imagePrompt = imagePrompt
+        self.firstViewedAt = firstViewedAt
+        self.story = story
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, content, pageNumber, illustrationRelativePath, illustrationStatus, imagePrompt
+        case id, content, pageNumber, illustrationPath, illustrationStatus, imagePrompt,
+            firstViewedAt
     }
 
     convenience init(from decoder: Decoder) throws {
@@ -49,15 +67,22 @@ final class Page: Identifiable, Codable {
         let id = try container.decode(UUID.self, forKey: .id)
         let content = try container.decode(String.self, forKey: .content)
         let pageNumber = try container.decode(Int.self, forKey: .pageNumber)
-        let illustrationRelativePath = try container.decodeIfPresent(
-            String.self, forKey: .illustrationRelativePath)
+        let illustrationPath = try container.decodeIfPresent(
+            String.self, forKey: .illustrationPath)
         let illustrationStatus = try container.decode(
             IllustrationStatus.self, forKey: .illustrationStatus)
         let imagePrompt = try container.decodeIfPresent(String.self, forKey: .imagePrompt)
+        let firstViewedAt = try container.decodeIfPresent(Date.self, forKey: .firstViewedAt)
+
         self.init(
-            id: id, content: content, pageNumber: pageNumber,
-            illustrationRelativePath: illustrationRelativePath,
-            illustrationStatus: illustrationStatus, imagePrompt: imagePrompt)
+            id: id,
+            content: content,
+            pageNumber: pageNumber,
+            illustrationPath: illustrationPath,
+            illustrationStatus: illustrationStatus,
+            imagePrompt: imagePrompt,
+            firstViewedAt: firstViewedAt
+        )
     }
 
     func encode(to encoder: Encoder) throws {
@@ -65,9 +90,10 @@ final class Page: Identifiable, Codable {
         try container.encode(id, forKey: .id)
         try container.encode(content, forKey: .content)
         try container.encode(pageNumber, forKey: .pageNumber)
-        try container.encodeIfPresent(illustrationRelativePath, forKey: .illustrationRelativePath)
+        try container.encodeIfPresent(illustrationPath, forKey: .illustrationPath)
         try container.encode(illustrationStatus, forKey: .illustrationStatus)
         try container.encodeIfPresent(imagePrompt, forKey: .imagePrompt)
+        try container.encodeIfPresent(firstViewedAt, forKey: .firstViewedAt)
     }
 }
 
@@ -83,6 +109,14 @@ final class Story: Identifiable, Codable {
     var collections: [StoryCollection]
     var categoryName: String?
 
+    // Add missing fields
+    var readCount: Int = 0
+    var lastReadAt: Date?
+    var isFavorite: Bool = false
+
+    // Add relationship for achievements
+    @Relationship(deleteRule: .cascade) var achievements: [AchievementModel] = []
+
     init(
         id: UUID = UUID(),
         title: String,
@@ -91,7 +125,11 @@ final class Story: Identifiable, Codable {
         timestamp: Date = Date(),
         isCompleted: Bool = false,
         collections: [StoryCollection] = [],
-        categoryName: String? = nil
+        categoryName: String? = nil,
+        readCount: Int = 0,
+        lastReadAt: Date? = nil,
+        isFavorite: Bool = false,
+        achievements: [AchievementModel] = []
     ) {
         self.id = id
         self.title = title
@@ -101,10 +139,15 @@ final class Story: Identifiable, Codable {
         self.isCompleted = isCompleted
         self.collections = collections
         self.categoryName = categoryName
+        self.readCount = readCount
+        self.lastReadAt = lastReadAt
+        self.isFavorite = isFavorite
+        self.achievements = achievements
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, title, pages, parameters, timestamp, isCompleted, collections, categoryName
+        case id, title, pages, parameters, timestamp, isCompleted, collections, categoryName,
+            readCount, lastReadAt, isFavorite, achievements
     }
 
     convenience init(from decoder: Decoder) throws {
@@ -117,9 +160,17 @@ final class Story: Identifiable, Codable {
         let isCompleted = try container.decode(Bool.self, forKey: .isCompleted)
         let collections = try container.decode([StoryCollection].self, forKey: .collections)
         let categoryName = try container.decodeIfPresent(String.self, forKey: .categoryName)
+        let readCount = try container.decodeIfPresent(Int.self, forKey: .readCount) ?? 0
+        let lastReadAt = try container.decodeIfPresent(Date.self, forKey: .lastReadAt)
+        let isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
+        let achievements =
+            try container.decodeIfPresent([AchievementModel].self, forKey: .achievements) ?? []
+
         self.init(
             id: id, title: title, pages: pages, parameters: parameters, timestamp: timestamp,
-            isCompleted: isCompleted, collections: collections, categoryName: categoryName)
+            isCompleted: isCompleted, collections: collections, categoryName: categoryName,
+            readCount: readCount, lastReadAt: lastReadAt, isFavorite: isFavorite,
+            achievements: achievements)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -132,6 +183,10 @@ final class Story: Identifiable, Codable {
         try container.encode(isCompleted, forKey: .isCompleted)
         try container.encode(collections, forKey: .collections)
         try container.encodeIfPresent(categoryName, forKey: .categoryName)
+        try container.encode(readCount, forKey: .readCount)
+        try container.encodeIfPresent(lastReadAt, forKey: .lastReadAt)
+        try container.encode(isFavorite, forKey: .isFavorite)
+        try container.encode(achievements, forKey: .achievements)
     }
 
     // Compatibility initializer
@@ -148,7 +203,7 @@ final class Story: Identifiable, Codable {
         let singlePage = Page(
             content: content,
             pageNumber: 1,
-            illustrationRelativePath: illustrationURL?.path,
+            illustrationPath: illustrationURL?.path,
             imagePrompt: imagePrompt
         )
         self.init(
@@ -201,7 +256,7 @@ extension Story {
             childAge: 5,
             theme: "Friendship",
             favoriteCharacter: "Brave Bear"
-            // languageCode is optional, no need to set in basic preview
+                // languageCode is optional, no need to set in basic preview
         )
         return Story(
             title: title,

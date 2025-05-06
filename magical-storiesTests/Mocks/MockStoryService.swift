@@ -87,7 +87,7 @@ class MockStoryService: StoryService {
                 content:
                     "Once upon a time, in a magical kingdom far away, there lived a brave child named \(parameters.childName). \(parameters.childName) was \(parameters.childAge) years old and loved going on adventures with their friend, a friendly \(parameters.favoriteCharacter).",
                 pageNumber: 1,
-                illustrationRelativePath: "placeholder-illustration"
+                illustrationPath: "placeholder-illustration"
             ))
 
         // Middle pages based on the theme
@@ -119,7 +119,7 @@ class MockStoryService: StoryService {
                     id: UUID(),
                     content: content,
                     pageNumber: i,
-                    illustrationRelativePath: "placeholder-illustration"
+                    illustrationPath: "placeholder-illustration"
                 ))
         }
 
@@ -130,7 +130,7 @@ class MockStoryService: StoryService {
                 content:
                     "As the sun began to set, \(parameters.childName) and the \(parameters.favoriteCharacter) made their way home, tired but happy after their wonderful adventure. They couldn't wait to see what tomorrow would bring! THE END.",
                 pageNumber: length,
-                illustrationRelativePath: "placeholder-illustration"
+                illustrationPath: "placeholder-illustration"
             ))
 
         return pages

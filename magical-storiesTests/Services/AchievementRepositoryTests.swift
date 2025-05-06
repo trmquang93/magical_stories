@@ -1,13 +1,14 @@
+import SwiftData
 // magical-storiesTests/Services/AchievementRepositoryTests.swift
 import XCTest
-import SwiftData
+
 @testable import magical_stories
 
 @MainActor
 final class AchievementRepositoryTests: XCTestCase {
 
     var achievementRepository: AchievementRepository!
-    var storyRepository: StoryRepository! // Needed for relationship tests
+    var storyRepository: StoryRepository!  // Needed for relationship tests
     var modelContext: ModelContext!
     var modelContainer: ModelContainer!
 
@@ -15,13 +16,13 @@ final class AchievementRepositoryTests: XCTestCase {
         try super.setUpWithError()
 
         // Create an in-memory SwiftData model container for testing
-        let schema = Schema([StoryModel.self, PageModel.self, AchievementModel.self])
+        let schema = Schema([Story.self, Page.self, AchievementModel.self])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         modelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
         modelContext = ModelContext(modelContainer)
 
         achievementRepository = AchievementRepository(modelContext: modelContext)
-        storyRepository = StoryRepository(modelContext: modelContext) // Init story repo for linking
+        storyRepository = StoryRepository(modelContext: modelContext)  // Init story repo for linking
     }
 
     override func tearDownWithError() throws {
@@ -33,21 +34,36 @@ final class AchievementRepositoryTests: XCTestCase {
     }
 
     // Helper function to create a sample story model
-    private func createSampleStoryModel(id: UUID = UUID(), title: String = "Sample Story") -> StoryModel {
+    private func createSampleStoryModel(id: UUID = UUID(), title: String = "Sample Story")
+        -> Story
+    {
         // Use the StoryModel initializer directly for simplicity in these tests
-        return StoryModel(
+        return Story(
             id: id,
             title: title,
-            childName: "Test Child",
-            childAge: 6,
-            theme: "Adventure",
-            favoriteCharacter: "Hero"
-            // pages, readCount, isFavorite, lastReadAt, achievements use defaults
+            pages: [],
+            parameters: StoryParameters(
+                childName: "Test Child",
+                childAge: 6,
+                theme: "Adventure",
+                favoriteCharacter: "Hero"
+            ),
+            timestamp: Date(),
+            isCompleted: false,
+            collections: [],
+            categoryName: nil,
+            readCount: 0,
+            lastReadAt: nil,
+            isFavorite: false,
+            achievements: []
         )
     }
 
     // Helper function to create a sample achievement model
-    private func createSampleAchievementModel(id: UUID = UUID(), name: String = "Test Achievement", type: AchievementType = .storiesCompleted, story: StoryModel? = nil) -> AchievementModel {
+    private func createSampleAchievementModel(
+        id: UUID = UUID(), name: String = "Test Achievement",
+        type: AchievementType = .storiesCompleted, story: Story? = nil
+    ) -> AchievementModel {
         return AchievementModel(id: id, name: name, type: type, story: story)
     }
 
@@ -57,7 +73,8 @@ final class AchievementRepositoryTests: XCTestCase {
 
         // When
         try await achievementRepository.save(achievement)
-        let fetchedAchievement = try await achievementRepository.fetchAchievement(withId: achievement.id)
+        let fetchedAchievement = try await achievementRepository.fetchAchievement(
+            withId: achievement.id)
 
         // Then
         XCTAssertNotNil(fetchedAchievement)
@@ -70,7 +87,7 @@ final class AchievementRepositoryTests: XCTestCase {
         // Given
         let story1 = createSampleStoryModel()
         let story2 = createSampleStoryModel()
-        try await storyRepository.save(story1) // Save stories first
+        try await storyRepository.save(story1)  // Save stories first
         try await storyRepository.save(story2)
 
         let achievement1 = createSampleAchievementModel(name: "Story 1 Achieve 1", story: story1)
@@ -98,10 +115,12 @@ final class AchievementRepositoryTests: XCTestCase {
         try await achievementRepository.batchSave([achievement1, achievement2, achievement3])
 
         // When
-        let completedAchievements = try await achievementRepository.fetchAchievements(ofType: .storiesCompleted)
-        let streakAchievements = try await achievementRepository.fetchAchievements(ofType: .readingStreak)
-        let themeAchievements = try await achievementRepository.fetchAchievements(ofType: .themeMastery)
-
+        let completedAchievements = try await achievementRepository.fetchAchievements(
+            ofType: .storiesCompleted)
+        let streakAchievements = try await achievementRepository.fetchAchievements(
+            ofType: .readingStreak)
+        let themeAchievements = try await achievementRepository.fetchAchievements(
+            ofType: .themeMastery)
 
         // Then
         XCTAssertEqual(completedAchievements.count, 2)
@@ -123,7 +142,8 @@ final class AchievementRepositoryTests: XCTestCase {
         try await achievementRepository.update(achievement)
 
         // Then
-        let fetchedAchievement = try await achievementRepository.fetchAchievement(withId: achievement.id)
+        let fetchedAchievement = try await achievementRepository.fetchAchievement(
+            withId: achievement.id)
         XCTAssertNotNil(fetchedAchievement)
         XCTAssertEqual(fetchedAchievement?.name, "Updated Name")
         XCTAssertEqual(fetchedAchievement?.progress, 0.5)
@@ -139,12 +159,14 @@ final class AchievementRepositoryTests: XCTestCase {
         try await achievementRepository.delete(achievement1)
 
         // Then
-        let allAchievements = try await achievementRepository.fetch(FetchDescriptor<AchievementModel>())
+        let allAchievements = try await achievementRepository.fetch(
+            FetchDescriptor<AchievementModel>())
         XCTAssertEqual(allAchievements.count, 1)
         XCTAssertEqual(allAchievements.first?.id, achievement2.id)
         XCTAssertEqual(allAchievements.first?.name, "To Keep")
 
-        let deletedAchievement = try await achievementRepository.fetchAchievement(withId: achievement1.id)
+        let deletedAchievement = try await achievementRepository.fetchAchievement(
+            withId: achievement1.id)
         XCTAssertNil(deletedAchievement)
     }
 }

@@ -2,6 +2,12 @@ import SwiftUI
 
 struct CollectionsEmptyStateView: View {
     @State private var isAnimating = false
+    var onCreateTapped: () -> Void
+
+    // Allow for an optional callback to maintain backward compatibility
+    init(onCreateTapped: @escaping () -> Void = {}) {
+        self.onCreateTapped = onCreateTapped
+    }
 
     var body: some View {
         VStack(spacing: 24) {
@@ -80,7 +86,7 @@ struct CollectionsEmptyStateView: View {
 
             // Create button
             Button {
-                // This would be handled by a parent view
+                onCreateTapped()
             } label: {
                 HStack {
                     Image(systemName: "plus")
@@ -109,6 +115,7 @@ struct CollectionsEmptyStateView: View {
                 .shadow(color: Color.magicalPrimary.opacity(0.3), radius: 5, x: 0, y: 3)
             }
             .padding(.top, 8)
+            .accessibilityIdentifier("EmptyStateCreateButton")
 
             // Benefits
             VStack(spacing: 20) {
@@ -166,6 +173,6 @@ struct CollectionsEmptyStateView: View {
 }
 
 #Preview("Empty State") {
-    CollectionsEmptyStateView()
+    CollectionsEmptyStateView { print("Create tapped") }
         .background(Color(.systemGroupedBackground))
 }

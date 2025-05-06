@@ -30,7 +30,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
     // Helper to create a mock StoryService with demo stories
     func makeMockStoryService() -> StoryService {
         // If you have StoryService.mockWithDemoStories(), use it. Otherwise, create a minimal mock:
-        let schema = Schema([StoryModel.self, PageModel.self])
+        let schema = Schema([Story.self, Page.self])
         let container = try! ModelContainer(
             for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let context = ModelContext(container)
@@ -51,7 +51,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
     }
 
     func makeEmptyStoryService() -> StoryService {
-        let schema = Schema([StoryModel.self, PageModel.self])
+        let schema = Schema([Story.self, Page.self])
         let container = try! ModelContainer(
             for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let context = ModelContext(container)
@@ -124,7 +124,7 @@ final class LibraryView_SnapshotTests: XCTestCase {
 
     // Helper to create a mock StoryService with 3+ stories for recent stories section
     func makeRecentStoriesServiceAndWait(_ expectation: XCTestExpectation) -> StoryService {
-        let schema = Schema([StoryModel.self, PageModel.self])
+        let schema = Schema([Story.self, Page.self])
         let container = try! ModelContainer(
             for: schema, configurations: [.init(isStoredInMemoryOnly: true)])
         let context = ModelContext(container)
