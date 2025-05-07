@@ -57,21 +57,7 @@ struct HomeView: View {
     }
 
     private var mainContent: some View {
-        #if DEBUG
-            if scrollToBottom {
-                return AnyView(
-                    ScrollViewReader { proxy in
-                        scrollView
-                            .onAppear {
-                                proxy.scrollTo("mainContentBottom", anchor: .bottom)
-                            }
-                    }
-                )
-            }
-        #endif
-        return AnyView(
-            scrollView
-        )
+        return scrollView
     }
 
     private var scrollView: some View {
