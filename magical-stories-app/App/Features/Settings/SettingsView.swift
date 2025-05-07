@@ -33,13 +33,6 @@ struct SettingsView: View {
                     VStack(spacing: UITheme.Spacing.lg) {
                         ProfileCard(childName: $childName)
                         
-                        PreferencesCard(
-                            isDarkMode: $isDarkMode,
-                            fontScale: $fontScale,
-                            hapticFeedbackEnabled: $hapticFeedbackEnabled,
-                            soundEffectsEnabled: $soundEffectsEnabled
-                        )
-                        
                         ParentalControlsCard(
                             contentFiltering: $contentFiltering,
                             screenTimeEnabled: $screenTimeEnabled,
