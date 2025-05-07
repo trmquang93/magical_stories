@@ -22,7 +22,7 @@ struct CollectionFormView: View {
     @State private var childAgeGroup: AgeGroup = .preschool
     @State private var developmentalFocus: DevelopmentalFocus = .emotionalIntelligence
     @State internal var interests: String = ""
-    @State private var childName: String = ""
+    @State private var childName: String = UserDefaults.standard.string(forKey: "childName") ?? ""
     @State private var characters: String = ""
     @State private var selectedLanguage: String = "en"
 

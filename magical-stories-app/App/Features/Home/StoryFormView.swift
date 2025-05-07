@@ -7,7 +7,7 @@ struct StoryFormView: View {
     @EnvironmentObject private var storyService: StoryService
 
     // State Variables
-    @State private var childName: String? = nil
+    @State private var childName: String? = UserDefaults.standard.string(forKey: "childName")
     @State private var selectedAgeRange: String = "3-5"
     @State private var selectedTheme: StoryTheme = .friendship
     @State private var favoriteCharacter = ""

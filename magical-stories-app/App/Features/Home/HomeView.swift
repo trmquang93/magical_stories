@@ -7,6 +7,7 @@ struct HomeView: View {
     @EnvironmentObject private var storyService: StoryService
     @EnvironmentObject private var collectionService: CollectionService
     @Environment(\.selectedTabBinding) private var selectedTabBinding
+    @State private var childName: String = ""
 
     #if DEBUG
         /// Test-only: If true, scrolls to the bottom of the main ScrollView on appear (for snapshot/UI tests)
@@ -49,6 +50,10 @@ struct HomeView: View {
             CollectionFormView()
                 .environmentObject(collectionService)
         }
+        .onAppear {
+            // Load child name from UserDefaults when the view appears
+            childName = UserDefaults.standard.string(forKey: "childName") ?? ""
+        }
     }
 
     // Define an enum for navigation destinations
@@ -83,7 +88,7 @@ struct HomeView: View {
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Welcome back, [Name]!")
+            Text("Welcome back\(childName.isEmpty ? "!" : ", \(childName)!")")
                 .font(.displayMedium)
                 .foregroundColor(UITheme.Colors.textPrimary)
                 .padding(.top, Spacing.xl)
