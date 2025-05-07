@@ -26,13 +26,17 @@ struct HomeView: View {
             NavigationStack {
                 mainContent
                     .navigationDestination(for: Story.self) { story in
-                        // Get services from the environment instead of trying to access private properties
+                        // This handler is only used when navigating directly from HomeView
+                        // and not from within a CollectionDetailView
                         StoryDetailView(story: story)
                     }
                     .navigationDestination(for: ViewDestination.self) { destination in
                         switch destination {
                         case .allStories:
                             AllStoriesView()
+                        case .collectionDetail(let collection):
+                            // Use a dedicated destination for collections to prevent duplicate navigation
+                            CollectionDetailView(collection: collection)
                         }
                     }
             }
@@ -59,6 +63,7 @@ struct HomeView: View {
     // Define an enum for navigation destinations
     enum ViewDestination: Hashable {
         case allStories
+        case collectionDetail(StoryCollection)
     }
 
     private var mainContent: some View {
@@ -124,7 +129,8 @@ struct HomeView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(collectionService.collections) { collection in
-                        NavigationLink(destination: CollectionDetailView(collection: collection)) {
+                        // Use the ViewDestination enum instead of direct NavigationLink to destination
+                        NavigationLink(value: ViewDestination.collectionDetail(collection)) {
                             CollectionCardView(collection: collection)
                                 .frame(width: 180)
                         }
