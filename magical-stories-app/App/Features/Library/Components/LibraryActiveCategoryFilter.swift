@@ -7,7 +7,7 @@ struct LibraryActiveCategoryFilter: View {
     var body: some View {
         HStack(spacing: UITheme.Spacing.sm) {
             // Find the matching category to get icon and color
-            let categoryInfo = libraryCategories.first { $0.name == selectedCategoryName }
+            let categoryInfo = LibraryCategory.all.first { $0.name == selectedCategoryName }
 
             if let info = categoryInfo {
                 Image(systemName: info.icon)

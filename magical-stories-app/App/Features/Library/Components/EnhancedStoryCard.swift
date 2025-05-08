@@ -25,7 +25,7 @@ struct EnhancedStoryCard: View {
             HStack(spacing: UITheme.Spacing.md) {
                 // Category icon with color
                 if let categoryName = story.categoryName,
-                    let categoryInfo = libraryCategories.first(where: { $0.name == categoryName })
+                    let categoryInfo = LibraryCategory.all.first(where: { $0.name == categoryName })
                 {
                     ZStack {
                         Circle()

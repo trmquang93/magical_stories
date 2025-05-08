@@ -112,7 +112,7 @@ struct LibraryView: View {
     }
 
     private var categories: [LibraryCategory] {
-        libraryCategories.map { def in
+        LibraryCategory.all.map { def in
             let count = storyService.stories.filter { story in
                 story.categoryName == def.name
             }.count

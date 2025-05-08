@@ -6,7 +6,7 @@ class PromptBuilder {
   // MARK: - Constants
 
   // Define the allowed categories
-  private let allowedCategories = ["Fantasy", "Animals", "Bedtime", "Adventure", "Friendship"]
+  private let allowedCategories: [String] = LibraryCategory.all.map { $0.name }
 
   private enum VocabularyLevel {
     case beginner  // Ages 3-4
