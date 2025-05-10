@@ -90,11 +90,12 @@ struct EnhancedStoryCard: View {
 
                     // Child name and creation date
                     HStack {
-                        Text("For \(story.parameters.childName)")
-                            .font(UITheme.Typography.bodySmall)
-                            .foregroundColor(UITheme.Colors.textSecondary)
-
-                        Spacer()
+                        if let childName = story.parameters.childName {
+                            Text("For \(childName)")
+                                .font(UITheme.Typography.bodySmall)
+                                .foregroundColor(UITheme.Colors.textSecondary)
+                            Spacer()
+                        }
 
                         // Format relative date
                         Text(relativeDate(from: story.timestamp))

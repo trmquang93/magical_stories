@@ -1,0 +1,21 @@
+---
+description: When addressing an issue, bug, or crash
+globs: 
+alwaysApply: false
+---
+# Issue Fixing Protocol
+When addressing an issue, bug, or crash, follow these steps:
+
+1. **Create a Test:** 
+   - Write a test that verifies the issue is reproducible. This test should cover the specific scenario where the bug occurs.
+
+2. **Run the Test:**
+   - Ensure that the test fails, confirming that the issue is valid and reproducible.
+3. **Fix the Problem:**
+   - Once you have a failing test, proceed to implement the fix for the issue.
+
+4. **Verify the Fix:**
+   - After applying the fix, run the test suite again to ensure that the test now passes and that no other tests are broken.
+
+5. **Document the Change:**
+   - Update any relevant documentation or comments to reflect the changes made and the resolution of the issue.

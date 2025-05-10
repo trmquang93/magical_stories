@@ -4,11 +4,33 @@ import SwiftData
 
 // MARK: - Illustration Status Enum
 enum IllustrationStatus: String, Codable, CaseIterable, Equatable {
-    case pending    // Not yet processed
+    case pending  // Not yet processed
     case scheduled  // In queue, awaiting generation
-    case generating // API call in progress
-    case ready      // Successfully generated
-    case failed     // Failed to generate
+    case generating  // API call in progress
+    case ready  // Successfully generated
+    case failed  // Failed to generate
+
+    // Custom initializer to handle legacy "success" value that might be in the database
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+
+        // Handle legacy "success" value by mapping it to .ready
+        if rawValue == "success" {
+            self = .ready
+        } else if let value = IllustrationStatus(rawValue: rawValue) {
+            self = value
+        } else {
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: decoder.codingPath,
+                    debugDescription:
+                        "Cannot initialize IllustrationStatus from invalid String value \(rawValue)",
+                    underlyingError: nil
+                )
+            )
+        }
+    }
 }
 
 /// Represents the input parameters provided by the user to generate a story.
