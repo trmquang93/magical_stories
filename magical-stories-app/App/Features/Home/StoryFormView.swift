@@ -95,16 +95,16 @@ struct StoryFormView: View {
 
     private var formContentView: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: Theme.Spacing.lg) {
+            VStack(alignment: .leading, spacing: UITheme.Spacing.lg) {
                 FormHeader(animateBackground: $animateBackground)
                 formFieldsView
             }
-            .padding(.top, Theme.Spacing.md)
+            .padding(.top, UITheme.Spacing.md)
         }
     }
 
     private var formFieldsView: some View {
-        VStack(spacing: Theme.Spacing.lg) {
+        VStack(spacing: UITheme.Spacing.lg) {
             ChildNameField(childName: $childName)
                 .focused($focusedField, equals: .childName)
             CharacterField(

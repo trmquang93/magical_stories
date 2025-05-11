@@ -7,7 +7,11 @@ struct LoadingOverlayView: View {
     let subtitle: String
 
     private var primaryGradient: LinearGradient {
-        Theme.Colors.primaryGradient
+        LinearGradient(
+            gradient: Gradient(colors: [UITheme.Colors.primary, Color(hex: "#FF617B")]),
+            startPoint: .leading,
+            endPoint: .trailing
+        )
     }
 
     var body: some View {
@@ -21,7 +25,7 @@ struct LoadingOverlayView: View {
                 .background(.ultraThinMaterial)
                 .ignoresSafeArea(.container)
 
-            VStack(spacing: Theme.Spacing.xl) {
+            VStack(spacing: UITheme.Spacing.xl) {
                 // Animated magic wand
                 loadingWandAnimation
 
@@ -31,7 +35,7 @@ struct LoadingOverlayView: View {
                 // Animated dots
                 loadingDots
             }
-            .padding(Theme.Spacing.xl)
+            .padding(UITheme.Spacing.xl)
             .background(
                 RoundedRectangle(cornerRadius: 24)
                     .fill(
@@ -90,7 +94,7 @@ struct LoadingOverlayView: View {
     }
 
     private var loadingText: some View {
-        VStack(spacing: Theme.Spacing.md) {
+        VStack(spacing: UITheme.Spacing.md) {
             Text(title)
                 .font(.system(size: 22, weight: .bold))
                 .foregroundColor(
@@ -108,7 +112,7 @@ struct LoadingOverlayView: View {
                 .multilineTextAlignment(.center)
                 .opacity(0.8)
         }
-        .padding(.horizontal, Theme.Spacing.xl)
+        .padding(.horizontal, UITheme.Spacing.xl)
     }
 
     private var loadingDots: some View {

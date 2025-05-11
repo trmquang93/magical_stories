@@ -6,7 +6,7 @@ struct FormHeader: View {
     @Binding var animateBackground: Bool
 
     private var primaryGradient: LinearGradient {
-        Theme.Colors.primaryGradient
+        UITheme.Colors.primaryGradient
     }
 
     var body: some View {
@@ -37,7 +37,7 @@ struct FormHeader: View {
                     value: animateBackground
                 )
         }
-        .padding(.horizontal, Theme.Spacing.lg)
+        .padding(.horizontal, UITheme.Spacing.lg)
     }
 }
 
@@ -96,7 +96,7 @@ struct CharacterField: View {
 
             // Character suggestions
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: Theme.Spacing.sm) {
+                HStack(spacing: UITheme.Spacing.sm) {
                     ForEach(characterSuggestions, id: \.self) { character in
                         Button {
                             favoriteCharacter = character
@@ -151,7 +151,7 @@ struct ThemeField: View {
     private var themeGrid: some View {
         LazyVGrid(
             columns: [GridItem(.flexible()), GridItem(.flexible())],
-            spacing: Theme.Spacing.md
+            spacing: UITheme.Spacing.md
         ) {
             ForEach(storyThemes) { theme in
                 Button {
@@ -173,7 +173,7 @@ struct ThemeField: View {
                     Circle()
                         .fill(
                             selectedTheme == theme
-                                ? AnyShapeStyle(Theme.Colors.primaryGradient)
+                                ? AnyShapeStyle(UITheme.Colors.primaryGradient)
                                 : AnyShapeStyle(Color(hex: "#A3AED0")))
                 )
             Text(theme.rawValue.capitalized)
@@ -255,7 +255,7 @@ struct GenerateButton: View {
     let action: () -> Void
 
     private var primaryGradient: LinearGradient {
-        Theme.Colors.primaryGradient
+        UITheme.Colors.primaryGradient
     }
 
     var body: some View {
@@ -309,9 +309,9 @@ struct GenerateButton: View {
                 .spring(response: 0.3, dampingFraction: 0.7),
                 value: isGenerating)
         }
-        .padding(.horizontal, Theme.Spacing.lg)
-        .padding(.top, Theme.Spacing.md)
-        .padding(.bottom, Theme.Spacing.xxl)
+        .padding(.horizontal, UITheme.Spacing.lg)
+        .padding(.top, UITheme.Spacing.md)
+        .padding(.bottom, UITheme.Spacing.xxl)
     }
 }
 
@@ -329,7 +329,3 @@ struct GenerateButton: View {
         }
     }
 #endif
-
-// MARK: - Remove duplicate extension
-// The following View extensions have been moved to StoryFormStyles.swift
-// to avoid ambiguous function declarations

@@ -73,8 +73,8 @@ struct StoryDetailView: View {
                         .tint(UITheme.Colors.accent)
                         .frame(maxWidth: .infinity)
                     }
-                    .padding(.horizontal, Theme.Spacing.lg)
-                    .padding(.vertical, Theme.Spacing.sm)
+                    .padding(.horizontal, UITheme.Spacing.lg)
+                    .padding(.vertical, UITheme.Spacing.sm)
                     .background(UITheme.Colors.surfacePrimary)
                     .accessibilityElement(children: .combine)
                     .accessibilityLabel(
@@ -108,7 +108,7 @@ struct StoryDetailView: View {
 
                 // Custom Page Indicator and Progress Bar
                 pageIndicatorAndProgress
-                    .padding(.bottom, Theme.Spacing.sm)
+                    .padding(.bottom, UITheme.Spacing.sm)
             }
         }
         .navigationTitle(story.title)
@@ -134,10 +134,10 @@ struct StoryDetailView: View {
     // MARK: - Subviews
 
     private var pageIndicatorAndProgress: some View {
-        VStack(spacing: Theme.Spacing.xs) {
+        VStack(spacing: UITheme.Spacing.xs) {
             ProgressView(value: readingProgress)
                 .tint(UITheme.Colors.primary)
-                .padding(.horizontal, Theme.Spacing.lg)
+                .padding(.horizontal, UITheme.Spacing.lg)
                 .accessibilityLabel(progressDescription)
                 .accessibilityValue(progressDescription)
 

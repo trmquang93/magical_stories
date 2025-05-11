@@ -63,12 +63,12 @@ struct CollectionFormView: View {
 
             // Form content
             ScrollView {
-                VStack(alignment: .leading, spacing: Theme.Spacing.lg) {
+                VStack(alignment: .leading, spacing: UITheme.Spacing.lg) {
                     CollectionFormHeader(
                         title: "Create Growth Collection",
                         subtitle: "Personalized stories for development"
                     )
-                    .padding(.top, Theme.Spacing.md)
+                    .padding(.top, UITheme.Spacing.md)
 
                     // Form fields with staggered animations
                     AgeGroupField(
@@ -101,10 +101,10 @@ struct CollectionFormView: View {
                             }
                         }
                     )
-                    .padding(.top, Theme.Spacing.lg)
-                    .padding(.bottom, Theme.Spacing.xxl)
+                    .padding(.top, UITheme.Spacing.lg)
+                    .padding(.bottom, UITheme.Spacing.xxl)
                 }
-                .padding(.horizontal, Theme.Spacing.md)
+                .padding(.horizontal, UITheme.Spacing.md)
             }
 
             // Loading overlay with animations

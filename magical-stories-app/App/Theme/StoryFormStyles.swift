@@ -44,7 +44,7 @@ struct CharacterSuggestionStyle: ViewModifier {
                 RoundedRectangle(cornerRadius: 16)
                     .fill(
                         isSelected
-                            ? AnyShapeStyle(Theme.Colors.primaryGradient)
+                            ? AnyShapeStyle(UITheme.Colors.primary)
                             : AnyShapeStyle(
                                 colorScheme == .light
                                     ? Color(hex: "#F0F4F8")
@@ -73,7 +73,7 @@ struct FormFieldContainer<Content: View>: View {
         VStack(alignment: .leading, spacing: 6) {
             content
         }
-        .padding(.horizontal, Theme.Spacing.lg)
+        .padding(.horizontal, UITheme.Spacing.lg)
     }
 }
 

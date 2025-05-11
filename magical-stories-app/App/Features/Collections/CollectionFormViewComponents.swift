@@ -57,7 +57,7 @@ struct CollectionFormHeader: View {
                 .offset(y: subtitleOffset)
                 .opacity(opacity)
         }
-        .padding(.vertical, Theme.Spacing.md)
+        .padding(.vertical, UITheme.Spacing.md)
         .onAppear {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                 titleOffset = 0
@@ -76,25 +76,25 @@ struct CollectionFormFieldContainer<Content: View>: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+        VStack(alignment: .leading, spacing: UITheme.Spacing.sm) {
             content
         }
-        .padding(Theme.Spacing.lg)
+        .padding(UITheme.Spacing.lg)
         .background(
-            RoundedRectangle(cornerRadius: Theme.CornerRadius.standard)
+            RoundedRectangle(cornerRadius: UITheme.CornerRadius.standard)
                 .fill(colorScheme == .light ? .white : Color(hex: "#1F2937"))
                 .shadow(
                     color: colorScheme == .light ? Color.black.opacity(0.05) : Color.clear,
                     radius: 8, x: 0, y: 4
                 )
         )
-        .padding(.horizontal, Theme.Spacing.md)
+        .padding(.horizontal, UITheme.Spacing.md)
     }
 }
 
 extension Text {
     func formSectionLabel(iconName: String) -> some View {
-        HStack(spacing: Theme.Spacing.sm) {
+        HStack(spacing: UITheme.Spacing.sm) {
             ZStack {
                 Circle()
                     .fill(
@@ -118,16 +118,16 @@ extension Text {
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(Color(hex: "#4A5568"))
         }
-        .padding(.bottom, Theme.Spacing.sm)
+        .padding(.bottom, UITheme.Spacing.sm)
     }
 }
 
 extension View {
     func collectionFormFieldStyle() -> some View {
         self
-            .padding(Theme.Spacing.md)
+            .padding(UITheme.Spacing.md)
             .background(
-                RoundedRectangle(cornerRadius: Theme.CornerRadius.standard)
+                RoundedRectangle(cornerRadius: UITheme.CornerRadius.standard)
                     .stroke(Color(hex: "#E2E8F0"), lineWidth: 1)
             )
     }
@@ -203,9 +203,9 @@ struct DevelopmentalFocusField: View {
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(Color(hex: "#7B61FF"))
                 }
-                .padding(Theme.Spacing.md)
+                .padding(UITheme.Spacing.md)
                 .background(
-                    RoundedRectangle(cornerRadius: Theme.CornerRadius.standard)
+                    RoundedRectangle(cornerRadius: UITheme.CornerRadius.standard)
                         .stroke(Color(hex: "#E2E8F0"), lineWidth: 1)
                 )
             }
@@ -238,21 +238,21 @@ struct InterestsField: View {
                     Text("What does the child enjoy? (e.g., dinosaurs, princesses, space)")
                         .font(.system(size: 16))
                         .foregroundColor(Color(hex: "#A0AEC0"))
-                        .padding(.horizontal, Theme.Spacing.md)
-                        .padding(.vertical, Theme.Spacing.md)
+                        .padding(.horizontal, UITheme.Spacing.md)
+                        .padding(.vertical, UITheme.Spacing.md)
                         .opacity(isFocused ? 0.5 : 1)
                 }
 
                 TextEditor(text: $interests)
                     .frame(minHeight: 120)
-                    .padding(Theme.Spacing.md)
+                    .padding(UITheme.Spacing.md)
                     .font(.system(size: 16))
                     .focused($isFocused)
                     .scrollContentBackground(.hidden)
                     .background(Color.clear)
             }
             .overlay(
-                RoundedRectangle(cornerRadius: Theme.CornerRadius.standard)
+                RoundedRectangle(cornerRadius: UITheme.CornerRadius.standard)
                     .stroke(
                         isFocused
                             ? AnyShapeStyle(
@@ -267,7 +267,7 @@ struct InterestsField: View {
                     )
             )
             .background(colorScheme == .light ? Color.white : Color(hex: "#1F2937"))
-            .cornerRadius(Theme.CornerRadius.standard)
+            .cornerRadius(UITheme.CornerRadius.standard)
             .scaleEffect(animatedScale)
             .opacity(opacity)
         }
@@ -297,17 +297,17 @@ struct CharactersField: View {
                     Text("Optional: favorite characters (e.g., dragon, unicorn)")
                         .font(.system(size: 16))
                         .foregroundColor(Color(hex: "#A0AEC0"))
-                        .padding(.horizontal, Theme.Spacing.md)
+                        .padding(.horizontal, UITheme.Spacing.md)
                         .opacity(isFocused ? 0.5 : 1)
                 }
 
                 TextField("", text: $characters)
-                    .padding(Theme.Spacing.md)
+                    .padding(UITheme.Spacing.md)
                     .font(.system(size: 16))
                     .focused($isFocused)
             }
             .overlay(
-                RoundedRectangle(cornerRadius: Theme.CornerRadius.standard)
+                RoundedRectangle(cornerRadius: UITheme.CornerRadius.standard)
                     .stroke(
                         isFocused
                             ? AnyShapeStyle(
@@ -322,7 +322,7 @@ struct CharactersField: View {
                     )
             )
             .background(colorScheme == .light ? Color.white : Color(hex: "#1F2937"))
-            .cornerRadius(Theme.CornerRadius.standard)
+            .cornerRadius(UITheme.CornerRadius.standard)
             .scaleEffect(animatedScale)
             .opacity(opacity)
         }
@@ -394,7 +394,7 @@ struct GenerateCollectionButton: View {
         .scaleEffect(isPressed ? 0.97 : 1.0)
         .scaleEffect(animatedScale)
         .opacity(opacity)
-        .padding(.horizontal, Theme.Spacing.md)
+        .padding(.horizontal, UITheme.Spacing.md)
         .onAppear {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.6)) {
                 animatedScale = 1.0

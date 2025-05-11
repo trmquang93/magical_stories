@@ -7,7 +7,7 @@ struct MagicalTextField: View {
     @Binding var text: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+        VStack(alignment: .leading, spacing: UITheme.Spacing.xs) {
             Text(title)
                 .font(UITheme.Typography.bodyMedium)
                 .foregroundColor(UITheme.Colors.textSecondary)
@@ -27,7 +27,7 @@ struct MagicalSegmentedPicker<T: Hashable>: View {
     @Binding var selection: T
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+        VStack(alignment: .leading, spacing: UITheme.Spacing.xs) {
             Text(title)
                 .font(UITheme.Typography.bodyMedium)
                 .foregroundColor(UITheme.Colors.textSecondary)
@@ -50,13 +50,13 @@ struct MagicalEmojiPicker: View {
     let emojis: [(String, String)] // (emoji, description)
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+        VStack(alignment: .leading, spacing: UITheme.Spacing.xs) {
             Text(title)
                 .font(UITheme.Typography.bodyMedium)
                 .foregroundColor(UITheme.Colors.textSecondary)
             
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: Theme.Spacing.sm) {
+                HStack(spacing: UITheme.Spacing.sm) {
                     ForEach(emojis, id: \.0) { emoji in
                         EmojiButton(
                             emoji: emoji.0,
@@ -67,7 +67,7 @@ struct MagicalEmojiPicker: View {
                         }
                     }
                 }
-                .padding(.horizontal, Theme.Spacing.xs)
+                .padding(.horizontal, UITheme.Spacing.xs)
             }
         }
     }
@@ -80,7 +80,7 @@ struct MagicalThemePicker: View {
     let themes: [StoryTheme]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+        VStack(alignment: .leading, spacing: UITheme.Spacing.xs) {
             Text(title)
                 .font(UITheme.Typography.bodyMedium)
                 .foregroundColor(UITheme.Colors.textSecondary)
@@ -184,7 +184,7 @@ struct MagicalTextFieldStyle: TextFieldStyle {
 // MARK: - Preview
 struct StoryFormComponents_Previews: PreviewProvider {
     static var previews: some View {
-        VStack(spacing: Theme.Spacing.lg) {
+        VStack(spacing: UITheme.Spacing.lg) {
             MagicalTextField(
                 title: "Child's Name",
                 placeholder: "Enter name",
@@ -248,4 +248,4 @@ enum StoryTheme: String, CaseIterable, Identifiable, Codable {
         case .kindness: return "hand.wave"
         }
     }
-} 
+}

@@ -9,9 +9,9 @@ struct FormField<Content: View>: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+        VStack(alignment: .leading, spacing: UITheme.Spacing.sm) {
             // Title with icon
-            HStack(spacing: Theme.Spacing.sm) {
+            HStack(spacing: UITheme.Spacing.sm) {
                 ZStack {
                     Circle()
                         .fill(
@@ -39,7 +39,7 @@ struct FormField<Content: View>: View {
 
             content
         }
-        .padding(.vertical, Theme.Spacing.sm)
+        .padding(.vertical, UITheme.Spacing.sm)
     }
 }
 
@@ -57,24 +57,24 @@ struct MagicTextField: View {
                 Text(placeholder)
                     .foregroundColor(Color(hex: "#A0AEC0"))
                     .font(.system(size: 16))
-                    .padding(.horizontal, Theme.Spacing.lg)
+                    .padding(.horizontal, UITheme.Spacing.lg)
                     .opacity(isFocused ? 0 : 1)
                     .animation(.easeInOut(duration: 0.2), value: isFocused)
             }
 
             TextField("", text: $text)
-                .padding(.horizontal, Theme.Spacing.lg)
-                .padding(.vertical, Theme.Spacing.lg)
+                .padding(.horizontal, UITheme.Spacing.lg)
+                .padding(.vertical, UITheme.Spacing.lg)
                 .font(.system(size: 16))
                 .foregroundColor(
                     colorScheme == .light ? Color(hex: "#4A5568") : Color(hex: "#E2E8F0")
                 )
                 .background(
-                    RoundedRectangle(cornerRadius: Theme.CornerRadius.standard)
+                    RoundedRectangle(cornerRadius: UITheme.CornerRadius.standard)
                         .fill(colorScheme == .light ? .white : Color(hex: "#1F2937"))
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: Theme.CornerRadius.standard)
+                    RoundedRectangle(cornerRadius: UITheme.CornerRadius.standard)
                         .stroke(
                             isFocused
                                 ? LinearGradient(
@@ -126,7 +126,7 @@ struct EnhancedThemeCard: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: Theme.Spacing.sm) {
+            VStack(spacing: UITheme.Spacing.sm) {
                 // Icon with animated background
                 ZStack {
                     Circle()
@@ -178,15 +178,15 @@ struct EnhancedThemeCard: View {
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(Theme.Spacing.md)
+            .padding(UITheme.Spacing.md)
             .frame(maxWidth: .infinity, minHeight: 160)
             .background(
-                RoundedRectangle(cornerRadius: Theme.CornerRadius.standard)
+                RoundedRectangle(cornerRadius: UITheme.CornerRadius.standard)
                     .fill(colorScheme == .light ? .white : Color(hex: "#1F2937"))
             )
             .overlay(
                 ZStack {
-                    RoundedRectangle(cornerRadius: Theme.CornerRadius.standard)
+                    RoundedRectangle(cornerRadius: UITheme.CornerRadius.standard)
                         .stroke(
                             isSelected
                                 ? LinearGradient(
@@ -264,10 +264,10 @@ struct EnhancedSegmentedButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: isSelected ? .semibold : .medium))
-            .padding(.vertical, Theme.Spacing.md)
+            .padding(.vertical, UITheme.Spacing.md)
             .frame(maxWidth: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: Theme.CornerRadius.standard)
+                RoundedRectangle(cornerRadius: UITheme.CornerRadius.standard)
                     .fill(
                         isSelected
                             ? AnyShapeStyle(LinearGradient(
@@ -284,7 +284,7 @@ struct EnhancedSegmentedButtonStyle: ButtonStyle {
                     : (colorScheme == .light ? Color(hex: "#718096") : Color(hex: "#A0AEC0"))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: Theme.CornerRadius.standard)
+                RoundedRectangle(cornerRadius: UITheme.CornerRadius.standard)
                     .stroke(
                         isSelected
                             ? Color.clear
@@ -343,14 +343,14 @@ struct EnhancedLanguagePicker: View {
                         )
                         .rotationEffect(Angle(degrees: isExpanded ? 180 : 0))
                 }
-                .padding(.horizontal, Theme.Spacing.lg)
-                .padding(.vertical, Theme.Spacing.lg)
+                .padding(.horizontal, UITheme.Spacing.lg)
+                .padding(.vertical, UITheme.Spacing.lg)
                 .background(
-                    RoundedRectangle(cornerRadius: Theme.CornerRadius.standard)
+                    RoundedRectangle(cornerRadius: UITheme.CornerRadius.standard)
                         .fill(colorScheme == .light ? .white : Color(hex: "#1F2937"))
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: Theme.CornerRadius.standard)
+                    RoundedRectangle(cornerRadius: UITheme.CornerRadius.standard)
                         .stroke(
                             colorScheme == .light ? Color(hex: "#E2E8F0") : Color(hex: "#374151"),
                             lineWidth: 1)
@@ -386,8 +386,8 @@ struct EnhancedLanguagePicker: View {
                                             .foregroundColor(Color(hex: "#7B61FF"))
                                     }
                                 }
-                                .padding(.horizontal, Theme.Spacing.lg)
-                                .padding(.vertical, Theme.Spacing.md)
+                                .padding(.horizontal, UITheme.Spacing.lg)
+                                .padding(.vertical, UITheme.Spacing.md)
                                 .background(
                                     selection == language.0
                                         ? (colorScheme == .light
@@ -399,18 +399,18 @@ struct EnhancedLanguagePicker: View {
 
                             if language.0 != languages.last?.0 {
                                 Divider()
-                                    .padding(.horizontal, Theme.Spacing.md)
+                                    .padding(.horizontal, UITheme.Spacing.md)
                             }
                         }
                     }
                 }
                 .frame(maxHeight: 200)
                 .background(
-                    RoundedRectangle(cornerRadius: Theme.CornerRadius.standard)
+                    RoundedRectangle(cornerRadius: UITheme.CornerRadius.standard)
                         .fill(colorScheme == .light ? .white : Color(hex: "#1F2937"))
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: Theme.CornerRadius.standard)
+                    RoundedRectangle(cornerRadius: UITheme.CornerRadius.standard)
                         .stroke(
                             colorScheme == .light ? Color(hex: "#E2E8F0") : Color(hex: "#374151"),
                             lineWidth: 1)
