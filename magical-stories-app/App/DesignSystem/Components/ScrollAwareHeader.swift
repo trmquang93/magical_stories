@@ -53,7 +53,7 @@ struct ScrollAwareHeader<Content: View>: View {
                         .foregroundColor(Color.gray.opacity(0.3)),
                     alignment: .bottom
                 )
-                .transition(.move(edge: .top).combined(with: .opacity))
+                .transition(.opacity)
                 .onAppear {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         titleOpacity = 1.0

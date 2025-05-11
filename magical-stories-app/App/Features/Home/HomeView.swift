@@ -140,7 +140,7 @@ struct HomeView: View {
                 if !showScrollHeader {
                     showScrollHeader = true
                 }
-            } else if scrollDirection == .down || newValue >= -10 {
+            } else if scrollDirection == .down && newValue >= -50 {
                 if showScrollHeader {
                     showScrollHeader = false
                 }
