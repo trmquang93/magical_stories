@@ -8,6 +8,11 @@ struct HomeView: View {
     @EnvironmentObject private var collectionService: CollectionService
     @Environment(\.selectedTabBinding) private var selectedTabBinding
     @State private var childName: String = ""
+    @State private var scrollOffset = CGPoint.zero
+    @State private var scrollDirection: ScrollViewOffsetPredictor.ScrollDirection = .none
+    @State private var showScrollHeader = false
+    @State private var headerHeight: CGFloat = 0
+    @State private var headerShowing = false
 
     #if DEBUG
         /// Test-only: If true, scrolls to the bottom of the main ScrollView on appear (for snapshot/UI tests)
@@ -18,17 +23,42 @@ struct HomeView: View {
     #endif
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
             UITheme.Colors.background.ignoresSafeArea(.container)
-            VStack {
-                Color.clear
-                    .frame(
-                        height: UIApplication.shared.connectedScenes
-                            .compactMap {
-                                ($0 as? UIWindowScene)?.statusBarManager?.statusBarFrame.height
-                            }
-                            .first ?? 0
+
+            // Scroll-aware header positioned at top of ZStack
+            ScrollAwareHeader(
+                title: "Welcome back\(childName.isEmpty ? "!" : ", \(childName)!")",
+                subtitle: "What magical story will you create today?",
+                isVisible: $showScrollHeader
+            ) {
+                Image(systemName: "wand.and.stars")
+                    .font(.system(size: 24))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.calmBlue, .magicPurple],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
                     )
+            }
+            .zIndex(1)  // Ensure header is above content
+            .background(
+                GeometryReader { geo in
+                    Color.clear.preference(key: HeaderHeightKey.self, value: geo.size.height)
+                }
+            )
+            .onPreferenceChange(HeaderHeightKey.self) { height in
+                headerHeight = height
+            }
+
+            VStack(spacing: 0) {
+                // Spacer to push content down when header is visible
+                if showScrollHeader {
+                    Spacer()
+                        .frame(height: headerHeight)
+                }
+
                 NavigationStack {
                     mainContent
                         .navigationDestination(for: Story.self) { story in
@@ -47,7 +77,6 @@ struct HomeView: View {
                         }
                 }
             }
-            .ignoresSafeArea()
         }
         .fullScreenCover(isPresented: $showingStoryForm) {
             StoryFormView()
@@ -80,6 +109,13 @@ struct HomeView: View {
 
     private var scrollView: some View {
         ScrollView {
+            ScrollViewOffsetPredictor(
+                coordinateSpace: "homeScrollView",
+                scrollOffset: $scrollOffset,
+                scrollDirection: $scrollDirection
+            )
+            .frame(height: 0)  // Make it invisible
+
             LazyVStack(alignment: .leading, spacing: Spacing.lg) {
                 headerSection
                 primaryActionCard
@@ -95,6 +131,20 @@ struct HomeView: View {
             }
             .padding(.bottom, Spacing.xxl)
             .id("mainContentBottom")
+        }
+        .coordinateSpace(name: "homeScrollView")
+        .onChange(of: scrollOffset.y) { _, newValue in
+            // Only update header visibility based on scroll direction
+            // This avoids the feedback loop that was making scrolling impossible
+            if newValue < -50 && scrollDirection == .up {
+                if !showScrollHeader {
+                    showScrollHeader = true
+                }
+            } else if scrollDirection == .down || newValue >= -10 {
+                if showScrollHeader {
+                    showScrollHeader = false
+                }
+            }
         }
         .accessibilityIdentifier("HomeView_MainScrollView")
     }
@@ -214,5 +264,13 @@ struct HomeView: View {
             .padding(.vertical, Spacing.md)
             .frame(maxWidth: .infinity)
             .accessibilityIdentifier("HomeView_FooterTip")
+    }
+}
+
+// Preference key to track header height
+struct HeaderHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
