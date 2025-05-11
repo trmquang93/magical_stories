@@ -12,13 +12,8 @@ struct LibraryView: View {
     @State private var deleteErrorMessage = ""
     @State private var selectedCategoryName: String? = nil
     @State private var isSearchFocused = false
-    @State private var sortOption: AllStoriesView.SortOption = .newest
-
-    // Define an enum for navigation destinations
-    enum ViewDestination: Hashable {
-        case allStories
-    }
-
+    @State private var sortOption: AllStoriesSortOptions.SortOption = .newest
+    
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
@@ -56,7 +51,7 @@ struct LibraryView: View {
                                     .foregroundColor(UITheme.Colors.textSecondary)
 
                                 Picker("Sort", selection: $sortOption) {
-                                    ForEach(AllStoriesView.SortOption.allCases) { option in
+                                    ForEach(AllStoriesSortOptions.SortOption.allCases) { option in
                                         Text(option.rawValue).tag(option)
                                     }
                                 }
@@ -105,12 +100,6 @@ struct LibraryView: View {
                 StoryDetailView(story: story)
                     .environmentObject(persistenceService)
                     .environmentObject(collectionService)
-            }
-            .navigationDestination(for: ViewDestination.self) { destination in
-                switch destination {
-                case .allStories:
-                    AllStoriesView()
-                }
             }
         }
     }

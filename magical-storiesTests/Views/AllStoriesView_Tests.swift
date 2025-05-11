@@ -20,7 +20,7 @@ struct AllStoriesView_Tests {
   }
 
   // Helper: Sorting logic from AllStoriesView
-  private func sortStories(stories: [Story], by sortOption: AllStoriesView.SortOption) -> [Story] {
+  private func sortStories(stories: [Story], by sortOption: AllStoriesSortOptions.SortOption) -> [Story] {
     switch sortOption {
     case .newest:
       return stories.sorted(by: { $0.timestamp > $1.timestamp })

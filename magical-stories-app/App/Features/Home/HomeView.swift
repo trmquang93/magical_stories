@@ -68,8 +68,6 @@ struct HomeView: View {
                         }
                         .navigationDestination(for: ViewDestination.self) { destination in
                             switch destination {
-                            case .allStories:
-                                AllStoriesView()
                             case .collectionDetail(let collection):
                                 // Use a dedicated destination for collections to prevent duplicate navigation
                                 CollectionDetailView(collection: collection)
@@ -99,7 +97,6 @@ struct HomeView: View {
 
     // Define an enum for navigation destinations
     enum ViewDestination: Hashable {
-        case allStories
         case collectionDetail(StoryCollection)
     }
 
@@ -234,7 +231,11 @@ struct HomeView: View {
                 }
             }
             if storyService.stories.count > 2 {
-                NavigationLink(value: ViewDestination.allStories) {
+                Button(action: {
+                    if let selectedTabBinding = selectedTabBinding {
+                        selectedTabBinding.wrappedValue = .library // Change to Library tab
+                    }
+                }) {
                     Text("View All Stories")
                         .font(.headingSmall)
                         .foregroundColor(.magicalPrimary)
