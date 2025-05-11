@@ -17,6 +17,12 @@ struct StoryFormView: View {
     @State private var error: Error?
     @State private var showError = false
     @State private var animateBackground = false
+    @FocusState private var focusedField: FormField?
+
+    // Enum for form field focus tracking
+    enum FormField {
+        case childName, favoriteCharacter
+    }
 
     // Constants
     private let ageRanges = ["3-5", "6-8", "9-12"]
@@ -47,6 +53,7 @@ struct StoryFormView: View {
             .navigationTitle("Create Story")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
+            .toolbar { keyboardToolbar }
             .overlay {
                 if isGenerating {
                     LoadingOverlayView(
@@ -66,6 +73,7 @@ struct StoryFormView: View {
         }
         .accentColor(Color(hex: "#7B61FF"))
         .onAppear { withAnimation { animateBackground = true } }
+        .adaptToKeyboard()
     }
 
     // MARK: - View Components
@@ -98,8 +106,13 @@ struct StoryFormView: View {
     private var formFieldsView: some View {
         VStack(spacing: Theme.Spacing.lg) {
             ChildNameField(childName: $childName)
+                .focused($focusedField, equals: .childName)
             CharacterField(
-                favoriteCharacter: $favoriteCharacter, characterSuggestions: characterSuggestions)
+                favoriteCharacter: $favoriteCharacter,
+                characterSuggestions: characterSuggestions,
+                focusedField: $focusedField
+            )
+            .focused($focusedField, equals: .favoriteCharacter)
             AgeRangeField(selectedAgeRange: $selectedAgeRange, ageRanges: ageRanges)
             ThemeField(selectedTheme: $selectedTheme, storyThemes: storyThemes)
             StoryLengthField(storyLength: $storyLength, storyLengthLabels: storyLengthLabels)
@@ -116,6 +129,7 @@ struct StoryFormView: View {
         Group {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
+                    UIApplication.shared.dismissKeyboard()
                     dismiss()
                 } label: {
                     ZStack {
@@ -134,6 +148,7 @@ struct StoryFormView: View {
                                     ? Color(hex: "#4A5568") : Color(hex: "#E2E8F0"))
                     }
                 }
+                .accessibilityLabel("Back")
             }
 
             ToolbarItem(placement: .principal) {
@@ -142,6 +157,12 @@ struct StoryFormView: View {
                     .foregroundColor(
                         colorScheme == .light ? Color(hex: "#7B61FF") : Color(hex: "#a78bfa"))
             }
+        }
+    }
+
+    private var keyboardToolbar: some ToolbarContent {
+        KeyboardToolbar {
+            // Optional action when Done is tapped
         }
     }
 
@@ -162,6 +183,9 @@ struct StoryFormView: View {
 
     // MARK: - Helper Functions
     private func generateStory() {
+        // Dismiss keyboard first
+        UIApplication.shared.dismissKeyboard()
+
         // Convert age range string to an approximate integer age
         let estimatedAge: Int
         let components = selectedAgeRange.split(separator: "-").compactMap { Int($0) }

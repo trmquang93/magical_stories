@@ -1,82 +1,53 @@
-## Update Rules
+## Role
+I am an expert software engineer with a unique characteristic: my memory resets completely between sessions. This isn't a limitation - it's what drives me to maintain perfect documentation. After each reset, I rely ENTIRELY on my Memory Bank to understand the project and continue work effectively.
+## Memory Bank
+- **The Memory Bank consists of core files and optional context files in Markdown format.** (High)
 
-- Update this file when discovering new project patterns. (High)
-- Update this file after significant changes. (High)
-- Update this file when user requests **update memory bank** (MUST review ALL files). (High)
-- Update this file when context needs clarification. (High)
+### Core Files (Required)
+- `.cursor/rules/projectbrief.md` — Foundation document defining core requirements and goals. (High)
+- `.cursor/rules/productContext.md` — Why this project exists and how it should work. (High)
+- `.cursor/rules/activeContext.md` — Current work focus and recent changes. Updated with T2 completion details. (High)
+- `.cursor/rules/systemPatterns.md` — System architecture and design patterns. (High)
+- `.cursor/rules/techContext.md` — Technologies used and development setup. (High)
+- `.cursor/rules/progress.md` — What works and what's left to build. Updated with T2 completion status. (High)
+
+### Documentation Updates (Required)
+
+- Update Memory Bank when discovering new project patterns. (High)
+- Update after significant changes. (High)
+- Update when user requests **update memory bank** (MUST review ALL files). (High)
+- Update when context needs clarification. (High)
+- **Always update project status after any code, logic, or documentation change, even minor or incremental.** (Critical)
+- **Never** edit the mdc files. They are just a symbollink to original md files. Only update mentioned md files (Critical)
 
 ---
 
-# Project Rules
+## General
 
-(Add other project-specific rules below)
+- **REMEMBER:** After every memory reset, the Memory Bank is the only link to previous work. Maintain it with precision and clarity. (High)
+- **Maintenance:** Update this file whenever a new rule or guideline is identified. (High)
 
-## Project Overview
-- **Type:** iOS Application (SwiftUI)
-- **Purpose:** AI-powered personalized story generation for children.
-- **Core Technologies:** SwiftUI, SwiftData, Google AI (Gemini Pro SDK, Gemini 2.0 Flash/Pro for text/image), StoreKit 2, Swift Testing.
+### Permanent Memories
 
-## Architecture & Design
-- **Pattern:** MVVM-like with distinct Service and Repository layers.
-- **UI:** SwiftUI, declarative views, state managed via `@State`, `@StateObject`, `@EnvironmentObject`.
-- **Business Logic:** Encapsulated in Service classes (e.g., `StoryService`, `IllustrationService`, `CollectionService`).
-- **Data Persistence:** Primarily **SwiftData**. Repositories (e.g., `StoryRepository`, `CollectionRepository`) abstract data access. `UserDefaults` potentially used for simple settings via `SettingsRepository` or `@AppStorage`.
-- **Dependency Injection:** `@EnvironmentObject` for shared services/repositories in views; Initializer injection for service/repository dependencies.
-- **Concurrency:** Extensive use of `async/await`. `@MainActor` for UI-related tasks.
-- **Error Handling:** Custom error enums (e.g., `StoryServiceError`), `AIErrorManager` for logging.
+#### Technical Decisions
+- **SwiftUI Navigation Fix for AllStoriesView (2025-04-23):**
+  - **Issue:** When navigating through LibraryView > AllStoriesView > StoryDetailView, tapping back from StoryDetailView would incorrectly return to LibraryView (root) instead of AllStoriesView.
+  - **Root Cause:** Identified two problems: (1) AllStoriesView had an unnecessary nested NavigationStack that disrupted navigation context, and (2) LibraryView used inconsistent navigation approaches - both NavigationLink(destination:) and NavigationLink(value:).
+  - **Solution:** (1) Removed the redundant NavigationStack from AllStoriesView while keeping the navigationDestination modifier, and (2) Updated LibraryView's "See All" button to use NavigationLink(value: ViewDestination.allStories) for consistent navigation patterns.
+  - **Testing:** Created a UI test (testAllStoriesView_StoryDetailNavigation) to verify navigation behavior and back button functionality.
+  - **Best Practices Learned:** (a) Avoid nesting NavigationStack components in SwiftUI, (b) Use consistent navigation patterns throughout the app, preferring NavigationLink(value:) with navigationDestination(for:), (c) Understand that MainTabView already wraps each tab content in a NavigationStack, and (d) NavigationLink behavior (including back button) works within the context of its parent NavigationStack.
 
-## Coding Standards & Conventions
-- **Language:** Swift
-- **Style Guide:** Follow Swift API Design Guidelines. Enforced by SwiftLint.
-- **Naming:** `UpperCamelCase` for types (structs, classes, enums, protocols), `lowerCamelCase` for functions, methods, properties, variables.
-- **Documentation:** Use Swift documentation comments (`///`) for public APIs and complex logic.
-- **File Structure:** Organize code by feature (`Features/`) and core components (`Core/Services`, `Core/Repositories`).
-- **SwiftUI:** Break down complex views into smaller, reusable components. Use previews (`#Preview`) for UI development and testing.
+- **CollectionsListView Refactor (2025-04-16):**
+  - CollectionsListView and CollectionCardView were reviewed and refactored for clarity, accessibility, and future integration.
+  - .navigationDestination(for: StoryCollection.self) is now present in CollectionsListView's NavigationStack.
+  - CollectionsListView is not yet integrated into the main UI; the collections list is still rendered directly in HomeView.
+  - A new test file (CollectionsListView_Tests.swift) was created, providing basic test coverage for CollectionsListView (limited by SwiftUI testing constraints).
+  - No duplication or conflicts found; code is ready for future tab integration (T6). 
+  
+- **UI & Snapshot Testing Standard (2025-04-16):**
+  - Automated device-level UI tests (XCUITest) and pixel-perfect snapshot tests (SnapshotTesting) are implemented for LibraryView.
+  - Snapshot tests are run for both light and dark mode, and on iPhone 11 size.
+  - This is now a standard for all major UI features going forward.
+  - Reference images are committed and reviewed on every UI change. 
 
-## Testing
-- **Frameworks:** **Swift Testing** for unit/integration tests, XCTest for UI tests.
-- **Strategy:** TDD is encouraged (see `documents/dev/tdd-guidelines.md`). Aim for high coverage (targets specified in `README.md`).
-- **Mocking:** Use protocol-based mocking for isolating dependencies in unit tests.
-- **Execution:** Use `./run_tests.sh` script for running tests and generating reports.
-- **Test Organization:**
-  - Use hierarchical test grouping and tagging system
-  - Separate unit tests from integration tests
-  - Keep test files focused and manageable
-- **Test Patterns:**
-  - Write tests before implementation (Red-Green-Refactor)
-  - Use descriptive test names following format: test[Feature][Scenario][ExpectedResult]
-  - Support async testing with native Swift Concurrency
-  - Utilize parameterized testing for multiple input cases
-  - Apply test traits for conditional execution
-- **Assertions:**
-  - Use `#expect` for standard assertions
-  - Make one logical assertion per test
-  - Provide meaningful failure messages
-- **Best Practices:**
-  - Focus on critical path testing
-  - Test edge cases and error conditions
-  - Cover async operations thoroughly
-  - Avoid dependencies between tests
-  - Clean up test data when needed
-
-## Key Services & Repositories
-- `MagicalStoriesApp.swift`: App entry point, initializes and injects core services.
-- `StoryService`: Handles AI text generation (Gemini).
-- `IllustrationService`: Handles AI image generation (Gemini 2.0).
-- `CollectionService`: Manages Growth Path story collections.
-- `PersistenceService`: Central point for SwiftData operations (though repositories handle specifics).
-- `StoryRepository`: CRUD operations for `StoryModel` (SwiftData).
-- `CollectionRepository`: CRUD operations for `StoryCollection` (SwiftData).
-- `SettingsService`/`SettingsRepository`: Manage user preferences.
-
-## Configuration & Environment
-- API keys and sensitive configurations are managed via `Config.xcconfig` (not committed).
-
-## Version Control
-- **Branching:** Use `feature/` and `bugfix/` prefixes.
-- **Commits:** Follow Conventional Commits specification (see `CONTRIBUTING.md`).
-
-## Documentation
-- Key documents located in the `documents/` directory covering architecture, APIs, standards, etc.
-- `README.md` provides a high-level overview and setup instructions.
-- `CONTRIBUTING.md` outlines contribution guidelines.
+- **Testing/Automation Pattern:** The project standardizes on using accessibility identifiers for UI elements that require automation. The `run_tests.sh` script supports both full and targeted test runs, and UI tests are used for end-to-end interaction verification when ViewInspector is not present.

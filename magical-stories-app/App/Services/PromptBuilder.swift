@@ -172,7 +172,7 @@ class PromptBuilder {
       - Any recurring objects or elements
 
       Return EXACTLY \(pages.count) descriptions in the same order as the pages, each separated by a line with only '---'.
-      Ensure the described scene is suitable for a 9:16 landscape aspect ratio illustration.
+      Ensure the described scene is suitable for a 16:9 landscape aspect ratio illustration.
       Do NOT use JSON format. Each description must be highly detailed for consistent visualization.
       """
   }
@@ -293,7 +293,7 @@ class PromptBuilder {
          - Make each description a complete, stand-alone prompt (250-400 characters)
          - Use precise, detailed language focusing on visual elements
          - Ensure each description contains everything needed to visualize the scene WITHOUT needing context from other pages
-         - Make descriptions suitable for a 9:16 landscape aspect ratio illustration
+         - Make descriptions suitable for a 16:9 landscape aspect ratio illustration
 
       Return your response as XML with the following tags:
       <title>Your Story Title</title>

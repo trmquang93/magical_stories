@@ -26,6 +26,14 @@ struct CollectionFormView: View {
     @State private var characters: String = ""
     @State private var selectedLanguage: String = "en"
 
+    // Focus state for form fields
+    @FocusState private var focusedField: CollectionFormField?
+
+    // Enum for form field focus tracking
+    enum CollectionFormField {
+        case interests, childName, characters
+    }
+
     // Language options from StoryLanguages
     private let languages: [(String, String)] = StoryLanguages.languageOptions
 
@@ -68,14 +76,19 @@ struct CollectionFormView: View {
                         ageGroups: AgeGroup.allCases
                     )
 
-                    CharactersField(characters: $characters)
+                    ChildNameInputField(childName: $childName)
+                        .focused($focusedField, equals: .childName)
+
+                    CharactersInputField(characters: $characters)
+                        .focused($focusedField, equals: .characters)
 
                     DevelopmentalFocusField(
                         selectedFocus: $developmentalFocus,
                         focuses: DevelopmentalFocus.allCases
                     )
 
-                    InterestsField(interests: $interests)
+                    InterestsInputField(interests: $interests)
+                        .focused($focusedField, equals: .interests)
 
                     LanguageField(
                         selectedLanguage: $selectedLanguage, languages: languages)
@@ -101,6 +114,7 @@ struct CollectionFormView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(action: {
+                    UIApplication.shared.dismissKeyboard()
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         dismiss()
                     }
@@ -134,6 +148,9 @@ struct CollectionFormView: View {
                             ? Color(hex: "#7B61FF")
                             : Color(hex: "#a78bfa"))
             }
+
+            // Keyboard toolbar
+            KeyboardToolbar()
         }
         .alert(
             "Error Creating Collection", isPresented: $showErrorAlert,
@@ -162,10 +179,14 @@ struct CollectionFormView: View {
                 animateBackground = true
             }
         }
+        .adaptToKeyboard()
     }
 
     // Function to handle collection generation
     private func generateCollection() async {
+        // Dismiss the keyboard
+        UIApplication.shared.dismissKeyboard()
+
         // Validation check remains the same
         guard isInterestsValid else {
             errorMessage = "Please enter the child's interests."
@@ -249,5 +270,181 @@ struct CollectionFormView: View {
     private func hapticError() {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.error)
+    }
+}
+
+// MARK: - Form Fields for CollectionFormView
+
+struct ChildNameInputField: View {
+    @Binding var childName: String
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        FormFieldContainer {
+            HStack {
+                Image(systemName: "person.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "#7B61FF"))
+                Text("Child's Name (Optional)")
+                    .font(.system(size: 16, weight: .semibold))
+            }
+
+            HStack {
+                TextField("Enter child's name", text: $childName)
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(colorScheme == .light ? .white : Color(hex: "#1F2937"))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color(hex: "#E2E8F0"), lineWidth: 1)
+                    )
+                    .submitLabel(.next)
+                    .autocorrectionDisabled()
+                    .accessibilityIdentifier("childNameTextField")
+
+                if !childName.isEmpty {
+                    Button(action: {
+                        childName = ""
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                    }
+                    .buttonStyle(BorderlessButtonStyle())
+                    .transition(.opacity)
+                    .accessibilityLabel("Clear child name")
+                }
+            }
+        }
+    }
+}
+
+struct CharactersInputField: View {
+    @Binding var characters: String
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        FormFieldContainer {
+            HStack {
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "#7B61FF"))
+                Text("Characters (Optional)")
+                    .font(.system(size: 16, weight: .semibold))
+            }
+
+            HStack {
+                TextField("Dragon, unicorn, wizard...", text: $characters)
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(colorScheme == .light ? .white : Color(hex: "#1F2937"))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color(hex: "#E2E8F0"), lineWidth: 1)
+                    )
+                    .submitLabel(.next)
+                    .autocorrectionDisabled()
+                    .accessibilityIdentifier("charactersTextField")
+
+                if !characters.isEmpty {
+                    Button(action: {
+                        characters = ""
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                    }
+                    .buttonStyle(BorderlessButtonStyle())
+                    .transition(.opacity)
+                    .accessibilityLabel("Clear characters")
+                }
+            }
+
+            Text("Separate multiple characters with commas")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 4)
+        }
+    }
+}
+
+struct InterestsInputField: View {
+    @Binding var interests: String
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        FormFieldContainer {
+            HStack {
+                Image(systemName: "star.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "#7B61FF"))
+                Text("Child's Interests (Required)")
+                    .font(.system(size: 16, weight: .semibold))
+            }
+
+            HStack {
+                TextField("Space, dinosaurs, ballet...", text: $interests)
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(colorScheme == .light ? .white : Color(hex: "#1F2937"))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color(hex: "#E2E8F0"), lineWidth: 1)
+                    )
+                    .submitLabel(.done)
+                    .autocorrectionDisabled()
+                    .accessibilityIdentifier("interestsTextField")
+
+                if !interests.isEmpty {
+                    Button(action: {
+                        interests = ""
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                    }
+                    .buttonStyle(BorderlessButtonStyle())
+                    .transition(.opacity)
+                    .accessibilityLabel("Clear interests")
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Preview
+struct CollectionFormView_Previews: PreviewProvider {
+    static var previews: some View {
+        // Register the achievement model to ensure it's available for container creation
+        let schemas = Schema([
+            StoryCollection.self,
+            Story.self,
+            AchievementModel.self,
+        ])
+
+        // Create the container with all necessary models
+        let configuration = ModelConfiguration(schema: schemas, isStoredInMemoryOnly: true)
+        let container = try! ModelContainer(for: schemas, configurations: configuration)
+        let context = ModelContext(container)
+
+        // Create all required repositories with proper context
+        let collectionRepo = CollectionRepository(modelContext: context)
+        let storyService = MockStoryService(context: context)
+        let achievementRepo = AchievementRepository(modelContext: context)
+
+        // Create the collection service
+        let service = CollectionService(
+            repository: collectionRepo,
+            storyService: storyService,
+            achievementRepository: achievementRepo
+        )
+
+        // Return the view with properly configured service
+        return CollectionFormView()
+            .environmentObject(service)
+            .preferredColorScheme(.light)
     }
 }

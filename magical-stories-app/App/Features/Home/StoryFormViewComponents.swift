@@ -49,11 +49,17 @@ struct ChildNameField: View {
             Text("Child's Name")
                 .formSectionLabel(iconName: "person.fill")
 
-            TextField("Enter child's name", text: Binding(
-                get: { childName ?? "" },
-                set: { childName = $0.isEmpty ? nil : $0 }
-            ))
-                .formFieldStyle()
+            TextField(
+                "Enter child's name",
+                text: Binding(
+                    get: { childName ?? "" },
+                    set: { childName = $0.isEmpty ? nil : $0 }
+                )
+            )
+            .formFieldStyle()
+            .submitLabel(.next)
+            .autocorrectionDisabled()
+            .accessibilityIdentifier("childNameTextField")
         }
     }
 }
@@ -61,14 +67,32 @@ struct ChildNameField: View {
 struct CharacterField: View {
     @Binding var favoriteCharacter: String
     let characterSuggestions: [String]
+    var focusedField: FocusState<StoryFormView.FormField?>.Binding? = nil
 
     var body: some View {
         FormFieldContainer {
             Text("Favorite Character")
                 .formSectionLabel(iconName: "heart.fill")
 
-            TextField("Enter a character (dragon, princess...)", text: $favoriteCharacter)
-                .formFieldStyle()
+            HStack {
+                TextField("Enter a character (dragon, princess...)", text: $favoriteCharacter)
+                    .formFieldStyle()
+                    .submitLabel(.next)
+                    .autocorrectionDisabled()
+                    .accessibilityIdentifier("favoriteCharacterTextField")
+
+                if !favoriteCharacter.isEmpty {
+                    Button(action: {
+                        favoriteCharacter = ""
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                    }
+                    .buttonStyle(BorderlessButtonStyle())
+                    .transition(.opacity)
+                    .accessibilityLabel("Clear favorite character")
+                }
+            }
 
             // Character suggestions
             ScrollView(.horizontal, showsIndicators: false) {
@@ -76,11 +100,13 @@ struct CharacterField: View {
                     ForEach(characterSuggestions, id: \.self) { character in
                         Button {
                             favoriteCharacter = character
+                            focusedField?.wrappedValue = nil  // Dismiss keyboard when suggestion selected
                         } label: {
                             Text(character)
                                 .characterSuggestionStyle(
                                     isSelected: favoriteCharacter == character)
                         }
+                        .accessibilityIdentifier("character_\(character)")
                     }
                 }
                 .padding(.vertical, 8)
@@ -303,3 +329,7 @@ struct GenerateButton: View {
         }
     }
 #endif
+
+// MARK: - Remove duplicate extension
+// The following View extensions have been moved to StoryFormStyles.swift
+// to avoid ambiguous function declarations

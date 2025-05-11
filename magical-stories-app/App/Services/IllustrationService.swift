@@ -98,6 +98,8 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
         let combinedPrompt =
             "Generate an illustration for a children's story page based on the following details. Theme: \(theme). Scene Description: \(pageText). Style: Whimsical, colorful, suitable for young children. IMPORTANT: Visualize the scene and characters based on the description, but DO NOT depict animals performing human-like actions (like talking or wearing clothes) even if mentioned in the description. Focus on the environment and the animals' natural appearance."
 
+        debugPrint("Generating illustration with prompt: \(combinedPrompt)")
+
         var lastError: Error?
 
         // Using the old Imagen endpoint/request structure for this specific method for now.
@@ -281,7 +283,8 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
             \(illustrationDescription)
 
             REQUIREMENTS:
-            - Create a 9:16 landscape-orientation illustration in a vibrant, whimsical children's book style
+            - Size: 16:9 landscape-orientation illustration
+            - Style: Vibrant, whimsical children's book style
             - Follow the description EXACTLY, including all specified character details, colors, and elements
             - Create high-quality art with good composition, color balance, and visual appeal
             - Ensure all described characters and elements are clearly visible

@@ -576,7 +576,7 @@ class StoryProcessor {
             IMPORTANT: Follow the description exactly with all specified details.
             Create a vibrant, colorful illustration suitable for a children's book.
             Include rich backgrounds and clear character details as described.
-            The illustration should be in landscape (9:16) orientation.
+            The illustration should be in landscape (16:9) orientation.
             """
     }
 
