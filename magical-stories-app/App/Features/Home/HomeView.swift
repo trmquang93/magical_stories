@@ -20,26 +20,34 @@ struct HomeView: View {
     var body: some View {
         ZStack {
             UITheme.Colors.background.ignoresSafeArea(.container)
-            UITheme.Colors.background.opacity(0.9)
-                .ignoresSafeArea(.container, edges: .top)
-                .frame(height: 30)
-            NavigationStack {
-                mainContent
-                    .navigationDestination(for: Story.self) { story in
-                        // This handler is only used when navigating directly from HomeView
-                        // and not from within a CollectionDetailView
-                        StoryDetailView(story: story)
-                    }
-                    .navigationDestination(for: ViewDestination.self) { destination in
-                        switch destination {
-                        case .allStories:
-                            AllStoriesView()
-                        case .collectionDetail(let collection):
-                            // Use a dedicated destination for collections to prevent duplicate navigation
-                            CollectionDetailView(collection: collection)
+            VStack {
+                Color.clear
+                    .frame(
+                        height: UIApplication.shared.connectedScenes
+                            .compactMap {
+                                ($0 as? UIWindowScene)?.statusBarManager?.statusBarFrame.height
+                            }
+                            .first ?? 0
+                    )
+                NavigationStack {
+                    mainContent
+                        .navigationDestination(for: Story.self) { story in
+                            // This handler is only used when navigating directly from HomeView
+                            // and not from within a CollectionDetailView
+                            StoryDetailView(story: story)
                         }
-                    }
+                        .navigationDestination(for: ViewDestination.self) { destination in
+                            switch destination {
+                            case .allStories:
+                                AllStoriesView()
+                            case .collectionDetail(let collection):
+                                // Use a dedicated destination for collections to prevent duplicate navigation
+                                CollectionDetailView(collection: collection)
+                            }
+                        }
+                }
             }
+            .ignoresSafeArea()
         }
         .fullScreenCover(isPresented: $showingStoryForm) {
             StoryFormView()

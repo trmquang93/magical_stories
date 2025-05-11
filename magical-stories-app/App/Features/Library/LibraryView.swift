@@ -21,52 +21,54 @@ struct LibraryView: View {
             ZStack(alignment: .top) {
                 // Background
                 UITheme.Colors.background.ignoresSafeArea()
+                VStack {
+                    // Header
+                    LibraryHeader()
+                    
+                    ScrollView(showsIndicators: false) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            // Search Bar
+                            LibrarySearchBar(
+                                searchText: $searchText, isSearchFocused: $isSearchFocused)
 
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        // Header
-                        LibraryHeader()
-
-                        // Search Bar
-                        LibrarySearchBar(searchText: $searchText, isSearchFocused: $isSearchFocused)
-
-                        // Categories Carousel
-                        LibraryCategoryCarousel(
-                            categories: categories,
-                            selectedCategoryName: selectedCategoryName,
-                            onSelect: { selected in selectedCategoryName = selected }
-                        )
-
-                        // Active Category Filter
-                        if let selectedCategory = selectedCategoryName {
-                            LibraryActiveCategoryFilter(
-                                selectedCategoryName: selectedCategory,
-                                onClear: { selectedCategoryName = nil }
+                            // Categories Carousel
+                            LibraryCategoryCarousel(
+                                categories: categories,
+                                selectedCategoryName: selectedCategoryName,
+                                onSelect: { selected in selectedCategoryName = selected }
                             )
-                        }
 
-                        // Recent Stories Section
-                        if !recentStories.isEmpty {
-                            LibraryRecentStoriesSection(
-                                recentStories: recentStories
-                            )
-                        }
+                            // Active Category Filter
+                            if let selectedCategory = selectedCategoryName {
+                                LibraryActiveCategoryFilter(
+                                    selectedCategoryName: selectedCategory,
+                                    onClear: { selectedCategoryName = nil }
+                                )
+                            }
 
-                        // Empty state
-                        if recentStories.isEmpty && searchText.isEmpty
-                            && selectedCategoryName == nil
-                        {
-                            LibraryEmptyState(mode: .empty)
-                        }
+                            // Recent Stories Section
+                            if !recentStories.isEmpty {
+                                LibraryRecentStoriesSection(
+                                    recentStories: recentStories
+                                )
+                            }
 
-                        // No results state
-                        if filteredStories.isEmpty
-                            && (searchText.isNotEmpty || selectedCategoryName != nil)
-                        {
-                            LibraryEmptyState(mode: .noResults)
+                            // Empty state
+                            if recentStories.isEmpty && searchText.isEmpty
+                                && selectedCategoryName == nil
+                            {
+                                LibraryEmptyState(mode: .empty)
+                            }
+
+                            // No results state
+                            if filteredStories.isEmpty
+                                && (searchText.isNotEmpty || selectedCategoryName != nil)
+                            {
+                                LibraryEmptyState(mode: .noResults)
+                            }
                         }
+                        .padding(.bottom, 60)  // Space for tab bar
                     }
-                    .padding(.bottom, 60)  // Space for tab bar
                 }
             }
             .background(UITheme.Colors.background.ignoresSafeArea())
@@ -100,7 +102,8 @@ struct LibraryView: View {
         if !searchText.isEmpty {
             stories = stories.filter { story in
                 story.title.localizedCaseInsensitiveContains(searchText)
-                    || story.parameters.childName?.localizedCaseInsensitiveContains(searchText) == true
+                    || story.parameters.childName?.localizedCaseInsensitiveContains(searchText)
+                        == true
                     || story.parameters.theme.localizedCaseInsensitiveContains(searchText)
             }
         }

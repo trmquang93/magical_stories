@@ -1,0 +1,1 @@
+/Users/quang.tranminh/Projects/new-ios/magical_stories/.cursor/rules/memory.mdc

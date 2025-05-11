@@ -25,7 +25,6 @@ struct LibraryHeader: View {
                 )
                 .symbolEffect(.pulse, options: .repeating, value: true)
         }
-        .padding(.top, UITheme.Spacing.xxxl)
         .padding(.horizontal, UITheme.Spacing.lg)
         .padding(.bottom, UITheme.Spacing.md)
     }
