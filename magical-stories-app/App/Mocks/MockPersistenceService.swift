@@ -1,10 +1,11 @@
+import Combine
 import Foundation
 import SwiftData
 
 // MARK: - MockPersistenceService
 
 /// In-memory mock for PersistenceServiceProtocol.
-class MockPersistenceService: PersistenceServiceProtocol {
+class MockPersistenceService: ObservableObject, PersistenceServiceProtocol {
     var storiesToLoad: [Story] = []
     var savedStories: [Story] = []
     var deletedStoryIds: [UUID] = []
