@@ -3,6 +3,7 @@ import SwiftUI
 /// Parental Controls section card for settings
 struct ParentalControlsCard: View {
     @EnvironmentObject private var settingsService: SettingsService
+    @EnvironmentObject private var appRouter: AppRouter // Inject AppRouter
     @Binding var contentFiltering: Bool
     @Binding var screenTimeEnabled: Bool
     @Binding var maxStoriesPerDay: Int
@@ -43,13 +44,11 @@ struct ParentalControlsCard: View {
     }
     
     private var contentFiltersLink: some View {
-        NavigationLink {
-            ContentFiltersView(
-                selectedThemes: $selectedThemes,
-                minimumAge: $minimumAge,
-                maximumAge: $maximumAge
-            )
-        } label: {
+        // NavigationLink now uses AppDestination.contentFilters as its value.
+        // The actual view (ContentFiltersView) will be constructed by the
+        // .navigationDestination modifier in MainTabView, using the ViewFactory.
+        // ContentFiltersView will need to access its bindings via EnvironmentObject (e.g., SettingsService or a dedicated state object).
+        NavigationLink(value: AppDestination.contentFilters) {
             HStack {
                 Text("Content Filters")
                     .font(UITheme.Typography.bodyMedium)

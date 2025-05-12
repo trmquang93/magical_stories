@@ -5,6 +5,7 @@ struct CollectionsListView: View {
     // Replace direct @Query with a method using the collectionService
     // This avoids the SwiftData macro generation error
     @EnvironmentObject private var collectionService: CollectionService
+    @EnvironmentObject private var appRouter: AppRouter // Inject AppRouter
     @State private var collections: [StoryCollection] = []
     @State private var searchText = ""
     @State private var deletionError: String? = nil
@@ -73,56 +74,50 @@ struct CollectionsListView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                // Background
-                Color(UIColor.systemGroupedBackground)
-                    .ignoresSafeArea()
+        // NavigationStack is now managed by MainTabView
+        ZStack {
+            // Background
+            Color(UIColor.systemGroupedBackground)
+                .ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    if isLoading {
-                        loadingView
-                    } else if collections.isEmpty && searchText.isEmpty {
-                        ScrollView {
-                            CollectionsEmptyStateView(onCreateTapped: {
-                                showingGrowthStoryForm = true
-                            })
-                        }
-                    } else {
-                        collectionFilters
-
-                        if filteredCollections.isEmpty && !searchText.isEmpty && shouldShowSearch {
-                            CollectionsNoSearchResultsView(searchText: searchText)
-                        } else {
-                            // Main content with grid layout
-                            ScrollView {
-                                collectionGrid
-                                    .padding(.horizontal)
-                                    .padding(.top, 16)
-                            }
-                            .searchable(text: $searchText, prompt: "Search collections...")
-                        }
+            VStack(spacing: 0) {
+                if isLoading {
+                    loadingView
+                } else if collections.isEmpty && searchText.isEmpty {
+                    ScrollView {
+                        CollectionsEmptyStateView(onCreateTapped: {
+                            showingGrowthStoryForm = true
+                        })
                     }
-
-                    // Add spacer to push content up and prevent overlap with tab bar
-                    Spacer(minLength: 0)
-                }
-            }
-            .navigationTitle("Growth Collections")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    createButton
-                }
-            }
-            .navigationDestination(for: UUID.self) { collectionId in
-                if let collection = collections.first(where: { $0.id == collectionId }) {
-                    CollectionDetailView(collection: collection)
                 } else {
-                    Text("Collection not found")
+                    collectionFilters
+
+                    if filteredCollections.isEmpty && !searchText.isEmpty && shouldShowSearch {
+                        CollectionsNoSearchResultsView(searchText: searchText)
+                    } else {
+                        // Main content with grid layout
+                        ScrollView {
+                            collectionGrid
+                                .padding(.horizontal)
+                                .padding(.top, 16)
+                        }
+                        .searchable(text: $searchText, prompt: "Search collections...")
+                    }
                 }
+
+                // Add spacer to push content up and prevent overlap with tab bar
+                Spacer(minLength: 0)
             }
-            .alert(
+        }
+        .navigationTitle("Growth Collections") // This should still work as it's applied to the content
+        .navigationBarTitleDisplayMode(.large) // Same for this
+        .toolbar { // Toolbar should also work
+            ToolbarItem(placement: .navigationBarTrailing) {
+                createButton
+            }
+        }
+        // .navigationDestination is now managed by MainTabView
+        .alert(
                 "Error Deleting Collection", isPresented: .constant(deletionError != nil),
                 actions: {
                     Button("OK", role: .cancel) { deletionError = nil }
@@ -152,7 +147,7 @@ struct CollectionsListView: View {
             .safeAreaInset(edge: .bottom) {
                 Color.clear.frame(height: 10)
             }
-        }
+        
         .sheet(isPresented: $showingGrowthStoryForm) {
             CollectionFormView()
                 .environmentObject(collectionService)
@@ -251,7 +246,7 @@ struct CollectionsListView: View {
                     ZStack {
                         if selectedFilter == filter {
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.magicalPrimary)
+                                .fill(UITheme.Colors.primary)
                                 .matchedGeometryEffect(id: "filterBackground", in: animation)
                         } else {
                             RoundedRectangle(cornerRadius: 16)
@@ -272,8 +267,25 @@ struct CollectionsListView: View {
             ],
             spacing: 20
         ) {
-            ForEach(filteredCollections) { collection in
-                NavigationLink(value: collection.id) {
+            ForEach(collections.filter { collection in
+                if !searchText.isEmpty {
+                    return collection.title.localizedCaseInsensitiveContains(searchText)
+                }
+
+                switch selectedFilter {
+                case .all:
+                    return true
+                case .completed:
+                    return collection.completionProgress >= 1.0
+                case .inProgress:
+                    return collection.completionProgress > 0 && collection.completionProgress < 1.0
+                case .notStarted:
+                    return collection.completionProgress == 0
+                case .category(let category):
+                    return collection.category == category
+                }
+            }) { collection in
+                NavigationLink(value: AppDestination.collectionDetail(collectionID: collection.id)) { // Use AppDestination
                     CollectionCardView(collection: collection)
                         .contentShape(Rectangle())
                         .transition(.opacity.combined(with: .scale(scale: 0.9)))
@@ -321,6 +333,25 @@ struct CollectionsListView: View {
     }
 
     private func deleteCollections(at offsets: IndexSet) {
+        let filteredCollections = collections.filter { collection in
+            if !searchText.isEmpty {
+                return collection.title.localizedCaseInsensitiveContains(searchText)
+            }
+
+            switch selectedFilter {
+            case .all:
+                return true
+            case .completed:
+                return collection.completionProgress >= 1.0
+            case .inProgress:
+                return collection.completionProgress > 0 && collection.completionProgress < 1.0
+            case .notStarted:
+                return collection.completionProgress == 0
+            case .category(let category):
+                return collection.category == category
+            }
+        }
+        
         for index in offsets {
             let collection = filteredCollections[index]
             do {
@@ -438,10 +469,16 @@ enum CollectionFilter: Equatable {
         let service = CollectionService(
             repository: repository, storyService: storyService,
             achievementRepository: achievementRepository)
+        let appRouter = AppRouter() // For preview
 
         // Return the service
         return service
     }()
-    CollectionsListView()
-        .environmentObject(service)
+    // NavigationStack for preview purposes
+    let router = AppRouter()
+    NavigationStack {
+        CollectionsListView()
+            .environmentObject(service)
+            .environmentObject(router) // Provide AppRouter for preview
+    }
 }

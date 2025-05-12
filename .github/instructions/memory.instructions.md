@@ -1,1 +1,56 @@
-/Users/quang.tranminh/Projects/new-ios/magical_stories/.cursor/rules/memory.mdc
+---
+applyTo: '**'
+---
+## Role
+I am an expert software engineer with a unique characteristic: my memory resets completely between sessions. This isn't a limitation - it's what drives me to maintain perfect documentation. After each reset, I rely ENTIRELY on my Memory Bank to understand the project and continue work effectively.
+## Memory Bank
+- **The Memory Bank consists of core files and optional context files in Markdown format.** (High)
+
+### Core Files (Required)
+- `.cursor/rules/projectbrief.md` — Foundation document defining core requirements and goals. (High)
+- `.cursor/rules/productContext.md` — Why this project exists and how it should work. (High)
+- `.cursor/rules/activeContext.md` — Current work focus and recent changes. Updated with T2 completion details. (High)
+- `.cursor/rules/systemPatterns.md` — System architecture and design patterns. (High)
+- `.cursor/rules/techContext.md` — Technologies used and development setup. (High)
+- `.cursor/rules/progress.md` — What works and what's left to build. Updated with T2 completion status. (High)
+
+### Documentation Updates (Required)
+
+- Update Memory Bank when discovering new project patterns. (High)
+- Update after significant changes. (High)
+- Update when user requests **update memory bank** (MUST review ALL files). (High)
+- Update when context needs clarification. (High)
+- **Always update project status after any code, logic, or documentation change, even minor or incremental.** (Critical)
+- **Never** edit the mdc files. They are just a symbollink to original md files. Only update mentioned md files (Critical)
+
+---
+
+## General
+
+- **REMEMBER:** After every memory reset, the Memory Bank is the only link to previous work. Maintain it with precision and clarity. (High)
+- **Maintenance:** Update this file whenever a new rule or guideline is identified. (High)
+
+### Permanent Memories
+
+#### Technical Decisions
+- **SwiftUI Navigation Fix for AllStoriesView (2025-04-23):**
+  - **Issue:** When navigating through LibraryView > AllStoriesView > StoryDetailView, tapping back from StoryDetailView would incorrectly return to LibraryView (root) instead of AllStoriesView.
+  - **Root Cause:** Identified two problems: (1) AllStoriesView had an unnecessary nested NavigationStack that disrupted navigation context, and (2) LibraryView used inconsistent navigation approaches - both NavigationLink(destination:) and NavigationLink(value:).
+  - **Solution:** (1) Removed the redundant NavigationStack from AllStoriesView while keeping the navigationDestination modifier, and (2) Updated LibraryView's "See All" button to use NavigationLink(value: ViewDestination.allStories) for consistent navigation patterns.
+  - **Testing:** Created a UI test (testAllStoriesView_StoryDetailNavigation) to verify navigation behavior and back button functionality.
+  - **Best Practices Learned:** (a) Avoid nesting NavigationStack components in SwiftUI, (b) Use consistent navigation patterns throughout the app, preferring NavigationLink(value:) with navigationDestination(for:), (c) Understand that MainTabView already wraps each tab content in a NavigationStack, and (d) NavigationLink behavior (including back button) works within the context of its parent NavigationStack.
+
+- **CollectionsListView Refactor (2025-04-16):**
+  - CollectionsListView and CollectionCardView were reviewed and refactored for clarity, accessibility, and future integration.
+  - .navigationDestination(for: StoryCollection.self) is now present in CollectionsListView's NavigationStack.
+  - CollectionsListView is not yet integrated into the main UI; the collections list is still rendered directly in HomeView.
+  - A new test file (CollectionsListView_Tests.swift) was created, providing basic test coverage for CollectionsListView (limited by SwiftUI testing constraints).
+  - No duplication or conflicts found; code is ready for future tab integration (T6). 
+  
+- **UI & Snapshot Testing Standard (2025-04-16):**
+  - Automated device-level UI tests (XCUITest) and pixel-perfect snapshot tests (SnapshotTesting) are implemented for LibraryView.
+  - Snapshot tests are run for both light and dark mode, and on iPhone 11 size.
+  - This is now a standard for all major UI features going forward.
+  - Reference images are committed and reviewed on every UI change. 
+
+- **Testing/Automation Pattern:** The project standardizes on using accessibility identifiers for UI elements that require automation. The `run_tests.sh` script supports both full and targeted test runs, and UI tests are used for end-to-end interaction verification when ViewInspector is not present.

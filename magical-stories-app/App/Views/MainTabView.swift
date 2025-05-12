@@ -6,17 +6,23 @@ import SwiftUI
 // Import SparkleAnimationView from DesignSystem/Components if not in same file
 
 struct MainTabView: View {
-    @Binding var selectedTab: TabItem
+    @Binding var selectedTab: TabItem // This will be synced with AppRouter.activeTab
+    @EnvironmentObject private var appRouter: AppRouter // Inject AppRouter
     @EnvironmentObject private var storyService: StoryService
     @EnvironmentObject private var settingsService: SettingsService
-    @StateObject private var tabSelection = TabSelection()
+    // @StateObject private var tabSelection = TabSelection() // tabSelection might be redundant now or integrated with AppRouter
 
     var body: some View {
         ZStack(alignment: .bottom) {
             // Main TabView
-            TabView(selection: $selectedTab) {
-                NavigationStack {
+            // The TabView's selection is now driven by appRouter.activeTab,
+            // which is kept in sync with the selectedTab binding from RootView.
+            TabView(selection: $appRouter.activeTab) {
+                NavigationStack(path: $appRouter.homePath) {
                     HomeView()
+                        .navigationDestination(for: AppDestination.self) { destination in
+                            view(for: destination)
+                        }
                 }
                 .tabItem {
                     VStack(spacing: 2) {
@@ -30,8 +36,11 @@ struct MainTabView: View {
                 }
                 .tag(TabItem.home)
 
-                NavigationStack {
+                NavigationStack(path: $appRouter.libraryPath) {
                     LibraryView()
+                        .navigationDestination(for: AppDestination.self) { destination in
+                            view(for: destination)
+                        }
                 }
                 .tabItem {
                     VStack(spacing: 2) {
@@ -45,8 +54,11 @@ struct MainTabView: View {
                 }
                 .tag(TabItem.library)
 
-                NavigationStack {
+                NavigationStack(path: $appRouter.collectionsPath) {
                     CollectionsListView()
+                        .navigationDestination(for: AppDestination.self) { destination in
+                            view(for: destination)
+                        }
                 }
                 .tabItem {
                     VStack(spacing: 2) {
@@ -60,8 +72,11 @@ struct MainTabView: View {
                 }
                 .tag(TabItem.collections)
 
-                NavigationStack {
+                NavigationStack(path: $appRouter.settingsPath) {
                     SettingsView()
+                        .navigationDestination(for: AppDestination.self) { destination in
+                            view(for: destination)
+                        }
                 }
                 .tabItem {
                     VStack(spacing: 2) {
@@ -76,7 +91,33 @@ struct MainTabView: View {
                 .tag(TabItem.settings)
             }
             .accentColor(.magicalPrimary)
+            // Sync RootView's selectedTab with AppRouter's activeTab
+            .onChange(of: appRouter.activeTab) { _, newRouterTab in
+                if selectedTab != newRouterTab {
+                    selectedTab = newRouterTab
+                }
+            }
+            .onChange(of: selectedTab) { _, newSelectedTab in
+                if appRouter.activeTab != newSelectedTab {
+                    appRouter.activeTab = newSelectedTab
+                }
+            }
             .onAppear {
+                // Initialize appRouter's activeTab with the initial selectedTab from RootView
+                // This ensures they are in sync when the view first appears.
+                // However, if appRouter.activeTab is already set (e.g. deep link),
+                // the onChange(of: appRouter.activeTab) will handle updating selectedTab.
+                // To avoid potential loops if both are set simultaneously,
+                // we can prioritize one source on initial appearance or ensure AppRouter's
+                // initial activeTab matches RootView's initial selectedTab.
+                // For simplicity, let's assume AppRouter.activeTab is the leading state for TabView selection.
+                // If selectedTab from RootView is different, it will be updated by the first onChange.
+                // If they are the same, no change.
+                // If appRouter.activeTab needs to reflect RootView's initial state:
+                if appRouter.activeTab != selectedTab {
+                     appRouter.activeTab = selectedTab
+                }
+
                 // Set a solid color UITabBar appearance for the entire app
                 let appearance = UITabBarAppearance()
                 appearance.configureWithOpaqueBackground()
@@ -98,7 +139,7 @@ struct MainTabView: View {
                     .ignoresSafeArea(.container, edges: .bottom)
             }
         }
-        .environmentObject(tabSelection)
+        // .environmentObject(tabSelection) // tabSelection might be replaced by appRouter for tab control
     }
 }
 

@@ -5,8 +5,10 @@ import SwiftUI
 
 struct LibraryView: View {
     @EnvironmentObject private var storyService: StoryService
-    @EnvironmentObject private var persistenceService: PersistenceService
-    @EnvironmentObject private var collectionService: CollectionService
+    // persistenceService and collectionService might not be needed directly if StoryDetailView fetches its own data
+    // @EnvironmentObject private var persistenceService: PersistenceService 
+    // @EnvironmentObject private var collectionService: CollectionService
+    @EnvironmentObject private var appRouter: AppRouter // Inject AppRouter
     @State private var searchText = ""
     @State private var showDeleteError = false
     @State private var deleteErrorMessage = ""
@@ -15,93 +17,88 @@ struct LibraryView: View {
     @State private var sortOption: AllStoriesSortOptions.SortOption = .newest
     
     var body: some View {
-        NavigationStack {
-            ZStack(alignment: .top) {
-                // Background
-                UITheme.Colors.background.ignoresSafeArea()
-                VStack {
-                    // Header
-                    LibraryHeader()
+        // NavigationStack is now managed by MainTabView
+        ZStack(alignment: .top) {
+            // Background
+            UITheme.Colors.background.ignoresSafeArea()
+            VStack {
+                // Header
+                LibraryHeader()
 
-                    ScrollView(showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 0) {
-                            // Search Bar
-                            LibrarySearchBar(
-                                searchText: $searchText, isSearchFocused: $isSearchFocused)
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Search Bar
+                        LibrarySearchBar(
+                            searchText: $searchText, isSearchFocused: $isSearchFocused)
 
-                            // Categories Carousel
-                            LibraryCategoryCarousel(
-                                categories: categories,
-                                selectedCategoryName: selectedCategoryName,
-                                onSelect: { selected in selectedCategoryName = selected }
+                        // Categories Carousel
+                        LibraryCategoryCarousel(
+                            categories: categories,
+                            selectedCategoryName: selectedCategoryName,
+                            onSelect: { selected in selectedCategoryName = selected }
+                        )
+
+                        // Active Category Filter
+                        if let selectedCategory = selectedCategoryName {
+                            LibraryActiveCategoryFilter(
+                                selectedCategoryName: selectedCategory,
+                                onClear: { selectedCategoryName = nil }
                             )
+                        }
 
-                            // Active Category Filter
-                            if let selectedCategory = selectedCategoryName {
-                                LibraryActiveCategoryFilter(
-                                    selectedCategoryName: selectedCategory,
-                                    onClear: { selectedCategoryName = nil }
-                                )
-                            }
+                        // Sort Options
+                        HStack {
+                            Text("Sort by:")
+                                .font(UITheme.Typography.bodyMedium)
+                                .foregroundColor(UITheme.Colors.textSecondary)
 
-                            // Sort Options
-                            HStack {
-                                Text("Sort by:")
-                                    .font(UITheme.Typography.bodyMedium)
-                                    .foregroundColor(UITheme.Colors.textSecondary)
-
-                                Picker("Sort", selection: $sortOption) {
-                                    ForEach(AllStoriesSortOptions.SortOption.allCases) { option in
-                                        Text(option.rawValue).tag(option)
-                                    }
+                            Picker("Sort", selection: $sortOption) {
+                                ForEach(AllStoriesSortOptions.SortOption.allCases) { option in
+                                    Text(option.rawValue).tag(option)
                                 }
-                                .pickerStyle(.menu)
-                                .accentColor(UITheme.Colors.accent)
-
-                                Spacer()
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.top, 16)
+                            .pickerStyle(.menu)
+                            .accentColor(UITheme.Colors.accent)
 
-                            // All Stories Section
-                            if filteredAndSortedStories.isEmpty {
-                                LibraryEmptyState(
-                                    mode: selectedCategoryName != nil || !searchText.isEmpty
-                                        ? .noResults : .empty)
-                            } else {
-                                LazyVStack(spacing: 16) {
-                                    ForEach(filteredAndSortedStories) { story in
-                                        NavigationLink(value: story) {
-                                            EnhancedStoryCard(story: story)
-                                                .padding(.horizontal, 16)
-                                                .accessibilityIdentifier(
-                                                    "LibraryView_StoryCard_\(story.id)")
-                                        }
-                                        .buttonStyle(PlainButtonStyle())
+                            Spacer()
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.top, 16)
+
+                        // All Stories Section
+                        if filteredAndSortedStories.isEmpty {
+                            LibraryEmptyState(
+                                mode: selectedCategoryName != nil || !searchText.isEmpty
+                                    ? .noResults : .empty)
+                        } else {
+                            LazyVStack(spacing: 16) {
+                                ForEach(filteredAndSortedStories) { story in
+                                    NavigationLink(value: AppDestination.storyDetail(storyID: story.id)) { // Use AppDestination
+                                        EnhancedStoryCard(story: story)
+                                            .padding(.horizontal, 16)
+                                            .accessibilityIdentifier(
+                                                "LibraryView_StoryCard_\(story.id)")
                                     }
+                                    .buttonStyle(PlainButtonStyle())
                                 }
                             }
                         }
-                        .padding(.bottom, 60)  // Space for tab bar
                     }
+                    .padding(.bottom, 60)  // Space for tab bar
                 }
-            }
-            .background(UITheme.Colors.background.ignoresSafeArea())
-            .alert(
-                "Delete Failed", isPresented: $showDeleteError,
-                actions: {
-                    Button("OK", role: .cancel) {}
-                },
-                message: {
-                    Text(deleteErrorMessage)
-                }
-            )
-            .navigationDestination(for: Story.self) { story in
-                StoryDetailView(story: story)
-                    .environmentObject(persistenceService)
-                    .environmentObject(collectionService)
             }
         }
+        .background(UITheme.Colors.background.ignoresSafeArea())
+        .alert(
+            "Delete Failed", isPresented: $showDeleteError,
+            actions: {
+                Button("OK", role: .cancel) {}
+            },
+            message: {
+                Text(deleteErrorMessage)
+            }
+        )
+        // .navigationDestination is now managed by MainTabView
     }
 
     // MARK: - Data Logic
@@ -183,6 +180,7 @@ extension LibraryView {
         // Initialize repositories for CollectionService (needed for preview)
         let collectionRepository = CollectionRepository(modelContext: context)
         let achievementRepository = AchievementRepository(modelContext: context)
+        let appRouter = AppRouter() // For preview
 
         // Create CollectionService with proper parameters
         let collectionService = CollectionService(
@@ -191,12 +189,14 @@ extension LibraryView {
             achievementRepository: achievementRepository
         )
 
-        return NavigationStack {
+        // NavigationStack for preview purposes, as the view itself no longer has one.
+        return NavigationStack { 
             LibraryView()
                 .environmentObject(mockStoryService)
                 .environmentObject(storyService)
-                .environmentObject(mockPersistence)
+                // .environmentObject(mockPersistence) // Assuming StoryDetailView fetches its own data
                 .environmentObject(collectionService)
+                .environmentObject(appRouter) // Provide AppRouter for preview
         }
     }
 }

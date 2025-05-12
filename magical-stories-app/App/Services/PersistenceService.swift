@@ -9,6 +9,7 @@ protocol PersistenceServiceProtocol {
     func loadStories() async throws -> [Story]
     func saveStory(_ story: Story) async throws
     func deleteStory(withId id: UUID) async throws
+    func fetchStory(withId id: UUID) async throws -> Story?
 
     // Story State Updates
     func incrementReadCount(for storyId: UUID) async throws
@@ -92,6 +93,13 @@ public class PersistenceService: PersistenceServiceProtocol, ObservableObject {
 
     func updateLastReadAt(for storyId: UUID, date: Date = Date()) async throws {
         try await storyRepository.updateLastReadAt(for: storyId, date: date)
+    }
+    
+    /// Fetches a story by its ID
+    /// - Parameter id: The UUID of the story to fetch
+    /// - Returns: The story if found, nil otherwise
+    func fetchStory(withId id: UUID) async throws -> Story? {
+        return try await storyRepository.fetchStory(withId: id)
     }
 
     // MARK: - Achievement Management -

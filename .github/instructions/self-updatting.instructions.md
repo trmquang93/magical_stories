@@ -1,3 +1,7 @@
+---
+applyTo: '**'
+---
+
 # AI Assistant Self-Updating Rules for Software Projects
 
 ## Core Principles

@@ -7,8 +7,11 @@ struct StoryDetailView: View {
     @EnvironmentObject private var illustrationService: IllustrationService
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var illustrationTaskManager: IllustrationTaskManager
+    @EnvironmentObject private var storyService: StoryService // Added
 
-    let story: Story
+    // story will be loaded from storyID
+    @State private var story: Story?
+    private let storyID: UUID // storyID is now the input
 
     @State private var pages: [Page] = []
     @State private var isFirstAppearance = true
@@ -27,7 +30,8 @@ struct StoryDetailView: View {
 
     // Status text for illustration generation
     private var illustrationStatusText: String? {
-        guard illustrationProgress.total > 0 else { return nil }
+        // Ensure story is not nil before accessing its properties indirectly via illustrationProgress
+        guard story != nil, illustrationProgress.total > 0 else { return nil }
 
         let readyCount = illustrationProgress.ready
         let totalCount = illustrationProgress.total
@@ -40,84 +44,89 @@ struct StoryDetailView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            if isLoadingPages {
-                MagicalLoadingView(message: "Preparing your story...")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityLabel("Loading story")
-                    .accessibilityHint("Please wait while your story is being prepared")
-                    .accessibilityAddTraits(.updatesFrequently)
-            } else if pages.isEmpty {
-                MagicalEmptyStateView(
-                    title: "Story Error",
-                    message: "Could not load story pages.",
-                    buttonTitle: "Go Back"
-                ) {
-                    // In a real app, use Environment(\.dismiss)
+        Group { // Use Group to handle conditional display of story content or loading state
+            if let currentStory = story {
+                VStack(spacing: 0) {
+                    if isLoadingPages {
+                        MagicalLoadingView(message: "Preparing your story...")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .accessibilityLabel("Loading story")
+                            .accessibilityHint("Please wait while your story is being prepared")
+                            .accessibilityAddTraits(.updatesFrequently)
+                    } else if pages.isEmpty {
+                        MagicalEmptyStateView(
+                            title: "Story Error",
+                            message: "Could not load story pages.",
+                            buttonTitle: "Go Back"
+                        ) {
+                            // In a real app, use Environment(\.dismiss)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .accessibilityLabel("Story Error")
+                        .accessibilityHint("Could not load story pages")
+                    } else {
+                        // Illustration Status Header (only shown when illustrations are loading)
+                        if let statusText = illustrationStatusText {
+                            VStack(spacing: 4) {
+                                Text(statusText)
+                                    .font(UITheme.Typography.bodySmall)
+                                    .foregroundColor(UITheme.Colors.textSecondary)
+
+                                ProgressView(
+                                    value: Double(illustrationProgress.ready),
+                                    total: Double(illustrationProgress.total)
+                                )
+                                .tint(UITheme.Colors.accent)
+                                .frame(maxWidth: .infinity)
+                            }
+                            .padding(.horizontal, UITheme.Spacing.lg)
+                            .padding(.vertical, UITheme.Spacing.sm)
+                            .background(UITheme.Colors.surfacePrimary)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel(
+                                "Illustration progress: \(illustrationProgress.ready) of \(illustrationProgress.total) ready"
+                            )
+                            .transition(.opacity.animation(.easeInOut(duration: 0.3)))
+                        }
+
+                        // Page Content using TabView for pagination
+                        TabView(selection: $currentPageIndex) {
+                            ForEach(pages.indices, id: \.self) { index in
+                                PageView(
+                                    regenerateAction: {
+                                        regenerateIllustration(for: pages[index])
+                                    },
+                                    page: pages[index]
+                                )
+                                .tag(index)
+                                .accessibilityLabel("Page \(index + 1)")
+                                .accessibilityHint("Swipe left or right to navigate between pages")
+                                .accessibilityIdentifier("PageView-\(index)")
+                            }
+                        }
+                        .tabViewStyle(.page(indexDisplayMode: .never))  // Use page style, hide default index dots
+                        .onChange(of: currentPageIndex) { _, newIndex in
+                            updateReadingProgress(newIndex: newIndex)
+                        }
+                        .accessibilityElement(children: .contain)
+                        .accessibilityLabel("Story pages")
+                        .accessibilityIdentifier("StoryPageTabView")
+
+                        // Custom Page Indicator and Progress Bar
+                        pageIndicatorAndProgress
+                            .padding(.bottom, UITheme.Spacing.sm)
+                    }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .accessibilityLabel("Story Error")
-                .accessibilityHint("Could not load story pages")
+                .navigationTitle(currentStory.title)
+                .navigationBarTitleDisplayMode(.inline)
             } else {
-                // Illustration Status Header (only shown when illustrations are loading)
-                if let statusText = illustrationStatusText {
-                    VStack(spacing: 4) {
-                        Text(statusText)
-                            .font(UITheme.Typography.bodySmall)
-                            .foregroundColor(UITheme.Colors.textSecondary)
-
-                        ProgressView(
-                            value: Double(illustrationProgress.ready),
-                            total: Double(illustrationProgress.total)
-                        )
-                        .tint(UITheme.Colors.accent)
-                        .frame(maxWidth: .infinity)
-                    }
-                    .padding(.horizontal, UITheme.Spacing.lg)
-                    .padding(.vertical, UITheme.Spacing.sm)
-                    .background(UITheme.Colors.surfacePrimary)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel(
-                        "Illustration progress: \(illustrationProgress.ready) of \(illustrationProgress.total) ready"
-                    )
-                    .transition(.opacity.animation(.easeInOut(duration: 0.3)))
-                }
-
-                // Page Content using TabView for pagination
-                TabView(selection: $currentPageIndex) {
-                    ForEach(pages.indices, id: \.self) { index in
-                        PageView(
-                            regenerateAction: {
-                                regenerateIllustration(for: pages[index])
-                            },
-                            page: pages[index]
-                        )
-                        .tag(index)
-                        .accessibilityLabel("Page \(index + 1)")
-                        .accessibilityHint("Swipe left or right to navigate between pages")
-                        .accessibilityIdentifier("PageView-\(index)")
-                    }
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))  // Use page style, hide default index dots
-                .onChange(of: currentPageIndex) { _, newIndex in
-                    updateReadingProgress(newIndex: newIndex)
-                }
-                .accessibilityElement(children: .contain)
-                .accessibilityLabel("Story pages")
-                .accessibilityIdentifier("StoryPageTabView")
-
-                // Custom Page Indicator and Progress Bar
-                pageIndicatorAndProgress
-                    .padding(.bottom, UITheme.Spacing.sm)
+                // Show loading view while story is being fetched
+                MagicalLoadingView(message: "Loading story details...")
             }
         }
-        .navigationTitle(story.title)
-        .navigationBarTitleDisplayMode(.inline)
-        .task {  // Use .task for async operations on appear
-            await loadPages()
-
-            // Start processing illustrations in background
-            processIllustrations()
+        .task {
+            if Task.isCancelled { return }
+            await loadStoryDetails() // New method to load story by ID
         }
         .alert(
             "Achievement Unlocked!", isPresented: $showCompletionAlert, presenting: newAchievements
@@ -154,51 +163,85 @@ struct StoryDetailView: View {
         .accessibilityIdentifier("PageIndicatorAndProgress")
     }
 
+    // MARK: - Initializer
+    init(storyID: UUID) {
+        self.storyID = storyID
+    }
+
     // MARK: - Helper Functions
+    
+    private func loadStoryDetails() async {
+        // If story is already set, just process it and don't fetch
+        if let currentStory = story {
+            pages = currentStory.pages.sorted(by: { $0.pageNumber < $1.pageNumber })
+            isLoadingPages = false
+            if !pages.isEmpty {
+                readingProgress = StoryProcessor.calculateReadingProgress(
+                    currentPage: currentPageIndex + 1, totalPages: pages.count)
+                updateIllustrationProgress()
+            }
+            processIllustrations()
+            return
+        }
 
-    private func loadPages() async {
+        // Otherwise fetch the story by ID
         isLoadingPages = true
-        
-        // Log the pages before sorting to see their original order
-        print("[StoryDetailView] Original page order:")
-        for (index, page) in story.pages.enumerated() {
-            print("[StoryDetailView] Page \(index): pageNumber=\(page.pageNumber), id=\(page.id)")
+        do {
+            // Use the environment object to fetch the story
+            let fetchedStory = try await persistenceService.fetchStory(withId: storyID)
+            self.story = fetchedStory
+            
+            if let currentStory = fetchedStory {
+                // Log the pages before sorting to see their original order
+                print("[StoryDetailView] Original page order for story \(currentStory.id):")
+                for (index, page) in currentStory.pages.enumerated() {
+                    print("[StoryDetailView] Page \(index): pageNumber=\(page.pageNumber), id=\(page.id)")
+                }
+                pages = currentStory.pages.sorted(by: { $0.pageNumber < $1.pageNumber })
+                // Log the pages after sorting to confirm correct order
+                print("[StoryDetailView] After sorting - page count: \(pages.count) for story \(currentStory.id)")
+                for (index, page) in pages.enumerated() {
+                    print("[StoryDetailView] Page \(index): pageNumber=\(page.pageNumber), id=\(page.id)")
+                }
+                // This is where the main logic for setting up after pages are sorted should be.
+                // The isLoadingPages = false and subsequent UI updates will be handled after this block.
+                 if !pages.isEmpty {
+                     readingProgress = StoryProcessor.calculateReadingProgress(
+                         currentPage: currentPageIndex + 1, totalPages: pages.count)
+                     updateIllustrationProgress() // Ensure this is called after pages are set
+                 } else {
+                     readingProgress = 0.0
+                 }
+                processIllustrations() // Call processIllustrations after story is loaded and pages are set
+            } else {
+                print("[StoryDetailView] Failed to fetch story with ID: \(storyID)")
+                // Handle error, e.g., show an error message to the user
+            }
+        } catch {
+            print("[StoryDetailView] Error fetching story \(storyID): \(error)")
+            // Handle error
         }
-        
-        // Sort pages by pageNumber to ensure correct order
-        pages = story.pages.sorted(by: { $0.pageNumber < $1.pageNumber })
-        
-        // Log the pages after sorting to confirm correct order
-        print("[StoryDetailView] After sorting - page count: \(pages.count)")
-        for (index, page) in pages.enumerated() {
-            print("[StoryDetailView] Page \(index): pageNumber=\(page.pageNumber), id=\(page.id)")
-        }
-        
-        isLoadingPages = false
-        if !pages.isEmpty {
-            readingProgress = StoryProcessor.calculateReadingProgress(
-                currentPage: currentPageIndex + 1, totalPages: pages.count)
-            // Also update illustration progress initially
-            updateIllustrationProgress()
-        } else {
-            readingProgress = 0.0
-        }
-
-        if !pages.isEmpty {
+        isLoadingPages = false // Set isLoadingPages to false after all loading logic
+        if !pages.isEmpty && story != nil { // Check story != nil as well
             UIAccessibility.post(
                 notification: .screenChanged,
                 argument: "\(pages.count) pages loaded. Page 1 is now displayed")
         }
     }
 
+    // loadPages() is now part of loadStoryDetails() or assumes story is already loaded
+    // private func loadPages() async { ... } // Removed as its logic is integrated
+
+    // This is the correct single instance of updateIllustrationProgress
     private func updateIllustrationProgress() {
+        guard story != nil else { return } // Ensure story is loaded
         let total = pages.count
         let ready = pages.filter { $0.illustrationStatus == .ready }.count
-
         illustrationProgress = (ready, total)
     }
 
     private func processIllustrations() {
+        guard let currentStory = story else { return } // Ensure story is loaded
         // Only process illustrations once
         guard isFirstAppearance else { return }
         isFirstAppearance = false
@@ -208,11 +251,11 @@ struct StoryDetailView: View {
         
         // If no pages need illustrations, we're done
         if (pagesNeedingIllustrations.isEmpty) {
-            print("[StoryDetailView] All illustrations are already generated")
+            print("[StoryDetailView] All illustrations are already generated for story: \(currentStory.title)")
             return
         }
         
-        print("[StoryDetailView] Adding \(pagesNeedingIllustrations.count) illustration tasks for story: \(story.title)")
+        print("[StoryDetailView] Adding \(pagesNeedingIllustrations.count) illustration tasks for story: \(currentStory.title)")
         
         // Create tasks for each page with appropriate priorities
         for page in pagesNeedingIllustrations {
@@ -236,7 +279,7 @@ struct StoryDetailView: View {
             // Create task
             let task = IllustrationTask(
                 pageId: page.id,
-                storyId: story.id,
+                storyId: currentStory.id, // Use currentStory.id
                 priority: priority
             )
             
@@ -404,28 +447,29 @@ struct StoryDetailView: View {
     }
 
     private func handleStoryCompletion() async {
-        print("[StoryDetailView] Story completed: \(story.title)")
+        guard let currentStory = story else { return } // Ensure story is loaded
+        print("[StoryDetailView] Story completed: \(currentStory.title)")
 
         // Update readCount and lastReadAt in persistence
         do {
-            try await persistenceService.incrementReadCount(for: story.id)
-            try await persistenceService.updateLastReadAt(for: story.id, date: Date())
+            try await persistenceService.incrementReadCount(for: currentStory.id)
+            try await persistenceService.updateLastReadAt(for: currentStory.id, date: Date())
         } catch {
-            print("[StoryDetailView] Error updating readCount/lastReadAt: \(error)")
+            print("[StoryDetailView] Error updating readCount/lastReadAt for story \(currentStory.id): \(error)")
         }
 
-        guard let collectionId = story.collections.first?.id else {
-            print("[StoryDetailView] Story \"\(story.title)\" does not belong to a collection.")
+        guard let collectionId = currentStory.collections.first?.id else {
+            print("[StoryDetailView] Story \"\(currentStory.title)\" does not belong to a collection.")
             return
         }
 
         // Mark story as completed and update collection progress
         do {
             try await collectionService.markStoryAsCompleted(
-                storyId: story.id, collectionId: collectionId)
+                storyId: currentStory.id, collectionId: collectionId)
         } catch {
             print(
-                "[StoryDetailView] Error marking story as completed or updating collection progress: \(error)"
+                "[StoryDetailView] Error marking story \(currentStory.id) as completed or updating collection progress: \(error)"
             )
         }
     }

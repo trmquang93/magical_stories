@@ -530,6 +530,18 @@ class StoryService: ObservableObject {
         return illustrations
     }
 
+    // MARK: - Story Fetching
+    func fetchStory(by id: UUID) async throws -> Story? {
+        do {
+            return try await persistenceService.fetchStory(withId: id)
+        } catch {
+            AIErrorManager.logError(
+                error, source: "StoryService",
+                additionalInfo: "Failed to fetch story with id: \(id)")
+            throw error
+        }
+    }
+    
     // MARK: - Story Deletion
     func deleteStory(id: UUID) async {
         do {

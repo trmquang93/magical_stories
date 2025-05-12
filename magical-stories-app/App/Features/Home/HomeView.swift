@@ -6,7 +6,8 @@ struct HomeView: View {
     @State private var showingGrowthStoryForm = false
     @EnvironmentObject private var storyService: StoryService
     @EnvironmentObject private var collectionService: CollectionService
-    @Environment(\.selectedTabBinding) private var selectedTabBinding
+    @EnvironmentObject private var appRouter: AppRouter // Inject AppRouter
+    // @Environment(\.selectedTabBinding) private var selectedTabBinding // Replaced by appRouter
     @State private var childName: String = ""
     @State private var scrollOffset = CGPoint.zero
     @State private var scrollDirection: ScrollViewOffsetPredictor.ScrollDirection = .none
@@ -59,21 +60,9 @@ struct HomeView: View {
                         .frame(height: headerHeight)
                 }
 
-                NavigationStack {
-                    mainContent
-                        .navigationDestination(for: Story.self) { story in
-                            // This handler is only used when navigating directly from HomeView
-                            // and not from within a CollectionDetailView
-                            StoryDetailView(story: story)
-                        }
-                        .navigationDestination(for: ViewDestination.self) { destination in
-                            switch destination {
-                            case .collectionDetail(let collection):
-                                // Use a dedicated destination for collections to prevent duplicate navigation
-                                CollectionDetailView(collection: collection)
-                            }
-                        }
-                }
+                // The NavigationStack is now managed by MainTabView
+                // Its .navigationDestination is also managed there.
+                mainContent
             }
         }
         .fullScreenCover(isPresented: $showingStoryForm) {
@@ -95,10 +84,10 @@ struct HomeView: View {
         }
     }
 
-    // Define an enum for navigation destinations
-    enum ViewDestination: Hashable {
-        case collectionDetail(StoryCollection)
-    }
+    // Define an enum for navigation destinations - This local enum is no longer needed, AppDestination is global
+    // enum ViewDestination: Hashable {
+    //    case collectionDetail(StoryCollection)
+    // }
 
     private var mainContent: some View {
         return scrollView
@@ -184,8 +173,8 @@ struct HomeView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(collectionService.collections) { collection in
-                        // Use the ViewDestination enum instead of direct NavigationLink to destination
-                        NavigationLink(value: ViewDestination.collectionDetail(collection)) {
+                        // Use the global AppDestination enum
+                        NavigationLink(value: AppDestination.collectionDetail(collectionID: collection.id)) {
                             CollectionCardView(collection: collection)
                                 .frame(width: 180)
                         }
@@ -224,7 +213,7 @@ struct HomeView: View {
                 .padding(.horizontal, Spacing.lg)
                 .accessibilityIdentifier("HomeView_LibraryHeading")
             ForEach(storyService.stories.prefix(2)) { story in
-                NavigationLink(value: story) {
+                NavigationLink(value: AppDestination.storyDetail(storyID: story.id)) {
                     EnhancedStoryCard(story: story)
                         .padding(.horizontal, Spacing.lg)
                         .accessibilityIdentifier("HomeView_StoryCard_\(story.id)")
@@ -232,9 +221,8 @@ struct HomeView: View {
             }
             if storyService.stories.count > 2 {
                 Button(action: {
-                    if let selectedTabBinding = selectedTabBinding {
-                        selectedTabBinding.wrappedValue = .library // Change to Library tab
-                    }
+                    // Use appRouter to change tabs
+                    appRouter.activeTab = .library
                 }) {
                     Text("View All Stories")
                         .font(.headingSmall)

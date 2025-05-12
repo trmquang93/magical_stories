@@ -25,6 +25,12 @@ struct HeightReaderView: View {
 
 struct CollectionDetailView: View {
     @EnvironmentObject private var collectionService: CollectionService
+    @EnvironmentObject private var appRouter: AppRouter // Inject AppRouter
+    // @Environment(\.modelContext) private var modelContext // Uncomment if CollectionService needs it or for direct fetching
+
+    @State private var collection: StoryCollection? // Changed from @Bindable to @State optional
+    private let collectionID: UUID // Added to store the ID for fetching
+
     @State private var achievements: [AchievementModel] = []
     @State private var isLoadingAchievements = false
     @State private var selectedTab = 0
@@ -32,8 +38,8 @@ struct CollectionDetailView: View {
     @State private var storiesTabHeight: CGFloat = 0
     @State private var aboutTabHeight: CGFloat = 0
     @State private var achievementsTabHeight: CGFloat = 0
-    @Bindable var collection: StoryCollection  // Use @Bindable for live updates
-    
+    // @Bindable var collection: StoryCollection  // Removed
+
     // Determine the appropriate height based on the selected tab
     private var dynamicTabHeight: CGFloat {
         switch selectedTab {
@@ -48,27 +54,42 @@ struct CollectionDetailView: View {
         }
     }
 
-    init(collection: StoryCollection) {
-        self.collection = collection
+    // init(collection: StoryCollection) { // This init is replaced or used for previews
+    //     self.collection = collection
+    // }
+    
+    // Initializer to accept collectionID (new)
+    init(collectionID: UUID) {
+        self.collectionID = collectionID
+        // _collection State property is initialized to nil by default
     }
 
+    // Convenience initializer for Previews
+    // Ensure StoryCollection has an 'id: UUID' property
+    // For previews, you might need to create a StoryCollection instance within a ModelContext
+    init(previewCollection: StoryCollection) {
+        self.collectionID = previewCollection.id // Assuming StoryCollection has a UUID id
+        self._collection = State(initialValue: previewCollection)
+    }
+
+
     // Compute a thematic color based on the collection category
-    private var thematicColor: Color {
-        switch collection.category {
-        case "emotionalIntelligence": return Color.magicalPrimary
+    private func thematicColor(for currentCollection: StoryCollection) -> Color { // Changed to take parameter
+        switch currentCollection.category {
+        case "emotionalIntelligence": return UITheme.Colors.primary
         case "socialSkills": return Color.blue
         case "cognitiveDevelopment": return Color.purple
         case "creativityImagination": return Color(hex: "#FF617B")
         case "problemSolving": return Color(hex: "#00B8A9")
         case "resilienceGrit": return Color(hex: "#F9A826")
         case "kindnessEmpathy": return Color(hex: "#7ED957")
-        default: return Color.magicalAccent
+        default: return UITheme.Colors.accent
         }
     }
 
     // Get a formatted category name
-    private var categoryName: String {
-        switch collection.category {
+    private func categoryName(for currentCollection: StoryCollection) -> String { // Changed to take parameter
+        switch currentCollection.category {
         case "emotionalIntelligence": return "Emotional Intelligence"
         case "socialSkills": return "Social Skills"
         case "cognitiveDevelopment": return "Cognitive Development"
@@ -77,7 +98,7 @@ struct CollectionDetailView: View {
         case "resilienceGrit": return "Resilience & Grit"
         case "kindnessEmpathy": return "Kindness & Empathy"
         default:
-            return collection.category
+            return currentCollection.category
                 .replacingOccurrences(
                     of: "([a-z])([A-Z])", with: "$1 $2", options: .regularExpression
                 )
@@ -86,8 +107,8 @@ struct CollectionDetailView: View {
     }
 
     // Get a category icon
-    private var categoryIcon: String {
-        switch collection.category {
+    private func categoryIcon(for currentCollection: StoryCollection) -> String { // Changed to take parameter
+        switch currentCollection.category {
         case "emotionalIntelligence": return "heart.fill"
         case "socialSkills": return "person.2.fill"
         case "cognitiveDevelopment": return "brain"
@@ -100,79 +121,113 @@ struct CollectionDetailView: View {
     }
 
     // Format age group for display
-    private var ageGroupDisplay: String {
-        switch collection.ageGroup {
+    private func ageGroupDisplay(for currentCollection: StoryCollection) -> String { // Changed to take parameter
+        switch currentCollection.ageGroup {
         case "preschool": return "3-5 years"
         case "earlyReader": return "6-8 years"
         case "middleGrade": return "9-12 years"
-        default: return collection.ageGroup
+        default: return currentCollection.ageGroup
         }
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                // Hero section
-                heroSection
+        Group { // Added Group to switch between loading and content
+            if let currentCollection = collection { // Use the @State collection
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Hero section
+                        heroSection(for: currentCollection) // Pass currentCollection
 
-                // Tab switcher
-                tabSwitcher
-                    .padding(.top, 24)
+                        // Tab switcher
+                        tabSwitcher // Assuming this doesn't directly depend on collection data for its structure
+                            .padding(.top, 24)
 
-                // Tab content
-                TabView(selection: $selectedTab) {
-                    // Stories tab
-                    storiesTab
-                        .background(
-                            HeightReaderView(height: $storiesTabHeight)
-                        )
-                        .tag(0)
+                        // Tab content
+                        TabView(selection: $selectedTab) {
+                            // Stories tab
+                            storiesTab(for: currentCollection) // Pass currentCollection
+                                .background(
+                                    HeightReaderView(height: $storiesTabHeight)
+                                )
+                                .tag(0)
 
-                    // About tab
-                    aboutTab
-                        .background(
-                            HeightReaderView(height: $aboutTabHeight)
-                        )
-                        .tag(1)
+                            // About tab
+                            aboutTab(for: currentCollection) // Pass currentCollection
+                                .background(
+                                    HeightReaderView(height: $aboutTabHeight)
+                                )
+                                .tag(1)
 
-                    // Achievements tab
-                    achievementsTab
-                        .background(
-                            HeightReaderView(height: $achievementsTabHeight)
-                        )
-                        .tag(2)
+                            // Achievements tab
+                            achievementsTab(for: currentCollection) // Pass currentCollection
+                                .background(
+                                    HeightReaderView(height: $achievementsTabHeight)
+                                )
+                                .tag(2)
+                        }
+                        .tabViewStyle(.page(indexDisplayMode: .never))
+                        .frame(height: dynamicTabHeight) // dynamicTabHeight might need to check collection != nil
+                    }
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: dynamicTabHeight)
-            }
-        }
-        .background(Color(.systemGroupedBackground).ignoresSafeArea())
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text(collection.title)
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.primary)
-                    .lineLimit(1)
-            }
-        }
-        .navigationDestination(for: Story.self) { story in
-            StoryDetailView(story: story)
-                .environmentObject(collectionService)
-        }
-        .task {
-            await loadAchievements()
+                .background(Color(.systemGroupedBackground).ignoresSafeArea())
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        Text(currentCollection.title) // Use currentCollection
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(.primary)
+                            .lineLimit(1)
+                    }
+                }
+                // .navigationDestination is now managed by MainTabView
+                .task { // Task for collection-specific actions like loading achievements
+                    await loadAchievements(for: currentCollection) // Pass currentCollection
 
-            // Delay animations for polish
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.3)) {
-                animateElements = true
+                    // Delay animations for polish
+                    withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.3)) {
+                        animateElements = true
+                    }
+                }
+            } else {
+                ProgressView("Loading Collection...")
             }
+        }
+        .task(id: collectionID) { // Task to load the collection itself, reacting to collectionID changes
+            await loadCollectionData()
+        }
+    }
+
+    private func loadCollectionData() async {
+        // Use the correct parameter name for fetchCollection and handle potential errors
+        let fetchedCollection: StoryCollection?
+        do {
+            fetchedCollection = try collectionService.fetchCollection(id: collectionID)
+        } catch {
+            print("Error: Could not load collection with ID \(collectionID): \(error.localizedDescription)")
+            fetchedCollection = nil
+            // Optionally, handle error state e.g., appRouter.pop() or show error message
+        }
+        
+        if fetchedCollection == nil {
+            print("Error: Collection with ID \(collectionID) not found")
+            // Optionally, handle error state e.g., appRouter.pop() or show error message
+        }
+        // This assignment will trigger UI update if collection was nil or changed
+        self.collection = fetchedCollection
+        
+        // If collection is successfully loaded (or even if not, to reset),
+        // reset dependent state here if not handled elsewhere
+        if fetchedCollection != nil {
+            self.achievements = [] // Reset achievements
+            self.selectedTab = 0   // Reset selected tab
+            self.animateElements = false // Reset animation state
+            // Achievements will be loaded by the inner .task when currentCollection is set
         }
     }
 
     // MARK: - Hero Section
 
-    private var heroSection: some View {
+    private func heroSection(for currentCollection: StoryCollection) -> some View { // Changed to take parameter
         ZStack(alignment: .bottom) {
             // Top gradient background
             Rectangle()
@@ -180,8 +235,8 @@ struct CollectionDetailView: View {
                     LinearGradient(
                         gradient: Gradient(
                             colors: [
-                                thematicColor.opacity(0.3),
-                                thematicColor.opacity(0.1),
+                                thematicColor(for: currentCollection).opacity(0.3), // Use parameter
+                                thematicColor(for: currentCollection).opacity(0.1), // Use parameter
                                 Color(.systemGroupedBackground),
                             ]
                         ),
@@ -203,12 +258,13 @@ struct CollectionDetailView: View {
                     Circle()
                         .trim(
                             from: 0,
-                            to: animateElements ? CGFloat(collection.completionProgress) : 0
+                            to: animateElements ? CGFloat(currentCollection.completionProgress) : 0 // Use parameter
                         )
                         .stroke(
                             AngularGradient(
                                 gradient: Gradient(colors: [
-                                    thematicColor, thematicColor.opacity(0.7),
+                                    thematicColor(for: currentCollection), // Use parameter
+                                    thematicColor(for: currentCollection).opacity(0.7), // Use parameter
                                 ]),
                                 center: .center
                             ),
@@ -220,14 +276,14 @@ struct CollectionDetailView: View {
                             .spring(response: 1.5, dampingFraction: 0.8), value: animateElements)
 
                     // Icon in center
-                    Image(systemName: categoryIcon)
+                    Image(systemName: categoryIcon(for: currentCollection)) // Use parameter
                         .font(.system(size: 36))
-                        .foregroundStyle(thematicColor)
+                        .foregroundStyle(thematicColor(for: currentCollection)) // Use parameter
 
                     // Progress text
                     VStack {
                         Spacer()
-                        Text("\(Int(collection.completionProgress * 100))%")
+                        Text("\(Int(currentCollection.completionProgress * 100))%") // Use parameter
                             .font(.system(size: 16, weight: .bold))
                             .foregroundColor(.secondary)
                             .padding(.bottom, 12)
@@ -235,10 +291,10 @@ struct CollectionDetailView: View {
                     .frame(width: 120, height: 120)
                 }
                 .overlay {
-                    if collection.completionProgress >= 1.0 {
+                    if currentCollection.completionProgress >= 1.0 {
                         Image(systemName: "checkmark.seal.fill")
                             .font(.system(size: 36))
-                            .foregroundStyle(thematicColor)
+                            .foregroundStyle(thematicColor(for: currentCollection))
                             .background(
                                 Circle()
                                     .fill(Color(.systemBackground))
@@ -255,19 +311,19 @@ struct CollectionDetailView: View {
 
                 // Metadata
                 HStack(spacing: 12) {
-                    metadataPill(icon: "person.2.crop.square.stack.fill", label: categoryName)
+                    metadataPill(icon: "person.2.crop.square.stack.fill", label: categoryName(for: currentCollection))
 
-                    metadataPill(icon: "calendar.badge.clock", label: ageGroupDisplay)
+                    metadataPill(icon: "calendar.badge.clock", label: ageGroupDisplay(for: currentCollection))
 
                     metadataPill(
                         icon: "book.closed",
-                        label: "\(collection.stories?.count ?? 0) Stories"
+                        label: "\(currentCollection.stories?.count ?? 0) Stories"
                     )
                 }
                 .padding(.top, 8)
 
                 // Description
-                Text(collection.descriptionText)
+                Text(currentCollection.descriptionText)
                     .font(.system(size: 15))
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -284,7 +340,7 @@ struct CollectionDetailView: View {
         HStack(spacing: 6) {
             Image(systemName: icon)
                 .font(.system(size: 12))
-                .foregroundColor(thematicColor)
+                .foregroundColor(thematicColor(for: collection!))
 
             Text(label)
                 .font(.system(size: 12, weight: .medium))
@@ -315,7 +371,7 @@ struct CollectionDetailView: View {
                                 .system(
                                     size: 15, weight: selectedTab == index ? .semibold : .regular)
                             )
-                            .foregroundColor(selectedTab == index ? thematicColor : .secondary)
+                            .foregroundColor(selectedTab == index ? thematicColor(for: collection!) : .secondary)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
                     }
@@ -324,7 +380,7 @@ struct CollectionDetailView: View {
 
             // Active tab indicator
             Rectangle()
-                .fill(thematicColor)
+                .fill(thematicColor(for: collection!))
                 .frame(height: 2)
                 .frame(width: UIScreen.main.bounds.width / 3)
                 .offset(x: UIScreen.main.bounds.width / 3 * CGFloat(selectedTab - 1))
@@ -337,12 +393,12 @@ struct CollectionDetailView: View {
 
     // MARK: - Stories Tab
 
-    private var storiesTab: some View {
+    private func storiesTab(for currentCollection: StoryCollection) -> some View { // Changed to take parameter
         VStack(alignment: .leading, spacing: 8) {
-            if let stories = collection.stories, !stories.isEmpty {
+            if let stories = currentCollection.stories, !stories.isEmpty {
                 ForEach(stories.sorted(by: { ($0.isCompleted ? 1 : 0) < ($1.isCompleted ? 1 : 0) }))
                 { story in
-                    NavigationLink(value: story) {
+                    NavigationLink(value: AppDestination.storyDetail(storyID: story.id)) { // Use AppDestination
                         premiumStoryRow(story: story)
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -368,8 +424,8 @@ struct CollectionDetailView: View {
                         LinearGradient(
                             gradient: Gradient(
                                 colors: [
-                                    thematicColor.opacity(0.6),
-                                    thematicColor.opacity(0.4),
+                                    thematicColor(for: collection!).opacity(0.6),
+                                    thematicColor(for: collection!).opacity(0.4),
                                 ]
                             ),
                             startPoint: .topLeading,
@@ -400,7 +456,7 @@ struct CollectionDetailView: View {
                             .padding(.vertical, 3)
                             .background(
                                 Capsule()
-                                    .fill(thematicColor.opacity(0.7))
+                                    .fill(thematicColor(for: collection!).opacity(0.7))
                             )
                     }
 
@@ -447,22 +503,22 @@ struct CollectionDetailView: View {
 
     // MARK: - About Tab
 
-    private var aboutTab: some View {
+    private func aboutTab(for currentCollection: StoryCollection) -> some View { // Changed to take parameter
         VStack(alignment: .leading, spacing: 16) {
             aboutSection(
                 title: "Description",
-                content: collection.descriptionText
+                content: currentCollection.descriptionText
             )
 
             aboutSection(
                 title: "Growth Benefits",
-                content: growthBenefitsText()
+                content: growthBenefitsText(for: currentCollection)
             )
 
             aboutSection(
                 title: "Recommended Age",
                 content:
-                    "This collection is designed for children in the \(ageGroupDisplay) age range. The vocabulary and concepts are tailored to be engaging and developmentally appropriate."
+                    "This collection is designed for children in the \(ageGroupDisplay(for: currentCollection)) age range. The vocabulary and concepts are tailored to be engaging and developmentally appropriate."
             )
 
             aboutSection(
@@ -502,8 +558,8 @@ struct CollectionDetailView: View {
     }
 
     // Helper to generate growth benefits based on category
-    private func growthBenefitsText() -> String {
-        switch collection.category {
+    private func growthBenefitsText(for currentCollection: StoryCollection) -> String {
+        switch currentCollection.category {
         case "emotionalIntelligence":
             return
                 "These stories help children identify, understand and manage emotions in themselves and others. They build empathy and emotional vocabulary."
@@ -533,7 +589,7 @@ struct CollectionDetailView: View {
 
     // MARK: - Achievements Tab
 
-    private var achievementsTab: some View {
+    private func achievementsTab(for currentCollection: StoryCollection) -> some View { // Changed to take parameter
         VStack(spacing: 16) {
             if isLoadingAchievements {
                 ProgressView()
@@ -662,61 +718,83 @@ struct CollectionDetailView: View {
 
     // MARK: - Data Loading
 
-    private func loadAchievements() async {
+    private func loadAchievements(for currentCollection: StoryCollection) async { // Changed to take parameter
+        guard !isLoadingAchievements else { return }
         isLoadingAchievements = true
-        defer { isLoadingAchievements = false }
-
-        guard let stories = collection.stories, !stories.isEmpty else {
-            achievements = []
-            return
-        }
-
-        var all: [AchievementModel] = []
-        for story in stories {
-            if let storyId = getStoryId(from: story) {
-                if let modelContext = getModelContext(from: story) {
-                    let repo = AchievementRepository(modelContext: modelContext)
-                    if let storyAchievements = try? await repo.fetchAchievements(for: storyId) {
-                        all.append(contentsOf: storyAchievements)
-                    }
-                }
-            }
-        }
-
-        // Filter to only show growth path progress achievements
-        achievements = all.filter { $0.type == .growthPathProgress }
-    }
-
-    private func getStoryId(from story: Story) -> UUID? {
-        return story.id
-    }
-
-    private func getModelContext(from story: Story) -> ModelContext? {
-        if let mirror = Mirror(reflecting: story).children.first(where: {
-            $0.label == "modelContext"
-        }) {
-            return mirror.value as? ModelContext
-        }
-        return nil
+        // Replace with actual achievement fetching logic based on currentCollection.id or similar
+        // Example: self.achievements = await achievementService.fetchAchievements(forCollectionID: currentCollection.id)
+        try? await Task.sleep(nanoseconds: 1_000_000_000) // Simulate network
+        let mockAchievements = [
+            AchievementModel(
+                id: UUID(),
+                name: "First Steps in \(currentCollection.title)",
+                achievementDescription: "Completed 1 story.",
+                type: .storiesCompleted,
+                earnedAt: Date(),
+                iconName: "figure.walk"
+            ),
+            AchievementModel(
+                id: UUID(),
+                name: "Explorer of \(currentCollection.title)",
+                achievementDescription: "Completed 3 stories.",
+                type: .storiesCompleted,
+                earnedAt: nil,
+                iconName: "map.fill"
+            ),
+        ]
+        self.achievements = mockAchievements
+        isLoadingAchievements = false
     }
 }
 
 #Preview {
-    NavigationStack {
-        CollectionDetailView(
-            collection: {
-                let collection = StoryCollection(
-                    title: "Emotional Growth Adventures",
-                    descriptionText:
-                        "Help your child develop emotional intelligence through engaging stories that teach empathy and understanding.",
-                    category: "emotionalIntelligence",
-                    ageGroup: "preschool",
-                    stories: Array(repeating: Story.previewStory(), count: 5),
-                    createdAt: Date(),
-                    updatedAt: Date()
-                )
-                collection.completionProgress = 0.6
-                return collection
-            }())
+    // For preview, we need to provide AppRouter and other necessary environment objects
+    let previewCollection: StoryCollection = {
+        let collection = StoryCollection(
+            title: "Emotional Growth Adventures",
+            descriptionText:
+                "Help your child develop emotional intelligence through engaging stories that teach empathy and understanding.",
+            category: "emotionalIntelligence",
+            ageGroup: "preschool",
+            stories: Array(repeating: Story.previewStory(), count: 5),
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+        collection.completionProgress = 0.6
+        return collection
+    }()
+
+    // Mock services for preview
+    let mockCollectionService: CollectionService = {
+        let modelContext: ModelContext = {
+            do {
+                let schema = Schema([StoryCollection.self, Story.self, Page.self, AchievementModel.self])
+                let config = ModelConfiguration(isStoredInMemoryOnly: true)
+                return try ModelContext(ModelContainer(for: schema, configurations: [config]))
+            } catch {
+                fatalError("Failed to create ModelContext/ModelContainer: \(error)")
+            }
+        }()
+        let repository = MockCollectionRepository() // Assuming MockCollectionRepository exists or is created
+        repository.collections[previewCollection.id] = previewCollection
+        
+        let storyService: MockStoryService
+        do {
+            storyService = try MockStoryService(context: modelContext)
+        } catch {
+            fatalError("Failed to initialize MockStoryService: \(error)")
+        }
+        let achievementRepository = AchievementRepository(modelContext: modelContext)
+        return CollectionService(
+            repository: repository, storyService: storyService,
+            achievementRepository: achievementRepository)
+    }()
+    
+    let appRouter = AppRouter()
+
+    return NavigationStack { // Preview still needs a NavStack if the view itself doesn't provide one
+        CollectionDetailView(previewCollection: previewCollection)
+            .environmentObject(mockCollectionService)
+            .environmentObject(appRouter)
     }
 }

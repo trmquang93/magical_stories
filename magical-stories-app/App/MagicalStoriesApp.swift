@@ -12,10 +12,12 @@ struct MagicalStoriesApp: App {
     @StateObject private var persistenceService: PersistenceService
     @StateObject private var illustrationService: IllustrationService
     @StateObject private var illustrationTaskManager: IllustrationTaskManager
+    @StateObject private var appRouter: AppRouter // Add AppRouter
     private let container: ModelContainer
 
     // Initialization to handle dependencies between services
     init() {
+        let router = AppRouter() // Initialize AppRouter
         // Initialize SwiftData container with schema
         let container: ModelContainer
         do {
@@ -77,6 +79,7 @@ struct MagicalStoriesApp: App {
         _persistenceService = StateObject(wrappedValue: persistenceService)
         _illustrationService = StateObject(wrappedValue: illustration)
         _illustrationTaskManager = StateObject(wrappedValue: taskManager)
+        _appRouter = StateObject(wrappedValue: router) // Assign AppRouter
 
         // Store container for environment injection
         self.container = container
@@ -92,6 +95,7 @@ struct MagicalStoriesApp: App {
                 .environmentObject(persistenceService)
                 .environmentObject(illustrationService)
                 .environmentObject(illustrationTaskManager)
+                .environmentObject(appRouter) // Inject AppRouter
                 .modelContainer(container)
         }
     }

@@ -6,6 +6,10 @@ import SwiftData
 
 /// In-memory mock for PersistenceServiceProtocol.
 class MockPersistenceService: ObservableObject, PersistenceServiceProtocol {
+    func fetchStory(withId id: UUID) async throws -> Story? {
+      return nil  
+    }
+
     var storiesToLoad: [Story] = []
     var savedStories: [Story] = []
     var deletedStoryIds: [UUID] = []

@@ -5,6 +5,7 @@ import SwiftUI
 /// Main settings view for the application
 struct SettingsView: View {
     @EnvironmentObject private var settingsService: SettingsService
+    @EnvironmentObject private var appRouter: AppRouter // Inject AppRouter
     @Environment(\.colorScheme) private var colorScheme
 
     // User profile settings
@@ -25,32 +26,33 @@ struct SettingsView: View {
     @State private var selectedThemes: Set<StoryTheme> = Set(StoryTheme.allCases)
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                UITheme.Colors.background.ignoresSafeArea()
-                
-                ScrollView {
-                    VStack(spacing: UITheme.Spacing.lg) {
-                        ProfileCard(childName: $childName)
-                        
-                        ParentalControlsCard(
-                            contentFiltering: $contentFiltering,
-                            screenTimeEnabled: $screenTimeEnabled,
-                            maxStoriesPerDay: $maxStoriesPerDay,
-                            minimumAge: $minimumAge,
-                            maximumAge: $maximumAge,
-                            selectedThemes: $selectedThemes
-                        )
-                        
-                        AboutCard()
-                    }
-                    .padding(.horizontal, UITheme.Spacing.lg)
-                    .padding(.vertical, UITheme.Spacing.xl)
+        // NavigationStack is now managed by MainTabView
+        ZStack {
+            UITheme.Colors.background.ignoresSafeArea()
+            
+            ScrollView {
+                VStack(spacing: UITheme.Spacing.lg) {
+                    ProfileCard(childName: $childName)
+                    
+                    ParentalControlsCard(
+                        contentFiltering: $contentFiltering,
+                        screenTimeEnabled: $screenTimeEnabled,
+                        maxStoriesPerDay: $maxStoriesPerDay,
+                        minimumAge: $minimumAge,
+                        maximumAge: $maximumAge,
+                        selectedThemes: $selectedThemes
+                    )
+                    // ParentalControlsCard will use appRouter for its NavigationLink
+                    
+                    AboutCard()
                 }
+                .padding(.horizontal, UITheme.Spacing.lg)
+                .padding(.vertical, UITheme.Spacing.xl)
             }
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.large)
-            .onAppear {
+        }
+        .navigationTitle("Settings") // This should still work
+        .navigationBarTitleDisplayMode(.large) // This should still work
+        .onAppear {
                 // Load all settings when view appears
                 loadAllSettings()
             }
@@ -58,8 +60,9 @@ struct SettingsView: View {
                 // Refresh dark mode setting when system appearance changes
                 isDarkMode = settingsService.appSettings.darkModeEnabled
             }
-        }
-    }
+        // Removed the extra closing brace for body here, it's part of the ZStack block
+    } // This brace closes ZStack.
+    // The body var's closing brace is the one after the ZStack.
     
     // MARK: - Helper Methods
     
@@ -82,7 +85,7 @@ struct SettingsView: View {
         // Load child name from user defaults
         childName = UserDefaults.standard.string(forKey: "childName") ?? ""
     }
-}
+} // This brace correctly closes struct SettingsView
 
 // MARK: - Preview Helpers
 // Break down the preview setup into smaller functions to help the compiler with type checking
@@ -118,10 +121,15 @@ private func createPreviewModelContainer() -> ModelContainer {
 @MainActor  // Mark this function as running on the main actor
 private func createPreviewView(container: ModelContainer) -> some View {
     let settingsService = createSettingsService(container: container)
+    let appRouter = AppRouter() // For preview
 
-    return SettingsView()
-        .modelContainer(container)
-        .environmentObject(settingsService)
+    // NavigationStack for preview purposes
+    return NavigationStack {
+        SettingsView()
+            .modelContainer(container)
+            .environmentObject(settingsService)
+            .environmentObject(appRouter) // Provide AppRouter for preview
+    }
 }
 
 // Helper function to create settings service
