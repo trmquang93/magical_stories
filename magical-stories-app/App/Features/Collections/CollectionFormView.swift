@@ -114,7 +114,6 @@ struct CollectionFormView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(action: {
-                    UIApplication.shared.dismissKeyboard()
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         dismiss()
                     }
@@ -148,9 +147,6 @@ struct CollectionFormView: View {
                             ? Color(hex: "#7B61FF")
                             : Color(hex: "#a78bfa"))
             }
-
-            // Keyboard toolbar
-            KeyboardToolbar()
         }
         .alert(
             "Error Creating Collection", isPresented: $showErrorAlert,
@@ -179,14 +175,10 @@ struct CollectionFormView: View {
                 animateBackground = true
             }
         }
-        .adaptToKeyboard()
     }
 
     // Function to handle collection generation
     private func generateCollection() async {
-        // Dismiss the keyboard
-        UIApplication.shared.dismissKeyboard()
-
         // Validation check remains the same
         guard isInterestsValid else {
             errorMessage = "Please enter the child's interests."

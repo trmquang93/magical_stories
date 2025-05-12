@@ -53,7 +53,6 @@ struct StoryFormView: View {
             .navigationTitle("Create Story")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
-            .toolbar { keyboardToolbar }
             .overlay {
                 if isGenerating {
                     LoadingOverlayView(
@@ -73,7 +72,6 @@ struct StoryFormView: View {
         }
         .accentColor(Color(hex: "#7B61FF"))
         .onAppear { withAnimation { animateBackground = true } }
-        .adaptToKeyboard()
     }
 
     // MARK: - View Components
@@ -129,7 +127,6 @@ struct StoryFormView: View {
         Group {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
-                    UIApplication.shared.dismissKeyboard()
                     dismiss()
                 } label: {
                     ZStack {
@@ -160,12 +157,6 @@ struct StoryFormView: View {
         }
     }
 
-    private var keyboardToolbar: some ToolbarContent {
-        KeyboardToolbar {
-            // Optional action when Done is tapped
-        }
-    }
-
     private var errorAlertButtons: some View {
         VStack {
             Button {
@@ -184,7 +175,6 @@ struct StoryFormView: View {
     // MARK: - Helper Functions
     private func generateStory() {
         // Dismiss keyboard first
-        UIApplication.shared.dismissKeyboard()
 
         // Convert age range string to an approximate integer age
         let estimatedAge: Int

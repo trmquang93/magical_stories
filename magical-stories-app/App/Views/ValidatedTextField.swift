@@ -130,5 +130,4 @@ struct ValidatedTextField: View {
         )
     }
     .padding()
-    .adaptToKeyboard()
 }
