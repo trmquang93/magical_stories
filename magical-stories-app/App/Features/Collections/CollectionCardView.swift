@@ -91,7 +91,7 @@ struct CollectionCardView: View {
                 .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressing)
 
             // Content with clean layout
-            VStack(alignment: .leading, spacing: UITheme.Spacing.md) {
+            VStack(alignment: .leading) {
                 // Top section with aligned icon and badge
                 HStack(alignment: .center) {
                     // Minimal icon with thematic background
@@ -159,7 +159,7 @@ struct CollectionCardView: View {
                 // Progress section with clean visuals
                 if collection.stories?.isEmpty == false {
                     VStack(alignment: .leading, spacing: UITheme.Spacing.xs) {
-                        // Progress indicator with text
+                        // Progress indicator with text - use smaller vertical spacing when completed
                         HStack {
                             Text("Progress")
                                 .font(UITheme.Typography.bodySmall.weight(.medium))
@@ -173,6 +173,8 @@ struct CollectionCardView: View {
                         }
                         .opacity(animateProgress ? 1 : 0)
                         .animation(.easeIn.delay(0.6), value: animateProgress)
+                        // Apply less vertical padding when collection is completed
+                        .padding(.bottom, collection.completionProgress >= 1.0 ? 0 : UITheme.Spacing.xxs)
 
                         // Clean, elegant progress bar
                         GeometryReader { geometry in
@@ -199,22 +201,26 @@ struct CollectionCardView: View {
                         .opacity(animateProgress ? 1 : 0)
                         .animation(.easeIn.delay(0.5), value: animateProgress)
                     }
+                    // Reduce bottom spacing when collection is completed to make room for the indicator
+                    .padding(.bottom, collection.completionProgress >= 1.0 ? UITheme.Spacing.xxs : UITheme.Spacing.xs)
                 }
 
                 // Minimal completion indicator
                 if collection.completionProgress >= 1.0 {
-                    HStack(spacing: UITheme.Spacing.xs) {
+                    HStack(spacing: UITheme.Spacing.xxs) { // Reduce spacing between icon and text
                         // Subtle checkmark indicator
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(thematicColor)
-                            .font(.system(size: 16))
+                            .font(.system(size: 14)) // Slightly smaller icon
 
                         Text("Collection Completed")
                             .font(UITheme.Typography.bodySmall.weight(.medium))
                             .foregroundStyle(thematicColor)
+                            .lineLimit(1) // Ensure text doesn't wrap
+                            .minimumScaleFactor(0.9) // Allow slight scaling if needed
                     }
                     .padding(.vertical, UITheme.Spacing.xxs)
-                    .padding(.horizontal, UITheme.Spacing.sm)
+                    .padding(.horizontal, UITheme.Spacing.xs) // Reduce horizontal padding
                     .background(
                         RoundedRectangle(cornerRadius: UITheme.Layout.cornerRadiusSmall)
                             .fill(thematicColor.opacity(0.1))
