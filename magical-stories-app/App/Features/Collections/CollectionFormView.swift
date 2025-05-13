@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import KeyboardAvoider
 
 enum DevelopmentalFocus: String, CaseIterable, Identifiable {
     case emotionalIntelligence = "Emotional Intelligence"
@@ -62,7 +63,7 @@ struct CollectionFormView: View {
                 .ignoresSafeArea()
 
             // Form content
-            ScrollView {
+            KeyboardAvoider {
                 VStack(alignment: .leading, spacing: UITheme.Spacing.lg) {
                     CollectionFormHeader(
                         title: "Create Growth Collection",
@@ -179,6 +180,8 @@ struct CollectionFormView: View {
 
     // Function to handle collection generation
     private func generateCollection() async {
+        // Keyboard is automatically dismissed by KeyboardAvoider
+        
         // Validation check remains the same
         guard isInterestsValid else {
             errorMessage = "Please enter the child's interests."

@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import KeyboardAvoider
 
 struct StoryFormView: View {
     @Environment(\.dismiss) private var dismiss
@@ -92,13 +93,14 @@ struct StoryFormView: View {
     }
 
     private var formContentView: some View {
-        ScrollView {
+        KeyboardAvoider {
             VStack(alignment: .leading, spacing: UITheme.Spacing.lg) {
                 FormHeader(animateBackground: $animateBackground)
                 formFieldsView
             }
             .padding(.top, UITheme.Spacing.md)
         }
+        .accessibilityIdentifier("formContentView")
     }
 
     private var formFieldsView: some View {
@@ -174,8 +176,8 @@ struct StoryFormView: View {
 
     // MARK: - Helper Functions
     private func generateStory() {
-        // Dismiss keyboard first
-
+        // Keyboard is automatically dismissed by KeyboardAvoider
+        
         // Convert age range string to an approximate integer age
         let estimatedAge: Int
         let components = selectedAgeRange.split(separator: "-").compactMap { Int($0) }
