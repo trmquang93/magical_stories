@@ -9,7 +9,7 @@ then
     echo "xcbeautify could not be found. Please install it using 'brew install xcbeautify'."
     exit 1
 fi
-if [ -n "$1" ]; then
+if [ -n "$1" ]; then # ./run_tests.sh TestTarget/TestClass(TestSuite)
   echo "Running only test(s): $1"
   xcodebuild test \
     -scheme magical-stories \

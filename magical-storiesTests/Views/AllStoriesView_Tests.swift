@@ -13,7 +13,7 @@ struct AllStoriesView_Tests {
     } else {
       return stories.filter { story in
         story.title.localizedCaseInsensitiveContains(searchText)
-          || story.parameters.childName.localizedCaseInsensitiveContains(searchText)
+          || story.parameters.childName?.localizedCaseInsensitiveContains(searchText) == true
           || story.parameters.theme.localizedCaseInsensitiveContains(searchText)
       }
     }

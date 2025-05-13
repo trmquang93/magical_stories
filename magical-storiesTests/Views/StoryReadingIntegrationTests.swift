@@ -149,7 +149,10 @@ struct StoryReadingIntegrationTests {
 }
 
 // Mock services for testing
-class MockPersistenceService: PersistenceServiceProtocol {
+// We use the fixed MockPersistenceService_Fixed.swift that properly implements PersistenceServiceProtocol
+// This stub is kept here for backward compatibility
+@available(*, deprecated, message: "Use MockPersistenceService_Fixed instead")
+class MockPersistenceServiceStub {
     var readCounts: [UUID: Int] = [:]
     var lastReadTimes: [UUID: Date] = [:]
     var incrementedStoryId: UUID?
@@ -165,7 +168,7 @@ class MockPersistenceService: PersistenceServiceProtocol {
         storyToSave = story
         savedStories.append(story)
     }
-
+    
     func saveStories(_ stories: [Story]) async throws {
         savedStories = stories
     }

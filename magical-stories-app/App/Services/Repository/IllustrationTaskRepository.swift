@@ -123,10 +123,13 @@ class IllustrationTaskRepository: IllustrationTaskRepositoryProtocol {
     func getAllPendingTasks() throws -> [PendingIllustrationTask] {
         let pendingStatus = IllustrationStatus.pending.rawValue
         let generatingStatus = IllustrationStatus.generating.rawValue
+        let scheduledStatus = IllustrationStatus.scheduled.rawValue
         
         let descriptor = FetchDescriptor<PendingIllustrationTask>(
             predicate: #Predicate<PendingIllustrationTask> { task in
-                task.statusRawValue == pendingStatus || task.statusRawValue == generatingStatus
+                task.statusRawValue == pendingStatus || 
+                task.statusRawValue == generatingStatus ||
+                task.statusRawValue == scheduledStatus
             },
             sortBy: [SortDescriptor(\.priorityRawValue, order: .forward)]
         )
@@ -219,10 +222,14 @@ class IllustrationTaskRepository: IllustrationTaskRepositoryProtocol {
     func restoreTasksToManager(_ manager: IllustrationTaskManager) async throws -> Int {
         let pendingStatus = IllustrationStatus.pending.rawValue
         let scheduledStatus = IllustrationStatus.scheduled.rawValue
+        let generatingStatus = IllustrationStatus.generating.rawValue
         
+        // Find tasks that are in pending, scheduled or generating status
         let descriptor = FetchDescriptor<PendingIllustrationTask>(
             predicate: #Predicate<PendingIllustrationTask> { task in
-                task.statusRawValue == pendingStatus || task.statusRawValue == scheduledStatus
+                task.statusRawValue == pendingStatus || 
+                task.statusRawValue == scheduledStatus ||
+                task.statusRawValue == generatingStatus
             },
             sortBy: [SortDescriptor(\.priorityRawValue, order: .forward)]
         )
@@ -231,10 +238,23 @@ class IllustrationTaskRepository: IllustrationTaskRepositoryProtocol {
         var restoredCount = 0
         
         for persistentTask in tasks {
+            // Reset any task that was in 'scheduled' or 'generating' state back to 'pending'
+            // when app restarts, since these are intermediate states that should not persist
+            // across app restarts
+            if persistentTask.status == .scheduled || persistentTask.status == .generating {
+                let oldStatus = persistentTask.status
+                persistentTask.status = .pending
+                logger.debug("Reset task \(persistentTask.id.uuidString) from \(oldStatus.rawValue) to pending")
+            }
+            
+            // Create runtime task from the persistent task (which will now be in pending state)
             let runtimeTask = persistentTask.toRuntimeTask()
             manager.addTask(runtimeTask)
             restoredCount += 1
         }
+        
+        // Save any status changes back to persistent storage
+        try modelContext.save()
         
         logger.debug("Restored \(restoredCount) tasks to the task manager")
         return restoredCount
