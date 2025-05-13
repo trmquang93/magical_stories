@@ -103,10 +103,11 @@ struct CollectionFormView: View {
                         }
                     )
                     .padding(.top, UITheme.Spacing.lg)
-                    .padding(.bottom, UITheme.Spacing.xxl)
+                    .padding(.bottom, UITheme.Spacing.xxl * 2) // Added extra bottom padding to prevent collapse
                 }
                 .padding(.horizontal, UITheme.Spacing.md)
             }
+            .ignoresSafeArea(.keyboard, edges: .bottom) // Ignoring bottom safe area for better keyboard handling
 
             // Loading overlay with animations
             CollectionLoadingOverlayView(isVisible: $isGenerating)

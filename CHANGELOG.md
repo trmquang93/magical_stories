@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Fixed keyboard handling in StoryFormView and CollectionFormView where the view content would collapse excessively when the keyboard first appears
+- Added extra bottom padding to form content to prevent disappearing during keyboard animations
+- Added `.ignoresSafeArea(.keyboard, edges: .bottom)` to improve keyboard handling
+- Added UI tests to verify keyboard handling fixes
+
 ### Removed
 - Permanently removed Text-to-Speech (TTS) functionality, including related code in services, protocols, and settings.
 

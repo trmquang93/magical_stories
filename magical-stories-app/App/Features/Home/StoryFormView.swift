@@ -99,7 +99,9 @@ struct StoryFormView: View {
                 formFieldsView
             }
             .padding(.top, UITheme.Spacing.md)
+            .padding(.bottom, UITheme.Spacing.xxl * 2) // Added extra bottom padding to prevent collapse
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom) // Ignoring bottom safe area for better keyboard handling
         .accessibilityIdentifier("formContentView")
     }
 
