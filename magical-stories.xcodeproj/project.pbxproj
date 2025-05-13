@@ -11,6 +11,7 @@
 		4D9B9F0B2DBF209700A5C0F7 /* ViewInspector in Frameworks */ = {isa = PBXBuildFile; productRef = 4D9B9F0A2DBF209700A5C0F7 /* ViewInspector */; };
 		4D9B9F0D2DBF209D00A5C0F7 /* ViewInspector in Frameworks */ = {isa = PBXBuildFile; productRef = 4D9B9F0C2DBF209D00A5C0F7 /* ViewInspector */; };
 		4DB1D39B2DB48E06001E9287 /* magical-stories.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 4DB1D39A2DB48E06001E9287 /* magical-stories.xctestplan */; };
+		4DB482AB2DD2F4DB0012F67A /* KeyboardAvoider in Frameworks */ = {isa = PBXBuildFile; productRef = 4DB482AA2DD2F4DB0012F67A /* KeyboardAvoider */; };
 		4DBDB0502DB0B7E100252B5A /* InlineSnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB04F2DB0B7E100252B5A /* InlineSnapshotTesting */; };
 		4DBDB0522DB0B7E100252B5A /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB0512DB0B7E100252B5A /* SnapshotTesting */; };
 		4DBDB0542DB0B7E100252B5A /* SnapshotTestingCustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB0532DB0B7E100252B5A /* SnapshotTestingCustomDump */; };
@@ -66,6 +67,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4DB482AB2DD2F4DB0012F67A /* KeyboardAvoider in Frameworks */,
 				4D33415F2DBA2D4C0067A4FE /* GoogleGenerativeAI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -145,6 +147,7 @@
 			name = "magical-stories";
 			packageProductDependencies = (
 				4D33415E2DBA2D4C0067A4FE /* GoogleGenerativeAI */,
+				4DB482AA2DD2F4DB0012F67A /* KeyboardAvoider */,
 			);
 			productName = "magical-stories";
 			productReference = 4DDF1B472D98B911005D882A /* magical-stories.app */;
@@ -240,6 +243,7 @@
 				4DBDB04E2DB0B7E100252B5A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 				4D33415D2DBA2D4C0067A4FE /* XCRemoteSwiftPackageReference "generative-ai-swift" */,
 				4D9B9F082DBF208800A5C0F7 /* XCRemoteSwiftPackageReference "ViewInspector" */,
+				4DB482A92DD2F4DB0012F67A /* XCRemoteSwiftPackageReference "KeyboardAvoider" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4DDF1B482D98B911005D882A /* Products */;
@@ -623,6 +627,14 @@
 				minimumVersion = 0.10.1;
 			};
 		};
+		4DB482A92DD2F4DB0012F67A /* XCRemoteSwiftPackageReference "KeyboardAvoider" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/michaelhenry/KeyboardAvoider.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.3;
+			};
+		};
 		4DBDB04E2DB0B7E100252B5A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing";
@@ -648,6 +660,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 4D9B9F082DBF208800A5C0F7 /* XCRemoteSwiftPackageReference "ViewInspector" */;
 			productName = ViewInspector;
+		};
+		4DB482AA2DD2F4DB0012F67A /* KeyboardAvoider */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4DB482A92DD2F4DB0012F67A /* XCRemoteSwiftPackageReference "KeyboardAvoider" */;
+			productName = KeyboardAvoider;
 		};
 		4DBDB04F2DB0B7E100252B5A /* InlineSnapshotTesting */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -154,3 +154,5 @@ TestResults*
 boomerang-tasks.md
 test_results.log
 crash_logs
+
+**/.claude/settings.local.json
