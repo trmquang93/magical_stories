@@ -176,14 +176,14 @@ struct HomeView: View {
                         // Use the global AppDestination enum
                         NavigationLink(value: AppDestination.collectionDetail(collectionID: collection.id)) {
                             CollectionCardView(collection: collection)
-                                .frame(width: 180)
+                                .frame(width: 180, height: 220)
                         }
                         .buttonStyle(PlainButtonStyle())  // Prevent blue tint on card
                     }
 
                     // Always show the Add card at the end - use it directly since it already contains a Button
                     AddCollectionCardView(action: { showingGrowthStoryForm = true })
-                        .frame(width: 180)  // Reduced from 220 to 180 for consistency
+                        .frame(width: 180, height: 220)  // Explicitly set both width and height for consistency
                 }
                 .padding(.horizontal, Spacing.lg)
             }

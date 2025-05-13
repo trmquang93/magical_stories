@@ -35,8 +35,8 @@ applyTo: '**'
 ## Testing Commands
 - **`run_tests.sh`:** Script for running all or targeted tests.
   - Run all tests: `./run_tests.sh`
-  - Run specific test file: `./run_tests.sh <TestTarget>/<TestSuiteName>` 
-  - Example: `./run_tests.sh magical-storiesTests/IllustrationTaskRecoveryTests`
+  - Run specific test file: `./run_tests.sh <TestSuiteName>` 
+  - Example: `./run_tests.sh IllustrationTaskRecoveryTests`
   - If TestSuiteName is not specified, it's assumed to be the same as the test class/struct
 
 ## Design System

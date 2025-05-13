@@ -227,7 +227,6 @@ struct CollectionCardView: View {
             }
             .padding(UITheme.Spacing.md)
         }
-        .aspectRatio(0.9, contentMode: .fit)
         .frame(minWidth: 140, maxWidth: 180)
         .onAppear {
             // Subtle, elegant animations
