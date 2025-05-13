@@ -94,5 +94,8 @@ Note: When triggered by **update memory bank**, I MUST review every memory bank 
 
 REMEMBER: After every memory reset, I begin completely fresh. The Memory Bank is my only link to previous work. It must be maintained with precision and clarity, as my effectiveness depends entirely on its accuracy.
 
-## Useful Commands
-- To run tests in a single file, use "./run_tests.sh <TestTarget>/<TestSuiteName>" if not specify, the suite name is the same as the test class/struct
+## Memory File Content Guidelines
+- This CLAUDE.md file should ONLY contain general information about memory structure and management
+- Project-specific technical details belong in their respective context files (e.g., techContext.instructions.md)
+- Tool usage, coding patterns, commands, and implementation details should NEVER be added to this file
+- When adding new information, always place it in the most appropriate context file based on its nature

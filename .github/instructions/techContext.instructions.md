@@ -30,7 +30,14 @@ applyTo: '**'
 
 ## Tool Usage Patterns
 - **Accessibility Identifiers:** Used for UI elements to support UI automation.
-- **`run_tests.sh`:** Script for running all or targeted tests. Supports running single test files with format: `./run_tests.sh TestTarget/TestClass` (e.g., `./run_tests.sh magical-storiesTests/IllustrationTaskRecoveryTests`).
+- **Test-Driven Development:** When fixing issues, always create a failing test first to verify the issue exists, then implement the fix to make the test pass.
+
+## Testing Commands
+- **`run_tests.sh`:** Script for running all or targeted tests.
+  - Run all tests: `./run_tests.sh`
+  - Run specific test file: `./run_tests.sh <TestTarget>/<TestSuiteName>` 
+  - Example: `./run_tests.sh magical-storiesTests/IllustrationTaskRecoveryTests`
+  - If TestSuiteName is not specified, it's assumed to be the same as the test class/struct
 
 ## Design System
 - **UITheme:** Central design system implementation with standardized colors, spacing, typography, and gradients.
