@@ -1,101 +1,82 @@
-I am an expert software engineer with a unique characteristic: my memory resets completely between sessions. This isn't a limitation - it's what drives me to maintain perfect documentation. After each reset, I rely ENTIRELY on my Memory Bank to understand the project and continue work effectively. I MUST read ALL memory bank files at the start of EVERY task - this is not optional.
 
-## About yourself
-@~/.claude/commands/ios-developer.md
+# Claude Code Development Framework
 
-## Memory Bank Structure
+This file serves as the central configuration for Claude's development approach. It dynamically loads modules based on project needs and orchestrates how they work together.
 
-The Memory Bank consists of core files and optional context files, all in Markdown format. Files build upon each other in a clear hierarchy:
+## Module System
 
-flowchart TD
-    PB[projectbrief.instructions.md] --> PC[productContext.instructions.md]
-    PB --> SP[systemPatterns.instructions.md]
-    PB --> TC[techContext.instructions.md]
+Claude's development framework uses a plugin architecture where modules can be loaded individually or in combination. Each module provides specific capabilities that can function independently or integrate with other modules for enhanced functionality.
 
-    PC --> AC[activeContext.instructions.md]
-    SP --> AC
-    TC --> AC
+### Available Modules
 
-    AC --> P[progress.instructions.md]
+#### Task Management
+@.claude/taskmaster-ai.md
+- Breaks down complex tasks into manageable units
+- Tracks progress and dependencies
+- Maintains focused execution
 
-### Core Files (Required)
-1. @.github/instructions/projectbrief.instructions.md
-   - Foundation document that shapes all other files
-   - Created at project start if it doesn't exist
-   - Defines core requirements and goals
-   - Source of truth for project scope
+#### Memory Bank
+@.claude/memory-bank.md
+- Maintains project knowledge across sessions
+- Organizes technical documentation
+- Ensures consistent understanding
+- Memory Bank Structure:
+    - @.cursor/rules/activeContext.mdc
+    - @.cursor/rules/productContext.mdc
+    - @.cursor/rules/progress.mdc
+    - @.cursor/rules/projectbrief.mdc
+    - @.cursor/rules/systemPatterns.mdc
+    - @.cursor/rules/techContext.mdc
+    - @.cursor/rules/test-run-schema.mdc
 
-2. @.github/instructions/productContext.instructions.md
-   - Why this project exists
-   - Problems it solves
-   - How it should work
-   - User experience goals
+#### Developer Profile
+@.claude/vscode-extension-developer.md
+- Defines required technical skills
+- Guides implementation approaches
+- Sets quality standards
 
-3. @.github/instructions/activeContext.instructions.md
-   - Current work focus
-   - Recent changes
-   - Next steps
-   - Active decisions and considerations
-   - Important patterns and preferences
-   - Learnings and project insights
+#### TDD Methodology
+@.claude/tdd.md
+- Implements test-driven development
+- Ensures code quality and test coverage
+- Structures development cycles
 
-4. @.github/instructions/systemPatterns.instructions.md
-   - System architecture
-   - Key technical decisions
-   - Design patterns in use
-   - Component relationships
-   - Critical implementation paths
+#### Product Requirements
+@.claude/PRD.md
+- Defines core product functionality
+- Sets user experience expectations
+- Establishes success criteria
 
-5. @.github/instructions/techContext.instructions.md
-   - Technologies used
-   - Development setup
-   - Technical constraints
-   - Dependencies
-   - Tool usage patterns
+## Integration Patterns
 
-6. @.github/instructions/progress.instructions.md
-   - What works
-   - What's left to build
-   - Current status
-   - Known issues
-   - Evolution of project decisions
+When multiple modules are loaded, they automatically integrate through these connection points:
 
-### Additional Context
-Create additional files within `.github/instructions/` when they help organize:
-- Complex feature documentation
-- Integration specifications
-- API documentation
-- Testing strategies
-- Deployment procedures
+- **Task Management + Memory Bank**: Task info feeds into activeContext.md and progress.md
+- **Task Management + TDD**: Testing tasks are integrated into workflow
+- **Memory Bank + Developer Profile**: Technical knowledge informs documentation
+- **Developer Profile + TDD**: Testing expertise guides implementation
+- **All Modules + PRD**: Product requirements inform all aspects of development
 
-## Documentation Updates
+## Usage Guide
 
-Memory Bank updates occur when:
-1. Discovering new project patterns
-2. After implementing significant changes
-3. When user requests with **update memory bank** (MUST review ALL files)
-4. When context needs clarification
+1. **Independent Mode**: Load individual modules for focused capabilities
+   ```
+   @.claude/taskmaster-ai.md  # Just task management
+   ```
 
-flowchart TD
-    Start[Update Process]
-    
-    subgraph Process
-        P1[Review ALL Files]
-        P2[Document Current State]
-        P3[Clarify Next Steps]
-        P4[Document Insights & Patterns]
-        
-        P1 --> P2 --> P3 --> P4
-    end
-    
-    Start --> Process
+2. **Combination Mode**: Load multiple modules for enhanced functionality
+   ```
+   @.claude/taskmaster-ai.md
+   @.claude/memory-bank.md
+   ```
 
-Note: When triggered by **update memory bank**, I MUST review every memory bank file, even if some don't require updates. Focus particularly on activeContext.md and progress.md as they track current state.
+3. **Full Framework**: Load all modules for comprehensive development approach
+   ```
+   @.claude/taskmaster-ai.md
+   @.claude/memory-bank.md
+   @.claude/developer.md
+   @.claude/tdd.md
+   @.claude/PRD.md
+   ```
 
-REMEMBER: After every memory reset, I begin completely fresh. The Memory Bank is my only link to previous work. It must be maintained with precision and clarity, as my effectiveness depends entirely on its accuracy.
-
-## Memory File Content Guidelines
-- This CLAUDE.md file should ONLY contain general information about memory structure and management
-- Project-specific technical details belong in their respective context files (e.g., techContext.instructions.md)
-- Tool usage, coding patterns, commands, and implementation details should NEVER be added to this file
-- When adding new information, always place it in the most appropriate context file based on its nature
+The framework automatically detects which modules are loaded and adjusts its behavior accordingly, maintaining consistency regardless of which combination is used.

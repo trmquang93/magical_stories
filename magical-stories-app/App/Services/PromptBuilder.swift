@@ -276,38 +276,56 @@ class PromptBuilder {
       1. Analyze the story content and select the single most appropriate category from this list:
       [\(categoriesList)]
 
-      2. For each page of your story (marked by "---" separators), create a detailed illustration description. Each description must be COMPLETELY SELF-CONTAINED with all necessary information:
+      2. Create a <visual_guide> section with comprehensive visual specifications:
+         
+         a. Create a <style_guide> that defines the overall artistic style (e.g., watercolor, cartoon, digital painting).
+         
+         b. For each key character, create a <character> entry with details:
+            * Physical appearance (height, body type, age, facial features, hair)
+            * Clothing with specific colors and styles
+            * Distinctive accessories or items
+         
+         c. For each important setting, create a <setting> entry with:
+            * Environment type and atmosphere
+            * Key landmarks or features that should remain consistent
+            * Color palette and lighting characteristics
+
+      3. For each page of your story (marked by "---" separators), create a detailed illustration description:
 
          CRITICAL REQUIREMENTS FOR EACH ILLUSTRATION DESCRIPTION:
-         - First, develop a clear VISUAL STYLE GUIDE with specific details for the entire story:
-           * Decide on exact character appearances (age, height, clothing colors/style, hair color/style, facial features)
-           * Choose consistent environment details (location style, color palette, lighting, key landmarks)
-         
-         - For EVERY illustration description, always include:
-           * FULL character details (exact appearance, clothing, hair, facial features) even if repeated
-           * Complete environment/setting descriptions
-           * Specific colors, lighting, and mood details
-           * Positioning of all elements in the scene
-           * Character expressions and actions
-         
-         - Make each description a complete, stand-alone prompt (250-400 characters)
-         - Use precise, detailed language focusing on visual elements
-         - Ensure each description contains everything needed to visualize the scene WITHOUT needing context from other pages
-         - Make descriptions suitable for a 16:9 landscape aspect ratio illustration
+         - Each description must be COMPLETELY SELF-CONTAINED with all necessary visual information
+         - Always reference the same character appearances defined in your visual guide
+         - Include complete setting details, specific colors, lighting, and mood
+         - Describe character positioning, expressions, and actions clearly
+         - Use precise, detailed language focusing on visual elements (400-800 characters)
+         - Design for a 16:9 landscape aspect ratio illustration
 
-      Return your response as XML with the following tags:
+      Return your response as XML with the following structure:
       <title>Your Story Title</title>
-      <content>Full story text with page breaks as before</content>
-      <category>Selected category name from the list above</category>
+      <visual_guide>
+          <style_guide>Example: Colorful watercolor style with soft edges and warm lighting</style_guide>
+          <character_definitions>
+              <character name="Character1">Complete physical description including appearance, clothing, and accessories</character>
+              <character name="Character2">Complete physical description including appearance, clothing, and accessories</character>
+          </character_definitions>
+          <setting_definitions>
+              <setting name="Setting1">Complete setting description with atmosphere, landmarks, and color palette</setting>
+              <setting name="Setting2">Complete setting description with atmosphere, landmarks, and color palette</setting>
+          </setting_definitions>
+      </visual_guide>
+      <content>Full story text with title and "---" page breaks as instructed</content>
+      <category>One category name from the provided list</category>
       <illustrations>
-        <illustration page="1">Complete, self-contained description for page 1 with ALL character/setting details</illustration>
-        <illustration page="2">Complete, self-contained description for page 2 with ALL character/setting details</illustration>
+        <illustration page="1">Self-contained description for page 1 scene with character positioning and actions</illustration>
+        <illustration page="2">Self-contained description for page 2 scene with character positioning and actions</illustration>
         <!-- Include one <illustration> tag for each page in your story -->
       </illustrations>
 
-      The <content> tag should contain the complete story text with title and page breaks as instructed earlier.
-      The <category> tag should be exactly one of the category names listed above, based on your analysis of the story content.
-      The <illustrations> section should contain one <illustration> tag for each page, with each description containing ALL necessary details for that illustration without requiring context from other pages.
+      IMPORTANT:
+      - The <visual_guide> section ensures consistent visuals across all illustrations
+      - Each <illustration> description should reference the elements defined in your visual guide
+      - Descriptions should be detailed enough to create a consistent illustration without context from other pages
+      - Maintain the same character appearances throughout all illustrations
       """
   }
 

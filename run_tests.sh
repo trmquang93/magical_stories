@@ -2,10 +2,23 @@
 # Usage:
 #   ./run_tests.sh                # Run all tests
 #   ./run_tests.sh TestSuite      # Run a specific test suite
+#   ./run_tests.sh --help         # Show this help message
 
 # Extract test suite name if provided
 TEST_SUITE_NAME=""
-if [ -n "$1" ] && [ "$1" != "--help" ] && [ "$1" != "-h" ]; then
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+  echo "Magical Stories Test Runner"
+  echo ""
+  echo "Usage:"
+  echo "  ./run_tests.sh                # Run all tests"
+  echo "  ./run_tests.sh TestSuite      # Run a specific test suite"
+  echo "  ./run_tests.sh --help         # Show this help message"
+  echo ""
+  echo "Examples:"
+  echo "  ./run_tests.sh StoryServiceTests     # Run only StoryServiceTests"
+  echo "  ./run_tests.sh CollectionService     # Run tests containing 'CollectionService'"
+  exit 0
+elif [ -n "$1" ]; then
   TEST_SUITE_NAME="$1"
   
   # Search for the test suite in the project
@@ -44,7 +57,7 @@ echo "Running tests..."
 destination='platform=iOS Simulator,name=iPhone 16 Pro,OS=18.3.1'
 if [ -n "$TEST_TARGET" ]; then
   # Run tests and save raw output, only log errors
-  xcodebuild test \
+  xcodebuild clean test \
     -scheme magical-stories \
     -configuration Debug \
     -destination "$destination" \
@@ -53,7 +66,7 @@ if [ -n "$TEST_TARGET" ]; then
     -only-testing:"$TEST_TARGET" > "$OUTPUT_FILE" 2> "$LOG_FILE"
 else
   # Run tests and save raw output, only log errors
-  xcodebuild test \
+  xcodebuild clean test \
     -scheme magical-stories \
     -configuration Debug \
     -destination "$destination" \
@@ -61,10 +74,31 @@ else
     -parallel-testing-enabled NO > "$OUTPUT_FILE" 2> "$LOG_FILE"
 fi
 
+# Capture the exit status right after xcodebuild
+BUILD_STATUS=$?
+
+# Display the log file on screen to help with debugging
+echo "------- Build log (first 1000 lines) --------"
+head -n 1000 "$LOG_FILE"
+echo "--------------------------------------------"
+
 # Check if there were build errors
-if grep -q "error:" "$LOG_FILE"; then
+BUILD_FAILED=false
+if grep -q "error:" "$LOG_FILE" || grep -q "error:" "$OUTPUT_FILE"; then
   echo -e "\n\033[1;31m=== BUILD ERRORS ===\033[0m"
-  grep -A 2 "error:" "$LOG_FILE"
+  grep -A 2 "error:" "$LOG_FILE" "$OUTPUT_FILE" 2>/dev/null
+  BUILD_FAILED=true
+fi
+
+# Check the xcodebuild exit status directly
+if [ $BUILD_STATUS -ne 0 ]; then
+  echo -e "\n\033[1;31mBuild or test execution failed with exit code $BUILD_STATUS\033[0m"
+  BUILD_FAILED=true
+fi
+
+# Exit if build failed
+if [ "$BUILD_FAILED" = true ]; then
+  echo "Build failed. Check the logs above for details."
   rm "$OUTPUT_FILE" "$LOG_FILE"
   exit 1
 fi

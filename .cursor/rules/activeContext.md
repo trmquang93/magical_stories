@@ -3,10 +3,37 @@ description:
 globs:
 alwaysApply: true
 ---
-# Active Context (as of 2025-05-01)
+# Active Context (as of 2025-05-16)
 
 ## Current Focus
-The primary focus remains on **finalizing the Growth Path Collections feature**. Core models, services, and UI are implemented, and comprehensive testing for the core service layer is now complete. Recent work involved implementing unit and integration tests for the CollectionService to verify all functionality and edge cases. The Collections tab integration has been verified, leaving UI/UX polish and documentation updates as the remaining tasks.
+The project has shifted focus to implementing a significant enhancement: the **Visual Consistency System** for story illustrations. This new feature adds structured visual guides to stories to ensure consistent character appearance, setting details, and art style across all illustrations in a story. This is happening alongside the ongoing finalization of the Growth Path Collections feature.
+
+### Visual Guide Implementation
+1. **VisualGuide Model** (`magical-stories-app/App/Models/VisualGuide.swift`):
+   - Holds style guide, character definitions, and setting definitions
+   - Provides formatting methods for inclusion in prompts
+
+2. **StoryService Enhancements**:
+   - Added XML extraction for visual guide information
+   - Passing visual guide to illustration generation process
+
+3. **PromptBuilder Updates**:
+   - Enhanced category selection guidelines to request structured visual guide information
+   - Added detailed requirements for character and setting consistency
+
+4. **IllustrationService Integration**:
+   - Updated to incorporate visual guide in prompt construction
+   - Enhanced prompt template to emphasize consistency requirements
+
+### Test Coverage for Visual Consistency
+1. **Unit Tests**:
+   - `VisualGuideTests` for model functionality
+   - `StoryService_VisualGuideTests` for XML parsing
+   - `PromptBuilder_VisualGuideTests` for prompt generation
+   - `IllustrationService_VisualGuideTests` for prompt incorporation
+
+2. **Integration Tests**:
+   - `IllustrationConsistencyIntegrationTests` - end-to-end verification of the consistency system
 
 ### Recent Model & Service Enhancements
 - **Story Model:** Now includes `categoryName` (AI-assigned, e.g., Fantasy, Animals, Bedtime, Adventure) and supports robust relationships with collections and pages.
@@ -38,19 +65,27 @@ The primary focus remains on **finalizing the Growth Path Collections feature**.
 - ✅ Progress tracking and achievement creation implemented
 - ✅ Collections tab fully integrated in `MainTabView`
 - ✅ Comprehensive unit and integration tests for CollectionService completed
+- ✅ Test runner script enhanced to support targeted test execution
+- ✅ Visual Guide model implemented with character and setting definitions
 
 ### Outstanding Tasks
+- Complete Visual Consistency System testing
 - Optimize performance for collections with large numbers of stories
 - Polish UI/UX for all collection views, ensuring accessibility and feedback
 - Add animations and haptic feedback for improved user experience
 - Update all relevant documentation and Memory Bank
 
-## Next Steps
-- Complete T7.3 (performance optimization)
-- Proceed with T8 (UI/UX polish, accessibility, animations)
-- Complete T9 (documentation updates)
-
 ## Recent Updates
+
+### [Update 2025-05-16] Visual Consistency System Implementation
+- Implemented new `VisualGuide` model to structure character and setting appearance information
+- Enhanced XML format to include detailed visual guide section with style guide, character and setting definitions
+- Updated `StoryService` to extract visual guide information during XML parsing
+- Modified `IllustrationService` to incorporate visual guide details in prompts
+- Created comprehensive test suite including unit tests and integration tests
+- Added detailed technical documentation in `documents/technical/illustration-consistency-system.md`
+- Improved test runner script with better support for targeted test execution
+
 ### [Update 2025-05-01] CollectionService Testing Completed
 - Implemented comprehensive unit tests for all key `CollectionService` methods:
   - `updateCollectionProgressBasedOnReadCount`: Tests verify accurate calculation of progress based on story completion status.

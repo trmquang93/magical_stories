@@ -111,10 +111,31 @@ The application primarily follows the **MVVM (Model-View-ViewModel)** pattern wi
     * **Services:** Implement business logic, utilizing repositories for data access.
     * This pattern is consistently applied across different features (stories, collections, settings).
 
+13. **Visual Consistency System Pattern:**
+    * **Core Components:**
+        * **VisualGuide Model:** Encapsulates style guidelines, character definitions, and setting information.
+        * **XML Format Enhancement:** Stories include a `<visual_guide>` section with standardized elements.
+        * **Extraction Process:** `StoryService` parses XML to retrieve visual guide information.
+        * **Prompt Integration:** `IllustrationService` incorporates visual guide details in prompts.
+    * **Data Flow:**
+        1. PromptBuilder requests structured visual guide in AI generation prompt.
+        2. StoryService extracts the guide during XML parsing.
+        3. IllustrationCoordinator passes the guide to illustration generation.
+        4. IllustrationService incorporates the guide in each illustration prompt.
+    * **Benefits:**
+        * Consistent character appearance and setting representation.
+        * No additional API calls required for visual reference.
+        * Clear separation of concerns with well-defined responsibilities.
+    * **Testing Approach:**
+        * Unit tests for individual components (model, extraction, prompt integration).
+        * End-to-end integration test that verifies the complete flow.
+        * Mocked responses and in-memory test environment for isolation.
+
 ## Current Architecture Notes
 - The system leverages standard SwiftUI patterns and MVVM concepts.
 - Key additions include Growth Collections and StoreKit monetization.
 - `TextToSpeechService` remains removed.
 - Comprehensive testing strategy for services ensures reliability and maintainability.
+- The Visual Consistency System enhances illustration quality without requiring complex client-side processing.
 
 *Note: For implementation status and feature details, please refer to progress.md.*

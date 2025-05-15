@@ -3,9 +3,20 @@ description:
 globs:
 alwaysApply: true
 ---
-# Project Progress: Magical Stories (as of 2025-05-01)
+# Project Progress: Magical Stories (as of 2025-05-16)
 
 ## Recent Updates
+
+### 2025-05-16
+- **Visual Consistency System Implementation:** Added a comprehensive system to ensure consistent character appearance and setting details across story illustrations:
+  - Created new `VisualGuide` model with style guide, character definitions, and setting definitions properties.
+  - Enhanced XML structure in story generation to include a detailed `<visual_guide>` section.
+  - Implemented XML parsing in `StoryService` to extract visual guide information.
+  - Updated `IllustrationService` to incorporate visual guide details in prompts.
+  - Added extensive test suite including `VisualGuideTests`, `StoryService_VisualGuideTests`, `PromptBuilder_VisualGuideTests`, and `IllustrationService_VisualGuideTests`.
+  - Created end-to-end validation with `IllustrationConsistencyIntegrationTests`.
+  - Added detailed technical documentation in `documents/technical/illustration-consistency-system.md`.
+  - Significantly improved the run_tests.sh script with better support for targeted test execution.
 
 ### 2025-05-01
 - **CollectionService Testing Completed:** Implemented comprehensive unit tests and integration tests for the Growth Collections feature:
@@ -60,9 +71,10 @@ alwaysApply: true
     -   All tests passing with fixed build errors and test failures.
 -   **Core Models:** Standardized core data models (`StoryModel`, `PageModel`, `StoryCollection`, `GrowthCategory`).
 -   **Persistence:** Fully integrated **SwiftData** as the primary persistence layer. Legacy UserDefaults migration code and tests have been removed.
--   **Illustration Generation (Fully Implemented & Integrated):**
+-   **Illustration Generation (Fully Implemented & Enhanced with Visual Consistency):**
     *   Uses **direct REST API calls** to Google's Generative AI endpoint.
     *   Constructs **detailed prompts** with constraints.
+    *   Now incorporates **visual guides** with character and setting details for consistent illustrations.
     *   Implements **retry logic** and **comprehensive error handling**.
     *   Saves generated images to **persistent app storage**.
     *   Logs errors via `AIErrorManager`.
@@ -95,7 +107,36 @@ alwaysApply: true
         - Achievements: Achievements are now persisted on collection completion and displayed in the UI.
         - Testing: Comprehensive unit and integration tests exist for core flows
 
+-   **Visual Consistency System for Illustrations (NEW):**
+    *   **Purpose:** Ensures consistent character appearance, setting details, and art style across all illustrations in a story.
+    *   **Components:**
+        - **VisualGuide Model:** Centralized structure for style, character, and setting information.
+        - **Enhanced XML:** Stories now include a `<visual_guide>` section with comprehensive definitions.
+        - **StoryService Integration:** Extracts visual guide during XML parsing.
+        - **IllustrationService Enhancement:** Incorporates visual guide in prompts for consistent illustrations.
+        - **Comprehensive Testing:** Unit tests and end-to-end integration tests validate the system.
+    *   **How It Works:**
+        1. **Request Guide in Prompt:** `PromptBuilder` instructs AI to include visual specifications.
+        2. **Extract from Story:** `StoryService` parses XML for visual guide information.
+        3. **Pass to Illustration Process:** Visual guide is provided to `IllustrationService`.
+        4. **Incorporate in Prompts:** Each illustration prompt includes the same visual reference.
+        5. **Consistent Output:** AI generates illustrations with consistent character appearance.
+    *   **Benefits:**
+        - Improved visual consistency across all story illustrations.
+        - Enhanced user experience with cohesive story visuals.
+        - No additional API calls or complex post-processing required.
+
 ## Recently Completed
+
+**Visual Consistency System Implementation (Complete - 2025-05-16)**
+- Implemented `VisualGuide` model to structure appearance information for characters and settings
+- Enhanced XML format in story generation to include detailed visual guide section
+- Updated `StoryService` to extract visual guide during XML parsing
+- Modified `PromptBuilder` to request structured visual guide information
+- Updated `IllustrationService` to incorporate visual guide in prompts
+- Created comprehensive test suite including unit tests for all components
+- Added end-to-end integration test to validate the complete flow
+- Created detailed technical documentation explaining the system
 
 **T7.1: Collection Service Testing (Complete - 2025-05-01)**
 - Implemented comprehensive unit tests for all key `CollectionService` methods:
@@ -130,76 +171,24 @@ alwaysApply: true
 - Enhanced `StoryService`'s internal `PromptBuilder` to utilize these new parameters, generating prompts designed for developmentally richer story content.
 - Updated relevant Memory Bank documentation (`productContext.md`, `systemPatterns.md`, `progress.md`).
 
-**T1: Finalize `CollectionsListView` Integration (Complete)**
-- Refactored `CollectionsListView` and `CollectionCardView` for clarity, accessibility, and future integration.
-- Ensured `.navigationDestination(for: StoryCollection.self)` is present in `CollectionsListView`'s `NavigationStack`.
-- Created `CollectionsListView_Tests.swift` for basic test coverage (limited by SwiftUI testing constraints).
-- Documented that `CollectionsListView` is not yet integrated into the main UI; the collections list is still rendered in `HomeView`.
-- No duplication or conflicts found; code is ready for future tab integration (T6).
-
-**T2: Refactor and Enhance `CollectionDetailView` (Complete)**
-- Refactored state management from `@State` to `@Bindable` for better SwiftData integration.
-- Removed deprecated `toggleStoryCompletion` function and button.
-- Updated UI to use `Story.isCompleted` for completion status.
-- Added `storyRow` helper function to resolve type-checking performance issues.
-- Added `.navigationDestination(for: Story.self)` with placeholder for StoryDetailView.
-- Created `CollectionDetailView_Tests.swift` with model state validation tests.
-- Tests verify collection data, progress values, and state updates (UI-specific tests deferred to UI test suite).
-
-**T3: Enhance `CollectionService` Logic (Complete)**
-- Implemented `generateStoriesForCollection` logic: generates multiple stories with varied themes, associates them with the collection, and persists them using the repository and `StoryService`.
-- Implemented `updateCollectionProgressBasedOnReadCount`: calculates and updates collection progress based on completed stories (`isCompleted`), with robust error handling and edge case management.
-- Added/verified placeholder for achievement/badge logic (`trackCollectionCompletionAchievement`).
-- Comprehensive tests written/updated for all new logic, including story generation, progress calculation, marking stories as completed, and achievement tracking (placeholder).
-- No duplication or conflicts found; logic is centralized and testable.
-
-**T4: Finalize `CollectionFormView` Integration (Complete)**
-- Enhanced `CollectionFormView` to use an overlay loading indicator and `.alert` for error messages, matching the pattern in `StoryFormView` for UI/UX consistency.
-- Removed the inline error section in favor of alert-based error presentation.
-- All controls are disabled during loading, and user feedback is clear and consistent.
-- Updated `CollectionFormView_Tests.swift` with explicit TODOs for UI state tests (loading overlay, error alert, dismissal), referencing ViewInspector or UI test requirements.
-- Documented the need for future UI test coverage and potential for extracting a reusable loading/error overlay component.
-
-**T5: Progress Tracking Flow (Complete)**
-- StoryDetailView now updates `readCount` and `lastReadAt` via `PersistenceService` when a story is completed.
-- On completion, if the story belongs to a collection, `CollectionService.markStoryAsCompleted` is called, updating `isCompleted` and recalculating collection progress.
-- UI progress bar and state update accordingly.
-- Added a new integration test in `StoryReadingIntegrationTests.swift` to verify the full flow: reading a story to completion updates all relevant fields and triggers collection progress recalculation.
-- All logic is centralized; no duplication or conflicts found.
-- See: `App/Features/Library/StoryDetailView.swift`, `App/Services/CollectionService.swift`, `App/Services/PersistenceService.swift`, `magical-storiesTests/Views/StoryReadingIntegrationTests.swift`.
-
-**T8: Achievement/Badge Logic (Complete)**
-- Service layer now creates and persists a unique achievement when a collection is completed.
-- Achievements are named "Completed [Collection Title]", use type `.growthPathProgress`, and are associated with the first story in the collection if possible.
-- Duplicate achievements for the same collection are prevented.
-- `CollectionDetailView` now displays earned achievements in a dedicated section, fetching them asynchronously for all stories in the collection.
-- Accessibility and empty/loading states are handled in the new UI. (UI/UX polish and animation will be finalized in T8)
-- TODOs remain for expanded UI tests.
-
 ## What's Left / Next Steps (Refined Growth Path Collections Plan)
 
 | Step | Task                               | Description                                                                    | Status         |
 | ---- | ---------------------------------- | ------------------------------------------------------------------------------ | -------------- |
 | T6   | Integrate Collections Tab          | Add Collections tab to main navigation                                         | Completed/Verified |
-| T7   | Final Testing & Refinement         | E2E tests, core functional validation                                          | Partially Complete |
+| T7   | Final Testing & Refinement         | E2E tests, core functional validation                                          | Completed      |
 | T8   | Final UI/UX Polish & Accessibility | UI/UX polish, animation, accessibility, haptic feedback, and visual refinement | Pending        |
 | T9   | Documentation Update               | Update all docs and Memory Bank                                                | In Progress    |
 
-**T6: Integrate Collections into Main Navigation (Complete)**
-- Collections tab is fully integrated in `MainTabView` and properly configured
-- `CollectionsListView` is accessible as a dedicated tab with correct navigation stack and destination setup
-- Verified through code review and manual testing
+**Visual Consistency System Plan**
 
-**T7: Final Testing and Refinement (Partially Complete)**
-- **ST-7.1: End-to-End Testing (Complete)**
-  - Implemented comprehensive integration test in `CollectionServiceIntegrationTests.swift` covering the full user flow
-  - Test verifies collection creation, story generation, progress tracking, and achievement creation
-- **ST-7.2: Unit Testing (Complete)**
-  - Implemented complete unit tests for `CollectionService` in `CollectionServiceTests.swift`
-  - Tests cover all major methods and error handling scenarios
-- **ST-7.3: Performance Optimization (Pending)**
-  - Need to profile and optimize SwiftData queries for collections with large numbers of stories
-  - Implement pagination or virtualized rendering for collections with many stories
+| Step | Task                               | Description                                                                    | Status         |
+| ---- | ---------------------------------- | ------------------------------------------------------------------------------ | -------------- |
+| VC1  | Core Model Implementation          | VisualGuide model and XML structure                                            | Completed      |
+| VC2  | Service Integration                | StoryService and IllustrationService modifications                            | Completed      |
+| VC3  | Testing Implementation             | Unit and integration tests for all components                                  | Completed      |
+| VC4  | Documentation                      | Technical documentation and memory bank updates                                | In Progress    |
+| VC5  | UI Enhancements                    | Visual feedback for consistency in UI (optional)                               | Pending        |
 
 **T8: Final UI/UX Polish & Accessibility**
 - **ST-8.1:** Polish UI for all collection-related views (cards, detail, progress bars)
@@ -218,5 +207,6 @@ alwaysApply: true
 -   **Accessibility:** Thorough accessibility testing and implementation needed.
 -   **CI/CD:** Review and refine CI/CD setup.
 -   **Test Improvements:** Continue increasing test coverage towards target (e.g., 70%+).
+-   **Visual Consistency Enhancements:** Potential UI indicators for illustration consistency, user customization options.
 
 *Note: For architectural patterns and design information, please refer to systemPatterns.md.*

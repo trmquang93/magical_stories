@@ -80,7 +80,8 @@ struct IllustrationIntegrationTests {
                     for: description,
                     pageNumber: pendingTask.pageNumber,
                     totalPages: pendingTask.totalPages,
-                    previousIllustrationPath: nil
+                    previousIllustrationPath: nil,
+                    visualGuide: nil
                 )
                 
                 if path != nil {

@@ -273,28 +273,37 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
         for illustrationDescription: String,
         pageNumber: Int,
         totalPages: Int,
-        previousIllustrationPath: String? = nil
+        previousIllustrationPath: String? = nil,
+        visualGuide: VisualGuide? = nil
     ) async throws -> String? {
         // Create an enhanced prompt that focuses on the specific illustration
-        let enhancedPrompt = """
-            Generate a high-quality illustration for page \(pageNumber) of \(totalPages) of a children's story.
-
-            ILLUSTRATION CONTENT:
-            \(illustrationDescription)
-
-            REQUIREMENTS:
-            - Size: 16:9 landscape-orientation illustration
-            - Style: Vibrant, whimsical children's book style
-            - Follow the description EXACTLY, including all specified character details, colors, and elements
-            - Create high-quality art with good composition, color balance, and visual appeal
-            - Ensure all described characters and elements are clearly visible
-            - Pay close attention to character appearances exactly as described
-            - Render backgrounds and settings with appropriate detail
-            - Use lighting and color to create the mood described
-            - Ensure appropriate scaling and proportions between characters and environment
-
-            The illustration should be high quality, child-friendly, and look like it belongs in a professional children's picture book.
-            """
+        var promptComponents = [
+            "Generate a high-quality illustration for page \(pageNumber) of \(totalPages) of a children's story.",
+            
+            "ILLUSTRATION CONTENT:",
+            illustrationDescription,
+            
+            "REQUIREMENTS:",
+            "- Size: 16:9 landscape-orientation illustration",
+            "- Style: Vibrant, whimsical children's book style",
+            "- Follow the description EXACTLY, including all specified character details, colors, and elements",
+            "- Create high-quality art with good composition, color balance, and visual appeal",
+            "- Ensure all described characters and elements are clearly visible",
+            "- Pay close attention to character appearances exactly as described",
+            "- Render backgrounds and settings with appropriate detail",
+            "- Use lighting and color to create the mood described",
+            "- Ensure appropriate scaling and proportions between characters and environment",
+            
+            "The illustration should be high quality, child-friendly, and look like it belongs in a professional children's picture book."
+        ]
+        
+        // Add visual guide to prompt if available
+        if let visualGuide = visualGuide {
+            promptComponents.append("VISUAL GUIDE INFORMATION:")
+            promptComponents.append(visualGuide.formattedForPrompt())
+        }
+        
+        let enhancedPrompt = promptComponents.joined(separator: "\n\n")
 
         print(
             "[IllustrationService] Generating illustration for page \(pageNumber) with description length: \(illustrationDescription.count) characters"

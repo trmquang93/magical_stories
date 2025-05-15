@@ -42,7 +42,8 @@ class StoryProcessor {
     func processIntoPages(
         _ content: String,
         illustrations: [IllustrationDescription] = [],
-        theme: String
+        theme: String,
+        visualGuide: VisualGuide? = nil
     ) async throws -> [Page] {
         // First attempt to paginate using the delimiter-based approach
         var pages = paginateStory(content)
@@ -465,7 +466,8 @@ class StoryProcessor {
     private func generateIllustrationsForPages(
         _ pages: inout [Page],
         theme: String,
-        usePreprocessedDescriptions: Bool = false
+        usePreprocessedDescriptions: Bool = false,
+        visualGuide: VisualGuide? = nil
     ) async {
         AIErrorManager.logError(
             NSError(
@@ -521,7 +523,8 @@ class StoryProcessor {
                     for: imagePrompt,
                     pageNumber: i + 1,
                     totalPages: pages.count,
-                    previousIllustrationPath: nil  // Not using previous illustrations reference
+                    previousIllustrationPath: nil,  // Not using previous illustrations reference
+                    visualGuide: visualGuide
                 )
 
                 if let relativePath = relativePath {

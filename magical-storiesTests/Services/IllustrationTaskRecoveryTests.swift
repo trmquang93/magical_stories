@@ -39,7 +39,8 @@ struct IllustrationTaskRecoveryTests {
             for illustrationDescription: String,
             pageNumber: Int,
             totalPages: Int,
-            previousIllustrationPath: String?
+            previousIllustrationPath: String?,
+            visualGuide: VisualGuide?
         ) async throws -> String? {
             if wasTaskInterrupted {
                 return nil

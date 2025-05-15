@@ -53,7 +53,8 @@ protocol IllustrationServiceProtocol {
         for illustrationDescription: String,
         pageNumber: Int,
         totalPages: Int,
-        previousIllustrationPath: String?
+        previousIllustrationPath: String?,
+        visualGuide: VisualGuide?
     ) async throws -> String?
 }
 

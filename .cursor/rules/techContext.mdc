@@ -55,14 +55,12 @@ alwaysApply: true
 -   **Personalization:** Support Dark Mode, use `@AppStorage` for preferences.
 -   **Text-to-Speech:** Feature removed.
 
-## Build & Test Process
--   A script `run_tests.sh` exists to clean, build, and run unit and UI tests using `xcodebuild`.
--   `xcbeautify` formats test output.
--   Code coverage reports are generated.
-
-## Configuration
--   API keys (`AppConfig.geminiApiKey`) are stored locally in `Config.plist` (gitignored) and accessed via `AppConfig.swift`.
--   The same `AppConfig.geminiApiKey` is used for both text and image generation.
+## Testing Commands
+- **`run_tests.sh`:** Script for running all or targeted tests.
+  - Run all tests: `./run_tests.sh`
+  - Run specific test file: `./run_tests.sh <TestSuiteName>` 
+  - Example: `./run_tests.sh IllustrationTaskRecoveryTests`
+  - If TestSuiteName is not specified, it's assumed to be the same as the test class/struct for both text and image generation.
 
 ## Swift Integration Testing Guidelines
 

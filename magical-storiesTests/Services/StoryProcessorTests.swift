@@ -51,7 +51,8 @@ class MockIllustrationService: IllustrationServiceProtocol {
         for illustrationDescription: String,
         pageNumber: Int,
         totalPages: Int,
-        previousIllustrationPath: String?
+        previousIllustrationPath: String?,
+        visualGuide: VisualGuide?
     ) async throws -> String? {
         generateContextualIllustrationCallCount += 1
         lastContextualCallParameters = (

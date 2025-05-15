@@ -141,8 +141,8 @@ class StoryService: ObservableObject {
                 throw StoryServiceError.generationFailed("No content generated")
             }
 
-            // Try to parse the response as XML to extract title, story content, and category
-            let (extractedTitle, storyContent, category, illustrations) =
+            // Try to parse the response as XML to extract title, story content, category, and visual guide
+            let (extractedTitle, storyContent, category, illustrations, visualGuide) =
                 try extractTitleCategoryAndContent(
                     from: text)
 
@@ -158,7 +158,8 @@ class StoryService: ObservableObject {
             // Process content into pages using StoryProcessor
             let pages = try await storyProcessor.processIntoPages(
                 content, illustrations: illustrations ?? [],
-                theme: parameters.theme)
+                theme: parameters.theme,
+                visualGuide: visualGuide)
 
             let story = Story(
                 title: title,
@@ -235,7 +236,7 @@ class StoryService: ObservableObject {
     // Removed extractTitleAndContent method as title is now extracted within extractTitleCategoryAndContent
 
     private func extractTitleCategoryAndContent(from text: String) throws -> (
-        String?, String?, String?, [IllustrationDescription]?
+        String?, String?, String?, [IllustrationDescription]?, VisualGuide?
     ) {
         // Try to parse the text as XML to extract story and category
         do {
@@ -280,6 +281,9 @@ class StoryService: ObservableObject {
                 var storyContent: String? = nil
                 var category: String? = nil
                 var illustrations: [IllustrationDescription]? = nil
+                
+                // Extract visual guide
+                let visualGuide = extractVisualGuide(from: normalizedXml)
 
                 // Extract title from matches
                 if let titleMatch = titleMatches.first,
@@ -316,7 +320,7 @@ class StoryService: ObservableObject {
                 }
 
                 // Return extracted values (some might be nil if tags were missing)
-                return (extractedTitle, storyContent, category, illustrations)
+                return (extractedTitle, storyContent, category, illustrations, visualGuide)
             }
 
             // If we reach here, XML extraction failed or tags weren't found
@@ -327,14 +331,14 @@ class StoryService: ObservableObject {
             let fallbackCategory = extractFallbackCategory(from: text)
 
             // Use the original text as content, title will be handled by caller's fallback
-            return (nil, text, fallbackCategory, nil)
+            return (nil, text, fallbackCategory, nil, nil)
         } catch {
             // If XML parsing throws an error, use plain text fallback
             print(
                 "[StoryService] XML parsing error: \(error.localizedDescription), using plain text fallback"
             )
             let fallbackCategory = extractFallbackCategory(from: text)
-            return (nil, text, fallbackCategory, nil)
+            return (nil, text, fallbackCategory, nil, nil)
         }
     }
 
@@ -436,6 +440,75 @@ class StoryService: ObservableObject {
     }
 
     // Helper to try to extract a category from text when JSON parsing fails
+    private func extractVisualGuide(from xml: String) -> VisualGuide? {
+        let visualGuidePattern = "<visual_guide>(.*?)</visual_guide>"
+        do {
+            let regex = try NSRegularExpression(pattern: visualGuidePattern, options: [.dotMatchesLineSeparators])
+            let matches = regex.matches(in: xml, range: NSRange(xml.startIndex..., in: xml))
+            
+            guard let match = matches.first,
+                  let range = Range(match.range(at: 1), in: xml) else {
+                return nil
+            }
+            
+            let visualGuideXml = String(xml[range])
+            
+            // Extract style guide
+            let styleGuidePattern = "<style_guide>(.*?)</style_guide>"
+            let styleGuideRegex = try NSRegularExpression(pattern: styleGuidePattern, options: [.dotMatchesLineSeparators])
+            let styleGuideMatches = styleGuideRegex.matches(in: visualGuideXml, range: NSRange(visualGuideXml.startIndex..., in: visualGuideXml))
+            
+            var styleGuide = ""
+            if let styleMatch = styleGuideMatches.first,
+               let styleRange = Range(styleMatch.range(at: 1), in: visualGuideXml) {
+                styleGuide = String(visualGuideXml[styleRange])
+            }
+            
+            // Extract character definitions
+            var characterDefinitions = [String: String]()
+            let characterPattern = "<character name=\"(.*?)\">(.*?)</character>"
+            let characterRegex = try NSRegularExpression(pattern: characterPattern, options: [.dotMatchesLineSeparators])
+            let characterMatches = characterRegex.matches(in: visualGuideXml, range: NSRange(visualGuideXml.startIndex..., in: visualGuideXml))
+            
+            for match in characterMatches {
+                if match.numberOfRanges >= 3,
+                   let nameRange = Range(match.range(at: 1), in: visualGuideXml),
+                   let descriptionRange = Range(match.range(at: 2), in: visualGuideXml) {
+                    let name = String(visualGuideXml[nameRange])
+                    let description = String(visualGuideXml[descriptionRange])
+                    characterDefinitions[name] = description
+                }
+            }
+            
+            // Extract setting definitions
+            var settingDefinitions = [String: String]()
+            let settingPattern = "<setting name=\"(.*?)\">(.*?)</setting>"
+            let settingRegex = try NSRegularExpression(pattern: settingPattern, options: [.dotMatchesLineSeparators])
+            let settingMatches = settingRegex.matches(in: visualGuideXml, range: NSRange(visualGuideXml.startIndex..., in: visualGuideXml))
+            
+            for match in settingMatches {
+                if match.numberOfRanges >= 3,
+                   let nameRange = Range(match.range(at: 1), in: visualGuideXml),
+                   let descriptionRange = Range(match.range(at: 2), in: visualGuideXml) {
+                    let name = String(visualGuideXml[nameRange])
+                    let description = String(visualGuideXml[descriptionRange])
+                    settingDefinitions[name] = description
+                }
+            }
+            
+            print("[StoryService] Found visual guide with \(characterDefinitions.count) characters and \(settingDefinitions.count) settings")
+            
+            return VisualGuide(
+                styleGuide: styleGuide,
+                characterDefinitions: characterDefinitions,
+                settingDefinitions: settingDefinitions
+            )
+        } catch {
+            print("[StoryService] Error extracting visual guide: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
     private func extractFallbackCategory(from text: String) -> String? {
         // Define the allowed categories based on LibraryCategory
         let allowedCategories = ["Fantasy", "Animals", "Bedtime", "Adventure"]

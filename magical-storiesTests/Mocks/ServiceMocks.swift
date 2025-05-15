@@ -57,13 +57,6 @@ actor InMemoryCollectionRepository {
     }
 }
 
-// MARK: - MockStoryGenerationResponse
-
-/// Minimal mock for story generation response used in tests.
-struct MockStoryGenerationResponse: StoryGenerationResponse {
-    let text: String?
-}
-
 // MARK: - MockGenerativeModel
 
 /// Mock generative model for simulating AI content generation.
