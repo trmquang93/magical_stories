@@ -108,13 +108,40 @@ echo -e "\n--- Test Results ---"
 if grep -q "recorded an issue at" "$OUTPUT_FILE"; then
   echo -e "\033[1;31mTest Failures:\033[0m"
   grep -A 2 "recorded an issue at" "$OUTPUT_FILE" | grep -v "^$" || true
-  grep -E "Test Suite.*failed|Test Case.*failed|✖|⚠️" "$OUTPUT_FILE" | grep -v "^$" || true
+  grep -E "Test Suite.*failed|Test Case.*failed|Test \".*\" failed|✖|⚠️" "$OUTPUT_FILE" | grep -v "^$" || true
   echo ""
 elif grep -q "TEST FAILED" "$OUTPUT_FILE"; then
-  grep -E "Test Suite.*failed|Test Case.*failed|✖|⚠️" "$OUTPUT_FILE" | grep -v "^$" || true
+  grep -E "Test Suite.*failed|Test Case.*failed|Test \".*\" failed|✖|⚠️" "$OUTPUT_FILE" | grep -v "^$" || true
+elif grep -q "Test \".*\" failed" "$OUTPUT_FILE"; then
+  echo -e "\033[1;31mTest Failures in Swift Testing:\033[0m"
+  grep -A 2 "Test \".*\" failed" "$OUTPUT_FILE" | grep -v "^$" || true
 else
   echo "All tests passed."
 fi
+
+# Extract test counts - support both XCTest and Swift Testing syntax
+XCTEST_TOTAL=$(grep -o "Test Case.*started" "$OUTPUT_FILE" | wc -l | tr -d ' ')
+XCTEST_FAILED=$(grep -o "Test Case.*failed" "$OUTPUT_FILE" | wc -l | tr -d ' ')
+
+SWIFT_TESTING_TOTAL=$(grep -o "Test \".*\" started" "$OUTPUT_FILE" | wc -l | tr -d ' ')
+# If no total count was found, try counting the passed tests directly
+if [ "$SWIFT_TESTING_TOTAL" -eq 0 ]; then
+  SWIFT_TESTING_TOTAL=$(grep -o "Test \".*\" passed" "$OUTPUT_FILE" | wc -l | tr -d ' ')
+fi
+
+SWIFT_TESTING_FAILED=$(grep -o "Test \".*\" failed" "$OUTPUT_FILE" | wc -l | tr -d ' ')
+
+# Combine counts from both test frameworks
+TOTAL_TESTS=$((XCTEST_TOTAL + SWIFT_TESTING_TOTAL))
+FAILED_TESTS=$((XCTEST_FAILED + SWIFT_TESTING_FAILED))
+PASSED_TESTS=$((TOTAL_TESTS - FAILED_TESTS))
+
+# Print test statistics
+echo -e "\n\033[1;34m=== TEST STATISTICS ===\033[0m"
+echo -e "Total Tests Run: \033[1;37m$TOTAL_TESTS\033[0m"
+echo -e "Tests Passed:    \033[1;32m$PASSED_TESTS\033[0m"
+echo -e "Tests Failed:    \033[1;31m$FAILED_TESTS\033[0m"
+echo ""
 
 # Check if tests recorded issues or failed
 if grep -q "recorded an issue at" "$OUTPUT_FILE" || grep -q "TEST FAILED" "$OUTPUT_FILE"; then

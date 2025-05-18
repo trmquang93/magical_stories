@@ -276,6 +276,11 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
         previousIllustrationPath: String? = nil,
         visualGuide: VisualGuide? = nil
     ) async throws -> String? {
+        // Log the generation start with task type info
+        let taskType = pageNumber == 0 ? "GLOBAL REFERENCE" : "PAGE ILLUSTRATION"
+        print("[IllustrationService] Starting generation of \(taskType) (page \(pageNumber) of \(totalPages))")
+        print("[IllustrationService] Has visual guide: \(visualGuide != nil)")
+        print("[IllustrationService] Has previous illustration reference: \(previousIllustrationPath != nil)")
         // Create an enhanced prompt that focuses on the specific illustration
         var promptComponents = [
             "Generate a high-quality illustration for page \(pageNumber) of \(totalPages) of a children's story.",
@@ -420,9 +425,12 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
 
                 let relativePath = try saveImageDataToPersistentDirectory(
                     imageData: imageData, mimeType: mimeType)
-                print(
-                    "--- IllustrationService: Successfully saved contextual illustration at relative path: \(relativePath) ---"
-                )
+                // Log successful generation with more details
+                let taskType = pageNumber == 0 ? "GLOBAL REFERENCE" : "PAGE ILLUSTRATION"
+                print("[IllustrationService] SUCCESS: Generated \(taskType) for page \(pageNumber) of \(totalPages)")
+                print("[IllustrationService] Saved at path: \(relativePath)")
+                print("[IllustrationService] Used visual guide: \(visualGuide != nil)")
+                print("[IllustrationService] Used previous illustration: \(previousIllustrationPath != nil)")
                 return relativePath
 
             } catch let error as IllustrationError {

@@ -3,11 +3,18 @@ import Foundation
 /// A model that structures visual consistency information for illustrations.
 public struct VisualGuide: Equatable, Codable {
     /// Initialize a new VisualGuide with the given properties
-    public init(styleGuide: String, characterDefinitions: [String: String], settingDefinitions: [String: String]) {
+    public init(
+        styleGuide: String,
+        characterDefinitions: [String: String],
+        settingDefinitions: [String: String],
+        globalReferenceImageURL: URL? = nil
+    ) {
         self.styleGuide = styleGuide
         self.characterDefinitions = characterDefinitions
         self.settingDefinitions = settingDefinitions
+        self.globalReferenceImageURL = globalReferenceImageURL
     }
+    
     /// The overall artistic style of the illustrations
     public let styleGuide: String
     
@@ -16,6 +23,19 @@ public struct VisualGuide: Equatable, Codable {
     
     /// Dictionary mapping setting names to their detailed visual descriptions
     public let settingDefinitions: [String: String]
+    
+    /// URL pointing to the global reference image for this story's illustrations
+    public let globalReferenceImageURL: URL?
+    
+    /// Creates a new VisualGuide with an updated global reference image URL
+    public func withGlobalReferenceImageURL(_ url: URL) -> VisualGuide {
+        return VisualGuide(
+            styleGuide: self.styleGuide,
+            characterDefinitions: self.characterDefinitions,
+            settingDefinitions: self.settingDefinitions,
+            globalReferenceImageURL: url
+        )
+    }
     
     /// Format the visual guide information for inclusion in an illustration prompt
     public func formattedForPrompt() -> String {

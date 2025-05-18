@@ -122,7 +122,13 @@ class PromptBuilder {
       \(nextSummary)
 
       Theme: \(theme)
-      Important: Maintain visual consistency with previous and upcoming illustrations. Characters should look the same throughout the story.
+      
+      IMPORTANT REQUIREMENTS:
+      1. Maintain visual consistency with previous and upcoming illustrations
+      2. Characters should look the same throughout the story
+      3. DO NOT include any text, words, captions, speech bubbles, or written elements in the illustration
+      4. The app will display the story text separately - the illustration must be completely text-free
+      5. Create a 16:9 landscape aspect ratio illustration suitable for a children's story app
       """
   }
 
@@ -163,6 +169,9 @@ class PromptBuilder {
          - Consistent scale and perspective
       4. Ensure smooth visual transitions between pages
       5. Think of these illustrations as frames from the same animated film
+      6. DO NOT include any text, words, letters, captions, speech bubbles, or written elements in the illustrations
+         - The app will display the story text separately below each illustration
+         - Illustrations must be completely text-free
 
       For each page, include these specific details in your descriptions:
       - Character positions, expressions, and actions
@@ -174,6 +183,7 @@ class PromptBuilder {
       Return EXACTLY \(pages.count) descriptions in the same order as the pages, each separated by a line with only '---'.
       Ensure the described scene is suitable for a 16:9 landscape aspect ratio illustration.
       Do NOT use JSON format. Each description must be highly detailed for consistent visualization.
+      CRITICAL: All illustrations must be TEXT-FREE - no words, captions, speech bubbles, or any written elements.
       """
   }
 
@@ -279,6 +289,8 @@ class PromptBuilder {
       2. Create a <visual_guide> section with comprehensive visual specifications:
          
          a. Create a <style_guide> that defines the overall artistic style (e.g., watercolor, cartoon, digital painting).
+            * IMPORTANT: This must be a TEXT-FREE illustration style - no words, captions, or written elements
+            * Create illustrations that communicate visually without any text elements
          
          b. For each key character, create a <character> entry with details:
             * Physical appearance (height, body type, age, facial features, hair)
@@ -299,6 +311,8 @@ class PromptBuilder {
          - Describe character positioning, expressions, and actions clearly
          - Use precise, detailed language focusing on visual elements (400-800 characters)
          - Design for a 16:9 landscape aspect ratio illustration
+         - DO NOT include any text, words, letters, captions, speech bubbles, or written elements in the illustrations
+         - The app will display the story text separately below each illustration
 
       Return your response as XML with the following structure:
       <title>Your Story Title</title>
@@ -316,9 +330,9 @@ class PromptBuilder {
       <content>Full story text with title and "---" page breaks as instructed</content>
       <category>One category name from the provided list</category>
       <illustrations>
-        <illustration page="1">Self-contained description for page 1 scene with character positioning and actions</illustration>
-        <illustration page="2">Self-contained description for page 2 scene with character positioning and actions</illustration>
-        <!-- Include one <illustration> tag for each page in your story -->
+        <illustration page="1">Self-contained description for page 1 scene with character positioning and actions (NO TEXT or written elements)</illustration>
+        <illustration page="2">Self-contained description for page 2 scene with character positioning and actions (NO TEXT or written elements)</illustration>
+        <!-- Include one <illustration> tag for each page in your story, with NO text elements in any illustration -->
       </illustrations>
 
       IMPORTANT:
@@ -326,6 +340,9 @@ class PromptBuilder {
       - Each <illustration> description should reference the elements defined in your visual guide
       - Descriptions should be detailed enough to create a consistent illustration without context from other pages
       - Maintain the same character appearances throughout all illustrations
+      - DO NOT include any text, lettering, words, captions, speech bubbles, or written elements in ANY illustration
+      - The app will display story text separately - illustrations should be text-free
+      - Focus on creating vivid scene depictions without any embedded text elements
       """
   }
 
@@ -405,5 +422,144 @@ class PromptBuilder {
       - Design prompts to reinforce the story's theme or moral
       - Ensure prompts are appropriate for the target age group
       """
+  }
+  
+  /// Builds a prompt for generating a global reference image containing all key characters and elements
+  /// - Parameters:
+  ///   - visualGuide: The visual guide containing style, character and setting definitions
+  ///   - storyTitle: The title of the story
+  /// - Returns: A complete prompt for generating a global reference image
+  func buildGlobalReferenceImagePrompt(visualGuide: VisualGuide, storyTitle: String) -> String {
+    print("[PromptBuilder] Creating global reference image prompt for story '\(storyTitle)'")
+    print("[PromptBuilder] Visual guide contains: \(visualGuide.characterDefinitions.count) characters, \(visualGuide.settingDefinitions.count) settings)")
+    var promptComponents = [
+      "Create a detailed reference sheet illustration for the children's story titled \"\(storyTitle)\".",
+      "This reference image should show ALL main characters and key story elements in a single comprehensive illustration.",
+      
+      "Style Guide:",
+      visualGuide.styleGuide
+    ]
+    
+    // Add character definitions if available
+    if !visualGuide.characterDefinitions.isEmpty {
+      promptComponents.append("Characters to Include:")
+      for (name, description) in visualGuide.characterDefinitions {
+        promptComponents.append("- \(name): \(description)")
+      }
+    }
+    
+    // Add setting definitions if available
+    if !visualGuide.settingDefinitions.isEmpty {
+      promptComponents.append("Key Settings/Elements:")
+      for (name, description) in visualGuide.settingDefinitions {
+        promptComponents.append("- \(name): \(description)")
+      }
+    }
+    
+    // Add critical requirements
+    promptComponents.append("""
+      CRITICAL REQUIREMENTS:
+      - Position all characters in a clear lineup or group arrangement
+      - Show each character's full body with all details visible
+      - Include key props, settings, or elements mentioned in the story
+      - Maintain consistent style, proportions, and color palette
+      - Label-free presentation (NO text or labels on the image)
+      - Create a comprehensive visual reference that covers all story elements
+      - Use a 16:9 landscape aspect ratio
+      
+      This image will serve as the master reference for all illustrations in the story.
+      """)
+    
+    let finalPrompt = promptComponents.joined(separator: "\n\n")
+    print("[PromptBuilder] Generated global reference image prompt (length: \(finalPrompt.count) characters)")
+    return finalPrompt
+  }
+  
+  /// Builds a prompt for a sequential page illustration that uses global reference and previous illustrations
+  /// - Parameters:
+  ///   - page: The page containing content to illustrate
+  ///   - pageIndex: The position of the page in the story
+  ///   - visualGuide: The visual guide containing style, character and setting information
+  ///   - globalReferenceImageBase64: Optional base64-encoded global reference image
+  ///   - previousIllustrationBase64: Optional base64-encoded previous page illustration
+  /// - Returns: A complete prompt for generating a sequential illustration with references
+  func buildSequentialIllustrationPrompt(
+    page: Page,
+    pageIndex: Int,
+    visualGuide: VisualGuide,
+    globalReferenceImageBase64: String? = nil,
+    previousIllustrationBase64: String? = nil
+  ) -> String {
+    print("[PromptBuilder] Creating sequential illustration prompt for page \(pageIndex + 1)")
+    print("[PromptBuilder] Has global reference: \(globalReferenceImageBase64 != nil)")
+    print("[PromptBuilder] Has previous illustration: \(previousIllustrationBase64 != nil)")
+    // Start with the base prompt for this page
+    var promptComponents = [
+      "Create a detailed illustration for page \(pageIndex + 1) showing this scene:",
+      page.content
+    ]
+    
+    // Add visual guide information
+    promptComponents.append("VISUAL GUIDE SPECIFICATIONS:")
+    promptComponents.append("Style Guide: \(visualGuide.styleGuide)")
+    
+    // Add character definitions
+    if !visualGuide.characterDefinitions.isEmpty {
+      promptComponents.append("Characters:")
+      for (name, description) in visualGuide.characterDefinitions {
+        promptComponents.append("- \(name): \(description)")
+      }
+    }
+    
+    // Add setting definitions
+    if !visualGuide.settingDefinitions.isEmpty {
+      promptComponents.append("Settings:")
+      for (name, description) in visualGuide.settingDefinitions {
+        promptComponents.append("- \(name): \(description)")
+      }
+    }
+    
+    // Add global reference image if available
+    if let globalImage = globalReferenceImageBase64 {
+      promptComponents.append("""
+        GLOBAL REFERENCE IMAGE:
+        The following image shows all characters and key elements from the story. Use it as your primary reference for:
+        - Character appearances, proportions, and features
+        - Artistic style and color palette
+        - Overall consistency with the story world
+        
+        [Global reference: data:image/png;base64,\(globalImage)]
+        """)
+    }
+    
+    // Add previous illustration if available (usually for non-first pages)
+    if let previousImage = previousIllustrationBase64 {
+      promptComponents.append("""
+        PREVIOUS PAGE ILLUSTRATION:
+        The following is the illustration from the previous page. Maintain consistency with:
+        - Character appearances and poses
+        - Scene transitions and environments
+        - Color palette and lighting
+        - Overall style and visual elements
+        
+        [Previous illustration: data:image/png;base64,\(previousImage)]
+        """)
+    }
+    
+    // Add critical requirements
+    promptComponents.append("""
+      CRITICAL REQUIREMENTS:
+      - Create a detailed, vibrant illustration matching this page's content
+      - Maintain EXACT character appearances across all story illustrations
+      - Use consistent artistic style, color palette, and proportions
+      - Create a 16:9 landscape aspect ratio illustration
+      - DO NOT include any text, words, captions, speech bubbles, or written elements
+      - The app will display the story text separately - keep the illustration text-free
+      - Character expressions and poses must match the emotional tone of the scene
+      """)
+    
+    let finalPrompt = promptComponents.joined(separator: "\n\n")
+    print("[PromptBuilder] Generated sequential illustration prompt (length: \(finalPrompt.count) characters)")
+    return finalPrompt
   }
 }

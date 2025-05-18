@@ -15,6 +15,7 @@ enum IllustrationPriority: Int, Codable, Comparable {
 
 /// Represents a task for generating an illustration
 struct IllustrationTask: Identifiable, Equatable, Codable {
+    // Core properties
     let id: UUID
     let pageId: UUID
     let storyId: UUID
@@ -23,6 +24,13 @@ struct IllustrationTask: Identifiable, Equatable, Codable {
     let createdAt: Date
     var lastUpdatedAt: Date
     var attemptCount: Int
+    
+    // Enhanced properties for visual consistency
+    let taskType: IllustrationTaskType
+    let pageIndex: Int?  // Position in the story sequence (nil for globalReference)
+    var previousIllustrationURL: URL?  // Reference to previous page illustration
+    var globalReferenceURL: URL?  // Reference to global reference image
+    var dependencies: [UUID]?  // IDs of tasks that must be completed before this one
     
     /// Default initializer with all properties
     init(
@@ -33,7 +41,12 @@ struct IllustrationTask: Identifiable, Equatable, Codable {
         status: IllustrationStatus = .pending,
         createdAt: Date = Date(),
         lastUpdatedAt: Date? = nil,
-        attemptCount: Int = 0
+        attemptCount: Int = 0,
+        taskType: IllustrationTaskType = .pageIllustration,
+        pageIndex: Int? = nil,
+        previousIllustrationURL: URL? = nil,
+        globalReferenceURL: URL? = nil,
+        dependencies: [UUID]? = nil
     ) {
         self.id = id
         self.pageId = pageId
@@ -43,6 +56,11 @@ struct IllustrationTask: Identifiable, Equatable, Codable {
         self.createdAt = createdAt
         self.lastUpdatedAt = lastUpdatedAt ?? createdAt
         self.attemptCount = attemptCount
+        self.taskType = taskType
+        self.pageIndex = pageIndex
+        self.previousIllustrationURL = previousIllustrationURL
+        self.globalReferenceURL = globalReferenceURL
+        self.dependencies = dependencies
     }
     
     /// Updates the task status and sets lastUpdatedAt to current time
@@ -60,6 +78,17 @@ struct IllustrationTask: Identifiable, Equatable, Codable {
     /// Resets the attempt count to zero and updates lastUpdatedAt
     mutating func resetAttempts() {
         self.attemptCount = 0
+        self.lastUpdatedAt = Date()
+    }
+    
+    /// Adds a dependency to this task
+    mutating func addDependency(_ dependencyId: UUID) {
+        if self.dependencies == nil {
+            self.dependencies = [dependencyId]
+        } else if !self.dependencies!.contains(dependencyId) {
+            self.dependencies!.append(dependencyId)
+        }
+        // Update timestamp to reflect the change
         self.lastUpdatedAt = Date()
     }
     

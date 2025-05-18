@@ -111,25 +111,46 @@ The application primarily follows the **MVVM (Model-View-ViewModel)** pattern wi
     * **Services:** Implement business logic, utilizing repositories for data access.
     * This pattern is consistently applied across different features (stories, collections, settings).
 
-13. **Visual Consistency System Pattern:**
+13. **Visual Consistency and Task Dependency Pattern:**
     * **Core Components:**
-        * **VisualGuide Model:** Encapsulates style guidelines, character definitions, and setting information.
-        * **XML Format Enhancement:** Stories include a `<visual_guide>` section with standardized elements.
-        * **Extraction Process:** `StoryService` parses XML to retrieve visual guide information.
-        * **Prompt Integration:** `IllustrationService` incorporates visual guide details in prompts.
-    * **Data Flow:**
-        1. PromptBuilder requests structured visual guide in AI generation prompt.
-        2. StoryService extracts the guide during XML parsing.
-        3. IllustrationCoordinator passes the guide to illustration generation.
-        4. IllustrationService incorporates the guide in each illustration prompt.
-    * **Benefits:**
-        * Consistent character appearance and setting representation.
-        * No additional API calls required for visual reference.
-        * Clear separation of concerns with well-defined responsibilities.
-    * **Testing Approach:**
-        * Unit tests for individual components (model, extraction, prompt integration).
-        * End-to-end integration test that verifies the complete flow.
-        * Mocked responses and in-memory test environment for isolation.
+        * **VisualGuide Model:** Encapsulates style guidelines, character definitions, and setting information in a centralized structure.
+        * **IllustrationTaskType:** Enum defining task types (globalReference, pageIllustration).
+        * **IllustrationTask:** Enhanced with dependency tracking, reference URLs, and task type.
+        * **IllustrationTaskManager:** Handles dependency relationships, sorting, and processing order.
+        * **PromptBuilder:** Specialized methods for blueprint and sequential illustrations.
+    
+    * **Blueprint-First Approach:**
+        * System always generates a global reference image (blueprint) containing all characters first
+        * Page illustrations depend on this global reference for consistent character appearance
+        * Each illustration also depends on previous illustrations for scene coherence
+    
+    * **Dependency Management System:**
+        * **Explicit Dependencies:** Tasks can specify which other tasks must complete first
+        * **Dependency Tracking:** completedDependencies set maintains finished task IDs
+        * **Dependency-First Sorting:** Queue is sorted by dependency status, then priority
+        * **Circular Detection:** Graph-based algorithm identifies and breaks dependency cycles
+        * **Sequential Processing:** Tasks are processed only when all dependencies are satisfied
+    
+    * **Enhanced Debugging:**
+        * Consistent logging format with component prefixes
+        * Task type and dependency status in log messages
+        * Generation steps clearly indicated from prompt creation to completion
+        * Circular dependency detection and resolution reporting
+        * Queue statistics and processing status tracking
+    
+    * **Visualization Process:**
+        1. **Request:** PromptBuilder inserts visual guide request in story generation prompt
+        2. **Extraction:** StoryService parses XML for visual guide information
+        3. **Blueprint:** Generate global reference image showing all characters
+        4. **Dependencies:** Create page illustration tasks dependent on blueprint
+        5. **Processing:** IllustrationTaskManager handles tasks in dependency-aware order
+        6. **References:** Each prompt includes references to blueprint and previous illustrations
+    
+    * **Key Benefits:**
+        * Characters maintain consistent appearance across all illustrations
+        * Task processing occurs in proper sequence to maintain references
+        * Automatic deadlock prevention through circular dependency detection
+        * Comprehensive logging for debugging and monitoring
 
 ## Current Architecture Notes
 - The system leverages standard SwiftUI patterns and MVVM concepts.

@@ -49,11 +49,15 @@ alwaysApply: true
 -   **State Management:** Primarily uses `@StateObject`, `@EnvironmentObject`, `@State`, `@Binding`, `@AppStorage`, and `@Query` (for direct SwiftData observation in views).
 -   **Asynchronous Operations:** `async/await` is mandatory for all network operations and data access. Views use `.task`.
 -   **Error Handling:** Utilize Swift's native `do-catch` with custom `Error` enums. `AIErrorManager` handles AI errors. Provide user feedback via `.alert`.
+-   **Debugging & Logging:**
+    * **Component Prefixes:** Standard format `[ComponentName]` for log messages
+    * **Consistent Structure:** All logs follow a standardized pattern for easier parsing
+    * **Detail Levels:** Varying detail based on importance and verbosity needs
+    * **Task Tracking:** Specific logs for task state changes, dependencies, and completion
+    * **Process Visualization:** Generation steps clearly indicated from request to completion
 -   **Navigation:** Use `TabView`, `NavigationStack`, `.sheet`, and `NavigationLink` / `.navigationDestination`. See `memory_bank/systemPatterns.md`.
 -   **UI Guidelines:** Follow Apple HIG, use SF Symbols, consider SF Pro Rounded.
 -   **Accessibility:** Implement basic VoiceOver and Dynamic Type support.
--   **Personalization:** Support Dark Mode, use `@AppStorage` for preferences.
--   **Text-to-Speech:** Feature removed.
 
 ## Testing Commands
 - **`run_tests.sh`:** Script for running all or targeted tests.
