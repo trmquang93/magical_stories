@@ -2,6 +2,9 @@
 import Foundation
 import GoogleGenerativeAI  // Import the Google AI SDK
 import SwiftData  // Import SwiftData for ModelContext
+#if os(iOS)
+import UIKit  // Import UIKit for image processing on iOS
+#endif
 
 /// Errors specific to the IllustrationService.
 enum IllustrationError: Error, LocalizedError {
@@ -638,14 +641,63 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
         }
         
         do {
-            let imageData = try Data(contentsOf: fileURL)
-            let base64String = imageData.base64EncodedString()
-            print("[IllustrationService] Loaded image as base64 from: \(relativePath) (size: \(imageData.count) bytes)")
+            let originalImageData = try Data(contentsOf: fileURL)
+            print("[IllustrationService] Original image size: \(originalImageData.count) bytes")
+            
+            // Compress image to reduce API payload size
+            let compressedImageData = try compressImageForAPI(originalImageData)
+            let base64String = compressedImageData.base64EncodedString()
+            print("[IllustrationService] Compressed image from \(originalImageData.count) to \(compressedImageData.count) bytes (\(String(format: "%.1f", Double(compressedImageData.count) / Double(originalImageData.count) * 100))% of original)")
             return base64String
         } catch {
             throw IllustrationError.imageProcessingError(
                 "Failed to load image data from path \(relativePath): \(error.localizedDescription)")
         }
+    }
+    
+    /// Compresses image data to reduce API payload size while maintaining quality for reference
+    /// - Parameter imageData: Original image data
+    /// - Returns: Compressed image data
+    /// - Throws: IllustrationError if compression fails
+    private func compressImageForAPI(_ imageData: Data) throws -> Data {
+        #if os(iOS)
+        // Convert to UIImage
+        guard let image = UIImage(data: imageData) else {
+            throw IllustrationError.imageProcessingError("Failed to create UIImage from data")
+        }
+        
+        // Resize to maximum 512x512 for API efficiency (maintains aspect ratio)
+        let maxSize: CGFloat = 512
+        let resizedImage: UIImage
+        
+        if max(image.size.width, image.size.height) > maxSize {
+            let aspectRatio = image.size.width / image.size.height
+            let newSize: CGSize
+            
+            if image.size.width > image.size.height {
+                newSize = CGSize(width: maxSize, height: maxSize / aspectRatio)
+            } else {
+                newSize = CGSize(width: maxSize * aspectRatio, height: maxSize)
+            }
+            
+            UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+            resizedImage = UIGraphicsGetImageFromCurrentImageContext() ?? image
+            UIGraphicsEndImageContext()
+        } else {
+            resizedImage = image
+        }
+        
+        // Compress with medium quality JPEG (good balance of size vs quality)
+        guard let compressedData = resizedImage.jpegData(compressionQuality: 0.6) else {
+            throw IllustrationError.imageProcessingError("Failed to compress image as JPEG")
+        }
+        
+        return compressedData
+        #else
+        // For non-iOS platforms, return original data
+        return imageData
+        #endif
     }
 
     /// Generates an illustration for a specific Page model, updating its status during the process.

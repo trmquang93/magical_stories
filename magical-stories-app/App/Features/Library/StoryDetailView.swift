@@ -248,7 +248,7 @@ struct StoryDetailView: View {
             storyId: story.id,
             priority: .high,
             taskType: .globalReference,
-            pageIndex: nil,
+            pageIndex: 0, // Global reference uses pageIndex 0
             globalReferenceURL: nil,
             dependencies: nil
         )
@@ -276,30 +276,7 @@ struct StoryDetailView: View {
     
     @MainActor
     private func getGlobalReferenceImagePath(for storyId: UUID) -> String? {
-        // Try to find a completed global reference task for this story
-        let repository = IllustrationTaskRepository(modelContext: modelContext)
-        
-        do {
-            // Get all tasks for this story
-            let tasks = try repository.getTasksForStory(storyId)
-            
-            // Find completed global reference task (pageNumber = 0 indicates global reference)
-            let globalReferenceTasks = tasks.filter { task in
-                task.storyId == storyId && task.pageNumber == 0
-            }
-            let completedGlobalTasks = globalReferenceTasks.filter { task in
-                task.status == .ready
-            }
-            
-            if let globalReferenceTask = completedGlobalTasks.first {
-                // The global reference image path follows the pattern used by IllustrationService
-                // Since pageNumber is 0 for global reference, it will be stored as:
-                return "illustrations/story_\(storyId)/page_0_\(globalReferenceTask.id).png"
-            }
-        } catch {
-            print("[StoryDetailView] Error retrieving global reference task: \(error)")
-        }
-        
+        print("[StoryDetailView] Global reference lookup temporarily disabled for testing")
         return nil
     }
 
@@ -454,6 +431,11 @@ struct StoryDetailView: View {
                     // Get global reference path for visual consistency
                     let globalReferenceImagePath = await MainActor.run {
                         return getGlobalReferenceImagePath(for: task.storyId)
+                    }
+                    
+                    print("[StoryDetailView] Generating page \(page.pageNumber) with global reference: \(globalReferenceImagePath != nil ? "YES" : "NO")")
+                    if let globalPath = globalReferenceImagePath {
+                        print("[StoryDetailView] Global reference path: \(globalPath)")
                     }
                     
                     // Create VisualGuide for page illustration
