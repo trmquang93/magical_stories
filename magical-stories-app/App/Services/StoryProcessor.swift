@@ -571,16 +571,34 @@ class StoryProcessor {
 
         // Otherwise, add context for this specific illustration
         return """
+            🚫 ABSOLUTELY NO TEXT ALLOWED IN ILLUSTRATION 🚫
+            ‼️ CRITICAL: This illustration must be COMPLETELY TEXT-FREE ‼️
+            
             Create a detailed illustration for page \(pageIndex + 1) of \(totalPages):
 
             \(existingPrompt)
 
             Theme: \(theme)
 
-            IMPORTANT: Follow the description exactly with all specified details.
-            Create a vibrant, colorful illustration suitable for a children's book.
-            Include rich backgrounds and clear character details as described.
-            The illustration should be in landscape (16:9) orientation.
+            IMPORTANT REQUIREMENTS:
+            - Follow the description exactly with all specified details
+            - Create a vibrant, colorful illustration suitable for a children's book
+            - Include rich backgrounds and clear character details as described
+            - The illustration should be in landscape (16:9) orientation
+            
+            🚫 FORBIDDEN ELEMENTS - NEVER INCLUDE:
+            ❌ NO text of any kind
+            ❌ NO words or letters
+            ❌ NO captions or labels
+            ❌ NO speech bubbles or dialogue
+            ❌ NO written signs or text elements
+            ❌ NO story text overlay
+            
+            ✅ The app displays story text separately below the image
+            ✅ Focus ONLY on visual storytelling without ANY written words
+            ✅ Create pure visual scenes that communicate through imagery alone
+            
+            REMINDER: If you include ANY text, the illustration will be rejected!
             """
     }
 

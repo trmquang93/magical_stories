@@ -98,8 +98,35 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
         // ... existing code for the first generateIllustration method ...
         // NOTE: This method currently uses the old Imagen API structure.
         // Consider refactoring or removing if the contextual method becomes standard.
-        let combinedPrompt =
-            "Generate an illustration for a children's story page based on the following details. Theme: \(theme). Scene Description: \(pageText). Style: Whimsical, colorful, suitable for young children. IMPORTANT: Visualize the scene and characters based on the description, but DO NOT depict animals performing human-like actions (like talking or wearing clothes) even if mentioned in the description. Focus on the environment and the animals' natural appearance."
+        let combinedPrompt = """
+            🚫 ABSOLUTELY NO TEXT ALLOWED IN ILLUSTRATION 🚫
+            ‼️ CRITICAL: This illustration must be COMPLETELY TEXT-FREE ‼️
+            
+            Generate an illustration for a children's story page based on the following details:
+            
+            Theme: \(theme)
+            Scene Description: \(pageText)
+            
+            Style: Whimsical, colorful, suitable for young children
+            
+            IMPORTANT REQUIREMENTS:
+            - Visualize the scene and characters based on the description
+            - DO NOT depict animals performing human-like actions (like talking or wearing clothes) even if mentioned in the description
+            - Focus on the environment and the animals' natural appearance
+            
+            🚫 FORBIDDEN ELEMENTS - NEVER INCLUDE:
+            ❌ NO text of any kind
+            ❌ NO words or letters
+            ❌ NO captions or labels
+            ❌ NO speech bubbles or dialogue
+            ❌ NO written signs or text elements
+            ❌ NO story text overlay
+            
+            ✅ The app displays story text separately below the image
+            ✅ Focus ONLY on visual storytelling without ANY written words
+            
+            REMINDER: If you include ANY text, the illustration will be rejected!
+            """
 
         debugPrint("Generating illustration with prompt: \(combinedPrompt)")
 
@@ -771,8 +798,34 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
     /// Internal method to generate an illustration using a prompt
     /// This refactors the existing code to be more reusable
     private func generateIllustrationWithPrompt(_ prompt: String) async throws -> String? {
-        let combinedPrompt =
-            "Generate an illustration for a children's story page based on the following details. Scene Description: \(prompt). Style: Whimsical, colorful, suitable for young children. IMPORTANT: Visualize the scene and characters based on the description, but DO NOT depict animals performing human-like actions (like talking or wearing clothes) even if mentioned in the description. Focus on the environment and the animals' natural appearance."
+        let combinedPrompt = """
+            🚫 ABSOLUTELY NO TEXT ALLOWED IN ILLUSTRATION 🚫
+            ‼️ CRITICAL: This illustration must be COMPLETELY TEXT-FREE ‼️
+            
+            Generate an illustration for a children's story page based on the following details:
+            
+            Scene Description: \(prompt)
+            
+            Style: Whimsical, colorful, suitable for young children
+            
+            IMPORTANT REQUIREMENTS:
+            - Visualize the scene and characters based on the description
+            - DO NOT depict animals performing human-like actions (like talking or wearing clothes) even if mentioned in the description
+            - Focus on the environment and the animals' natural appearance
+            
+            🚫 FORBIDDEN ELEMENTS - NEVER INCLUDE:
+            ❌ NO text of any kind
+            ❌ NO words or letters
+            ❌ NO captions or labels
+            ❌ NO speech bubbles or dialogue
+            ❌ NO written signs or text elements
+            ❌ NO story text overlay
+            
+            ✅ The app displays story text separately below the image
+            ✅ Focus ONLY on visual storytelling without ANY written words
+            
+            REMINDER: If you include ANY text, the illustration will be rejected!
+            """
 
         var lastError: Error?
 

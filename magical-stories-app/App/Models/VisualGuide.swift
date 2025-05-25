@@ -41,6 +41,11 @@ public struct VisualGuide: Equatable, Codable {
     public func formattedForPrompt() -> String {
         var components = [String]()
         
+        // Add critical text-free requirement at the top
+        components.append("🚫 ABSOLUTELY NO TEXT ALLOWED IN ILLUSTRATION 🚫")
+        components.append("‼️ CRITICAL: This illustration must be COMPLETELY TEXT-FREE ‼️")
+        components.append("")
+        
         // Add style guide
         components.append("STYLE GUIDE: \(styleGuide)")
         
@@ -59,6 +64,19 @@ public struct VisualGuide: Equatable, Codable {
                 components.append("SETTING - \(name): \(definition)")
             }
         }
+        
+        // Add text-free enforcement at the bottom
+        components.append("")
+        components.append("🚫 FORBIDDEN ELEMENTS - NEVER INCLUDE:")
+        components.append("❌ NO text of any kind")
+        components.append("❌ NO words or letters") 
+        components.append("❌ NO captions or labels")
+        components.append("❌ NO speech bubbles or dialogue")
+        components.append("❌ NO written signs or text elements")
+        components.append("❌ NO story text overlay")
+        components.append("")
+        components.append("✅ Focus ONLY on visual storytelling without ANY written words")
+        components.append("✅ The app displays story text separately below the image")
         
         return components.joined(separator: "\n")
     }
