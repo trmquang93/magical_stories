@@ -123,12 +123,16 @@ class PromptBuilder {
 
       Theme: \(theme)
       
-      IMPORTANT REQUIREMENTS:
+      🚫 ABSOLUTELY NO TEXT IN ILLUSTRATION 🚫
+      
+      CRITICAL REQUIREMENTS:
       1. Maintain visual consistency with previous and upcoming illustrations
       2. Characters should look the same throughout the story
-      3. DO NOT include any text, words, captions, speech bubbles, or written elements in the illustration
-      4. The app will display the story text separately - the illustration must be completely text-free
+      3. 🚫 FORBIDDEN: NO text, words, captions, speech bubbles, or written elements
+      4. ❌ NO story text overlay - the app displays text separately
       5. Create a 16:9 landscape aspect ratio illustration suitable for a children's story app
+      
+      ‼️ TEXT-FREE ILLUSTRATION ONLY - ANY TEXT WILL BE REJECTED ‼️
       """
   }
 
@@ -304,6 +308,8 @@ class PromptBuilder {
 
       3. For each page of your story (marked by "---" separators), create a detailed illustration description:
 
+         🚫 ABSOLUTELY NO TEXT IN ANY ILLUSTRATION 🚫
+         
          CRITICAL REQUIREMENTS FOR EACH ILLUSTRATION DESCRIPTION:
          - Each description must be COMPLETELY SELF-CONTAINED with all necessary visual information
          - Always reference the same character appearances defined in your visual guide
@@ -311,8 +317,15 @@ class PromptBuilder {
          - Describe character positioning, expressions, and actions clearly
          - Use precise, detailed language focusing on visual elements (400-800 characters)
          - Design for a 16:9 landscape aspect ratio illustration
-         - DO NOT include any text, words, letters, captions, speech bubbles, or written elements in the illustrations
-         - The app will display the story text separately below each illustration
+         
+         🚫 FORBIDDEN IN ALL ILLUSTRATIONS:
+         ❌ NO text, words, letters, or written content
+         ❌ NO captions, speech bubbles, or dialogue
+         ❌ NO story text overlay or embedded text
+         ❌ NO signs with writing or textual elements
+         
+         ✅ The app displays story text separately below each illustration
+         ✅ Focus ONLY on visual storytelling without ANY written words
 
       Return your response as XML with the following structure:
       <title>Your Story Title</title>
@@ -335,14 +348,21 @@ class PromptBuilder {
         <!-- Include one <illustration> tag for each page in your story, with NO text elements in any illustration -->
       </illustrations>
 
+      🚫 FINAL REMINDER - NO TEXT IN ILLUSTRATIONS 🚫
+      
       IMPORTANT:
       - The <visual_guide> section ensures consistent visuals across all illustrations
       - Each <illustration> description should reference the elements defined in your visual guide
       - Descriptions should be detailed enough to create a consistent illustration without context from other pages
       - Maintain the same character appearances throughout all illustrations
-      - DO NOT include any text, lettering, words, captions, speech bubbles, or written elements in ANY illustration
-      - The app will display story text separately - illustrations should be text-free
-      - Focus on creating vivid scene depictions without any embedded text elements
+      
+      ‼️ ABSOLUTELY FORBIDDEN ‼️
+      🚫 NO text, lettering, words, captions, speech bubbles, or written elements in ANY illustration
+      🚫 NO story text overlay - the app displays text separately below the image
+      🚫 NO written signs, labels, or textual content of any kind
+      
+      ✅ Focus ONLY on visual storytelling without ANY embedded text elements
+      ✅ Create pure visual scenes that communicate through imagery alone
       """
   }
 
@@ -456,14 +476,21 @@ class PromptBuilder {
       }
     }
     
-    // Add critical requirements
+    // Add critical requirements with NO TEXT emphasis
     promptComponents.append("""
+      🚫 ABSOLUTELY NO TEXT ALLOWED 🚫
+      
       CRITICAL REQUIREMENTS:
       - Position all characters in a clear lineup or group arrangement
       - Show each character's full body with all details visible
       - Include key props, settings, or elements mentioned in the story
       - Maintain consistent style, proportions, and color palette
-      - Label-free presentation (NO text or labels on the image)
+      
+      🚫 FORBIDDEN ELEMENTS:
+      ❌ NO text, words, or labels anywhere on the image
+      ❌ NO character names or descriptions written on image
+      ❌ NO captions or written elements
+      
       - Create a comprehensive visual reference that covers all story elements
       - Use a 16:9 landscape aspect ratio
       
@@ -546,16 +573,30 @@ class PromptBuilder {
         """)
     }
     
-    // Add critical requirements
+    // Add critical requirements with emphasis on NO TEXT
     promptComponents.append("""
-      CRITICAL REQUIREMENTS:
+      🚫 ABSOLUTELY NO TEXT ALLOWED IN ILLUSTRATION 🚫
+      ‼️ CRITICAL: This illustration must be COMPLETELY TEXT-FREE ‼️
+      
+      MANDATORY REQUIREMENTS:
       - Create a detailed, vibrant illustration matching this page's content
       - Maintain EXACT character appearances across all story illustrations
       - Use consistent artistic style, color palette, and proportions
       - Create a 16:9 landscape aspect ratio illustration
-      - DO NOT include any text, words, captions, speech bubbles, or written elements
-      - The app will display the story text separately - keep the illustration text-free
-      - Character expressions and poses must match the emotional tone of the scene
+      
+      🚫 FORBIDDEN ELEMENTS - NEVER INCLUDE:
+      ❌ NO text of any kind
+      ❌ NO words or letters
+      ❌ NO captions or labels
+      ❌ NO speech bubbles or dialogue
+      ❌ NO written signs or text elements
+      ❌ NO story text overlay
+      
+      ✅ The app displays story text separately below the image
+      ✅ Focus ONLY on visual storytelling without ANY written words
+      ✅ Character expressions and poses must match the emotional tone of the scene
+      
+      REMINDER: If you include ANY text, the illustration will be rejected!
       """)
     
     let finalPrompt = promptComponents.joined(separator: "\n\n")
