@@ -31,7 +31,7 @@ class IllustrationTaskManager: ObservableObject {
         logger.debug("IllustrationTaskManager initialized")
     }
     
-    /// Adds a task to the queue
+    /// Adds a task to the queue with automatic dependency enforcement
     /// - Parameter task: The task to add
     func addTask(_ task: IllustrationTask) {
         // Don't add if task already exists
@@ -40,12 +40,16 @@ class IllustrationTaskManager: ObservableObject {
             return
         }
         
-        // Log detailed information about the task being added
-        let taskTypeStr = task.taskType == .globalReference ? "GLOBAL REFERENCE" : "PAGE ILLUSTRATION"
-        print("[IllustrationTaskManager] Adding task: \(task.id.uuidString)")
-        print("[IllustrationTaskManager] Task type: \(taskTypeStr), Priority: \(task.priority)")
+        // Enforce dependency patterns based on task type
+        var enforcedTask = task
+        enforcedTask = enforceDependencyPatterns(for: enforcedTask)
         
-        if let deps = task.dependencies, !deps.isEmpty {
+        // Log detailed information about the task being added
+        let taskTypeStr = enforcedTask.taskType == .globalReference ? "GLOBAL REFERENCE" : "PAGE ILLUSTRATION"
+        print("[IllustrationTaskManager] Adding task: \(enforcedTask.id.uuidString)")
+        print("[IllustrationTaskManager] Task type: \(taskTypeStr), Priority: \(enforcedTask.priority)")
+        
+        if let deps = enforcedTask.dependencies, !deps.isEmpty {
             print("[IllustrationTaskManager] Task has \(deps.count) dependencies")
             
             // Check which dependencies are already satisfied
@@ -55,8 +59,8 @@ class IllustrationTaskManager: ObservableObject {
             print("[IllustrationTaskManager] Task has no dependencies - can be processed immediately")
         }
         
-        // First add the task to ensure it's part of the graph for dependency checking
-        pendingTasks.append(task)
+        // Add the enforced task to ensure it's part of the graph for dependency checking
+        pendingTasks.append(enforcedTask)
         
         // Now check for circular dependencies
         let currentCircularDeps = detectCircularDependencies()
@@ -198,10 +202,18 @@ class IllustrationTaskManager: ObservableObject {
         return nextTask
     }
     
-    /// Sorts the task queue considering dependencies first, then by priority
+    /// Sorts the task queue with global reference first, then sequential page order
     private func sortTasks() {
         pendingTasks.sort { task1, task2 in
-            // First prioritize tasks based on dependency status
+            // First: Global reference tasks always come first
+            if task1.taskType == .globalReference && task2.taskType != .globalReference {
+                return true
+            }
+            if task2.taskType == .globalReference && task1.taskType != .globalReference {
+                return false
+            }
+            
+            // Second: Prioritize tasks based on dependency status
             let task1DependenciesMet = areDependenciesMet(for: task1)
             let task2DependenciesMet = areDependenciesMet(for: task2)
             
@@ -209,13 +221,28 @@ class IllustrationTaskManager: ObservableObject {
                 return task1DependenciesMet && !task2DependenciesMet
             }
             
-            // If dependency status is equal, sort by priority
+            // Third: For page illustrations, sort by page index (sequential order)
+            if task1.taskType == .pageIllustration && task2.taskType == .pageIllustration {
+                if let page1 = task1.pageIndex, let page2 = task2.pageIndex {
+                    return page1 < page2
+                }
+            }
+            
+            // Fourth: Sort by priority
             if task1.priority != task2.priority {
                 return task1.priority.rawValue < task2.priority.rawValue
             }
             
-            // Finally, sort by creation time (older first)
+            // Finally: Sort by creation time (older first)
             return task1.createdAt < task2.createdAt
+        }
+        
+        // Log the sorted order for debugging
+        print("[IllustrationTaskManager] Task queue sorted - order:")
+        for (index, task) in pendingTasks.enumerated() {
+            let taskTypeStr = task.taskType == .globalReference ? "GLOBAL REF" : "PAGE \(task.pageIndex ?? -1)"
+            let depStatus = areDependenciesMet(for: task) ? "READY" : "BLOCKED"
+            print("[IllustrationTaskManager] \(index): \(taskTypeStr), Priority: \(task.priority.rawValue), Status: \(depStatus)")
         }
     }
     
@@ -501,5 +528,98 @@ class IllustrationTaskManager: ObservableObject {
         }
         
         return counts
+    }
+    
+    /// Enforces dependency patterns based on task type and position in story
+    /// - Parameter task: The task to enforce dependencies for
+    /// - Returns: Task with correct dependencies set
+    private func enforceDependencyPatterns(for task: IllustrationTask) -> IllustrationTask {
+        var enforcedTask = task
+        var needsNewTask = false
+        var newPriority = task.priority
+        
+        switch task.taskType {
+        case .globalReference:
+            // Global reference tasks should have no dependencies
+            if task.dependencies != nil && !task.dependencies!.isEmpty {
+                print("[IllustrationTaskManager] Removing dependencies from global reference task \(task.id.uuidString)")
+                enforcedTask.dependencies = nil
+            }
+            
+            // Global reference should have critical priority
+            if task.priority != .critical {
+                print("[IllustrationTaskManager] Setting global reference task \(task.id.uuidString) to critical priority")
+                newPriority = .critical
+                needsNewTask = true
+            }
+            
+        case .pageIllustration:
+            // Page illustration tasks depend on global reference + previous page
+            var requiredDependencies: [UUID] = []
+            
+            // Find global reference task for this story
+            let globalTask = findGlobalReferenceTask(for: task.storyId)
+            if let globalTaskId = globalTask?.id {
+                requiredDependencies.append(globalTaskId)
+                print("[IllustrationTaskManager] Added global reference dependency for page task \(task.id.uuidString)")
+            }
+            
+            // Find previous page task if this is not page 1
+            if let pageIndex = task.pageIndex, pageIndex > 0 {
+                let previousTask = findPreviousPageTask(for: task.storyId, currentPageIndex: pageIndex)
+                if let previousTaskId = previousTask?.id {
+                    requiredDependencies.append(previousTaskId)
+                    print("[IllustrationTaskManager] Added previous page dependency for page task \(task.id.uuidString)")
+                }
+            }
+            
+            // Set the enforced dependencies
+            enforcedTask.dependencies = requiredDependencies.isEmpty ? nil : requiredDependencies
+            print("[IllustrationTaskManager] Page task \(task.id.uuidString) has \(requiredDependencies.count) required dependencies")
+        }
+        
+        // Create new task if priority needs to change (since priority is immutable)
+        if needsNewTask {
+            return IllustrationTask(
+                id: task.id,
+                pageId: task.pageId,
+                storyId: task.storyId,
+                priority: newPriority,
+                status: task.status,
+                createdAt: task.createdAt,
+                lastUpdatedAt: task.lastUpdatedAt,
+                attemptCount: task.attemptCount,
+                taskType: task.taskType,
+                pageIndex: task.pageIndex,
+                previousIllustrationURL: task.previousIllustrationURL,
+                globalReferenceURL: task.globalReferenceURL,
+                dependencies: enforcedTask.dependencies
+            )
+        }
+        
+        return enforcedTask
+    }
+    
+    /// Finds the global reference task for a given story
+    /// - Parameter storyId: The story ID to search for
+    /// - Returns: The global reference task if found
+    private func findGlobalReferenceTask(for storyId: UUID) -> IllustrationTask? {
+        return pendingTasks.first { task in
+            task.storyId == storyId && task.taskType == .globalReference
+        }
+    }
+    
+    /// Finds the previous page task for a given story and page index
+    /// - Parameters:
+    ///   - storyId: The story ID to search for
+    ///   - currentPageIndex: The current page index (0-based)
+    /// - Returns: The previous page task if found
+    private func findPreviousPageTask(for storyId: UUID, currentPageIndex: Int) -> IllustrationTask? {
+        let previousPageIndex = currentPageIndex - 1
+        return pendingTasks.first { task in
+            task.storyId == storyId && 
+            task.taskType == .pageIllustration &&
+            task.pageIndex == previousPageIndex
+        }
     }
 }

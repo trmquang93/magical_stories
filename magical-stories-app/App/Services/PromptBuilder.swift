@@ -520,29 +520,29 @@ class PromptBuilder {
     }
     
     // Add global reference image if available
-    if let globalImage = globalReferenceImageBase64 {
+    if globalReferenceImageBase64 != nil {
       promptComponents.append("""
-        GLOBAL REFERENCE IMAGE:
-        The following image shows all characters and key elements from the story. Use it as your primary reference for:
+        GLOBAL REFERENCE IMAGE PROVIDED:
+        A global reference image showing all characters and key elements from the story is included with this request. Use it as your primary reference for:
         - Character appearances, proportions, and features
         - Artistic style and color palette
         - Overall consistency with the story world
         
-        [Global reference: data:image/png;base64,\(globalImage)]
+        Study this reference image carefully to maintain character consistency across all story illustrations.
         """)
     }
     
     // Add previous illustration if available (usually for non-first pages)
-    if let previousImage = previousIllustrationBase64 {
+    if previousIllustrationBase64 != nil {
       promptComponents.append("""
-        PREVIOUS PAGE ILLUSTRATION:
-        The following is the illustration from the previous page. Maintain consistency with:
+        PREVIOUS PAGE ILLUSTRATION PROVIDED:
+        An illustration from the previous page is included with this request. Maintain consistency with:
         - Character appearances and poses
         - Scene transitions and environments
         - Color palette and lighting
         - Overall style and visual elements
         
-        [Previous illustration: data:image/png;base64,\(previousImage)]
+        Use this previous illustration to ensure smooth visual continuity between pages.
         """)
     }
     

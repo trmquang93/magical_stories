@@ -274,45 +274,57 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
         pageNumber: Int,
         totalPages: Int,
         previousIllustrationPath: String? = nil,
-        visualGuide: VisualGuide? = nil
+        visualGuide: VisualGuide? = nil,
+        globalReferenceImagePath: String? = nil
     ) async throws -> String? {
         // Log the generation start with task type info
         let taskType = pageNumber == 0 ? "GLOBAL REFERENCE" : "PAGE ILLUSTRATION"
         print("[IllustrationService] Starting generation of \(taskType) (page \(pageNumber) of \(totalPages))")
         print("[IllustrationService] Has visual guide: \(visualGuide != nil)")
         print("[IllustrationService] Has previous illustration reference: \(previousIllustrationPath != nil)")
-        // Create an enhanced prompt that focuses on the specific illustration
-        var promptComponents = [
-            "Generate a high-quality illustration for page \(pageNumber) of \(totalPages) of a children's story.",
-            
-            "ILLUSTRATION CONTENT:",
-            illustrationDescription,
-            
-            "REQUIREMENTS:",
-            "- Size: 16:9 landscape-orientation illustration",
-            "- Style: Vibrant, whimsical children's book style",
-            "- Follow the description EXACTLY, including all specified character details, colors, and elements",
-            "- Create high-quality art with good composition, color balance, and visual appeal",
-            "- Ensure all described characters and elements are clearly visible",
-            "- Pay close attention to character appearances exactly as described",
-            "- Render backgrounds and settings with appropriate detail",
-            "- Use lighting and color to create the mood described",
-            "- Ensure appropriate scaling and proportions between characters and environment",
-            
-            "The illustration should be high quality, child-friendly, and look like it belongs in a professional children's picture book."
-        ]
+        print("[IllustrationService] Has global reference: \(globalReferenceImagePath != nil)")
         
-        // Add visual guide to prompt if available
-        if let visualGuide = visualGuide {
-            promptComponents.append("VISUAL GUIDE INFORMATION:")
-            promptComponents.append(visualGuide.formattedForPrompt())
+        // Use PromptBuilder to generate appropriate prompt based on page type
+        let promptBuilder = PromptBuilder()
+        let enhancedPrompt: String
+        
+        if pageNumber == 0 {
+            // Global Reference Generation (Page 0)
+            guard let visualGuide = visualGuide else {
+                throw IllustrationError.invalidResponse("Visual guide is required for global reference generation")
+            }
+            let storyTitle = "Story Title" // TODO: Pass actual story title
+            enhancedPrompt = promptBuilder.buildGlobalReferenceImagePrompt(
+                visualGuide: visualGuide,
+                storyTitle: storyTitle
+            )
+            print("[IllustrationService] Generated global reference prompt")
+        } else {
+            // Page Illustration Generation (Page > 0)
+            guard let visualGuide = visualGuide else {
+                throw IllustrationError.invalidResponse("Visual guide is required for page illustration generation")
+            }
+            
+            // Create a temporary Page object for the prompt builder
+            let tempPage = Page(
+                content: illustrationDescription,
+                pageNumber: pageNumber
+            )
+            
+            enhancedPrompt = promptBuilder.buildSequentialIllustrationPrompt(
+                page: tempPage,
+                pageIndex: pageNumber - 1, // Convert to 0-based index
+                visualGuide: visualGuide,
+                globalReferenceImageBase64: globalReferenceImagePath != nil ? "available" : nil,
+                previousIllustrationBase64: previousIllustrationPath != nil ? "available" : nil
+            )
+            print("[IllustrationService] Generated sequential page prompt with visual references")
         }
-        
-        let enhancedPrompt = promptComponents.joined(separator: "\n\n")
 
         print(
             "[IllustrationService] Generating illustration for page \(pageNumber) with description length: \(illustrationDescription.count) characters"
         )
+        print("[IllustrationService] Enhanced prompt length: \(enhancedPrompt.count) characters (should be small without embedded images)")
 
         var lastError: Error?
 
@@ -329,6 +341,28 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
 
                 // Add the text part first
                 parts.append(.text(enhancedPrompt))
+                
+                // Add global reference image as separate part if available (for page illustrations)
+                if pageNumber > 0, let globalPath = globalReferenceImagePath {
+                    do {
+                        let globalImageData = try await loadImageAsBase64(from: globalPath)
+                        parts.append(.inlineData(mimeType: "image/png", data: globalImageData))
+                        print("[IllustrationService] Added global reference image as separate API part")
+                    } catch {
+                        print("[IllustrationService] Warning: Could not load global reference for API: \(error.localizedDescription)")
+                    }
+                }
+                
+                // Add previous illustration as separate part if available (for page illustrations)
+                if pageNumber > 0, let previousPath = previousIllustrationPath {
+                    do {
+                        let previousImageData = try await loadImageAsBase64(from: previousPath)
+                        parts.append(.inlineData(mimeType: "image/png", data: previousImageData))
+                        print("[IllustrationService] Added previous illustration as separate API part")
+                    } catch {
+                        print("[IllustrationService] Warning: Could not load previous illustration for API: \(error.localizedDescription)")
+                    }
+                }
 
                 let requestBody = GenerateContentRequest(
                     contents: [GenerateContentRequest.Content(parts: parts)],
@@ -586,6 +620,34 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
         }
     }
 
+    /// Loads an image from persistent storage and converts it to base64 string for prompt inclusion
+    /// - Parameter relativePath: The relative path to the image file in persistent storage
+    /// - Returns: Base64 encoded string of the image data
+    /// - Throws: IllustrationError if the image cannot be loaded or encoded
+    private func loadImageAsBase64(from relativePath: String) async throws -> String {
+        let fileManager = FileManager.default
+        let appSupportURL = try fileManager.url(
+            for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil,
+            create: false)
+        
+        let fileURL = appSupportURL.appendingPathComponent(relativePath)
+        
+        guard fileManager.fileExists(atPath: fileURL.path) else {
+            throw IllustrationError.imageProcessingError(
+                "Image file not found at path: \(relativePath)")
+        }
+        
+        do {
+            let imageData = try Data(contentsOf: fileURL)
+            let base64String = imageData.base64EncodedString()
+            print("[IllustrationService] Loaded image as base64 from: \(relativePath) (size: \(imageData.count) bytes)")
+            return base64String
+        } catch {
+            throw IllustrationError.imageProcessingError(
+                "Failed to load image data from path \(relativePath): \(error.localizedDescription)")
+        }
+    }
+
     /// Generates an illustration for a specific Page model, updating its status during the process.
     /// This method updates the illustration status to reflect the generation progress.
     /// - Parameters:
@@ -597,7 +659,7 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
         print("--- IllustrationService: Starting generation for page \(page.id) ---")
 
         // Update service state for UI observation
-        DispatchQueue.main.async {
+        await MainActor.run {
             self.isGenerating = true
         }
 
@@ -649,7 +711,7 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
         }
 
         // Update service state for UI observation after completion (whether successful or not)
-        DispatchQueue.main.async {
+        await MainActor.run {
             self.isGenerating = false
         }
     }

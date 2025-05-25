@@ -59,7 +59,8 @@ class MockIllustrationServiceForCoordinator: IllustrationServiceProtocol {
         pageNumber: Int,
         totalPages: Int,
         previousIllustrationPath: String?,
-        visualGuide: VisualGuide?
+        visualGuide: VisualGuide?,
+        globalReferenceImagePath: String?
     ) async throws -> String? {
         // Simulate generation delay
         try await Task.sleep(for: .seconds(generationDelay))
@@ -70,6 +71,7 @@ class MockIllustrationServiceForCoordinator: IllustrationServiceProtocol {
             return nil
         }
     }
+    
 }
 
 /// Simplified IllustrationCoordinator for testing

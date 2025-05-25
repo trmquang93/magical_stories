@@ -10,39 +10,39 @@ Claude's development framework uses a plugin architecture where modules can be l
 ### Available Modules
 
 #### Task Management
-@.claude/taskmaster-ai.md
+@.github/instructions/taskmaster-ai.instructions.md
 - Breaks down complex tasks into manageable units
 - Tracks progress and dependencies
 - Maintains focused execution
 
 #### Memory Bank
-@.claude/memory-bank.md
+@.github/instructions/memory-bank.instructions.md
 - Maintains project knowledge across sessions
 - Organizes technical documentation
 - Ensures consistent understanding
 - Memory Bank Structure:
-    - @.cursor/rules/activeContext.mdc
-    - @.cursor/rules/productContext.mdc
-    - @.cursor/rules/progress.mdc
-    - @.cursor/rules/projectbrief.mdc
-    - @.cursor/rules/systemPatterns.mdc
-    - @.cursor/rules/techContext.mdc
-    - @.cursor/rules/test-run-schema.mdc
+    - @.github/instructions/activeContext.instructions.md
+    - @.github/instructions/rules/productContext.instructions.md
+    - @.github/instructions/rules/progress.instructions.md
+    - @.github/instructions/rules/projectbrief.instructions.md
+    - @.github/instructions/rules/systemPatterns.instructions.md
+    - @.github/instructions/rules/techContext.instructions.md
+    - @.github/instructions/rules/test-run-schema.instructions.md
 
 #### Developer Profile
-@.claude/vscode-extension-developer.md
+@.github/instructions/ios-developer.instructions.md
 - Defines required technical skills
 - Guides implementation approaches
 - Sets quality standards
 
 #### TDD Methodology
-@.claude/tdd.md
+@.github/instructions/tdd.instructions.md
 - Implements test-driven development
 - Ensures code quality and test coverage
 - Structures development cycles
 
 #### Product Requirements
-@.claude/PRD.md
+@.github/instructions/PRD.instructions.md
 - Defines core product functionality
 - Sets user experience expectations
 - Establishes success criteria
@@ -61,22 +61,22 @@ When multiple modules are loaded, they automatically integrate through these con
 
 1. **Independent Mode**: Load individual modules for focused capabilities
    ```
-   @.claude/taskmaster-ai.md  # Just task management
+   @.github/instructions/taskmaster-ai.instructions.md  # Just task management
    ```
 
 2. **Combination Mode**: Load multiple modules for enhanced functionality
    ```
-   @.claude/taskmaster-ai.md
-   @.claude/memory-bank.md
+   @.github/instructions/taskmaster-ai.instructions.md
+   @.github/instructions/memory-bank.instructions.md
    ```
 
 3. **Full Framework**: Load all modules for comprehensive development approach
    ```
-   @.claude/taskmaster-ai.md
-   @.claude/memory-bank.md
-   @.claude/developer.md
-   @.claude/tdd.md
-   @.claude/PRD.md
+   @.github/instructions/taskmaster-ai.instructions.md
+   @.github/instructions/memory-bank.instructions.md
+   @.github/instructions/developer-profile.instructions.md
+   @.github/instructions/tdd.instructions.md
+   @.github/instructions/PRD.instructions.md
    ```
 
 The framework automatically detects which modules are loaded and adjusts its behavior accordingly, maintaining consistency regardless of which combination is used.

@@ -1,6 +1,11 @@
+---
+applyTo: '**'
+---
+
 # Memory Bank Module
 
-This module implements a comprehensive project memory system for maintaining context across development sessions. It can be used independently or integrated with other framework modules.
+This module implements a comprehensive project memory system for maintaining context across development sessions. It can be used independently or integrated with other framework modules. 
+**MUST** read ALL memory bank files at the start of EVERY task - this is not optional.
 
 ## Core Concept
 

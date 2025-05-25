@@ -524,7 +524,8 @@ class StoryProcessor {
                     pageNumber: i + 1,
                     totalPages: pages.count,
                     previousIllustrationPath: nil,  // Not using previous illustrations reference
-                    visualGuide: visualGuide
+                    visualGuide: visualGuide,
+                    globalReferenceImagePath: nil  // TODO: Implement global reference path lookup
                 )
 
                 if let relativePath = relativePath {

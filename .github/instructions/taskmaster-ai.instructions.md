@@ -1,3 +1,7 @@
+---
+applyTo: '**'
+---
+
 # Taskmaster AI: Task Management System
 
 ## Your Role

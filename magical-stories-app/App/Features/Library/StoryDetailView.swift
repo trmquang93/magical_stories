@@ -239,6 +239,69 @@ struct StoryDetailView: View {
         let ready = pages.filter { $0.illustrationStatus == .ready }.count
         illustrationProgress = (ready, total)
     }
+    
+    // MARK: - Global Reference Task Helpers
+    
+    private func createGlobalReferenceTask(for story: Story) -> IllustrationTask {
+        return IllustrationTask(
+            pageId: UUID(), // Placeholder ID for global reference tasks
+            storyId: story.id,
+            priority: .high,
+            taskType: .globalReference,
+            pageIndex: nil,
+            globalReferenceURL: nil,
+            dependencies: nil
+        )
+    }
+    
+    private func needsGlobalReferenceTask(for storyId: UUID) -> Bool {
+        // Check if any task in the manager is a global reference for this story
+        return !illustrationTaskManager.pendingTasks.contains { task in
+            task.storyId == storyId && task.taskType == .globalReference
+        }
+    }
+    
+    private func getGlobalReferenceTask(for storyId: UUID) -> IllustrationTask? {
+        // Check pending tasks first
+        if let pendingTask = illustrationTaskManager.pendingTasks.first(where: { task in
+            task.storyId == storyId && task.taskType == .globalReference
+        }) {
+            return pendingTask
+        }
+        
+        // Check completed tasks through task manager's completed dependencies
+        // For now, we'll need to track this through the task manager
+        return nil
+    }
+    
+    @MainActor
+    private func getGlobalReferenceImagePath(for storyId: UUID) -> String? {
+        // Try to find a completed global reference task for this story
+        let repository = IllustrationTaskRepository(modelContext: modelContext)
+        
+        do {
+            // Get all tasks for this story
+            let tasks = try repository.getTasksForStory(storyId)
+            
+            // Find completed global reference task (pageNumber = 0 indicates global reference)
+            let globalReferenceTasks = tasks.filter { task in
+                task.storyId == storyId && task.pageNumber == 0
+            }
+            let completedGlobalTasks = globalReferenceTasks.filter { task in
+                task.status == .ready
+            }
+            
+            if let globalReferenceTask = completedGlobalTasks.first {
+                // The global reference image path follows the pattern used by IllustrationService
+                // Since pageNumber is 0 for global reference, it will be stored as:
+                return "illustrations/story_\(storyId)/page_0_\(globalReferenceTask.id).png"
+            }
+        } catch {
+            print("[StoryDetailView] Error retrieving global reference task: \(error)")
+        }
+        
+        return nil
+    }
 
     private func processIllustrations() {
         guard let currentStory = story else { return } // Ensure story is loaded
@@ -257,7 +320,19 @@ struct StoryDetailView: View {
         
         print("[StoryDetailView] Adding \(pagesNeedingIllustrations.count) illustration tasks for story: \(currentStory.title)")
         
-        // Create tasks for each page with appropriate priorities
+        // Create global reference task first if needed and store its ID
+        var globalReferenceTaskId: UUID? = nil
+        if needsGlobalReferenceTask(for: currentStory.id) {
+            let globalReferenceTask = createGlobalReferenceTask(for: currentStory)
+            globalReferenceTaskId = globalReferenceTask.id
+            illustrationTaskManager.addTask(globalReferenceTask)
+            print("[StoryDetailView] Added global reference task for story: \(currentStory.title)")
+        } else {
+            // Check if there's already a global reference task for this story
+            globalReferenceTaskId = getGlobalReferenceTask(for: currentStory.id)?.id
+        }
+        
+        // Create tasks for each page with appropriate priorities and dependencies
         for page in pagesNeedingIllustrations {
             // Set first viewed timestamp if not already set
             if page.firstViewedAt == nil {
@@ -276,11 +351,28 @@ struct StoryDetailView: View {
                 priority = .low       // All other pages are low priority
             }
             
-            // Create task
+            // Build dependencies for this page task
+            var dependencies: [UUID] = []
+            
+            // Add global reference dependency if available
+            if let globalRefId = globalReferenceTaskId {
+                dependencies.append(globalRefId)
+            }
+            
+            // Add previous page dependency for sequential illustration
+            if page.pageNumber > 1 {
+                // Previous page dependencies will be handled by task manager's enforceDependencyPatterns
+                // which automatically creates sequential page dependencies
+            }
+            
+            // Create task with enhanced parameters
             let task = IllustrationTask(
                 pageId: page.id,
-                storyId: currentStory.id, // Use currentStory.id
-                priority: priority
+                storyId: currentStory.id,
+                priority: priority,
+                taskType: .pageIllustration,
+                pageIndex: page.pageNumber,
+                dependencies: dependencies.isEmpty ? nil : dependencies
             )
             
             // Get previous illustration path if available
@@ -335,7 +427,12 @@ struct StoryDetailView: View {
             _ = await illustrationTaskManager.startProcessing { task in
                 // Process the task by generating an illustration
                 do {
-                    // Find the corresponding page
+                    // Handle global reference tasks differently
+                    if task.taskType == .globalReference {
+                        return await processGlobalReferenceTask(task)
+                    }
+                    
+                    // Find the corresponding page for regular page tasks
                     guard let page = pages.first(where: { $0.id == task.pageId }) else {
                         print("[StoryDetailView] Page not found for task: \(task.id)")
                         var failedTask = task
@@ -354,12 +451,28 @@ struct StoryDetailView: View {
                         pages.first(where: { $0.pageNumber == page.pageNumber - 1 }) : nil
                     let previousIllustrationPath = previousPage?.illustrationPath
                     
-                    // Generate illustration
+                    // Get global reference path for visual consistency
+                    let globalReferenceImagePath = await MainActor.run {
+                        return getGlobalReferenceImagePath(for: task.storyId)
+                    }
+                    
+                    // Create VisualGuide for page illustration
+                    guard let currentStory = story else {
+                        print("[StoryDetailView] No story available for page task: \(task.id)")
+                        var failedTask = task
+                        failedTask.updateStatus(.failed)
+                        return failedTask
+                    }
+                    let visualGuide = createInitialVisualGuide(for: currentStory)
+                    
+                    // Generate illustration using the enhanced method
                     if let relativePath = try await illustrationService.generateIllustration(
                         for: description,
                         pageNumber: page.pageNumber,
                         totalPages: pages.count,
-                        previousIllustrationPath: previousIllustrationPath
+                        previousIllustrationPath: previousIllustrationPath,
+                        visualGuide: visualGuide,
+                        globalReferenceImagePath: globalReferenceImagePath
                     ) {
                         // Update page with generated illustration
                         page.illustrationPath = relativePath
@@ -398,6 +511,147 @@ struct StoryDetailView: View {
                 }
             }
         }
+    }
+    
+    // MARK: - Global Reference Task Processing
+    
+    private func processGlobalReferenceTask(_ task: IllustrationTask) async -> IllustrationTask {
+        guard let currentStory = story else {
+            print("[StoryDetailView] No story available for global reference task: \(task.id)")
+            var failedTask = task
+            failedTask.updateStatus(.failed)
+            return failedTask
+        }
+        
+        do {
+            print("[StoryDetailView] Processing global reference task for story: \(currentStory.title)")
+            
+            // Create a description for the global reference image
+            // This should include all characters and key elements from the story
+            let globalDescription = createGlobalReferenceDescription(for: currentStory)
+            
+            // Create a basic VisualGuide for global reference generation
+            let visualGuide = createInitialVisualGuide(for: currentStory)
+            
+            // Generate global reference illustration using the enhanced IllustrationService method
+            if let relativePath = try await illustrationService.generateIllustration(
+                for: globalDescription,
+                pageNumber: 0, // Special page number for global reference
+                totalPages: pages.count,
+                previousIllustrationPath: nil,
+                visualGuide: visualGuide,
+                globalReferenceImagePath: nil // No global reference for the global reference itself
+            ) {
+                // Update task status to ready
+                var completedTask = task
+                completedTask.updateStatus(.ready)
+                
+                // Save the completed task to repository for persistence
+                await MainActor.run {
+                    let repository = IllustrationTaskRepository(modelContext: modelContext)
+                    do {
+                        _ = try repository.saveTask(
+                            completedTask,
+                            pageNumber: 0, // Global reference is page 0
+                            totalPages: pages.count,
+                            description: globalDescription,
+                            previousIllustrationPath: nil
+                        )
+                        print("[StoryDetailView] Global reference task saved to repository")
+                    } catch {
+                        print("[StoryDetailView] Failed to save global reference task: \(error)")
+                    }
+                }
+                
+                print("[StoryDetailView] Global reference task completed successfully: \(relativePath)")
+                return completedTask
+            } else {
+                // Failed to generate global reference
+                print("[StoryDetailView] Failed to generate global reference illustration")
+                var failedTask = task
+                failedTask.updateStatus(.failed)
+                return failedTask
+            }
+        } catch {
+            print("[StoryDetailView] Error generating global reference illustration: \(error)")
+            var failedTask = task
+            failedTask.updateStatus(.failed)
+            return failedTask
+        }
+    }
+    
+    private func createGlobalReferenceDescription(for story: Story) -> String {
+        // Extract key elements from the story to create a comprehensive description
+        let storyTheme = story.parameters.theme
+        let childName = story.parameters.childName ?? "the main character"
+        let favoriteCharacter = story.parameters.favoriteCharacter ?? ""
+        
+        // Create a description that includes all main characters and key visual elements
+        var description = "Create a comprehensive reference illustration for a \(storyTheme) story featuring \(childName)"
+        
+        if !favoriteCharacter.isEmpty {
+            description += " and \(favoriteCharacter)"
+        }
+        
+        description += ". This illustration should show all the main characters in a neutral, reference-style composition that can be used as a visual guide for consistency across multiple story pages. Include key visual elements, character designs, and the overall art style that will be maintained throughout the story."
+        
+        return description
+    }
+    
+    private func createInitialVisualGuide(for story: Story) -> VisualGuide {
+        // Extract basic character information from story parameters
+        let storyTheme = story.parameters.theme
+        let childName = story.parameters.childName ?? "the main character"
+        let favoriteCharacter = story.parameters.favoriteCharacter ?? ""
+        
+        // Create character definitions
+        var characterDefinitions: [String: String] = [:]
+        
+        // Add the main character (child)
+        characterDefinitions[childName] = "A cheerful child who is the main protagonist of this \(storyTheme) story"
+        
+        // Add favorite character if specified
+        if !favoriteCharacter.isEmpty {
+            characterDefinitions[favoriteCharacter] = "An important character in the story, beloved by the main character"
+        }
+        
+        // Create a style guide based on the theme and target age
+        let styleGuide = createStyleGuide(theme: storyTheme, childAge: story.parameters.childAge)
+        
+        // Create basic setting definitions
+        var settingDefinitions: [String: String] = [:]
+        settingDefinitions["main_setting"] = "The primary environment where the \(storyTheme) story takes place"
+        
+        return VisualGuide(
+            styleGuide: styleGuide,
+            characterDefinitions: characterDefinitions,
+            settingDefinitions: settingDefinitions,
+            globalReferenceImageURL: nil
+        )
+    }
+    
+    private func createStyleGuide(theme: String, childAge: Int) -> String {
+        var styleComponents = [
+            "Children's book illustration style",
+            "Colorful and engaging artwork suitable for \(childAge)-year-old children",
+            "Theme: \(theme)",
+            "Warm, friendly, and approachable character designs",
+            "Clear, easy-to-read visual storytelling"
+        ]
+        
+        // Add age-appropriate style adjustments
+        if childAge <= 5 {
+            styleComponents.append("Simple, bold shapes and bright colors")
+            styleComponents.append("Large, expressive characters")
+        } else if childAge <= 8 {
+            styleComponents.append("More detailed illustrations with richer storytelling")
+            styleComponents.append("Balanced color palette with good contrast")
+        } else {
+            styleComponents.append("Sophisticated artwork with detailed backgrounds")
+            styleComponents.append("Complex compositions and nuanced character expressions")
+        }
+        
+        return styleComponents.joined(separator: ". ")
     }
 
     private func regenerateIllustration(for page: Page) {
