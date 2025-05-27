@@ -129,12 +129,24 @@ class IllustrationCoordinator: ObservableObject {
                     // Get description
                     let description = persistentTask.illustrationDescription ?? "A children's story illustration"
                     
-                    // Generate the illustration
+                    // Get visual guide for the story
+                    guard let visualGuide = self.getVisualGuide(for: persistentTask.storyId) else {
+                        self.logger.error("No visual guide available for story: \(persistentTask.storyId.uuidString)")
+                        updatedTask.updateStatus(.failed)
+                        return updatedTask
+                    }
+                    
+                    // Get global reference image path if available
+                    let globalReferenceImagePath = self.getGlobalReferenceImagePath(for: persistentTask.storyId)
+                    
+                    // Generate illustration using the contextual method with all proper parameters
                     if let relativePath = try await illustrationService.generateIllustration(
-                        for: description, 
-                        pageNumber: persistentTask.pageNumber, 
+                        for: description,
+                        pageNumber: persistentTask.pageNumber,
                         totalPages: persistentTask.totalPages,
-                        previousIllustrationPath: persistentTask.previousIllustrationPath
+                        previousIllustrationPath: persistentTask.previousIllustrationPath,
+                        visualGuide: visualGuide,
+                        globalReferenceImagePath: globalReferenceImagePath
                     ) {
                         // Successfully generated
                         updatedTask.updateStatus(.ready)
@@ -186,6 +198,103 @@ class IllustrationCoordinator: ObservableObject {
         //     page.illustrationStatus = .ready
         //     try? modelContext.save()
         // }
+    }
+    
+    /// Get visual guide for a story
+    /// - Parameter storyId: The story ID
+    /// - Returns: Visual guide for the story or a default one
+    private func getVisualGuide(for storyId: UUID) -> VisualGuide? {
+        // Try to get the story
+        let descriptor = FetchDescriptor<Story>(predicate: #Predicate<Story> { $0.id == storyId })
+        guard let story = try? modelContext.fetch(descriptor).first else {
+            logger.error("Story not found for visual guide lookup: \(storyId.uuidString)")
+            return nil
+        }
+        
+        // Create a visual guide for the story (stories don't store visual guides, they're generated dynamically)
+        logger.debug("Creating visual guide for story: \(story.title)")
+        return createInitialVisualGuide(for: story)
+    }
+    
+    /// Get global reference image path for a story
+    /// - Parameter storyId: The story ID
+    /// - Returns: Path to global reference image if available
+    private func getGlobalReferenceImagePath(for storyId: UUID) -> String? {
+        // For now, return nil as global reference lookup is temporarily disabled
+        // In the future, this would check for completed global reference tasks
+        logger.debug("Global reference lookup temporarily disabled for story: \(storyId.uuidString)")
+        return nil
+    }
+    
+    /// Create an initial visual guide for a story
+    /// - Parameter story: The story to create a visual guide for
+    /// - Returns: A visual guide with style and character information
+    private func createInitialVisualGuide(for story: Story) -> VisualGuide {
+        // Extract theme from story parameters
+        let storyTheme = story.parameters.theme
+        
+        // Try to extract character names from the story content
+        let allContent = story.pages.map { $0.content }.joined(separator: " ")
+        var characterDefinitions: [String: String] = [:]
+        
+        // Simple character extraction (look for capitalized words that appear multiple times)
+        let words = allContent.components(separatedBy: .whitespacesAndNewlines)
+        let capitalizedWords = words.filter { word in
+            guard let first = word.first else { return false }
+            return first.isUppercase && word.count > 2 && word.allSatisfy({ $0.isLetter })
+        }
+        
+        // Count occurrences and keep words that appear more than once (likely character names)
+        let wordCounts = capitalizedWords.reduce(into: [:]) { counts, word in
+            counts[word, default: 0] += 1
+        }
+        
+        for (word, count) in wordCounts where count > 1 && word != "The" && word != "And" {
+            characterDefinitions[word] = "A character in the \(storyTheme) story"
+        }
+        
+        // Create a style guide based on the theme and target age
+        let styleGuide = createStyleGuide(theme: storyTheme, childAge: story.parameters.childAge)
+        
+        // Create basic setting definitions
+        var settingDefinitions: [String: String] = [:]
+        settingDefinitions["main_setting"] = "The primary environment where the \(storyTheme) story takes place"
+        
+        return VisualGuide(
+            styleGuide: styleGuide,
+            characterDefinitions: characterDefinitions,
+            settingDefinitions: settingDefinitions,
+            globalReferenceImageURL: nil
+        )
+    }
+    
+    /// Create a style guide string based on theme and child age
+    /// - Parameters:
+    ///   - theme: The story theme
+    ///   - childAge: The target child age
+    /// - Returns: A formatted style guide string
+    private func createStyleGuide(theme: String, childAge: Int) -> String {
+        var styleComponents = [
+            "Children's book illustration style",
+            "Colorful and engaging artwork suitable for \(childAge)-year-old children",
+            "Theme: \(theme)",
+            "Warm, friendly, and approachable character designs",
+            "Clear, easy-to-read visual storytelling"
+        ]
+        
+        // Add age-appropriate style adjustments
+        if childAge <= 5 {
+            styleComponents.append("Simple, bold shapes and bright colors")
+            styleComponents.append("Large, expressive characters")
+        } else if childAge <= 8 {
+            styleComponents.append("More detailed illustrations with richer storytelling")
+            styleComponents.append("Balanced color palette with good contrast")
+        } else {
+            styleComponents.append("Sophisticated artwork with detailed backgrounds")
+            styleComponents.append("Complex compositions and nuanced character expressions")
+        }
+        
+        return styleComponents.joined(separator: ". ")
     }
     
     /// Set up network monitoring

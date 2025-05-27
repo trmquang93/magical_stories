@@ -99,33 +99,41 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
         // NOTE: This method currently uses the old Imagen API structure.
         // Consider refactoring or removing if the contextual method becomes standard.
         let combinedPrompt = """
-            🚫 ABSOLUTELY NO TEXT ALLOWED IN ILLUSTRATION 🚫
-            ‼️ CRITICAL: This illustration must be COMPLETELY TEXT-FREE ‼️
+            🚫🚫🚫 ABSOLUTELY NO TEXT ALLOWED IN ILLUSTRATION 🚫🚫🚫
+            ‼️‼️ CRITICAL: This illustration must be COMPLETELY TEXT-FREE ‼️‼️
+            🛑 TEXT DETECTION ACTIVE - ANY TEXT WILL CAUSE IMMEDIATE REJECTION 🛑
             
-            Generate an illustration for a children's story page based on the following details:
+            Generate a PURE VISUAL illustration for a children's story page:
             
             Theme: \(theme)
             Scene Description: \(pageText)
             
             Style: Whimsical, colorful, suitable for young children
             
-            IMPORTANT REQUIREMENTS:
-            - Visualize the scene and characters based on the description
-            - DO NOT depict animals performing human-like actions (like talking or wearing clothes) even if mentioned in the description
-            - Focus on the environment and the animals' natural appearance
+            VISUAL-ONLY REQUIREMENTS:
+            - Create pure visual storytelling without ANY textual elements
+            - Show scenes through imagery, expressions, and actions only
+            - Use colors, lighting, and composition to convey mood
+            - Characters must communicate through body language and facial expressions
             
-            🚫 FORBIDDEN ELEMENTS - NEVER INCLUDE:
-            ❌ NO text of any kind
-            ❌ NO words or letters
-            ❌ NO captions or labels
-            ❌ NO speech bubbles or dialogue
-            ❌ NO written signs or text elements
-            ❌ NO story text overlay
+            🚫🚫🚫 ABSOLUTELY FORBIDDEN - ZERO TEXT TOLERANCE 🚫🚫🚫
+            ❌ NO text, words, letters, numbers, or symbols
+            ❌ NO captions, labels, or written descriptions
+            ❌ NO speech bubbles, dialogue, or conversation text
+            ❌ NO signs, banners, or written notices
+            ❌ NO book pages, newspapers, or readable materials
+            ❌ NO license plates, name tags, or written identifiers
+            ❌ NO store signs, street signs, or directional text
+            ❌ NO written language of ANY kind in ANY form
             
-            ✅ The app displays story text separately below the image
-            ✅ Focus ONLY on visual storytelling without ANY written words
+            ✅ PURE VISUAL STORYTELLING ONLY
+            ✅ Use facial expressions to show emotions
+            ✅ Use body language to show actions
+            ✅ Use environmental details to set the scene
+            ✅ The app will display all story text separately below the image
             
-            REMINDER: If you include ANY text, the illustration will be rejected!
+            🛑 FINAL WARNING: Any visible text will result in complete rejection 🛑
+            Create an image that tells the story through visuals alone.
             """
 
         debugPrint("Generating illustration with prompt: \(combinedPrompt)")
@@ -799,32 +807,40 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
     /// This refactors the existing code to be more reusable
     private func generateIllustrationWithPrompt(_ prompt: String) async throws -> String? {
         let combinedPrompt = """
-            🚫 ABSOLUTELY NO TEXT ALLOWED IN ILLUSTRATION 🚫
-            ‼️ CRITICAL: This illustration must be COMPLETELY TEXT-FREE ‼️
+            🚫🚫🚫 ABSOLUTELY NO TEXT ALLOWED IN ILLUSTRATION 🚫🚫🚫
+            ‼️‼️ CRITICAL: This illustration must be COMPLETELY TEXT-FREE ‼️‼️
+            🛑 TEXT DETECTION ACTIVE - ANY TEXT WILL CAUSE IMMEDIATE REJECTION 🛑
             
-            Generate an illustration for a children's story page based on the following details:
+            Generate a PURE VISUAL illustration for a children's story page:
             
             Scene Description: \(prompt)
             
             Style: Whimsical, colorful, suitable for young children
             
-            IMPORTANT REQUIREMENTS:
-            - Visualize the scene and characters based on the description
-            - DO NOT depict animals performing human-like actions (like talking or wearing clothes) even if mentioned in the description
-            - Focus on the environment and the animals' natural appearance
+            VISUAL-ONLY REQUIREMENTS:
+            - Create pure visual storytelling without ANY textual elements
+            - Show scenes through imagery, expressions, and actions only
+            - Use colors, lighting, and composition to convey mood
+            - Characters must communicate through body language and facial expressions
             
-            🚫 FORBIDDEN ELEMENTS - NEVER INCLUDE:
-            ❌ NO text of any kind
-            ❌ NO words or letters
-            ❌ NO captions or labels
-            ❌ NO speech bubbles or dialogue
-            ❌ NO written signs or text elements
-            ❌ NO story text overlay
+            🚫🚫🚫 ABSOLUTELY FORBIDDEN - ZERO TEXT TOLERANCE 🚫🚫🚫
+            ❌ NO text, words, letters, numbers, or symbols
+            ❌ NO captions, labels, or written descriptions
+            ❌ NO speech bubbles, dialogue, or conversation text
+            ❌ NO signs, banners, or written notices
+            ❌ NO book pages, newspapers, or readable materials
+            ❌ NO license plates, name tags, or written identifiers
+            ❌ NO store signs, street signs, or directional text
+            ❌ NO written language of ANY kind in ANY form
             
-            ✅ The app displays story text separately below the image
-            ✅ Focus ONLY on visual storytelling without ANY written words
+            ✅ PURE VISUAL STORYTELLING ONLY
+            ✅ Use facial expressions to show emotions
+            ✅ Use body language to show actions
+            ✅ Use environmental details to set the scene
+            ✅ The app will display all story text separately below the image
             
-            REMINDER: If you include ANY text, the illustration will be rejected!
+            🛑 FINAL WARNING: Any visible text will result in complete rejection 🛑
+            Create an image that tells the story through visuals alone.
             """
 
         var lastError: Error?

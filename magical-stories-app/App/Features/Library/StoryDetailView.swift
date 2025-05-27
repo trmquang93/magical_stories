@@ -645,12 +645,28 @@ struct StoryDetailView: View {
             let totalPages = pages.count
             
             do {
-                // Use the image prompt directly instead of passing the modelContext
+                // Get previous illustration path for visual continuity
+                let previousPage = pageNumber > 1 ? 
+                    pages.first(where: { $0.pageNumber == pageNumber - 1 }) : nil
+                let previousIllustrationPath = previousPage?.illustrationPath
+                
+                // Get global reference path for visual consistency
+                let globalReferenceImagePath = getGlobalReferenceImagePath(for: story?.id ?? UUID())
+                
+                // Create visual guide for regeneration
+                guard let currentStory = story else {
+                    throw NSError(domain: "StoryDetailView", code: 1, userInfo: [NSLocalizedDescriptionKey: "No story available"])
+                }
+                let visualGuide = createInitialVisualGuide(for: currentStory)
+                
+                // Use the contextual generation method with all proper parameters
                 if let relativePath = try await illustrationService.generateIllustration(
                     for: imagePrompt,
                     pageNumber: pageNumber,
                     totalPages: totalPages,
-                    previousIllustrationPath: nil
+                    previousIllustrationPath: previousIllustrationPath,
+                    visualGuide: visualGuide,
+                    globalReferenceImagePath: globalReferenceImagePath
                 ) {
                     // Update page with the new illustration path
                     page.illustrationPath = relativePath

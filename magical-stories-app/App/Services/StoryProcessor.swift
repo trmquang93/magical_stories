@@ -518,14 +518,17 @@ class StoryProcessor {
                     "[StoryProcessor] Generating illustration for page \(i+1) with prompt: \(imagePrompt.prefix(100))..."
                 )
 
-                // Generate illustration using the enhanced prompt
+                // Get previous illustration path for visual continuity
+                let previousIllustrationPath: String? = i > 0 ? pages[i - 1].illustrationPath : nil
+                
+                // Generate illustration using the enhanced prompt with proper references
                 let relativePath = try await illustrationService.generateIllustration(
                     for: imagePrompt,
                     pageNumber: i + 1,
                     totalPages: pages.count,
-                    previousIllustrationPath: nil,  // Not using previous illustrations reference
+                    previousIllustrationPath: previousIllustrationPath,
                     visualGuide: visualGuide,
-                    globalReferenceImagePath: nil  // TODO: Implement global reference path lookup
+                    globalReferenceImagePath: nil  // Global reference not used during initial story creation
                 )
 
                 if let relativePath = relativePath {

@@ -167,6 +167,10 @@ class StoryService: ObservableObject {
                 parameters: parameters,
                 categoryName: category  // Set the category name from AI response
             )
+            
+            // Generate illustrations for all pages using the enhanced contextual method
+            // This ensures consistency with the StoryDetailView approach
+            try await generateIllustrationsForStory(story, visualGuide: visualGuide)
             try await persistenceService.saveStory(story)
             // Immediately update the in-memory stories list so tests see the new story
             if !stories.contains(where: { $0.id == story.id }) {
@@ -625,6 +629,80 @@ class StoryService: ObservableObject {
             AIErrorManager.logError(
                 error, source: "StoryService",
                 additionalInfo: "Failed to delete story with id: \(id)")
+        }
+    }
+    
+    // MARK: - Illustration Generation
+    
+    /// Generate illustrations for all pages in a story using the enhanced contextual method
+    /// This method uses the same comprehensive approach as StoryDetailView to ensure consistency
+    /// across all three illustration generation flows
+    private func generateIllustrationsForStory(_ story: Story, visualGuide: VisualGuide?) async throws {
+        let illustrationService = try IllustrationService()
+        var globalReferenceImagePath: String?
+        
+        // Generate global reference image if we have a visual guide
+        if let visualGuide = visualGuide {
+            do {
+                // Use pageNumber 0 to generate global reference image
+                globalReferenceImagePath = try await illustrationService.generateIllustration(
+                    for: "Global reference image for all characters and settings in this story",
+                    pageNumber: 0, // Special page number for global reference
+                    totalPages: story.pages.count,
+                    previousIllustrationPath: nil,
+                    visualGuide: visualGuide,
+                    globalReferenceImagePath: nil
+                )
+                print("[StoryService] Generated global reference image: \(globalReferenceImagePath ?? "nil")")
+            } catch {
+                print("[StoryService] Failed to generate global reference image: \(error.localizedDescription)")
+                // Continue without global reference
+            }
+        }
+        
+        // Generate illustrations for each page using the enhanced contextual method
+        for pageIndex in story.pages.indices {
+            let page = story.pages[pageIndex]
+            let description = page.imagePrompt ?? page.content
+            
+            // Get previous illustration path for visual continuity
+            let previousIllustrationPath: String? = pageIndex > 0 ? story.pages[pageIndex - 1].illustrationPath : nil
+            
+            do {
+                print("[StoryService] Generating illustration for page \(page.pageNumber) with enhanced contextual method")
+                
+                // Use the same enhanced method as StoryDetailView
+                let relativePath = try await illustrationService.generateIllustration(
+                    for: description,
+                    pageNumber: page.pageNumber,
+                    totalPages: story.pages.count,
+                    previousIllustrationPath: previousIllustrationPath,
+                    visualGuide: visualGuide,
+                    globalReferenceImagePath: globalReferenceImagePath
+                )
+                
+                if let relativePath = relativePath {
+                    story.pages[pageIndex].illustrationPath = relativePath
+                    story.pages[pageIndex].illustrationStatus = .ready
+                    print("[StoryService] Successfully generated illustration for page \(page.pageNumber): \(relativePath)")
+                } else {
+                    story.pages[pageIndex].illustrationStatus = .failed
+                    print("[StoryService] Failed to generate illustration for page \(page.pageNumber): service returned nil")
+                }
+                
+                // Add delay between illustrations to avoid API rate limits
+                if pageIndex < story.pages.count - 1 {
+                    try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
+                }
+                
+            } catch {
+                story.pages[pageIndex].illustrationStatus = .failed
+                print("[StoryService] Error generating illustration for page \(page.pageNumber): \(error.localizedDescription)")
+                AIErrorManager.logError(
+                    error, source: "StoryService",
+                    additionalInfo: "Failed to generate illustration for page \(page.pageNumber) in story \(story.title)"
+                )
+            }
         }
     }
 }
