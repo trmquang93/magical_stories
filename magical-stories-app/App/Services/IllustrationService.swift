@@ -99,9 +99,15 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
         // NOTE: This method currently uses the old Imagen API structure.
         // Consider refactoring or removing if the contextual method becomes standard.
         let combinedPrompt = """
-            🚫🚫🚫 ABSOLUTELY NO TEXT ALLOWED IN ILLUSTRATION 🚫🚫🚫
-            ‼️‼️ CRITICAL: This illustration must be COMPLETELY TEXT-FREE ‼️‼️
-            🛑 TEXT DETECTION ACTIVE - ANY TEXT WILL CAUSE IMMEDIATE REJECTION 🛑
+            ⛔️ ABSOLUTE TEXT PROHIBITION - ZERO TOLERANCE POLICY ⛔️
+            🚫🚫🚫 NO TEXT ALLOWED UNDER ANY CIRCUMSTANCES 🚫🚫🚫
+            ‼️‼️ CRITICAL SYSTEM RULE: TEXT-FREE ILLUSTRATION ONLY ‼️‼️
+            
+            🛑 TEXT DETECTION ACTIVE 🛑
+            ANY visible text, letters, numbers, or symbols will result in:
+            • IMMEDIATE REJECTION of the illustration
+            • AUTOMATIC REGENERATION request
+            • FAILED QUALITY CONTROL assessment
             
             Generate a PURE VISUAL illustration for a children's story page:
             
@@ -110,30 +116,41 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
             
             Style: Whimsical, colorful, suitable for young children
             
-            VISUAL-ONLY REQUIREMENTS:
+            MANDATORY VISUAL-ONLY REQUIREMENTS:
             - Create pure visual storytelling without ANY textual elements
             - Show scenes through imagery, expressions, and actions only
             - Use colors, lighting, and composition to convey mood
             - Characters must communicate through body language and facial expressions
+            - Tell the story through VISUAL ELEMENTS ONLY
             
-            🚫🚫🚫 ABSOLUTELY FORBIDDEN - ZERO TEXT TOLERANCE 🚫🚫🚫
-            ❌ NO text, words, letters, numbers, or symbols
-            ❌ NO captions, labels, or written descriptions
-            ❌ NO speech bubbles, dialogue, or conversation text
-            ❌ NO signs, banners, or written notices
+            🚨 STRICTLY FORBIDDEN - WILL CAUSE REJECTION 🚨
+            ❌ NO text in ANY language (English, symbols, foreign scripts)
+            ❌ NO words, letters, numbers, or alphanumeric characters
+            ❌ NO captions, labels, titles, or descriptions
+            ❌ NO speech bubbles, dialogue boxes, or conversation text
+            ❌ NO written signs, posters, banners, or notices
             ❌ NO book pages, newspapers, or readable materials
-            ❌ NO license plates, name tags, or written identifiers
-            ❌ NO store signs, street signs, or directional text
-            ❌ NO written language of ANY kind in ANY form
+            ❌ NO story text overlay or embedded narrative text
+            ❌ NO license plates, name tags, or identification text
+            ❌ NO mathematical symbols, equations, or formulas
+            ❌ NO emoji text, emoticons, or text-based expressions
             
-            ✅ PURE VISUAL STORYTELLING ONLY
-            ✅ Use facial expressions to show emotions
-            ✅ Use body language to show actions
-            ✅ Use environmental details to set the scene
-            ✅ The app will display all story text separately below the image
+            ✅ APPROVED VISUAL STORYTELLING ELEMENTS:
+            ✅ Character facial expressions to convey emotions
+            ✅ Body language and gestures to show actions
+            ✅ Environmental details to establish setting
+            ✅ Color and lighting to create mood and atmosphere
+            ✅ Composition and framing to guide viewer attention
+            ✅ Visual symbols (non-text) like hearts, stars, or arrows
             
-            🛑 FINAL WARNING: Any visible text will result in complete rejection 🛑
-            Create an image that tells the story through visuals alone.
+            🔍 QUALITY ASSURANCE CHECK:
+            Before finalizing, scan EVERY pixel for text elements
+            The app handles ALL text display separately below the image
+            Your illustration must be 100% text-free for approval
+            
+            ⚠️ FINAL WARNING ⚠️
+            TEXT = AUTOMATIC REJECTION = WASTED GENERATION
+            Create pure visual art that tells the story through visuals alone!
             """
 
         debugPrint("Generating illustration with prompt: \(combinedPrompt)")
@@ -807,9 +824,15 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
     /// This refactors the existing code to be more reusable
     private func generateIllustrationWithPrompt(_ prompt: String) async throws -> String? {
         let combinedPrompt = """
-            🚫🚫🚫 ABSOLUTELY NO TEXT ALLOWED IN ILLUSTRATION 🚫🚫🚫
-            ‼️‼️ CRITICAL: This illustration must be COMPLETELY TEXT-FREE ‼️‼️
-            🛑 TEXT DETECTION ACTIVE - ANY TEXT WILL CAUSE IMMEDIATE REJECTION 🛑
+            ⛔️ ABSOLUTE TEXT PROHIBITION - ZERO TOLERANCE POLICY ⛔️
+            🚫🚫🚫 NO TEXT ALLOWED UNDER ANY CIRCUMSTANCES 🚫🚫🚫
+            ‼️‼️ CRITICAL SYSTEM RULE: TEXT-FREE ILLUSTRATION ONLY ‼️‼️
+            
+            🛑 TEXT DETECTION ACTIVE 🛑
+            ANY visible text, letters, numbers, or symbols will result in:
+            • IMMEDIATE REJECTION of the illustration
+            • AUTOMATIC REGENERATION request
+            • FAILED QUALITY CONTROL assessment
             
             Generate a PURE VISUAL illustration for a children's story page:
             
@@ -817,30 +840,41 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
             
             Style: Whimsical, colorful, suitable for young children
             
-            VISUAL-ONLY REQUIREMENTS:
+            MANDATORY VISUAL-ONLY REQUIREMENTS:
             - Create pure visual storytelling without ANY textual elements
             - Show scenes through imagery, expressions, and actions only
             - Use colors, lighting, and composition to convey mood
             - Characters must communicate through body language and facial expressions
+            - Tell the story through VISUAL ELEMENTS ONLY
             
-            🚫🚫🚫 ABSOLUTELY FORBIDDEN - ZERO TEXT TOLERANCE 🚫🚫🚫
-            ❌ NO text, words, letters, numbers, or symbols
-            ❌ NO captions, labels, or written descriptions
-            ❌ NO speech bubbles, dialogue, or conversation text
-            ❌ NO signs, banners, or written notices
+            🚨 STRICTLY FORBIDDEN - WILL CAUSE REJECTION 🚨
+            ❌ NO text in ANY language (English, symbols, foreign scripts)
+            ❌ NO words, letters, numbers, or alphanumeric characters
+            ❌ NO captions, labels, titles, or descriptions
+            ❌ NO speech bubbles, dialogue boxes, or conversation text
+            ❌ NO written signs, posters, banners, or notices
             ❌ NO book pages, newspapers, or readable materials
-            ❌ NO license plates, name tags, or written identifiers
-            ❌ NO store signs, street signs, or directional text
-            ❌ NO written language of ANY kind in ANY form
+            ❌ NO story text overlay or embedded narrative text
+            ❌ NO license plates, name tags, or identification text
+            ❌ NO mathematical symbols, equations, or formulas
+            ❌ NO emoji text, emoticons, or text-based expressions
             
-            ✅ PURE VISUAL STORYTELLING ONLY
-            ✅ Use facial expressions to show emotions
-            ✅ Use body language to show actions
-            ✅ Use environmental details to set the scene
-            ✅ The app will display all story text separately below the image
+            ✅ APPROVED VISUAL STORYTELLING ELEMENTS:
+            ✅ Character facial expressions to convey emotions
+            ✅ Body language and gestures to show actions
+            ✅ Environmental details to establish setting
+            ✅ Color and lighting to create mood and atmosphere
+            ✅ Composition and framing to guide viewer attention
+            ✅ Visual symbols (non-text) like hearts, stars, or arrows
             
-            🛑 FINAL WARNING: Any visible text will result in complete rejection 🛑
-            Create an image that tells the story through visuals alone.
+            🔍 QUALITY ASSURANCE CHECK:
+            Before finalizing, scan EVERY pixel for text elements
+            The app handles ALL text display separately below the image
+            Your illustration must be 100% text-free for approval
+            
+            ⚠️ FINAL WARNING ⚠️
+            TEXT = AUTOMATIC REJECTION = WASTED GENERATION
+            Create pure visual art that tells the story through visuals alone!
             """
 
         var lastError: Error?

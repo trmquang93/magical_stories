@@ -10,8 +10,8 @@ final class IllustrationServiceProgressTests: XCTestCase {
     var modelContainer: ModelContainer!
     var modelContext: ModelContext!
 
-    override func setUp() async throws {
-        try await super.setUp()
+    override func setUpWithError() throws {
+        try super.setUpWithError()
 
         // Set up a test model container
         let schema = Schema([Page.self])
@@ -27,13 +27,13 @@ final class IllustrationServiceProgressTests: XCTestCase {
             apiKey: "test-api-key", urlSession: mockURLSession)
     }
 
-    override func tearDown() async throws {
+    override func tearDownWithError() throws {
         mockURLSession = nil
         illustrationService = nil
         modelContainer = nil
         modelContext = nil
 
-        try await super.tearDown()
+        try super.tearDownWithError()
     }
 
     func testGenerateIllustration_UpdatesStatusToGenerating() async throws {

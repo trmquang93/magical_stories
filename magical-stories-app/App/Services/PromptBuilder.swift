@@ -573,30 +573,53 @@ class PromptBuilder {
         """)
     }
     
-    // Add critical requirements with emphasis on NO TEXT
+    // Add critical requirements with enhanced text-free enforcement
     promptComponents.append("""
-      🚫 ABSOLUTELY NO TEXT ALLOWED IN ILLUSTRATION 🚫
-      ‼️ CRITICAL: This illustration must be COMPLETELY TEXT-FREE ‼️
+      ⛔️ ABSOLUTE TEXT PROHIBITION - ZERO TOLERANCE POLICY ⛔️
+      🚫🚫🚫 NO TEXT ALLOWED UNDER ANY CIRCUMSTANCES 🚫🚫🚫
+      ‼️‼️ CRITICAL SYSTEM RULE: TEXT-FREE ILLUSTRATION ONLY ‼️‼️
       
-      MANDATORY REQUIREMENTS:
+      🛑 TEXT DETECTION ACTIVE 🛑
+      ANY visible text, letters, numbers, or symbols will result in:
+      • IMMEDIATE REJECTION of the illustration
+      • AUTOMATIC REGENERATION request
+      • FAILED QUALITY CONTROL assessment
+      
+      MANDATORY VISUAL-ONLY REQUIREMENTS:
       - Create a detailed, vibrant illustration matching this page's content
       - Maintain EXACT character appearances across all story illustrations
       - Use consistent artistic style, color palette, and proportions
       - Create a 16:9 landscape aspect ratio illustration
+      - Tell the story through VISUAL ELEMENTS ONLY
       
-      🚫 FORBIDDEN ELEMENTS - NEVER INCLUDE:
-      ❌ NO text of any kind
-      ❌ NO words or letters
-      ❌ NO captions or labels
-      ❌ NO speech bubbles or dialogue
-      ❌ NO written signs or text elements
-      ❌ NO story text overlay
+      🚨 STRICTLY FORBIDDEN - WILL CAUSE REJECTION 🚨
+      ❌ NO text in ANY language (English, symbols, foreign scripts)
+      ❌ NO words, letters, numbers, or alphanumeric characters
+      ❌ NO captions, labels, titles, or descriptions
+      ❌ NO speech bubbles, dialogue boxes, or conversation text
+      ❌ NO written signs, posters, banners, or notices
+      ❌ NO book pages, newspapers, or readable materials
+      ❌ NO story text overlay or embedded narrative text
+      ❌ NO license plates, name tags, or identification text
+      ❌ NO mathematical symbols, equations, or formulas
+      ❌ NO emoji text, emoticons, or text-based expressions
       
-      ✅ The app displays story text separately below the image
-      ✅ Focus ONLY on visual storytelling without ANY written words
-      ✅ Character expressions and poses must match the emotional tone of the scene
+      ✅ APPROVED VISUAL STORYTELLING ELEMENTS:
+      ✅ Character facial expressions to convey emotions
+      ✅ Body language and gestures to show actions
+      ✅ Environmental details to establish setting
+      ✅ Color and lighting to create mood and atmosphere
+      ✅ Composition and framing to guide viewer attention
+      ✅ Visual symbols (non-text) like hearts, stars, or arrows
       
-      REMINDER: If you include ANY text, the illustration will be rejected!
+      🔍 QUALITY ASSURANCE CHECK:
+      Before finalizing, scan EVERY pixel for text elements
+      The app handles ALL text display separately below the image
+      Your illustration must be 100% text-free for approval
+      
+      ⚠️ FINAL WARNING ⚠️
+      TEXT = AUTOMATIC REJECTION = WASTED GENERATION
+      Create pure visual art that tells the story without words!
       """)
     
     let finalPrompt = promptComponents.joined(separator: "\n\n")

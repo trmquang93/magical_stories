@@ -211,8 +211,15 @@ class IllustrationCoordinator: ObservableObject {
             return nil
         }
         
-        // Create a visual guide for the story (stories don't store visual guides, they're generated dynamically)
-        logger.debug("Creating visual guide for story: \(story.title)")
+        // First try to use the stored visual guide (for new stories and updated legacy stories)
+        if let storedVisualGuide = story.visualGuide {
+            logger.debug("Using stored visual guide for story: \(story.title)")
+            logger.debug("Characters available: \(storedVisualGuide.characterDefinitions.keys.joined(separator: ", "))")
+            return storedVisualGuide
+        }
+        
+        // Fallback: Create a basic visual guide for legacy stories without stored guides
+        logger.debug("Creating fallback visual guide for legacy story: \(story.title)")
         return createInitialVisualGuide(for: story)
     }
     

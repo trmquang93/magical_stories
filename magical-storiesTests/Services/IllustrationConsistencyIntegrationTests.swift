@@ -310,8 +310,9 @@ class TestIllustrationService: IllustrationService {
         for illustrationDescription: String,
         pageNumber: Int,
         totalPages: Int,
-        previousIllustrationPath: String?,
-        visualGuide: VisualGuide?
+        previousIllustrationPath: String? = nil,
+        visualGuide: VisualGuide? = nil,
+        globalReferenceImagePath: String? = nil
     ) async throws -> String? {
         if let fileSaver = fileSaver {
             // Mock image data for testing
@@ -323,7 +324,8 @@ class TestIllustrationService: IllustrationService {
             pageNumber: pageNumber,
             totalPages: totalPages,
             previousIllustrationPath: previousIllustrationPath,
-            visualGuide: visualGuide
+            visualGuide: visualGuide,
+            globalReferenceImagePath: globalReferenceImagePath
         )
     }
 }

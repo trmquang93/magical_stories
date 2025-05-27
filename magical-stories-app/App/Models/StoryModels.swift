@@ -136,6 +136,9 @@ final class Story: Identifiable, Codable {
     var lastReadAt: Date?
     var isFavorite: Bool = false
 
+    // Visual guide for character consistency across illustrations
+    var visualGuideData: Data?
+
     // Add relationship for achievements
     @Relationship(deleteRule: .cascade) var achievements: [AchievementModel] = []
 
@@ -151,6 +154,7 @@ final class Story: Identifiable, Codable {
         readCount: Int = 0,
         lastReadAt: Date? = nil,
         isFavorite: Bool = false,
+        visualGuideData: Data? = nil,
         achievements: [AchievementModel] = []
     ) {
         self.id = id
@@ -164,12 +168,13 @@ final class Story: Identifiable, Codable {
         self.readCount = readCount
         self.lastReadAt = lastReadAt
         self.isFavorite = isFavorite
+        self.visualGuideData = visualGuideData
         self.achievements = achievements
     }
 
     enum CodingKeys: String, CodingKey {
         case id, title, pages, parameters, timestamp, isCompleted, collections, categoryName,
-            readCount, lastReadAt, isFavorite, achievements
+            readCount, lastReadAt, isFavorite, visualGuideData, achievements
     }
 
     convenience init(from decoder: Decoder) throws {
@@ -185,6 +190,7 @@ final class Story: Identifiable, Codable {
         let readCount = try container.decodeIfPresent(Int.self, forKey: .readCount) ?? 0
         let lastReadAt = try container.decodeIfPresent(Date.self, forKey: .lastReadAt)
         let isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
+        let visualGuideData = try container.decodeIfPresent(Data.self, forKey: .visualGuideData)
         let achievements =
             try container.decodeIfPresent([AchievementModel].self, forKey: .achievements) ?? []
 
@@ -192,7 +198,7 @@ final class Story: Identifiable, Codable {
             id: id, title: title, pages: pages, parameters: parameters, timestamp: timestamp,
             isCompleted: isCompleted, collections: collections, categoryName: categoryName,
             readCount: readCount, lastReadAt: lastReadAt, isFavorite: isFavorite,
-            achievements: achievements)
+            visualGuideData: visualGuideData, achievements: achievements)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -208,6 +214,7 @@ final class Story: Identifiable, Codable {
         try container.encode(readCount, forKey: .readCount)
         try container.encodeIfPresent(lastReadAt, forKey: .lastReadAt)
         try container.encode(isFavorite, forKey: .isFavorite)
+        try container.encodeIfPresent(visualGuideData, forKey: .visualGuideData)
         try container.encode(achievements, forKey: .achievements)
     }
 
@@ -236,6 +243,28 @@ final class Story: Identifiable, Codable {
             timestamp: timestamp,
             categoryName: categoryName
         )
+    }
+    
+    // MARK: - Visual Guide Convenience Methods
+    
+    /// Get the visual guide for this story, if available
+    var visualGuide: VisualGuide? {
+        get {
+            guard let data = visualGuideData else { return nil }
+            return try? JSONDecoder().decode(VisualGuide.self, from: data)
+        }
+        set {
+            if let guide = newValue {
+                visualGuideData = try? JSONEncoder().encode(guide)
+            } else {
+                visualGuideData = nil
+            }
+        }
+    }
+    
+    /// Set the visual guide for this story
+    func setVisualGuide(_ guide: VisualGuide) {
+        self.visualGuide = guide
     }
 }
 

@@ -86,6 +86,7 @@ Thumbs.db
 test_output/
 reports/
 coverage/
+test-reports/
 
 # SwiftLint
 .swiftlint.yml

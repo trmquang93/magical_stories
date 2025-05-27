@@ -168,9 +168,18 @@ class StoryService: ObservableObject {
                 categoryName: category  // Set the category name from AI response
             )
             
-            // Generate illustrations for all pages using the enhanced contextual method
-            // This ensures consistency with the StoryDetailView approach
-            try await generateIllustrationsForStory(story, visualGuide: visualGuide)
+            // Save the visual guide with the story for character consistency
+            // but defer illustration generation until the story is opened
+            if let visualGuide = visualGuide {
+                story.setVisualGuide(visualGuide)
+                print("[StoryService] Visual guide saved with story for lazy illustration generation")
+                print("[StoryService] Characters available: \(visualGuide.characterDefinitions.keys.joined(separator: ", "))")
+            }
+            
+            // Set all pages to pending status for lazy illustration generation
+            for page in story.pages {
+                page.illustrationStatus = .pending
+            }
             try await persistenceService.saveStory(story)
             // Immediately update the in-memory stories list so tests see the new story
             if !stories.contains(where: { $0.id == story.id }) {
@@ -511,6 +520,139 @@ class StoryService: ObservableObject {
             print("[StoryService] Error extracting visual guide: \(error.localizedDescription)")
             return nil
         }
+    }
+    
+    /// Generate a visual guide for existing stories that don't have one
+    public func generateVisualGuideForExistingStory(_ story: Story) async throws -> VisualGuide {
+        // If story already has a visual guide, return it
+        if let existingGuide = story.visualGuide {
+            return existingGuide
+        }
+        
+        // Extract story content
+        let fullStoryText = story.pages.map { $0.content }.joined(separator: "\n\n")
+        
+        // Extract potential character names using the same logic as PromptBuilder
+        let potentialCharacters = extractPotentialCharacters(from: story.pages)
+        
+        // Create a prompt to generate visual guide for existing story
+        let prompt = buildVisualGuideExtractionPrompt(
+            storyTitle: story.title,
+            storyContent: fullStoryText,
+            theme: story.parameters.theme,
+            characters: potentialCharacters
+        )
+        
+        // Use the general AI service to generate the visual guide
+        let aiResponse = try await model.generateContent(prompt)
+        let response = aiResponse.text ?? ""
+        
+        // Try to extract visual guide from response
+        if let visualGuide = extractVisualGuide(from: response) {
+            // Save the visual guide to the story
+            story.setVisualGuide(visualGuide)
+            return visualGuide
+        } else {
+            // Create a fallback visual guide with basic character definitions
+            return createFallbackVisualGuide(
+                characters: potentialCharacters,
+                theme: story.parameters.theme
+            )
+        }
+    }
+    
+    /// Extract potential character names from story pages (same logic as PromptBuilder)
+    private func extractPotentialCharacters(from pages: [Page]) -> [String] {
+        let fullText = pages.map { $0.content }.joined(separator: " ")
+        
+        // Common naming pattern: capital letter followed by lowercase letters
+        let possibleNames = fullText.split { !$0.isLetter }
+            .filter { word in
+                guard let first = word.first else { return false }
+                return first.isUppercase && word.count > 1
+                    && word.dropFirst().allSatisfy { $0.isLowercase }
+            }
+            .map { String($0) }
+        
+        // Filter out common words that might be capitalized
+        let commonWords = ["The", "And", "But", "For", "With", "When", "Then", "They", "She", "He", "Once", "Now", "Today", "This"]
+        let filteredNames = possibleNames.filter { !commonWords.contains($0) }
+        
+        // Return unique names, preserving order of first appearance
+        var uniqueNames: [String] = []
+        for name in filteredNames {
+            if !uniqueNames.contains(name) {
+                uniqueNames.append(name)
+            }
+        }
+        
+        // Limit to most likely character names (up to 5)
+        return Array(uniqueNames.prefix(5))
+    }
+    
+    /// Build a prompt to extract visual guide information from existing story
+    private func buildVisualGuideExtractionPrompt(
+        storyTitle: String,
+        storyContent: String,
+        theme: String,
+        characters: [String]
+    ) -> String {
+        let charactersSection = characters.isEmpty ? "" : """
+        
+        KEY CHARACTERS IDENTIFIED:
+        \(characters.joined(separator: ", "))
+        """
+        
+        return """
+        Create a comprehensive visual guide for the existing children's story "\(storyTitle)".
+        
+        STORY THEME: \(theme)
+        \(charactersSection)
+        
+        FULL STORY CONTENT:
+        \(storyContent)
+        
+        Based on this story, create detailed visual descriptions to ensure consistent illustrations.
+        
+        REQUIREMENTS:
+        1. Analyze the story content to understand each character's role and personality
+        2. Create detailed physical descriptions for each character that would appear consistently across illustrations
+        3. Include setting descriptions for the main locations mentioned in the story
+        4. Choose an appropriate artistic style that matches the story's tone and theme
+        
+        Return your response as XML with the following structure:
+        <visual_guide>
+            <style_guide>Describe the overall artistic style (e.g., watercolor, cartoon, digital painting) that would suit this story</style_guide>
+            <character_definitions>
+                <character name="CharacterName">Complete physical description including appearance, age, clothing, and distinctive features</character>
+            </character_definitions>
+            <setting_definitions>
+                <setting name="SettingName">Complete setting description with atmosphere, landmarks, colors, and mood</setting>
+            </setting_definitions>
+        </visual_guide>
+        
+        IMPORTANT: Base all descriptions on what is mentioned or implied in the story content. Create consistent, detailed descriptions that would help an illustrator maintain character and setting consistency across multiple images.
+        """
+    }
+    
+    /// Create a basic fallback visual guide when AI generation fails
+    private func createFallbackVisualGuide(characters: [String], theme: String) -> VisualGuide {
+        let styleGuide = "Colorful, child-friendly illustration style with warm colors and soft edges suitable for a \(theme.lowercased()) story"
+        
+        var characterDefinitions = [String: String]()
+        for character in characters {
+            characterDefinitions[character] = "A friendly character with expressive features, appropriate for a children's story about \(theme.lowercased())"
+        }
+        
+        let settingDefinitions = [
+            "Main Setting": "A warm, inviting environment that supports the \(theme.lowercased()) theme with appropriate colors and mood"
+        ]
+        
+        return VisualGuide(
+            styleGuide: styleGuide,
+            characterDefinitions: characterDefinitions,
+            settingDefinitions: settingDefinitions
+        )
     }
     
     private func extractFallbackCategory(from text: String) -> String? {
