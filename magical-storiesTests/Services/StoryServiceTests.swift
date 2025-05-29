@@ -36,9 +36,9 @@ struct StoryServiceTests {
         )
 
         let parameters = StoryParameters(
-            childName: "Alex",
-            childAge: 7,
             theme: "Adventure",
+            childAge: 7,
+            childName: "Alex",
             favoriteCharacter: "Dragon",
             storyLength: "short",
             developmentalFocus: nil,
@@ -116,9 +116,9 @@ struct StoryServiceDevelopmentalTests {
 
         // Parameters for testing
         let params = StoryParameters(
-            childName: "Riley",
-            childAge: 7,
             theme: "Nature",
+            childAge: 7,
+            childName: "Riley",
             favoriteCharacter: "Fox",
             developmentalFocus: [.creativityImagination]
         )

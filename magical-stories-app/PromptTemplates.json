@@ -1,0 +1,90 @@
+{
+  "version": "1.0",
+  "templates": {
+    "textFreeEnforcement": {
+      "critical": {
+        "template": "⛔️ ABSOLUTE TEXT PROHIBITION - ZERO TOLERANCE POLICY ⛔️\n🚫🚫🚫 NO TEXT ALLOWED UNDER ANY CIRCUMSTANCES 🚫🚫🚫\n‼️‼️ CRITICAL SYSTEM RULE: TEXT-FREE ILLUSTRATION ONLY ‼️‼️\n\n🛑 TEXT DETECTION ACTIVE 🛑\nANY visible text, letters, numbers, or symbols will result in:\n• IMMEDIATE REJECTION of the illustration\n• AUTOMATIC REGENERATION request\n• FAILED QUALITY CONTROL assessment\n\n🚨 STRICTLY FORBIDDEN - WILL CAUSE REJECTION 🚨\n❌ NO text in ANY language (English, symbols, foreign scripts)\n❌ NO words, letters, numbers, or alphanumeric characters\n❌ NO captions, labels, titles, or descriptions\n❌ NO speech bubbles, dialogue boxes, or conversation text\n❌ NO written signs, posters, banners, or notices\n❌ NO book pages, newspapers, or readable materials\n❌ NO story text overlay or embedded narrative text\n\n✅ APPROVED VISUAL STORYTELLING ELEMENTS:\n✅ Character facial expressions to convey emotions\n✅ Body language and gestures to show actions\n✅ Environmental details to establish setting\n✅ Color and lighting to create mood and atmosphere",
+        "priority": 3
+      },
+      "moderate": {
+        "template": "Visual Requirements:\n🚫 Please avoid including text, words, or written elements in illustrations.\nThe app will display story text separately below each image.\nFocus on visual storytelling through imagery, expressions, and actions.",
+        "priority": 3
+      }
+    },
+    "vocabularyLevels": {
+      "beginner": {
+        "template": "Use simple, concrete words and short sentences. Repeat key words. Avoid complex tenses.",
+        "priority": 2
+      },
+      "intermediate": {
+        "template": "Use a mix of familiar and new vocabulary. Include some compound sentences. Introduce metaphors sparingly.",
+        "priority": 2
+      },
+      "advanced": {
+        "template": "Use rich vocabulary including some challenging words (with context clues). Vary sentence structure. Include figurative language.",
+        "priority": 2
+      }
+    },
+    "narrativeGuidelines": {
+      "beginner": {
+        "template": "Create a linear story with clear cause-and-effect. Use repetitive patterns. Include simple emotional reactions.",
+        "priority": 2
+      },
+      "intermediate": {
+        "template": "Include minor subplots. Show character motivations. Include problem-solving sequences. Balance action and reflection.",
+        "priority": 2
+      },
+      "advanced": {
+        "template": "Develop multiple story layers. Include character growth. Explore complex emotions. Use foreshadowing.",
+        "priority": 2
+      }
+    },
+    "enhancedVocabulary": {
+      "template": "Include {targetWords} new vocabulary words that are slightly above the child's typical vocabulary level.\nProvide context clues or explanations to make meanings clear.\nRepeat new words 2-3 times throughout the story for reinforcement.\nPrefer vivid, descriptive words that enhance imagery and emotional understanding.",
+      "priority": 2
+    },
+    "storyStructure": {
+      "template": "Story Structure Requirements:\n- Start with \"Title: [Your Story Title]\" on the first line\n- Follow with the story content\n- Divide the story into clear, logical segments that represent pages\n- IMPORTANT: Insert \"---\" (three hyphens) on a separate line between segments to indicate page breaks\n- Each page should be 2-3 paragraphs in length and flow naturally\n- Include page breaks at natural points where illustrations could enhance the story\n- Aim for 3-6 pages total, depending on the requested story length\n- End with a clear resolution that reinforces the story's theme",
+      "priority": 6
+    },
+    "formatGuidelines": {
+      "template": "Format Requirements:\n- Use clear paragraph breaks\n- Keep paragraphs concise (2-4 sentences)\n- Include dialogue when appropriate\n- Use descriptive language that creates vivid mental images\n- Maintain consistent tense throughout\n- VERY IMPORTANT: Use \"---\" (three hyphens) on a separate line to indicate where a new page should begin\n- Make sure each page (separated by \"---\") has a coherent chunk of the story",
+      "priority": 7
+    },
+    "interactive": {
+      "template": "Interactive Elements:\n- Include {promptCount} moments where the reader is prompted to participate\n- Examples: \"Can you spot the [object]?\", \"What do you think happens next?\", \"Try making the sound a [animal] makes!\"\n- Place interactive prompts at natural points in the narrative\n- Design prompts to reinforce the story's theme or moral\n- Ensure prompts are appropriate for the target age group",
+      "priority": 5
+    },
+    "emotional": {
+      "template": "Emotional Elements:\nInclude appropriate exploration of these emotions/themes:\n{themes}",
+      "priority": 6
+    },
+    "developmental": {
+      "template": "Developmental Focus:\nIncorporate opportunities for learning and growth in these areas:\n{categories}",
+      "priority": 7
+    },
+    "variability": {
+      "template": "Variability Requirements:\n- Make this story unique, creative, and different from other stories you've generated\n- Avoid formulaic storytelling - surprise the reader with unexpected twists\n- Create fresh characters and scenarios that stand out\n- Use this unique seed to ensure variability: {seed}",
+      "priority": 8
+    }
+  },
+  "experiments": {
+    "textFreeAlternatives": [
+      {
+        "name": "friendly",
+        "template": "🎨 Create beautiful illustrations without any text!\nThe app will show the story words separately, so focus on amazing visual scenes.\nUse colors, expressions, and actions to tell your story through pictures alone."
+      },
+      {
+        "name": "strict_but_friendly",
+        "template": "Important: Please create text-free illustrations only.\n\nThis means:\n❌ No words, letters, or written text\n❌ No speech bubbles or captions\n✅ Amazing visual storytelling through scenes, expressions, and colors\n\nThe app displays story text separately, so your illustrations can focus on pure visual magic!"
+      }
+    ]
+  },
+  "abTests": {
+    "textFreeEnforcement": {
+      "variants": ["critical", "moderate"],
+      "weights": [0.8, 0.2],
+      "metrics": ["generation_success_rate", "content_quality", "text_violations"]
+    }
+  }
+}

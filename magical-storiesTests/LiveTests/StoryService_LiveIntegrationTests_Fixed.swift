@@ -96,9 +96,9 @@ struct StoryService_LiveIntegrationTests {
 
         // Create minimal parameters for a very short story
         let parameters = StoryParameters(
-            childName: "Test",
-            childAge: 5,
             theme: "Short",
+            childAge: 5,
+            childName: "Test",
             favoriteCharacter: "Cat",
             storyLength: "very short"  // Keep it very short for test efficiency
         )
@@ -155,9 +155,9 @@ struct StoryService_LiveIntegrationTests {
 
         // Create enhanced parameters
         let parameters = StoryParameters(
-            childName: "Test",
-            childAge: 5,
             theme: "Magical",
+            childAge: 5,
+            childName: "Test",
             favoriteCharacter: "Cat",
             storyLength: "very short",  // Keep it very short for test efficiency
             developmentalFocus: [.creativityImagination, .problemSolving],  // Using correct enum values

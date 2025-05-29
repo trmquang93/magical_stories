@@ -39,9 +39,9 @@ struct AllStoriesView_Tests {
       title: "Adventure in Wonderland",
       pages: [Page(content: "Story content", pageNumber: 1)],
       parameters: StoryParameters(
-        childName: "Alice",
-        childAge: 7,
         theme: "Adventure",
+        childAge: 7,
+        childName: "Alice",
         favoriteCharacter: "Rabbit"
       )
     )
@@ -49,9 +49,9 @@ struct AllStoriesView_Tests {
       title: "The Magical Forest",
       pages: [Page(content: "Story content", pageNumber: 1)],
       parameters: StoryParameters(
-        childName: "Emma",
-        childAge: 6,
         theme: "Fantasy",
+        childAge: 6,
+        childName: "Emma",
         favoriteCharacter: "Dragon"
       )
     )
@@ -67,9 +67,9 @@ struct AllStoriesView_Tests {
       title: "Adventure in Wonderland",
       pages: [Page(content: "Story content", pageNumber: 1)],
       parameters: StoryParameters(
-        childName: "Alice",
-        childAge: 7,
         theme: "Adventure",
+        childAge: 7,
+        childName: "Alice",
         favoriteCharacter: "Rabbit"
       )
     )
@@ -77,9 +77,9 @@ struct AllStoriesView_Tests {
       title: "The Magical Forest",
       pages: [Page(content: "Story content", pageNumber: 1)],
       parameters: StoryParameters(
-        childName: "Emma",
-        childAge: 6,
         theme: "Fantasy",
+        childAge: 6,
+        childName: "Emma",
         favoriteCharacter: "Dragon"
       )
     )
@@ -95,9 +95,9 @@ struct AllStoriesView_Tests {
       title: "Adventure in Wonderland",
       pages: [Page(content: "Story content", pageNumber: 1)],
       parameters: StoryParameters(
-        childName: "Alice",
-        childAge: 7,
         theme: "Adventure",
+        childAge: 7,
+        childName: "Alice",
         favoriteCharacter: "Rabbit"
       )
     )
@@ -105,9 +105,9 @@ struct AllStoriesView_Tests {
       title: "The Magical Forest",
       pages: [Page(content: "Story content", pageNumber: 1)],
       parameters: StoryParameters(
-        childName: "Emma",
-        childAge: 6,
         theme: "Fantasy",
+        childAge: 6,
+        childName: "Emma",
         favoriteCharacter: "Dragon"
       )
     )
@@ -125,9 +125,9 @@ struct AllStoriesView_Tests {
       title: "Adventure in Wonderland",
       pages: [Page(content: "Story content", pageNumber: 1)],
       parameters: StoryParameters(
-        childName: "Alice",
-        childAge: 7,
         theme: "Adventure",
+        childAge: 7,
+        childName: "Alice",
         favoriteCharacter: "Rabbit"
       ),
       timestamp: olderTimestamp
@@ -136,9 +136,9 @@ struct AllStoriesView_Tests {
       title: "The Magical Forest",
       pages: [Page(content: "Story content", pageNumber: 1)],
       parameters: StoryParameters(
-        childName: "Emma",
-        childAge: 6,
         theme: "Fantasy",
+        childAge: 6,
+        childName: "Emma",
         favoriteCharacter: "Dragon"
       ),
       timestamp: newerTimestamp

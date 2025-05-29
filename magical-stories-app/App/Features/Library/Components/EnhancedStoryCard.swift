@@ -132,9 +132,9 @@ struct EnhancedStoryCard: View {
         title: "The Whispering Woods",
         pages: [Page(content: "Once upon a time...", pageNumber: 1)],
         parameters: StoryParameters(
-            childName: "Alex",
-            childAge: 6,
             theme: "Mystery",
+            childAge: 6,
+            childName: "Alex",
             favoriteCharacter: "Owl"
         ),
         categoryName: "Adventure"  // Example category

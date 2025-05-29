@@ -34,16 +34,28 @@ enum IllustrationStatus: String, Codable, CaseIterable, Equatable {
 }
 
 /// Represents the input parameters provided by the user to generate a story.
-struct StoryParameters: Codable, Hashable {
-    var childName: String?
-    var childAge: Int
-    var theme: String
-    var favoriteCharacter: String?
-    var storyLength: String?
-    var developmentalFocus: [GrowthCategory]?  // Optional array for developmental themes
-    var interactiveElements: Bool?  // Optional flag for interactive prompts
-    var emotionalThemes: [String]?  // Optional array for specific emotions
-    var languageCode: String?  // Make language code optional
+public struct StoryParameters: Codable, Hashable {
+    public var childName: String?
+    public var childAge: Int
+    public var theme: String
+    public var favoriteCharacter: String?
+    public var storyLength: String?
+    public var developmentalFocus: [GrowthCategory]?  // Optional array for developmental themes
+    public var interactiveElements: Bool?  // Optional flag for interactive prompts
+    public var emotionalThemes: [String]?  // Optional array for specific emotions
+    public var languageCode: String?  // Make language code optional
+    
+    public init(theme: String, childAge: Int, childName: String? = nil, favoriteCharacter: String? = nil, storyLength: String? = nil, developmentalFocus: [GrowthCategory]? = nil, interactiveElements: Bool? = nil, emotionalThemes: [String]? = nil, languageCode: String? = nil) {
+        self.theme = theme
+        self.childAge = childAge
+        self.childName = childName
+        self.favoriteCharacter = favoriteCharacter
+        self.storyLength = storyLength
+        self.developmentalFocus = developmentalFocus
+        self.interactiveElements = interactiveElements
+        self.emotionalThemes = emotionalThemes
+        self.languageCode = languageCode
+    }
 }
 
 /// Represents a page in a story.
@@ -303,9 +315,9 @@ extension Story {
         title: String = "The Magical Forest Adventure", categoryName: String? = "Fantasy"
     ) -> Story {
         let params = StoryParameters(
-            childName: "Alex",
-            childAge: 5,
             theme: "Friendship",
+            childAge: 5,
+            childName: "Alex",
             favoriteCharacter: "Brave Bear"
                 // languageCode is optional, no need to set in basic preview
         )

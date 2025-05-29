@@ -204,9 +204,9 @@ struct StoryFormView: View {
             estimatedAge > 6 ? ["empathy", "courage", "curiosity"] : nil
 
         let parameters = StoryParameters(
-            childName: childName,
-            childAge: estimatedAge,
             theme: selectedTheme.rawValue,
+            childAge: estimatedAge,
+            childName: childName,
             favoriteCharacter: character,
             storyLength: lengthString,
             developmentalFocus: [.emotionalIntelligence, .problemSolving],

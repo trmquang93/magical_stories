@@ -19,9 +19,12 @@ applyTo: '**'
 - **Swift Testing & XCTest:** For unit, integration, and UI testing.
 
 ## Design Patterns
-- **Singleton:** For global services like `IllustrationTaskManager` and `AppRouter`.
+- **Strategy Pattern:** `AIGenerationStrategy` with implementations for different AI models (`GeminiTextStrategy`, `GeminiImageStrategy`, `ImagenStrategy`).
+- **Builder Pattern:** `FluentPromptBuilder` provides composable, chainable API for prompt construction.
+- **Template Method:** `ConfigurablePromptTemplates` with external JSON configuration and A/B testing support.
+- **Singleton:** For global services like `IllustrationTaskManager`, `AppRouter`, and `ConfigurablePromptTemplates.shared`.
 - **Observer:** `@Published` properties in `ObservableObject` classes to notify views of state changes.
-- **Coordinator:** `IllustrationCoordinator` manages illustration task restoration and processing.
+- **Coordinator:** `IllustrationCoordinator` manages illustration task restoration and processing; `AICoordinator` manages AI strategy selection.
 - **Router Pattern:** `AppRouter` centralizes navigation logic and state across the application.
 - **Factory Pattern:** `ViewFactory` creates views for navigation destinations.
 
@@ -32,6 +35,11 @@ applyTo: '**'
 - **Services** interact with external APIs (e.g., Google AI, StoreKit).
 
 ## Critical Implementation Paths
-- **Story Generation Flow:** User input -> Prompt construction -> AI API call -> Story and Illustration processing -> Display.
+- **Story Generation Flow (Refactored):** 
+  - User input -> `FluentPromptBuilder` -> `AICoordinator` strategy selection -> `GeminiTextStrategy` execution -> Story processing -> Display
+- **Illustration Generation Flow (Refactored):**
+  - Story content -> `AICoordinator` -> `ImagenStrategy` or `GeminiImageStrategy` based on complexity -> Image processing -> Display
+- **Prompt Template Management:**
+  - `ConfigurablePromptTemplates.shared` -> JSON template loading -> A/B testing selection -> Template substitution -> Final prompt
 - **Growth Collection Management:** Creation, progress tracking, display, and deletion of collections.
 - **In-App Purchase Flow:** Product display -> Purchase initiation -> Transaction handling -> Entitlement management.

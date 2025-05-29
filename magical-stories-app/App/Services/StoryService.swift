@@ -35,12 +35,12 @@ enum StoryServiceError: LocalizedError, Equatable {
 }
 
 // MARK: - Response Types
-protocol StoryGenerationResponse {
+public protocol StoryGenerationResponse {
     var text: String? { get }
 }
 
 // MARK: - Generative Model Protocol
-protocol GenerativeModelProtocol {
+public protocol GenerativeModelProtocol {
     func generateContent(_ prompt: String) async throws -> StoryGenerationResponse
 }
 

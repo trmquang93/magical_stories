@@ -78,7 +78,7 @@ struct StoryCollectionTests {
             id: UUID(),
             title: "Test Story",
             content: "Once upon a time...",
-            parameters: StoryParameters(childName: "Test", childAge: 7, theme: "Adventure", favoriteCharacter: "Hero")
+            parameters: StoryParameters(theme: "Adventure", childAge: 7, childName: "Test", favoriteCharacter: "Hero")
         )
         var collection = StoryCollection(
             id: UUID(),
@@ -138,14 +138,14 @@ struct StoryCollectionTests {
             id: UUID(),
             title: "Story 1",
             pages: [Page(content: "Content 1", pageNumber: 1)],
-            parameters: StoryParameters(childName: "Test", childAge: 7, theme: "Adventure", favoriteCharacter: "Hero"),
+            parameters: StoryParameters(theme: "Adventure", childAge: 7, childName: "Test", favoriteCharacter: "Hero"),
             isCompleted: true
         )
         let story2 = Story(
             id: UUID(),
             title: "Story 2",
             pages: [Page(content: "Content 2", pageNumber: 1)],
-            parameters: StoryParameters(childName: "Test", childAge: 7, theme: "Adventure", favoriteCharacter: "Hero")
+            parameters: StoryParameters(theme: "Adventure", childAge: 7, childName: "Test", favoriteCharacter: "Hero")
         )
         var collection = StoryCollection(
             id: UUID(),

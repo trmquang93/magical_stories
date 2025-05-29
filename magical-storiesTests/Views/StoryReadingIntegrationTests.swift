@@ -27,7 +27,7 @@ struct StoryReadingIntegrationTests {
         let story = Story(
             title: "Test Story", pages: pages,
             parameters: StoryParameters(
-                childName: "Alex", childAge: 5, theme: "Adventure", favoriteCharacter: "Dragon"))
+                theme: "Adventure", childAge: 5, childName: "Alex", favoriteCharacter: "Dragon"))
 
         #expect(story.pages.count == 3)
 
@@ -66,7 +66,7 @@ struct StoryReadingIntegrationTests {
         let story = Story(
             title: "Test Story", pages: pages,
             parameters: StoryParameters(
-                childName: "Alex", childAge: 5, theme: "Adventure", favoriteCharacter: "Dragon"))
+                theme: "Adventure", childAge: 5, childName: "Alex", favoriteCharacter: "Dragon"))
 
         var currentPageIndex = 0
 

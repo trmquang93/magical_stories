@@ -12,9 +12,9 @@ struct StoryModels_Tests {
         let id = UUID()
         let title = "Test Story"
         let parameters = StoryParameters(
-            childName: "Alex",
-            childAge: 7,
             theme: "Adventure",
+            childAge: 7,
+            childName: "Alex",
             favoriteCharacter: "Dragon"
         )
         let pages = [
@@ -47,9 +47,9 @@ struct StoryModels_Tests {
             title: "Test Story",
             pages: [Page(content: "Test content", pageNumber: 1)],
             parameters: StoryParameters(
-                childName: "Alex",
-                childAge: 7,
                 theme: "Adventure",
+                childAge: 7,
+                childName: "Alex",
                 favoriteCharacter: "Dragon"
             ),
             categoryName: "Fantasy"

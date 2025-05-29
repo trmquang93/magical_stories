@@ -142,9 +142,9 @@ class MockAchievementRepository: AchievementRepositoryProtocol {
                 title: "Test Story",
                 pages: [],
                 parameters: StoryParameters(
-                    childName: "Test",
-                    childAge: 5,
                     theme: "Test Theme",
+                    childAge: 5,
+                    childName: "Test",
                     favoriteCharacter: "Friend"
                 ),
                 isCompleted: false,

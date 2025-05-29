@@ -100,9 +100,9 @@ struct RootView: View {
 
                     // Create test parameters
                     let parameters = StoryParameters(
-                        childName: "Test Child",
-                        childAge: 5,
                         theme: "Learning and Growth",
+                        childAge: 5,
+                        childName: "Test Child",
                         favoriteCharacter: "Buddy"
                     )
 

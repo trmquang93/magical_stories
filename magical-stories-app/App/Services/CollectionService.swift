@@ -129,9 +129,9 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
                 }()
                 
                 let storyParams = StoryParameters(
-                    childName: parameters.childName,
-                    childAge: childAge,
                     theme: theme,
+                    childAge: childAge,
+                    childName: parameters.childName,
                     favoriteCharacter: characterName,
                     languageCode: parameters.languageCode // Pass the language code from collection parameters
                 )
