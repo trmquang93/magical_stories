@@ -91,9 +91,9 @@ struct IllustrationConsistencyIntegrationTests {
         
         // Create test parameters
         let parameters = StoryParameters(
-            childName: "Emma",
-            childAge: 6,
             theme: "Adventure",
+            childAge: 6,
+            childName: "Emma",
             favoriteCharacter: "Dragon"
         )
         

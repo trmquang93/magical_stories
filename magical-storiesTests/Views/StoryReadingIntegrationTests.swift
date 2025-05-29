@@ -117,7 +117,7 @@ struct StoryReadingIntegrationTests {
                 Page(content: "Page 1", pageNumber: 1), Page(content: "Page 2", pageNumber: 2),
             ],
             parameters: StoryParameters(
-                childName: "Alex", childAge: 5, theme: "Adventure", favoriteCharacter: "Dragon"),
+                theme: "Adventure", childAge: 5, childName: "Alex", favoriteCharacter: "Dragon"),
             isCompleted: false,
             collections: [
                 StoryCollection(

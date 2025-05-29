@@ -50,7 +50,7 @@ final class PersistenceServiceTests: XCTestCase {
             illustrationStatus: includeIllustration ? .ready : .failed,
             imagePrompt: includeIllustration ? "Prompt 2" : nil)
         let params = StoryParameters(
-            childName: "Test", childAge: 5, theme: "Testing", favoriteCharacter: "Bot")
+            theme: "Testing", childAge: 5, childName: "Test", favoriteCharacter: "Bot")
         return Story(
             id: id, title: title, pages: [page1, page2], parameters: params, timestamp: Date())
     }

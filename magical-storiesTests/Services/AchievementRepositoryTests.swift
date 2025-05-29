@@ -43,9 +43,9 @@ final class AchievementRepositoryTests: XCTestCase {
             title: title,
             pages: [],
             parameters: StoryParameters(
-                childName: "Test Child",
-                childAge: 6,
                 theme: "Adventure",
+                childAge: 6,
+                childName: "Test Child",
                 favoriteCharacter: "Hero"
             ),
             timestamp: Date(),

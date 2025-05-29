@@ -11,8 +11,8 @@ struct CollectionDetailView_Tests {
         let container = try ModelContainer(for: StoryCollection.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
         let context = container.mainContext
         // Create stories
-        let story1 = Story(title: "Story 1", pages: [], parameters: StoryParameters(childName: "A", childAge: 5, theme: "T1", favoriteCharacter: "Bear"), timestamp: Date())
-        let story2 = Story(title: "Story 2", pages: [], parameters: StoryParameters(childName: "B", childAge: 6, theme: "T2", favoriteCharacter: "Cat"), timestamp: Date())
+        let story1 = Story(title: "Story 1", pages: [], parameters: StoryParameters(theme: "T1", childAge: 5, childName: "A", favoriteCharacter: "Bear"), timestamp: Date())
+        let story2 = Story(title: "Story 2", pages: [], parameters: StoryParameters(theme: "T2", childAge: 6, childName: "B", favoriteCharacter: "Cat"), timestamp: Date())
         // Create collection
         let collection = StoryCollection(title: "Growth", descriptionText: "Desc", category: "cat", ageGroup: "elem", stories: [story1, story2], createdAt: Date(), updatedAt: Date())
         context.insert(collection)
@@ -32,7 +32,7 @@ struct CollectionDetailView_Tests {
     func testProgressViewReflectsCompletionProgressModelState() async throws {
         let container = try ModelContainer(for: StoryCollection.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
         let context = container.mainContext
-        let story = Story(title: "Story", pages: [], parameters: StoryParameters(childName: "A", childAge: 5, theme: "T1", favoriteCharacter: "Bear"), timestamp: Date())
+        let story = Story(title: "Story", pages: [], parameters: StoryParameters(theme: "T1", childAge: 5, childName: "A", favoriteCharacter: "Bear"), timestamp: Date())
         let collection = StoryCollection(title: "Growth", descriptionText: "Desc", category: "cat", ageGroup: "elem", stories: [story], createdAt: Date(), updatedAt: Date())
         collection.completionProgress = 0.5
         context.insert(collection)
@@ -44,8 +44,8 @@ struct CollectionDetailView_Tests {
     func testNavigationLinkExistsForEachStoryModelState() async throws {
         let container = try ModelContainer(for: StoryCollection.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
         let context = container.mainContext
-        let story1 = Story(title: "Story 1", pages: [], parameters: StoryParameters(childName: "A", childAge: 5, theme: "T1", favoriteCharacter: "Bear"), timestamp: Date())
-        let story2 = Story(title: "Story 2", pages: [], parameters: StoryParameters(childName: "B", childAge: 6, theme: "T2", favoriteCharacter: "Cat"), timestamp: Date())
+        let story1 = Story(title: "Story 1", pages: [], parameters: StoryParameters(theme: "T1", childAge: 5, childName: "A", favoriteCharacter: "Bear"), timestamp: Date())
+        let story2 = Story(title: "Story 2", pages: [], parameters: StoryParameters(theme: "T2", childAge: 6, childName: "B", favoriteCharacter: "Cat"), timestamp: Date())
         let collection = StoryCollection(title: "Growth", descriptionText: "Desc", category: "cat", ageGroup: "elem", stories: [story1, story2], createdAt: Date(), updatedAt: Date())
         context.insert(collection)
         try context.save()
@@ -57,7 +57,7 @@ struct CollectionDetailView_Tests {
     func testLiveUpdatesOnCollectionChangeModelState() async throws {
         let container = try ModelContainer(for: StoryCollection.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
         let context = container.mainContext
-        let story = Story(title: "Story", pages: [], parameters: StoryParameters(childName: "A", childAge: 5, theme: "T1", favoriteCharacter: "Bear"), timestamp: Date())
+        let story = Story(title: "Story", pages: [], parameters: StoryParameters(theme: "T1", childAge: 5, childName: "A", favoriteCharacter: "Bear"), timestamp: Date())
         let collection = StoryCollection(title: "Growth", descriptionText: "Desc", category: "cat", ageGroup: "elem", stories: [story], createdAt: Date(), updatedAt: Date())
         context.insert(collection)
         try context.save()

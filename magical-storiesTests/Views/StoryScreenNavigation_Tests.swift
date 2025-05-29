@@ -111,9 +111,9 @@ struct StoryScreenNavigation_Tests { // DISABLED DUE TO REFACTORING
             title: "Safari Adventure",
             pages: [Page(content: "Story content for Safari Adventure", pageNumber: 1)],
             parameters: StoryParameters(
-                childName: "Noah",
-                childAge: 5,
                 theme: "Adventure",
+                childAge: 5,
+                childName: "Noah",
                 favoriteCharacter: "Lion"
             )
         )
@@ -146,9 +146,9 @@ struct StoryScreenNavigation_Tests { // DISABLED DUE TO REFACTORING
             title: "Adventure in Wonderland",
             pages: [Page(content: "Story content for Adventure in Wonderland", pageNumber: 1)],
             parameters: StoryParameters(
-                childName: "Alice",
-                childAge: 7,
                 theme: "Adventure",
+                childAge: 7,
+                childName: "Alice",
                 favoriteCharacter: "Rabbit"
             )
         )
@@ -156,9 +156,9 @@ struct StoryScreenNavigation_Tests { // DISABLED DUE TO REFACTORING
             title: "The Magical Forest",
             pages: [Page(content: "Story content for The Magical Forest", pageNumber: 1)],
             parameters: StoryParameters(
-                childName: "Emma",
-                childAge: 6,
                 theme: "Fantasy",
+                childAge: 6,
+                childName: "Emma",
                 favoriteCharacter: "Dragon"
             )
         )

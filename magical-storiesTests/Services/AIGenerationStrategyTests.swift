@@ -325,4 +325,10 @@ class MockURLSessionForStrategy: URLSessionProtocol {
         
         return (responseData, response)
     }
+    
+    func data(from url: URL) async throws -> (Data, URLResponse) {
+        // Create a URLRequest from the URL and delegate to the existing method
+        let request = URLRequest(url: url)
+        return try await data(for: request)
+    }
 }

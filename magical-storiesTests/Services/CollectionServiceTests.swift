@@ -244,11 +244,11 @@ struct CollectionServiceTests {
 
         // Configure story service to return a specific number of stories
         let storyParameters1 = StoryParameters(
-            childName: "Alex", childAge: 5, theme: "Theme1", favoriteCharacter: "Dino")
+            theme: "Theme1", childAge: 5, childName: "Alex", favoriteCharacter: "Dino")
         let storyParameters2 = StoryParameters(
-            childName: "Alex", childAge: 5, theme: "Theme2", favoriteCharacter: "Dino")
+            theme: "Theme2", childAge: 5, childName: "Alex", favoriteCharacter: "Dino")
         let storyParameters3 = StoryParameters(
-            childName: "Alex", childAge: 5, theme: "Theme1", favoriteCharacter: "Dino")
+            theme: "Theme1", childAge: 5, childName: "Alex", favoriteCharacter: "Dino")
 
         let stories = [
             Story(
@@ -362,7 +362,7 @@ struct CollectionServiceTests {
             title: "Story 1",
             pages: [],
             parameters: StoryParameters(
-                childName: "Alex", childAge: 5, theme: "Theme1", favoriteCharacter: "Dino"),
+                theme: "Theme1", childAge: 5, childName: "Alex", favoriteCharacter: "Dino"),
             isCompleted: false
         )
 
@@ -370,7 +370,7 @@ struct CollectionServiceTests {
             title: "Story 2",
             pages: [],
             parameters: StoryParameters(
-                childName: "Alex", childAge: 5, theme: "Theme2", favoriteCharacter: "Dino"),
+                theme: "Theme2", childAge: 5, childName: "Alex", favoriteCharacter: "Dino"),
             isCompleted: false
         )
 
@@ -458,7 +458,7 @@ struct CollectionServiceTests {
             title: "Story 1",
             pages: [],
             parameters: StoryParameters(
-                childName: "Alex", childAge: 5, theme: "Theme1", favoriteCharacter: "Dino"),
+                theme: "Theme1", childAge: 5, childName: "Alex", favoriteCharacter: "Dino"),
             isCompleted: false
         )
 
@@ -466,7 +466,7 @@ struct CollectionServiceTests {
             title: "Story 2",
             pages: [],
             parameters: StoryParameters(
-                childName: "Alex", childAge: 5, theme: "Theme2", favoriteCharacter: "Dino"),
+                theme: "Theme2", childAge: 5, childName: "Alex", favoriteCharacter: "Dino"),
             isCompleted: false
         )
 
