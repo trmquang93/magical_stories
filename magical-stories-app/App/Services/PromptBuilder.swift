@@ -558,87 +558,187 @@ class PromptBuilder {
       """
   }
   
-  /// Builds a prompt for generating a global reference image containing all key characters and elements
+  /// Enhanced global reference generation with collection context and story structure support
   /// - Parameters:
   ///   - visualGuide: The visual guide containing style, character and setting definitions
   ///   - storyTitle: The title of the story
-  /// - Returns: A complete prompt for generating a global reference image
-  func buildGlobalReferenceImagePrompt(visualGuide: VisualGuide, storyTitle: String) -> String {
-    print("[PromptBuilder] Creating global reference image prompt for story '\(storyTitle)'")
-    print("[PromptBuilder] Visual guide contains: \(visualGuide.characterDefinitions.count) characters, \(visualGuide.settingDefinitions.count) settings)")
+  ///   - storyStructure: Optional story structure with page-level visual plans
+  ///   - collectionContext: Optional collection context for unified visual consistency
+  /// - Returns: A complete prompt for generating an enhanced global reference image
+  func buildEnhancedGlobalReferencePrompt(
+    visualGuide: VisualGuide,
+    storyStructure: StoryStructure?,
+    storyTitle: String,
+    collectionContext: CollectionVisualContext? = nil
+  ) -> String {
+    print("[PromptBuilder] Creating enhanced global reference for '\(storyTitle)'")
+    print("[PromptBuilder] Collection context: \(collectionContext != nil)")
+    print("[PromptBuilder] Story structure: \(storyStructure != nil)")
+    
     var promptComponents = [
-      "Create a detailed reference sheet illustration for the children's story titled \"\(storyTitle)\".",
-      "This reference image should show ALL main characters and key story elements in a single comprehensive illustration.",
-      
-      "Style Guide:",
-      visualGuide.styleGuide
+      "Create a COMPREHENSIVE CHARACTER REFERENCE SHEET for \"\(storyTitle)\"",
+      "",
+      "LAYOUT REQUIREMENTS:",
+      "TOP SECTION - CHARACTER LINEUP:",
+      "- Show ALL main characters in a clear lineup format",
+      "- Each character shown in: front view, side profile, and back view",
+      "- Include full body proportions, facial details, clothing, and accessories",
+      "- Characters should be clearly separated and easily distinguishable",
+      "",
+      "MIDDLE SECTION - KEY EXPRESSIONS:",
+      "- Show each main character with 4-5 key facial expressions",
+      "- Include: happy, sad, surprised, excited, and story-specific emotion",
+      "- Maintain character consistency across all expressions",
+      "",
+      "BOTTOM SECTION - KEY PROPS AND SETTINGS:",
+      "- Important objects, tools, or magical items from the story",
+      "- Sample setting elements or backgrounds",
+      "- Color palette reference swatches",
+      "- Scale reference for object sizes relative to characters"
     ]
     
-    // Add character definitions if available
+    // Add style guide
+    promptComponents.append("")
+    promptComponents.append("ARTISTIC STYLE:")
+    promptComponents.append(visualGuide.styleGuide)
+    
+    // Add character details with enhanced descriptions
     if !visualGuide.characterDefinitions.isEmpty {
-      promptComponents.append("Characters to Include:")
-      for (name, description) in visualGuide.characterDefinitions {
-        promptComponents.append("- \(name): \(description)")
+      promptComponents.append("")
+      promptComponents.append("CHARACTER SPECIFICATIONS:")
+      for (name, definition) in visualGuide.characterDefinitions {
+        promptComponents.append("CHARACTER - \(name): \(definition)")
       }
     }
     
     // Add setting definitions if available
     if !visualGuide.settingDefinitions.isEmpty {
-      promptComponents.append("Key Settings/Elements:")
+      promptComponents.append("")
+      promptComponents.append("KEY SETTINGS/ELEMENTS:")
       for (name, description) in visualGuide.settingDefinitions {
         promptComponents.append("- \(name): \(description)")
       }
     }
     
-    // Add critical requirements with NO TEXT emphasis
-    promptComponents.append("""
-      🚫 ABSOLUTELY NO TEXT ALLOWED 🚫
+    // Add story structure context if available
+    if let structure = storyStructure {
+      promptComponents.append("")
+      promptComponents.append("STORY VISUAL REQUIREMENTS:")
       
-      CRITICAL REQUIREMENTS:
-      - Position all characters in a clear lineup or group arrangement
-      - Show each character's full body with all details visible
-      - Include key props, settings, or elements mentioned in the story
-      - Maintain consistent style, proportions, and color palette
+      // Extract all unique characters across all pages
+      let allCharacters = Set(structure.pages.flatMap { $0.characters })
+      if !allCharacters.isEmpty {
+        promptComponents.append("- All story characters: \(allCharacters.joined(separator: ", "))")
+      }
       
-      🚫 FORBIDDEN ELEMENTS:
-      ❌ NO text, words, or labels anywhere on the image
-      ❌ NO character names or descriptions written on image
-      ❌ NO captions or written elements
+      // Extract all unique props across all pages
+      let allProps = Set(structure.pages.flatMap { $0.props })
+      if !allProps.isEmpty {
+        promptComponents.append("- Key props needed: \(allProps.joined(separator: ", "))")
+      }
       
-      - Create a comprehensive visual reference that covers all story elements
-      - Use a 16:9 landscape aspect ratio
-      
-      This image will serve as the master reference for all illustrations in the story.
-      """)
+      // Extract emotional range
+      let emotionalTones = Set(structure.pages.map { $0.emotionalTone })
+      promptComponents.append("- Emotional range: \(emotionalTones.joined(separator: ", "))")
+    }
     
-    let finalPrompt = promptComponents.joined(separator: "\n\n")
-    print("[PromptBuilder] Generated global reference image prompt (length: \(finalPrompt.count) characters)")
+    // Add collection context if available
+    if let context = collectionContext {
+      promptComponents.append("")
+      promptComponents.append("COLLECTION CONSISTENCY REQUIREMENTS:")
+      promptComponents.append("- This reference will be used across multiple stories in the collection")
+      promptComponents.append("- Art style must be: \(context.unifiedArtStyle)")
+      promptComponents.append("- Collection theme: \(context.collectionTheme)")
+      promptComponents.append("- Target age group: \(context.ageGroup)")
+      promptComponents.append("- Shared elements: \(context.sharedProps.joined(separator: ", "))")
+      if !context.sharedCharacters.isEmpty {
+        promptComponents.append("- Shared characters (maintain identical across collection): \(context.sharedCharacters.joined(separator: ", "))")
+      }
+    }
+    
+    // Add critical requirements
+    promptComponents.append("")
+    promptComponents.append("CRITICAL REQUIREMENTS:")
+    promptComponents.append("🚫 NO TEXT OR LABELS in the image itself")
+    promptComponents.append("✅ Visual reference only - characters identifiable by appearance alone")
+    promptComponents.append("✅ High detail level for facial features, clothing, and distinctive elements")
+    promptComponents.append("✅ Consistent artistic style throughout the reference sheet")
+    promptComponents.append("✅ Professional character reference sheet suitable for animation/illustration")
+    promptComponents.append("✅ Each character must be visually distinct and memorable")
+    
+    // Add text-free enforcement
+    promptComponents.append("")
+    promptComponents.append("⛔️ CRITICAL: NO TEXT, LETTERS, OR WRITTEN ELEMENTS ALLOWED IN IMAGE ⛔️")
+    
+    let finalPrompt = promptComponents.joined(separator: "\n")
+    print("[PromptBuilder] Generated enhanced global reference prompt (length: \(finalPrompt.count) characters)")
     return finalPrompt
   }
   
-  /// Builds a prompt for a sequential page illustration that uses global reference and previous illustrations
+  /// Legacy method for backward compatibility
+  func buildGlobalReferenceImagePrompt(visualGuide: VisualGuide, storyTitle: String) -> String {
+    return buildEnhancedGlobalReferencePrompt(
+      visualGuide: visualGuide,
+      storyStructure: nil,
+      storyTitle: storyTitle,
+      collectionContext: nil
+    )
+  }
+  
+  /// Enhanced sequential illustration prompts with story structure and collection context support
   /// - Parameters:
   ///   - page: The page containing content to illustrate
   ///   - pageIndex: The position of the page in the story
+  ///   - storyStructure: Optional story structure with page-level visual plans
   ///   - visualGuide: The visual guide containing style, character and setting information
   ///   - globalReferenceImageBase64: Optional base64-encoded global reference image
   ///   - previousIllustrationBase64: Optional base64-encoded previous page illustration
-  /// - Returns: A complete prompt for generating a sequential illustration with references
-  func buildSequentialIllustrationPrompt(
+  ///   - collectionContext: Optional collection context for unified visual consistency
+  /// - Returns: A complete prompt for generating an enhanced sequential illustration with references
+  func buildEnhancedSequentialIllustrationPrompt(
     page: Page,
     pageIndex: Int,
+    storyStructure: StoryStructure?,
     visualGuide: VisualGuide,
     globalReferenceImageBase64: String? = nil,
-    previousIllustrationBase64: String? = nil
+    previousIllustrationBase64: String? = nil,
+    collectionContext: CollectionVisualContext? = nil
   ) -> String {
-    print("[PromptBuilder] Creating sequential illustration prompt for page \(pageIndex + 1)")
-    print("[PromptBuilder] Has global reference: \(globalReferenceImageBase64 != nil)")
-    print("[PromptBuilder] Has previous illustration: \(previousIllustrationBase64 != nil)")
-    // Start with the base prompt for this page
+    print("[PromptBuilder] Creating enhanced sequential illustration for page \(pageIndex + 1)")
+    print("[PromptBuilder] Story structure: \(storyStructure != nil)")
+    print("[PromptBuilder] Collection context: \(collectionContext != nil)")
+    
+    let pageVisualPlan = storyStructure?.pages.first { $0.pageNumber == pageIndex + 1 }
+    
     var promptComponents = [
-      "Create a detailed illustration for page \(pageIndex + 1) showing this scene:",
-      page.content
+      "Generate illustration for page \(pageIndex + 1):",
+      "Page content: \(page.content)",
+      ""
     ]
+    
+    // Add global reference usage
+    if globalReferenceImageBase64 != nil {
+      promptComponents.append("GLOBAL REFERENCE USAGE:")
+      promptComponents.append("- A comprehensive character reference sheet is attached")
+      promptComponents.append("- Use EXACT character appearances from the reference sheet")
+      if let visualPlan = pageVisualPlan {
+        promptComponents.append("- Characters to include: \(visualPlan.characters.joined(separator: ", "))")
+        promptComponents.append("- Key props to include: \(visualPlan.props.joined(separator: ", "))")
+        promptComponents.append("- Visual focus: \(visualPlan.visualFocus)")
+        promptComponents.append("- Emotional tone: \(visualPlan.emotionalTone)")
+      }
+      promptComponents.append("")
+    }
+    
+    // Add scene requirements
+    promptComponents.append("SCENE REQUIREMENTS:")
+    if let visualPlan = pageVisualPlan {
+      promptComponents.append("- Setting: \(visualPlan.settings.joined(separator: ", "))")
+      promptComponents.append("- Character actions: [derived from page content]")
+      promptComponents.append("- Props needed: \(visualPlan.props.joined(separator: ", "))")
+      promptComponents.append("- Emotional atmosphere: \(visualPlan.emotionalTone)")
+    }
+    promptComponents.append("")
     
     // Add visual guide information
     promptComponents.append("VISUAL GUIDE SPECIFICATIONS:")
@@ -660,84 +760,66 @@ class PromptBuilder {
       }
     }
     
-    // Add global reference image if available
-    if globalReferenceImageBase64 != nil {
-      promptComponents.append("""
-        GLOBAL REFERENCE IMAGE PROVIDED:
-        A global reference image showing all characters and key elements from the story is included with this request. Use it as your primary reference for:
-        - Character appearances, proportions, and features
-        - Artistic style and color palette
-        - Overall consistency with the story world
-        
-        Study this reference image carefully to maintain character consistency across all story illustrations.
-        """)
+    // Add consistency requirements
+    promptComponents.append("")
+    promptComponents.append("CONSISTENCY REQUIREMENTS:")
+    promptComponents.append("- Match character faces, proportions, and clothing EXACTLY to reference sheet")
+    promptComponents.append("- Use the same art style and color palette as reference")
+    promptComponents.append("- Maintain character personalities through body language and expressions")
+    promptComponents.append("- Include specified props in positions that make sense for the scene")
+    promptComponents.append("")
+    
+    // Add collection context if available
+    if let context = collectionContext {
+      promptComponents.append("COLLECTION CONSISTENCY:")
+      promptComponents.append("- This illustration is part of a story collection: \(context.collectionTheme)")
+      promptComponents.append("- Maintain unified art style: \(context.unifiedArtStyle)")
+      promptComponents.append("- Support developmental focus: \(context.developmentalFocus)")
+      promptComponents.append("- Age-appropriate complexity: \(context.ageGroup)")
+      promptComponents.append("")
     }
     
-    // Add previous illustration if available (usually for non-first pages)
+    // Add reference sheet guidance
+    promptComponents.append("REFERENCE SHEET GUIDANCE:")
+    promptComponents.append("- Study the character lineup section for accurate character appearance")
+    promptComponents.append("- Use the expression examples for appropriate facial expressions")
+    promptComponents.append("- Reference the color palette for consistent coloring")
+    promptComponents.append("- Maintain the same level of detail and artistic style")
+    promptComponents.append("")
+    
+    // Add previous illustration context
     if previousIllustrationBase64 != nil {
-      promptComponents.append("""
-        PREVIOUS PAGE ILLUSTRATION PROVIDED:
-        An illustration from the previous page is included with this request. Maintain consistency with:
-        - Character appearances and poses
-        - Scene transitions and environments
-        - Color palette and lighting
-        - Overall style and visual elements
-        
-        Use this previous illustration to ensure smooth visual continuity between pages.
-        """)
+      promptComponents.append("PREVIOUS ILLUSTRATION CONTEXT:")
+      promptComponents.append("- A previous page illustration is attached for visual continuity")
+      promptComponents.append("- Maintain consistent character appearance and style")
+      promptComponents.append("- Ensure logical visual progression from previous scene")
+      promptComponents.append("")
     }
     
-    // Add critical requirements with enhanced text-free enforcement
-    promptComponents.append("""
-      ⛔️ ABSOLUTE TEXT PROHIBITION - ZERO TOLERANCE POLICY ⛔️
-      🚫🚫🚫 NO TEXT ALLOWED UNDER ANY CIRCUMSTANCES 🚫🚫🚫
-      ‼️‼️ CRITICAL SYSTEM RULE: TEXT-FREE ILLUSTRATION ONLY ‼️‼️
-      
-      🛑 TEXT DETECTION ACTIVE 🛑
-      ANY visible text, letters, numbers, or symbols will result in:
-      • IMMEDIATE REJECTION of the illustration
-      • AUTOMATIC REGENERATION request
-      • FAILED QUALITY CONTROL assessment
-      
-      MANDATORY VISUAL-ONLY REQUIREMENTS:
-      - Create a detailed, vibrant illustration matching this page's content
-      - Maintain EXACT character appearances across all story illustrations
-      - Use consistent artistic style, color palette, and proportions
-      - Create a 16:9 landscape aspect ratio illustration
-      - Tell the story through VISUAL ELEMENTS ONLY
-      
-      🚨 STRICTLY FORBIDDEN - WILL CAUSE REJECTION 🚨
-      ❌ NO text in ANY language (English, symbols, foreign scripts)
-      ❌ NO words, letters, numbers, or alphanumeric characters
-      ❌ NO captions, labels, titles, or descriptions
-      ❌ NO speech bubbles, dialogue boxes, or conversation text
-      ❌ NO written signs, posters, banners, or notices
-      ❌ NO book pages, newspapers, or readable materials
-      ❌ NO story text overlay or embedded narrative text
-      ❌ NO license plates, name tags, or identification text
-      ❌ NO mathematical symbols, equations, or formulas
-      ❌ NO emoji text, emoticons, or text-based expressions
-      
-      ✅ APPROVED VISUAL STORYTELLING ELEMENTS:
-      ✅ Character facial expressions to convey emotions
-      ✅ Body language and gestures to show actions
-      ✅ Environmental details to establish setting
-      ✅ Color and lighting to create mood and atmosphere
-      ✅ Composition and framing to guide viewer attention
-      ✅ Visual symbols (non-text) like hearts, stars, or arrows
-      
-      🔍 QUALITY ASSURANCE CHECK:
-      Before finalizing, scan EVERY pixel for text elements
-      The app handles ALL text display separately below the image
-      Your illustration must be 100% text-free for approval
-      
-      ⚠️ FINAL WARNING ⚠️
-      TEXT = AUTOMATIC REJECTION = WASTED GENERATION
-      Create pure visual art that tells the story without words!
-      """)
+    // Add text-free requirements
+    promptComponents.append("🚫 NO TEXT in illustration - story text displays separately")
+    promptComponents.append("✅ Focus on accurate character representation and visual storytelling")
+    promptComponents.append("✅ Create engaging, age-appropriate visual narrative")
     
-    let finalPrompt = promptComponents.joined(separator: "\n\n")
-    print("[PromptBuilder] Generated sequential illustration prompt (length: \(finalPrompt.count) characters)")
-    return finalPrompt
+    return promptComponents.joined(separator: "\n")
+  }
+  
+  /// Legacy method for backward compatibility
+  func buildSequentialIllustrationPrompt(
+    page: Page,
+    pageIndex: Int,
+    visualGuide: VisualGuide,
+    globalReferenceImageBase64: String? = nil,
+    previousIllustrationBase64: String? = nil
+  ) -> String {
+    return buildEnhancedSequentialIllustrationPrompt(
+      page: page,
+      pageIndex: pageIndex,
+      storyStructure: nil,
+      visualGuide: visualGuide,
+      globalReferenceImageBase64: globalReferenceImageBase64,
+      previousIllustrationBase64: previousIllustrationBase64,
+      collectionContext: nil
+    )
   }
 }

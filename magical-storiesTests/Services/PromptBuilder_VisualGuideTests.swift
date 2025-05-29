@@ -13,9 +13,9 @@ struct PromptBuilder_VisualGuideTests {
         
         // Instead of accessing private methods directly, test the public API
         let parameters = StoryParameters(
-            childName: "Emma",
-            childAge: 6,
             theme: "Adventure",
+            childAge: 6,
+            childName: "Emma",
             favoriteCharacter: "Dragon"
         )
         
@@ -36,9 +36,9 @@ struct PromptBuilder_VisualGuideTests {
         // Arrange
         let promptBuilder = PromptBuilder()
         let parameters = StoryParameters(
-            childName: "Emma",
-            childAge: 6,
             theme: "Adventure",
+            childAge: 6,
+            childName: "Emma",
             favoriteCharacter: "Dragon"
         )
         

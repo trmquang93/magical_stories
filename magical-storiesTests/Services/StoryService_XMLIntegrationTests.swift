@@ -44,9 +44,9 @@ struct StoryService_XMLIntegrationTests {
         )
 
         let parameters = StoryParameters(
-            childName: "Alex",
-            childAge: 7,
             theme: "Adventure",
+            childAge: 7,
+            childName: "Alex",
             favoriteCharacter: "Brave Bear"
         )
 
@@ -97,9 +97,9 @@ struct StoryService_XMLIntegrationTests {
         )
 
         let parameters = StoryParameters(
-            childName: "Alex",
-            childAge: 7,
             theme: "Adventure",
+            childAge: 7,
+            childName: "Alex",
             favoriteCharacter: "Brave Bear"
         )
 
@@ -152,9 +152,9 @@ struct StoryService_XMLIntegrationTests {
         )
 
         let parameters = StoryParameters(
-            childName: "Alex",
-            childAge: 7,
             theme: "Adventure",
+            childAge: 7,
+            childName: "Alex",
             favoriteCharacter: "Brave Bear"
         )
 
@@ -221,9 +221,9 @@ struct StoryService_XMLIntegrationTests {
 
         // Basic test parameters
         let parameters = StoryParameters(
-            childName: "E",
-            childAge: 4,
             theme: "Friendship",
+            childAge: 4,
+            childName: "E",
             favoriteCharacter: "Super Sparkle"
         )
 
