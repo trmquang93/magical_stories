@@ -53,7 +53,11 @@ class PromptBuilder {
   // MARK: - Public Methods
 
   /// Builds a complete prompt for story generation based on the provided parameters
-  func buildPrompt(parameters: StoryParameters, vocabularyBoostEnabled: Bool = false) -> String {
+  func buildPrompt(
+    parameters: StoryParameters, 
+    collectionContext: CollectionVisualContext? = nil,
+    vocabularyBoostEnabled: Bool = false
+  ) -> String {
     let vocabularyLevel = VocabularyLevel.forAge(parameters.childAge)
 
     // Create a unique randomization seed based on current timestamp
@@ -68,7 +72,8 @@ class PromptBuilder {
       "\nNarrative Guidelines:",
       vocabularyLevel.narrativeGuideline,
       storyStructureGuidelines(),
-      formatGuidelines(),
+      visualPlanningGuidelines(collectionContext: collectionContext),
+      formatGuidelines(collectionContext: collectionContext),
       variabilityGuidelines(seed: uniqueSeed),
     ]
 
@@ -92,6 +97,11 @@ class PromptBuilder {
 
     let prompt = promptComponents.joined(separator: "\n\n")
     return prompt
+  }
+
+  /// Builds a complete prompt for story generation based on the provided parameters (backward compatibility)
+  func buildPrompt(parameters: StoryParameters, vocabularyBoostEnabled: Bool = false) -> String {
+    return buildPrompt(parameters: parameters, collectionContext: nil, vocabularyBoostEnabled: vocabularyBoostEnabled)
   }
 
   /// Builds a fallback prompt for generating illustration descriptions for a single page, with context.
@@ -267,17 +277,121 @@ class PromptBuilder {
       """
   }
 
-  private func formatGuidelines() -> String {
+  private func formatGuidelines(collectionContext: CollectionVisualContext? = nil) -> String {
+    let baseFormat = """
+    FORMAT REQUIREMENTS:
+    Return your response in this EXACT XML structure:
+    
+    <visual_guide>
+        <style_guide>Detailed art style description with color palette, lighting, mood</style_guide>
+        <character_definitions>
+            <character name="CharacterName">
+                <appearance>Detailed physical description: height, build, facial features, hair, skin</appearance>
+                <clothing>Complete outfit description with colors, style, accessories</clothing>
+                <traits>Personality traits that affect visual presentation</traits>
+                <key_features>Distinctive visual elements for easy recognition</key_features>
+                \(collectionContext != nil ? "<collection_role>Role and consistency requirements across collection</collection_role>" : "")
+            </character>
+        </character_definitions>
+        <setting_definitions>
+            <setting name="SettingName">
+                <description>Complete environment description</description>
+                <mood>Atmosphere and lighting</mood>
+                <key_elements>Important props, landmarks, objects</key_elements>
+            </setting>
+        </setting_definitions>
+        <key_props>
+            <prop name="PropName">Visual description and story importance</prop>
+        </key_props>
+        \(collectionContext != nil ? getCollectionVisualSection(collectionContext!) : "")
+    </visual_guide>
+    
+    <story_structure>
+        <page page="1">
+            <characters>List of characters appearing on this page</characters>
+            <settings>Primary setting for this page</settings>
+            <props>Key props/objects needed for this page</props>
+            <visual_focus>Main visual elements to emphasize</visual_focus>
+            <emotional_tone>Emotional atmosphere for this page</emotional_tone>
+        </page>
+        <!-- Repeat for each page -->
+    </story_structure>
+    
+    <content>Story text with clear page breaks marked by "---"</content>
+    <category>Category name from provided list</category>
+    
+    <illustrations>
+        <illustration page="1">
+            <scene_setup>Overall scene composition and layout</scene_setup>
+            <character_positions>Where each character is positioned and what they're doing</character_positions>
+            <key_elements>Important visual elements from the visual guide to include</key_elements>
+            <mood_lighting>Lighting and atmospheric details</mood_lighting>
+            <reference_usage>Specific elements from global reference to emphasize</reference_usage>
+        </illustration>
+        <!-- Repeat for each page -->
+    </illustrations>
+    """
+    
+    return baseFormat
+  }
+
+  // Add new method for collection visual context
+  private func getCollectionVisualSection(_ context: CollectionVisualContext) -> String {
     return """
-      Format Requirements:
-      - Use clear paragraph breaks
-      - Keep paragraphs concise (2-4 sentences)
-      - Include dialogue when appropriate
-      - Use descriptive language that creates vivid mental images
-      - Maintain consistent tense throughout
-      - VERY IMPORTANT: Use "---" (three hyphens) on a separate line to indicate where a new page should begin
-      - Make sure each page (separated by "---") has a coherent chunk of the story
-      """
+    <collection_context>
+        <collection_theme>\(context.collectionTheme)</collection_theme>
+        <shared_characters>\(context.sharedCharacters.joined(separator: ", "))</shared_characters>
+        <unified_art_style>\(context.unifiedArtStyle)</unified_art_style>
+        <developmental_focus>\(context.developmentalFocus)</developmental_focus>
+        <consistency_requirements>Characters must maintain identical appearance across all collection stories</consistency_requirements>
+        <shared_props>\(context.sharedProps.joined(separator: ", "))</shared_props>
+    </collection_context>
+    """
+  }
+
+  // Add visual planning guidelines method
+  private func visualPlanningGuidelines(collectionContext: CollectionVisualContext? = nil) -> String {
+    let baseGuidelines = """
+    VISUAL CONSISTENCY PLANNING:
+    
+    1. CHARACTER DESIGN REQUIREMENTS:
+       - Each character must have CONSISTENT visual identity throughout story
+       - Provide detailed physical descriptions: facial features, hair, clothing, proportions
+       - Include distinctive visual markers for easy recognition
+       - Specify character's emotional range and expressions
+    
+    2. STORY VISUAL MAPPING:
+       - Plan which characters appear on each page
+       - Identify key visual elements needed per page
+       - Ensure logical visual progression throughout story
+       - Map emotional beats to visual presentation
+    
+    3. GLOBAL REFERENCE PREPARATION:
+       - Design characters that work well in a reference lineup
+       - Include key props and settings that will be reused
+       - Create consistent style guide for entire story
+       - Plan for both close-up and full-body character representations
+    
+    4. PAGE-LEVEL VISUAL PLANNING:
+       - Specify exact characters and elements for each page
+       - Plan character positions, actions, and interactions
+       - Identify which elements from global reference to emphasize
+       - Design scenes that flow visually from page to page
+    """
+    
+    if let context = collectionContext {
+        return baseGuidelines + """
+        
+        5. COLLECTION CONSISTENCY REQUIREMENTS:
+           - All stories must use unified art style: \(context.unifiedArtStyle)
+           - Shared characters must appear identical across stories: \(context.sharedCharacters.joined(separator: ", "))
+           - Maintain developmental focus visual elements: \(context.developmentalFocus)
+           - Support age group complexity: \(context.ageGroup)
+           - Include collection theme elements: \(context.collectionTheme)
+        """
+    } else {
+        return baseGuidelines
+    }
   }
 
   private func categorySelectionGuidelines() -> String {

@@ -121,106 +121,86 @@ class StoryService: ObservableObject {
         }
     }
 
-    func generateStory(parameters: StoryParameters) async throws -> Story {
-        print("[StoryService] generateStory START (main thread: \(Thread.isMainThread))")
-
-        // Updated validation for optional childName
-        // We no longer need this validation since childName is optional
-        // If we want to enforce childName in certain contexts, we can add specific validation
+    // Enhanced generateStory method with collection context support
+    func generateStory(
+        parameters: StoryParameters,
+        collectionContext: CollectionVisualContext? = nil
+    ) async throws -> Story {
+        print("[StoryService] generateStory START with collection context: \(collectionContext != nil)")
 
         isGenerating = true
         defer { isGenerating = false }
 
-        // Generate the prompt using the enhanced PromptBuilder with vocabulary boost setting
-        let prompt = buildPrompt(with: parameters)
-        print(">>>Prompt: \(prompt)")
+        // Generate the prompt using enhanced PromptBuilder with collection context
+        let prompt = buildPromptWithContext(parameters: parameters, collectionContext: collectionContext)
+        print(">>>Enhanced Prompt: \(prompt)")
+        
         do {
-            // --- Actual API Call ---
             let response = try await model.generateContent(prompt)
             guard let text = response.text else {
                 throw StoryServiceError.generationFailed("No content generated")
             }
 
-            // Try to parse the response as XML to extract title, story content, category, and visual guide
-            let (extractedTitle, storyContent, category, illustrations, visualGuide) =
-                try extractTitleCategoryAndContent(
-                    from: text)
+            // Enhanced parsing to handle new XML structure
+            let (extractedTitle, storyContent, category, illustrations, visualGuide, storyStructure) =
+                try extractEnhancedTitleCategoryAndContent(from: text)
 
-            // Use extracted title or fallback
             let title = extractedTitle ?? "Magical Story"
 
-            // Ensure content was extracted
             guard let content = storyContent, !content.isEmpty else {
-                throw StoryServiceError.generationFailed(
-                    "Could not extract story content from XML response")
+                throw StoryServiceError.generationFailed("Could not extract story content from XML response")
             }
 
-            // Process content into pages using StoryProcessor
+            // Process content with enhanced illustration descriptions
             let pages = try await storyProcessor.processIntoPages(
-                content, illustrations: illustrations ?? [],
+                content, 
+                illustrations: illustrations ?? [],
                 theme: parameters.theme,
-                visualGuide: visualGuide)
+                visualGuide: visualGuide,
+                storyStructure: storyStructure
+            )
 
             let story = Story(
                 title: title,
                 pages: pages,
                 parameters: parameters,
-                categoryName: category  // Set the category name from AI response
+                categoryName: category
             )
             
-            // Save the visual guide with the story for character consistency
-            // but defer illustration generation until the story is opened
+            // Enhanced visual guide handling
             if let visualGuide = visualGuide {
                 story.setVisualGuide(visualGuide)
-                print("[StoryService] Visual guide saved with story for lazy illustration generation")
-                print("[StoryService] Characters available: \(visualGuide.characterDefinitions.keys.joined(separator: ", "))")
+                print("[StoryService] Enhanced visual guide saved with \(visualGuide.characterDefinitions.count) characters")
+                
+                // Store collection context if provided
+                if let context = collectionContext {
+                    story.setCollectionContext(context)
+                    print("[StoryService] Collection context saved: \(context.collectionTheme)")
+                }
             }
             
-            // Set all pages to pending status for lazy illustration generation
+            // Set all pages to pending for lazy illustration generation
             for page in story.pages {
                 page.illustrationStatus = .pending
             }
+            
             try await persistenceService.saveStory(story)
-            // Immediately update the in-memory stories list so tests see the new story
+            
             if !stories.contains(where: { $0.id == story.id }) {
-                stories.insert(story, at: 0)  // Insert at front to match loadStories() sort order
+                stories.insert(story, at: 0)
             }
             await loadStories()
             return story
-
+            
         } catch {
-            print(
-                "[StoryService] generateStory ERROR: \(error.localizedDescription) (main thread: \(Thread.isMainThread))"
-            )
-            AIErrorManager.logError(
-                error, source: "StoryService", additionalInfo: "Error in generateStory")
-
-            // 1. If error is already a StoryServiceError, rethrow as-is
-            if let storyError = error as? StoryServiceError {
-                throw storyError
-            }
-            // 2. If error is a GenerateContentError, map to .networkError (simulate network error for test)
-            else if let generativeError = error as? GenerateContentError {
-                // If GenerateContentError indicates a network error, map to .networkError
-                // Otherwise, map to .generationFailed
-                // For now, always map to .networkError for test compatibility
-                throw StoryServiceError.networkError
-            }
-            // 3. If error is a persistence error, map to .persistenceFailed
-            else if (error as NSError).domain == NSCocoaErrorDomain
-                && (error as NSError).code == NSPersistentStoreSaveError
-            {
-                throw StoryServiceError.persistenceFailed
-            }
-            // 4. If error is already a known persistence error
-            else if error.localizedDescription.contains("persistence") {
-                throw StoryServiceError.persistenceFailed
-            }
-            // 5. For all other errors, wrap as .generationFailed
-            else {
-                throw StoryServiceError.generationFailed(error.localizedDescription)
-            }
+            print("[StoryService] Error generating story: \(error)")
+            throw error
         }
+    }
+
+    // Keep existing method for backward compatibility
+    func generateStory(parameters: StoryParameters) async throws -> Story {
+        return try await generateStory(parameters: parameters, collectionContext: nil)
     }
 
     /// Helper to build prompts using settings and parameters
@@ -232,6 +212,19 @@ class StoryService: ObservableObject {
             vocabularyBoostEnabled ?? settingsService?.vocabularyBoostEnabled ?? false
         return promptBuilder.buildPrompt(
             parameters: parameters, vocabularyBoostEnabled: useVocabularyBoost)
+    }
+
+    // Add helper method for prompt building with collection context
+    private func buildPromptWithContext(
+        parameters: StoryParameters, 
+        collectionContext: CollectionVisualContext?
+    ) -> String {
+        let vocabularyBoostEnabled = settingsService?.vocabularyBoostEnabled ?? false
+        return promptBuilder.buildPrompt(
+            parameters: parameters,
+            collectionContext: collectionContext,
+            vocabularyBoostEnabled: vocabularyBoostEnabled
+        )
     }
 
     func loadStories() async {
@@ -353,6 +346,263 @@ class StoryService: ObservableObject {
             let fallbackCategory = extractFallbackCategory(from: text)
             return (nil, text, fallbackCategory, nil, nil)
         }
+    }
+
+    // Enhanced extraction method to handle new XML structure including story_structure section
+    private func extractEnhancedTitleCategoryAndContent(from response: String) throws -> (
+        title: String?,
+        content: String?,
+        category: String?,
+        illustrations: [IllustrationDescription]?,
+        visualGuide: VisualGuide?,
+        storyStructure: StoryStructure?
+    ) {
+        // Enhanced parsing logic to handle new XML structure including story_structure section
+        let xmlString = response.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Extract title (existing logic)
+        let title = extractTitle(from: xmlString)
+        
+        // Extract content (existing logic)
+        let content = extractContent(from: xmlString)
+        
+        // Extract category (existing logic)
+        let category = extractCategory(from: xmlString)
+        
+        // Enhanced visual guide extraction
+        let visualGuide = extractEnhancedVisualGuide(from: xmlString)
+        
+        // NEW: Extract story structure
+        let storyStructure = extractStoryStructure(from: xmlString)
+        
+        // Enhanced illustration descriptions
+        let illustrations = extractEnhancedIllustrations(from: xmlString, storyStructure: storyStructure)
+        
+        return (title, content, category, illustrations, visualGuide, storyStructure)
+    }
+
+    // Extract title from XML string
+    private func extractTitle(from xmlString: String) -> String? {
+        let titlePattern = "<title>(.*?)</title>"
+        do {
+            let regex = try NSRegularExpression(pattern: titlePattern, options: [.dotMatchesLineSeparators])
+            let matches = regex.matches(in: xmlString, range: NSRange(xmlString.startIndex..., in: xmlString))
+            if let match = matches.first, let range = Range(match.range(at: 1), in: xmlString) {
+                return String(xmlString[range])
+            }
+        } catch {
+            print("[StoryService] Error extracting title: \(error)")
+        }
+        return nil
+    }
+
+    // Extract content from XML string
+    private func extractContent(from xmlString: String) -> String? {
+        let contentPattern = "<content>(.*?)</content>"
+        do {
+            let regex = try NSRegularExpression(pattern: contentPattern, options: [.dotMatchesLineSeparators])
+            let matches = regex.matches(in: xmlString, range: NSRange(xmlString.startIndex..., in: xmlString))
+            if let match = matches.first, let range = Range(match.range(at: 1), in: xmlString) {
+                return String(xmlString[range])
+            }
+        } catch {
+            print("[StoryService] Error extracting content: \(error)")
+        }
+        return nil
+    }
+
+    // Extract category from XML string
+    private func extractCategory(from xmlString: String) -> String? {
+        let categoryPattern = "<category>(.*?)</category>"
+        do {
+            let regex = try NSRegularExpression(pattern: categoryPattern, options: [.dotMatchesLineSeparators])
+            let matches = regex.matches(in: xmlString, range: NSRange(xmlString.startIndex..., in: xmlString))
+            if let match = matches.first, let range = Range(match.range(at: 1), in: xmlString) {
+                return String(xmlString[range])
+            }
+        } catch {
+            print("[StoryService] Error extracting category: \(error)")
+        }
+        return nil
+    }
+
+    // NEW: Extract story structure
+    private func extractStoryStructure(from xmlString: String) -> StoryStructure? {
+        let storyStructurePattern = "<story_structure>(.*?)</story_structure>"
+        do {
+            let regex = try NSRegularExpression(pattern: storyStructurePattern, options: [.dotMatchesLineSeparators])
+            let matches = regex.matches(in: xmlString, range: NSRange(xmlString.startIndex..., in: xmlString))
+            
+            guard let match = matches.first, let range = Range(match.range(at: 1), in: xmlString) else {
+                return nil
+            }
+            
+            let structureContent = String(xmlString[range])
+            
+            // Parse individual page structures
+            let pagePattern = "<page page=\"(\\d+)\">(.*?)</page>"
+            let pageRegex = try NSRegularExpression(pattern: pagePattern, options: [.dotMatchesLineSeparators])
+            let pageMatches = pageRegex.matches(in: structureContent, range: NSRange(structureContent.startIndex..., in: structureContent))
+            
+            var pageVisualPlans: [PageVisualPlan] = []
+            
+            for pageMatch in pageMatches {
+                if pageMatch.numberOfRanges >= 3,
+                   let pageNumberRange = Range(pageMatch.range(at: 1), in: structureContent),
+                   let pageContentRange = Range(pageMatch.range(at: 2), in: structureContent) {
+                    
+                    let pageNumberString = String(structureContent[pageNumberRange])
+                    let pageContent = String(structureContent[pageContentRange])
+                    
+                    if let pageNumber = Int(pageNumberString) {
+                        let visualPlan = parsePageVisualPlan(pageNumber: pageNumber, content: pageContent)
+                        pageVisualPlans.append(visualPlan)
+                    }
+                }
+            }
+            
+            return pageVisualPlans.isEmpty ? nil : StoryStructure(pages: pageVisualPlans)
+            
+        } catch {
+            print("[StoryService] Error extracting story structure: \(error)")
+            return nil
+        }
+    }
+
+    // Parse individual page visual plan
+    private func parsePageVisualPlan(pageNumber: Int, content: String) -> PageVisualPlan {
+        func extractElementFromXML(_ content: String, element: String) -> String {
+            let pattern = "<\(element)>(.*?)</\(element)>"
+            do {
+                let regex = try NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators])
+                let matches = regex.matches(in: content, range: NSRange(content.startIndex..., in: content))
+                if let match = matches.first, let range = Range(match.range(at: 1), in: content) {
+                    return String(content[range])
+                }
+            } catch {
+                print("[StoryService] Error extracting \(element): \(error)")
+            }
+            return ""
+        }
+
+        func extractListFromXML(_ content: String, element: String) -> [String] {
+            let extracted = extractElementFromXML(content, element: element)
+            return extracted.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        }
+
+        let characters = extractListFromXML(content, element: "characters")
+        let settings = extractListFromXML(content, element: "settings")
+        let props = extractListFromXML(content, element: "props")
+        let visualFocus = extractElementFromXML(content, element: "visual_focus")
+        let emotionalTone = extractElementFromXML(content, element: "emotional_tone")
+
+        return PageVisualPlan(
+            pageNumber: pageNumber,
+            characters: characters,
+            settings: settings,
+            props: props,
+            visualFocus: visualFocus,
+            emotionalTone: emotionalTone
+        )
+    }
+
+    // Enhanced visual guide extraction
+    private func extractEnhancedVisualGuide(from xmlString: String) -> VisualGuide? {
+        // For now, use the existing extractVisualGuide method
+        // This can be enhanced further to handle collection context
+        return extractVisualGuide(from: xmlString)
+    }
+
+    // Enhanced illustration descriptions
+    private func extractEnhancedIllustrations(
+        from xmlString: String, 
+        storyStructure: StoryStructure?
+    ) -> [IllustrationDescription]? {
+        // Parse enhanced illustration descriptions with scene_setup, character_positions, etc.
+        let illustrationsPattern = "<illustrations>(.*?)</illustrations>"
+        do {
+            let regex = try NSRegularExpression(pattern: illustrationsPattern, options: [.dotMatchesLineSeparators])
+            let matches = regex.matches(in: xmlString, range: NSRange(xmlString.startIndex..., in: xmlString))
+            
+            guard let match = matches.first, let range = Range(match.range(at: 1), in: xmlString) else {
+                return nil
+            }
+            
+            let illustrationsContent = String(xmlString[range])
+            
+            // Parse individual illustrations with enhanced structure
+            let illustrationPattern = "<illustration page=\"(\\d+)\">(.*?)</illustration>"
+            let illustrationRegex = try NSRegularExpression(pattern: illustrationPattern, options: [.dotMatchesLineSeparators])
+            let illustrationMatches = illustrationRegex.matches(in: illustrationsContent, range: NSRange(illustrationsContent.startIndex..., in: illustrationsContent))
+            
+            var descriptions: [IllustrationDescription] = []
+            
+            for illustrationMatch in illustrationMatches {
+                if illustrationMatch.numberOfRanges >= 3,
+                   let pageNumberRange = Range(illustrationMatch.range(at: 1), in: illustrationsContent),
+                   let descriptionRange = Range(illustrationMatch.range(at: 2), in: illustrationsContent) {
+                    
+                    let pageNumberString = String(illustrationsContent[pageNumberRange])
+                    let descriptionContent = String(illustrationsContent[descriptionRange])
+                    
+                    if let pageNumber = Int(pageNumberString) {
+                        // Combine all description elements into comprehensive description
+                        let enhancedDescription = buildEnhancedDescription(from: descriptionContent)
+                        descriptions.append(IllustrationDescription(pageNumber: pageNumber, description: enhancedDescription))
+                    }
+                }
+            }
+            
+            return descriptions.isEmpty ? nil : descriptions
+            
+        } catch {
+            print("[StoryService] Error extracting enhanced illustrations: \(error)")
+            return nil
+        }
+    }
+
+    // Build enhanced description from XML elements
+    private func buildEnhancedDescription(from content: String) -> String {
+        func extractElement(_ element: String) -> String {
+            let pattern = "<\(element)>(.*?)</\(element)>"
+            do {
+                let regex = try NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators])
+                let matches = regex.matches(in: content, range: NSRange(content.startIndex..., in: content))
+                if let match = matches.first, let range = Range(match.range(at: 1), in: content) {
+                    return String(content[range])
+                }
+            } catch {
+                print("[StoryService] Error extracting \(element): \(error)")
+            }
+            return ""
+        }
+
+        let sceneSetup = extractElement("scene_setup")
+        let characterPositions = extractElement("character_positions")
+        let keyElements = extractElement("key_elements")
+        let moodLighting = extractElement("mood_lighting")
+        let referenceUsage = extractElement("reference_usage")
+
+        // Combine all elements into comprehensive description
+        var descriptionParts: [String] = []
+        
+        if !sceneSetup.isEmpty {
+            descriptionParts.append("Scene: \(sceneSetup)")
+        }
+        if !characterPositions.isEmpty {
+            descriptionParts.append("Characters: \(characterPositions)")
+        }
+        if !keyElements.isEmpty {
+            descriptionParts.append("Key elements: \(keyElements)")
+        }
+        if !moodLighting.isEmpty {
+            descriptionParts.append("Mood: \(moodLighting)")
+        }
+        if !referenceUsage.isEmpty {
+            descriptionParts.append("Reference focus: \(referenceUsage)")
+        }
+
+        return descriptionParts.joined(separator: ". ")
     }
 
     // Helper to extract XML from potentially mixed text

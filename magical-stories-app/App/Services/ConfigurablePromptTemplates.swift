@@ -252,19 +252,20 @@ public class ConfigurablePromptTemplates {
 extension ConfigurablePromptTemplates {
     
     // Quick access methods for common templates
-    public func textFreeEnforcement(level: TextFreeLevel = .critical) -> String {
-        let levelString = level == .critical ? "critical" : "moderate"
-        return template(for: "textFreeEnforcement", level: levelString)
-    }
-    
-    public func vocabularyGuideline(for vocabularyLevel: VocabularyLevel) -> String {
-        switch vocabularyLevel {
-        case .standard:
-            return template(for: "vocabularyLevels", level: "intermediate")
-        case .enhanced(let targetWords):
-            return template(for: "enhancedVocabulary", substitutions: ["targetWords": "\(targetWords)"])
-        }
-    }
+    // Note: These methods are currently unused and reference undefined types
+    // public func textFreeEnforcement(level: TextFreeLevel = .critical) -> String {
+    //     let levelString = level == .critical ? "critical" : "moderate"
+    //     return template(for: "textFreeEnforcement", level: levelString)
+    // }
+    // 
+    // public func vocabularyGuideline(for vocabularyLevel: VocabularyLevel) -> String {
+    //     switch vocabularyLevel {
+    //     case .standard:
+    //         return template(for: "vocabularyLevels", level: "intermediate")
+    //     case .enhanced(let targetWords):
+    //         return template(for: "enhancedVocabulary", substitutions: ["targetWords": "\(targetWords)"])
+    //     }
+    // }
     
     public func narrativeGuideline(for age: Int) -> String {
         let level: String

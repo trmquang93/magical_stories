@@ -43,7 +43,8 @@ class StoryProcessor {
         _ content: String,
         illustrations: [IllustrationDescription] = [],
         theme: String,
-        visualGuide: VisualGuide? = nil
+        visualGuide: VisualGuide? = nil,
+        storyStructure: StoryStructure? = nil
     ) async throws -> [Page] {
         // First attempt to paginate using the delimiter-based approach
         var pages = paginateStory(content)
