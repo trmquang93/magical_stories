@@ -1,0 +1,318 @@
+import SwiftData
+import Testing
+@testable import magical_stories
+
+@Suite("Visual Consistency Integration Tests")
+@MainActor
+struct VisualConsistencyIntegrationTests {
+    
+    private func createIntegrationTestEnvironment() throws -> (
+        CollectionService,
+        StoryService,
+        PromptBuilder,
+        ModelContext
+    ) {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: Story.self, StoryCollection.self, configurations: config)
+        let context = container.mainContext
+        
+        // Create real services with mock AI model
+        let promptBuilder = PromptBuilder()
+        let mockModel = MockGenerativeModelForIntegrationTesting()
+        let mockPersistence = MockPersistenceService()
+        let mockIllustration = SharedMockIllustrationService()
+        let storyProcessor = StoryProcessor(illustrationService: mockIllustration)
+        
+        let storyService = StoryService(
+            apiKey: "test-key",
+            context: context,
+            persistenceService: mockPersistence,
+            model: mockModel,
+            storyProcessor: storyProcessor,
+            promptBuilder: promptBuilder
+        )
+        
+        let collectionRepository = CollectionRepository(modelContext: context)
+        let achievementRepository = AchievementRepository(modelContext: context)
+        
+        let collectionService = CollectionService(
+            repository: collectionRepository,
+            storyService: storyService,
+            achievementRepository: achievementRepository
+        )
+        
+        return (collectionService, storyService, promptBuilder, context)
+    }
+    
+    @Test("End-to-end visual consistency flow")
+    func testEndToEndVisualConsistencyFlow() async throws {
+        let (collectionService, storyService, promptBuilder, context) = try createIntegrationTestEnvironment()
+        
+        // 1. Test single story generation (baseline)
+        let singleStoryParams = StoryParameters(
+            theme: "Magical Garden",
+            childAge: 6,
+            childName: "Lily",
+            favoriteCharacter: "Butterfly"
+        )
+        
+        let singleStory = try await storyService.generateStory(parameters: singleStoryParams)
+        
+        // Verify single story works as expected
+        #expect(singleStory.title.contains("Magical Garden"))
+        #expect(singleStory.parameters.childName == "Lily")
+        #expect(singleStory.collectionContext == nil) // No collection context for single story
+        
+        // 2. Test collection story generation (enhanced with visual context)
+        let collection = StoryCollection(
+            title: "Nature Explorer Collection",
+            descriptionText: "A collection for scientific thinking development",
+            category: "Scientific Thinking",
+            ageGroup: "5-7"
+        )
+        
+        let collectionParameters = CollectionParameters(
+            childAgeGroup: "5-7",
+            developmentalFocus: "Scientific Thinking",
+            interests: "Nature, Animals, Discovery",
+            childName: "Alex",
+            characters: ["Wise Owl", "Busy Bee", "Gentle Deer"]
+        )
+        
+        context.insert(collection)
+        try context.save()
+        
+        // Generate collection stories
+        try await collectionService.generateStoriesForCollection(collection, parameters: collectionParameters)
+        
+        // Verify collection stories were generated
+        #expect(collection.stories?.count == 3)
+        
+        // 3. Verify visual consistency across collection stories
+        guard let stories = collection.stories else {
+            throw TestError.missingStories
+        }
+        
+        for story in stories {
+            // Each story should have collection context
+            #expect(story.collectionContext != nil)
+            
+            let context = story.collectionContext!
+            
+            // Verify consistent collection properties
+            #expect(context.collectionId == collection.id)
+            #expect(context.collectionTheme == "Scientific Thinking through Nature, Animals, Discovery")
+            #expect(context.sharedCharacters == ["Wise Owl", "Busy Bee", "Gentle Deer"])
+            #expect(context.developmentalFocus == "Scientific Thinking")
+            #expect(context.ageGroup == "5-7")
+            #expect(context.requiresCharacterConsistency == true)
+            #expect(context.allowsStyleVariation == false)
+            
+            // Verify unified art style
+            #expect(context.unifiedArtStyle.contains("children's book illustration"))
+            #expect(context.unifiedArtStyle.contains("Scientific Thinking development"))
+            
+            // Verify shared props include nature elements
+            #expect(context.sharedProps.contains("friendly animals"))
+        }
+        
+        // 4. Verify character cycling works correctly
+        let storyParameters = stories.map { $0.parameters }
+        #expect(storyParameters[0].favoriteCharacter == "Wise Owl")
+        #expect(storyParameters[1].favoriteCharacter == "Busy Bee")
+        #expect(storyParameters[2].favoriteCharacter == "Gentle Deer")
+        
+        // 5. Test prompt building with collection context
+        let promptWithContext = promptBuilder.buildPrompt(
+            parameters: storyParameters[0],
+            collectionContext: stories[0].collectionContext
+        )
+        
+        // Verify enhanced prompt includes collection guidance
+        #expect(promptWithContext.contains("COLLECTION CONSISTENCY REQUIREMENTS"))
+        #expect(promptWithContext.contains("Scientific Thinking through Nature, Animals, Discovery"))
+        #expect(promptWithContext.contains("Wise Owl, Busy Bee, Gentle Deer"))
+    }
+    
+    @Test("Visual context props extraction accuracy")
+    func testVisualContextPropsExtractionAccuracy() async throws {
+        let (collectionService, _, _, context) = try createIntegrationTestEnvironment()
+        
+        // Test different interest combinations
+        let testCases = [
+            (interests: "Animals, Ocean", expectedProps: ["friendly animals", "seashells and waves"]),
+            (interests: "Space, Forest", expectedProps: ["stars and planets", "trees and flowers"]),
+            (interests: "Animals, Space, Ocean, Forest", expectedProps: ["friendly animals", "stars and planets", "seashells and waves", "trees and flowers"])
+        ]
+        
+        for (index, testCase) in testCases.enumerated() {
+            let collection = StoryCollection(
+                title: "Test Collection \(index)",
+                descriptionText: "Test collection for props extraction",
+                category: "Problem Solving",
+                ageGroup: "5-7"
+            )
+            
+            let testParameters = CollectionParameters(
+                childAgeGroup: "5-7",
+                developmentalFocus: "Problem Solving",
+                interests: testCase.interests,
+                childName: "Test"
+            )
+            
+            context.insert(collection)
+            try context.save()
+            
+            try await collectionService.generateStoriesForCollection(collection, parameters: testParameters)
+            
+            guard let story = collection.stories?.first,
+                  let visualContext = story.collectionContext else {
+                throw TestError.missingVisualContext
+            }
+            
+            // Verify expected props are present
+            for expectedProp in testCase.expectedProps {
+                #expect(visualContext.sharedProps.contains(expectedProp))
+            }
+            
+            // Also verify developmental focus prop
+            #expect(visualContext.sharedProps.contains("puzzle elements"))
+        }
+    }
+    
+    @Test("Age-appropriate art style generation")
+    func testAgeAppropriateArtStyleGeneration() async throws {
+        let (collectionService, _, _, context) = try createIntegrationTestEnvironment()
+        
+        // Test different age groups
+        let ageTestCases = [
+            (ageGroup: "3-4", expectedStyleElement: "Simple shapes and bold colors suitable for preschoolers"),
+            (ageGroup: "5-7", expectedStyleElement: "Detailed illustrations with rich visual storytelling"),
+            (ageGroup: "7-9", expectedStyleElement: "Detailed illustrations with rich visual storytelling")
+        ]
+        
+        for (index, testCase) in ageTestCases.enumerated() {
+            let collection = StoryCollection(
+                title: "Age Test Collection \(index)",
+                descriptionText: "Test collection for age-appropriate styling",
+                category: "Creativity",
+                ageGroup: testCase.ageGroup
+            )
+            
+            let ageTestParameters = CollectionParameters(
+                childAgeGroup: testCase.ageGroup,
+                developmentalFocus: "Creativity",
+                interests: "Art",
+                childName: "Test"
+            )
+            
+            context.insert(collection)
+            try context.save()
+            
+            try await collectionService.generateStoriesForCollection(collection, parameters: ageTestParameters)
+            
+            guard let story = collection.stories?.first,
+                  let visualContext = story.collectionContext else {
+                throw TestError.missingVisualContext
+            }
+            
+            #expect(visualContext.unifiedArtStyle.contains(testCase.expectedStyleElement))
+            #expect(visualContext.unifiedArtStyle.contains("Creativity development"))
+        }
+    }
+    
+    @Test("Backward compatibility maintained")
+    func testBackwardCompatibilityMaintained() async throws {
+        let (_, storyService, promptBuilder, _) = try createIntegrationTestEnvironment()
+        
+        // Test that existing single story generation still works without collection context
+        let parameters = StoryParameters(
+            theme: "Classic Tale",
+            childAge: 6,
+            childName: "Traditional"
+        )
+        
+        // This should work exactly as before
+        let story = try await storyService.generateStory(parameters: parameters)
+        
+        #expect(story.title.contains("Classic Tale"))
+        #expect(story.collectionContext == nil)
+        #expect(story.parameters.childName == "Traditional")
+        
+        // Test prompt building without collection context
+        let prompt = promptBuilder.buildPrompt(parameters: parameters)
+        
+        #expect(prompt.contains("Classic Tale"))
+        #expect(prompt.contains("Traditional"))
+        #expect(!prompt.contains("collection_context"))
+        #expect(!prompt.contains("COLLECTION CONSISTENCY REQUIREMENTS"))
+    }
+}
+
+// MARK: - Test Support Classes
+
+enum TestError: Error {
+    case missingStories
+    case missingVisualContext
+}
+
+class MockGenerativeModelForIntegrationTesting: GenerativeModelProtocol {
+    func generateContent(_ prompt: String) async throws -> StoryGenerationResponse {
+        // Extract theme from prompt for more realistic testing
+        let theme = extractTheme(from: prompt)
+        
+        return MockIntegrationTestingResponse(responseText: """
+        <visual_guide>
+            <style_guide>Warm, engaging children's book illustration style</style_guide>
+            <character_definitions>
+                <character name="MainCharacter">
+                    <appearance>Friendly and approachable character</appearance>
+                    <clothing>Colorful and age-appropriate outfit</clothing>
+                    <traits>Curious and brave</traits>
+                    <key_features>Bright eyes and welcoming smile</key_features>
+                </character>
+            </character_definitions>
+        </visual_guide>
+        
+        <story_structure>
+            <page page="1">
+                <characters>MainCharacter</characters>
+                <settings>Starting location</settings>
+                <props>Key story elements</props>
+                <visual_focus>Character introduction</visual_focus>
+                <emotional_tone>Welcoming and curious</emotional_tone>
+            </page>
+        </story_structure>
+        
+        <content>Once upon a time, there was a wonderful story about \(theme). The adventure began when our hero discovered something amazing. --- The story continued with exciting developments. --- And they all lived happily ever after.</content>
+        
+        <category>Adventure</category>
+        
+        <illustrations>
+            <illustration page="1">
+                <scene_setup>Opening scene with character introduction</scene_setup>
+                <character_positions>MainCharacter in center of scene</character_positions>
+                <key_elements>Story setting and key props</key_elements>
+                <mood_lighting>Bright and welcoming</mood_lighting>
+                <reference_usage>Use character reference for consistency</reference_usage>
+            </illustration>
+        </illustrations>
+        """)
+    }
+    
+    private func extractTheme(from prompt: String) -> String {
+        // Simple extraction for testing
+        if prompt.contains("Magical Garden") { return "Magical Garden" }
+        if prompt.contains("Scientific Thinking") { return "Nature Discovery" }
+        if prompt.contains("Classic Tale") { return "Classic Tale" }
+        return "Adventure"
+    }
+}
+
+struct MockIntegrationTestingResponse: StoryGenerationResponse {
+    let responseText: String
+    
+    var text: String? {
+        return responseText
+    }
+}
