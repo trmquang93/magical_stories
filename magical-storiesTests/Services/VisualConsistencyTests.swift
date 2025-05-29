@@ -1,10 +1,19 @@
 import Testing
 import Foundation
+import SwiftData
 @testable import magical_stories
 
 @Suite("Visual Consistency System Tests")
 @MainActor
 struct VisualConsistencyTests {
+    
+    // MARK: - Helper Methods
+    
+    private func createTestModelContext() throws -> ModelContext {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: Story.self, StoryCollection.self, configurations: config)
+        return container.mainContext
+    }
     
     // MARK: - Test Data
     

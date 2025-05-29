@@ -1,5 +1,6 @@
 import Testing
 import Foundation
+import SwiftData
 @testable import magical_stories
 
 @Suite("Enhanced PromptBuilder Tests")
