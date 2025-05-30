@@ -47,7 +47,7 @@ final class StoryRepositoryTests: XCTestCase {
                     illustrationStatus: .ready, imagePrompt: "Prompt \(i)"))
         }
         let params = StoryParameters(
-            childName: "Test", childAge: 5, theme: "Testing", favoriteCharacter: "Bot")
+            theme: "Testing", childAge: 5, childName: "Test", favoriteCharacter: "Bot")
         return Story(id: id, title: title, pages: pages, parameters: params, timestamp: Date())
     }
 

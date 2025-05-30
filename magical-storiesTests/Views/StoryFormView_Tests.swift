@@ -96,9 +96,9 @@ struct StoryFormView_Tests {
 
         // When - Testing logic only
         let generatedParameters = StoryParameters(
-            childName: "Test Child",
-            childAge: 5,
             theme: "Adventure",
+            childAge: 5,
+            childName: "Test Child",
             favoriteCharacter: "Dragon",
             storyLength: "Medium",
             languageCode: "fr"  // French language code

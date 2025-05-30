@@ -15,9 +15,9 @@ struct PromptBuilderTests {
     func testBuildPromptForYoungChild() {
         // Given
         let parameters = StoryParameters(
-            childName: "Emma",
-            childAge: 4,
             theme: "Friendship",
+            childAge: 4,
+            childName: "Emma",
             favoriteCharacter: "Bunny",
             storyLength: "short",
             developmentalFocus: [.problemSolving, .socialSkills],
@@ -43,9 +43,9 @@ struct PromptBuilderTests {
     func testBuildPromptForIntermediateChild() {
         // Given
         let parameters = StoryParameters(
-            childName: "Alex",
-            childAge: 6,
             theme: "Adventure",
+            childAge: 6,
+            childName: "Alex",
             favoriteCharacter: "Dragon",
             storyLength: "medium",
             developmentalFocus: [.socialSkills],
@@ -70,9 +70,9 @@ struct PromptBuilderTests {
     func testBuildPromptForAdvancedChild() {
         // Given
         let parameters = StoryParameters(
-            childName: "Maya",
-            childAge: 8,
             theme: "Mystery",
+            childAge: 8,
+            childName: "Maya",
             favoriteCharacter: "Detective Cat",
             storyLength: "long",
             developmentalFocus: [.cognitiveDevelopment],
@@ -97,9 +97,9 @@ struct PromptBuilderTests {
     func testBuildPromptWithoutOptionalParameters() {
         // Given
         let parameters = StoryParameters(
-            childName: "Sam",
-            childAge: 5,
             theme: "Nature",
+            childAge: 5,
+            childName: "Sam",
             favoriteCharacter: "Wise Owl"
         )
 
@@ -118,9 +118,9 @@ struct PromptBuilderTests {
     func testPromptIncludesStoryStructureGuidelines() {
         // Given
         let parameters = StoryParameters(
-            childName: "Pat",
-            childAge: 7,
             theme: "Space",
+            childAge: 7,
+            childName: "Pat",
             favoriteCharacter: "Star"
         )
 
@@ -137,9 +137,9 @@ struct PromptBuilderTests {
     func testPromptIncludesFormatGuidelines() {
         // Given
         let parameters = StoryParameters(
-            childName: "Jordan",
-            childAge: 6,
             theme: "Sports",
+            childAge: 6,
+            childName: "Jordan",
             favoriteCharacter: "Coach Bear"
         )
 
@@ -156,9 +156,9 @@ struct PromptBuilderTests {
     func testPromptIncludesPageBreakDelimiterInstructions() {
         // Given
         let parameters = StoryParameters(
-            childName: "Jamie",
-            childAge: 5,
             theme: "Adventure",
+            childAge: 5,
+            childName: "Jamie",
             favoriteCharacter: "Explorer Fox"
         )
 
@@ -181,9 +181,9 @@ struct PromptBuilderTests {
         // Arrange
         let promptBuilder = PromptBuilder()
         let parameters = StoryParameters(
-            childName: "Alex",
-            childAge: 7,
             theme: "Adventure",
+            childAge: 7,
+            childName: "Alex",
             favoriteCharacter: "Dragon"
         )
 
@@ -209,9 +209,9 @@ struct PromptBuilderTests {
         // Arrange
         let promptBuilder = PromptBuilder()
         let parameters = StoryParameters(
-            childName: "Alex",
-            childAge: 7,
             theme: "Adventure",
+            childAge: 7,
+            childName: "Alex",
             favoriteCharacter: "Dragon"
         )
 
@@ -232,9 +232,9 @@ struct PromptBuilderTests {
     func testPromptIncludesLanguageInstruction() {
         // Given
         let parameters = StoryParameters(
-            childName: "Léa",
-            childAge: 6,
             theme: "Magic",
+            childAge: 6,
+            childName: "Léa",
             favoriteCharacter: "Fairy",
             languageCode: "fr-FR" // French
         )
@@ -252,16 +252,16 @@ struct PromptBuilderTests {
     func testPromptDefaultsToEnglish() {
         // Given
         let parameters1 = StoryParameters(
-            childName: "Tom",
-            childAge: 5,
             theme: "Animals",
+            childAge: 5,
+            childName: "Tom",
             favoriteCharacter: "Lion",
             languageCode: nil // Missing language code
         )
         let parameters2 = StoryParameters(
-            childName: "Sue",
-            childAge: 7,
             theme: "Space",
+            childAge: 7,
+            childName: "Sue",
             favoriteCharacter: "Astronaut",
             languageCode: "" // Empty language code
         )

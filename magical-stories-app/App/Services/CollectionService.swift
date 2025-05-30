@@ -95,6 +95,15 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
             // Number of stories to generate per collection - can be adjusted
             let numberOfStories = 3 // Changed from 5 back to 3 to match test expectations
 
+            // NEW: Create unified visual context for entire collection
+            let visualContext = createCollectionVisualContext(
+                collection: collection,
+                parameters: parameters
+            )
+            
+            print("[CollectionService] Created visual context: \(visualContext.collectionTheme)")
+            print("[CollectionService] Shared characters: \(visualContext.sharedCharacters)")
+
             // Create dynamic story themes based on developmental focus and interests
             let storyThemes = createStoryThemes(
                 developmentalFocus: parameters.developmentalFocus,
@@ -129,19 +138,22 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
                 }()
                 
                 let storyParams = StoryParameters(
-                    childName: parameters.childName,
-                    childAge: childAge,
                     theme: theme,
+                    childAge: childAge,
+                    childName: parameters.childName,
                     favoriteCharacter: characterName,
                     languageCode: parameters.languageCode // Pass the language code from collection parameters
                 )
 
                 print(
-                    "[CollectionService] Generating story \(index + 1)/\(numberOfStories) for collection \(collection.title) with theme: \(theme), language: \(parameters.languageCode ?? "en"), character: \(characterName)"
+                    "[CollectionService] Generating story \(index + 1)/\(numberOfStories) for collection \(collection.title) with collection context"
                 )
 
-                // Generate story using StoryService
-                let story = try await storyService.generateStory(parameters: storyParams)
+                // Use enhanced story generation with collection context
+                let story = try await storyService.generateStory(
+                    parameters: storyParams,
+                    collectionContext: visualContext
+                )
 
                 // Add story to collection relationship (bidirectional)
                 if !story.collections.contains(where: { $0.id == collection.id }) {
@@ -328,5 +340,107 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
         )
         print("[CollectionService] Achievement for collection \(collection.title) created and saved: \(achievement.id)")
         // TODO: Trigger UI update/notification for achievement unlock (to be handled in UI layer)
+    }
+    
+    // MARK: - Visual Context Creation Methods
+    
+    /// Create unified visual context for collection
+    /// This creates a shared visual framework that ensures consistency across all stories in the collection
+    ///
+    /// - Parameters:
+    ///   - collection: The collection being generated
+    ///   - parameters: Collection parameters containing developmental focus, interests, etc.
+    /// - Returns: CollectionVisualContext for story generation
+    private func createCollectionVisualContext(
+        collection: StoryCollection,
+        parameters: CollectionParameters
+    ) -> CollectionVisualContext {
+        
+        // Extract shared characters from parameters
+        let sharedCharacters = parameters.characters ?? []
+        
+        // Create unified art style based on age group and developmental focus
+        let unifiedArtStyle = createUnifiedArtStyle(
+            ageGroup: parameters.childAgeGroup,
+            developmentalFocus: parameters.developmentalFocus
+        )
+        
+        // Determine shared props based on interests and developmental focus
+        let sharedProps = extractSharedProps(
+            interests: parameters.interests,
+            developmentalFocus: parameters.developmentalFocus
+        )
+        
+        return CollectionVisualContext(
+            collectionId: collection.id,
+            collectionTheme: "\(parameters.developmentalFocus) through \(parameters.interests)",
+            sharedCharacters: sharedCharacters,
+            unifiedArtStyle: unifiedArtStyle,
+            developmentalFocus: parameters.developmentalFocus,
+            ageGroup: parameters.childAgeGroup,
+            requiresCharacterConsistency: true,
+            allowsStyleVariation: false,
+            sharedProps: sharedProps
+        )
+    }
+    
+    /// Create unified art style description based on age group and developmental focus
+    ///
+    /// - Parameters:
+    ///   - ageGroup: Target age group (e.g., "4-6", "5-7")
+    ///   - developmentalFocus: Developmental area being targeted
+    /// - Returns: Detailed art style description for consistent visuals
+    private func createUnifiedArtStyle(ageGroup: String, developmentalFocus: String) -> String {
+        let baseStyle = "Warm, engaging children's book illustration style with soft edges and vibrant colors"
+        let ageSpecific = ageGroup.contains("3") || ageGroup.contains("4") ? 
+            "Simple shapes and bold colors suitable for preschoolers" :
+            "Detailed illustrations with rich visual storytelling"
+        let focusSpecific = "Visual elements that support \(developmentalFocus) development"
+        
+        return "\(baseStyle). \(ageSpecific). \(focusSpecific)."
+    }
+    
+    /// Extract shared props from interests and developmental focus
+    /// These props will appear consistently across stories in the collection
+    ///
+    /// - Parameters:
+    ///   - interests: Child's interests (comma-separated string)
+    ///   - developmentalFocus: Developmental focus area
+    /// - Returns: Array of prop descriptions for visual consistency
+    private func extractSharedProps(interests: String, developmentalFocus: String) -> [String] {
+        var props: [String] = []
+        
+        // Extract props from interests
+        let interestsList = interests.lowercased().components(separatedBy: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        
+        for interest in interestsList {
+            switch interest {
+            case let i where i.contains("animal"):
+                props.append("friendly animals")
+            case let i where i.contains("space"):
+                props.append("stars and planets")
+            case let i where i.contains("ocean"):
+                props.append("seashells and waves")
+            case let i where i.contains("forest"):
+                props.append("trees and flowers")
+            default:
+                props.append(interest)
+            }
+        }
+        
+        // Add developmental focus props
+        switch developmentalFocus.lowercased() {
+        case let f where f.contains("emotional"):
+            props.append("expressive faces")
+        case let f where f.contains("problem"):
+            props.append("puzzle elements")
+        case let f where f.contains("social"):
+            props.append("group activities")
+        default:
+            break
+        }
+        
+        return props
     }
 }

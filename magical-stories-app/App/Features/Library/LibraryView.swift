@@ -215,9 +215,9 @@ private class StoryServiceMock: ObservableObject {
         -> Story
     {
         let params = StoryParameters(
-            childName: childName,
-            childAge: 5,
             theme: categoryName,
+            childAge: 5,
+            childName: childName,
             favoriteCharacter: "Dragon"
         )
 

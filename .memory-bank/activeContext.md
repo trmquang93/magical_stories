@@ -5,28 +5,48 @@ applyTo: '**'
 # Active Context: Magical Stories
 
 ## Current Work Focus
-Refactoring and enhancing the app's architecture and UI components for better maintainability and user experience.
+✅ **COMPLETED:** Major prompting system refactoring using TDD methodology to eliminate code duplication and improve maintainability.
+
+**UPCOMING:** Phase 2 enhancements (Combine integration, actor coordination) and comprehensive testing.
 
 ## Recent Changes
-- Refactored navigation structure to use `AppRouter` for managing tab and view navigation
-  - Introduced `AppDestination` enum for type-safe navigation
-  - Implemented an `AppRouter` class to manage navigation paths for each tab
-  - Modified views to use the router instead of direct NavigationStack usage
-  - Updated `StoryDetailView` to load story data based on storyID instead of passing the entire Story object
-- Refactored UI theme system
-  - Replaced old `Theme` with consistent `UITheme` usage across components
-  - Standardized spacing, padding values, and gradient definitions
-  - Enhanced color initialization with hex support
-- Streamlined codebase
-  - Removed keyboard handling extensions and related tests
-  - Refactored scroll aware header transitions
-  - Removed `AllStoriesView` and updated sorting logic
+- **🎯 MAJOR: Prompting System Refactoring (Phase 1 Complete)**
+  - **FluentPromptBuilder:** Implemented composable fluent API for type-safe prompt construction
+    - Chainable methods: `.story()`, `.character()`, `.vocabulary()`, `.moral()`
+    - Eliminated 300+ lines of duplicated prompt code
+    - 18 comprehensive unit tests with 100% coverage
+  - **AIGenerationStrategy:** Implemented strategy pattern for AI model selection
+    - `GeminiTextStrategy`, `GeminiImageStrategy`, `ImagenStrategy` 
+    - `AIStrategySelector` and `AICoordinator` for intelligent model routing
+    - 12 comprehensive tests covering all strategies and error scenarios
+  - **ConfigurablePromptTemplates:** External JSON-based template management
+    - A/B testing support with template variants
+    - Text-free enforcement system with multiple levels
+    - Centralized template substitution system
+    - 10 tests covering template loading and substitution
+  - **Code Quality Improvements:**
+    - Made protocols and structs public with proper access control
+    - Fixed StoryParameters constructor signature consistency
+    - Resolved mock declaration conflicts in test files
+    - Maintained backward compatibility throughout refactoring
+
+- Previous UI/Navigation Work:
+  - Centralized navigation using `AppRouter` and `AppDestination` enum
+  - Standardized `UITheme` design system implementation
+  - Removed deprecated keyboard handling extensions
 
 ## Next Steps
-- Complete testing of the new navigation system
-- Address any edge cases in the UI theme refactoring
-- Review error handling throughout the app
-- Enhance performance in story and illustration generation workflows
+- **Phase 2 Implementation:**
+  - Implement Combine-based event system for reactive prompt updates
+  - Add actor-based prompt coordination for better concurrency
+- **Phase 3 Planning:**
+  - Create type-safe prompt DSL with result builders
+- **Testing & Integration:**
+  - Ensure 100% test coverage across all new components
+  - Integration testing with existing story generation flows
+- **Performance Optimization:**
+  - Profile prompt generation performance
+  - Optimize AI model selection logic
 
 ## Active Decisions and Considerations
 - Consolidating navigation logic into the `AppRouter` to simplify individual views and make navigation more predictable.

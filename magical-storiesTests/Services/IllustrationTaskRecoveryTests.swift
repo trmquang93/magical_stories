@@ -76,7 +76,7 @@ struct IllustrationTaskRecoveryTests {
             id: storyId,
             title: "Test Story for Recovery",
             pages: [page],
-            parameters: StoryParameters(childName: "Test", childAge: 7, theme: "Adventure"),
+            parameters: StoryParameters(theme: "Adventure", childAge: 7, childName: "Test"),
             collections: []
         )
         

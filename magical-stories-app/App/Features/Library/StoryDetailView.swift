@@ -279,12 +279,56 @@ struct StoryDetailView: View {
         print("[StoryDetailView] Global reference lookup temporarily disabled for testing")
         return nil
     }
+    
+    /// Ensure the story has a visual guide for character consistency
+    private func ensureVisualGuideExists(for story: Story) async {
+        // Check if story already has a visual guide
+        if story.visualGuide != nil {
+            print("[StoryDetailView] Story '\(story.title)' already has visual guide")
+            return
+        }
+        
+        print("[StoryDetailView] Generating visual guide for existing story: '\(story.title)'")
+        
+        do {
+            // Generate visual guide for the existing story
+            let visualGuide = try await storyService.generateVisualGuideForExistingStory(story)
+            
+            // Save the visual guide to the story
+            await MainActor.run {
+                story.setVisualGuide(visualGuide)
+                // Save the story with the new visual guide
+                try? modelContext.save()
+                print("[StoryDetailView] Visual guide saved for story: '\(story.title)'")
+                print("[StoryDetailView] Characters: \(visualGuide.characterDefinitions.keys.joined(separator: ", "))")
+            }
+        } catch {
+            print("[StoryDetailView] Failed to generate visual guide for story '\(story.title)': \(error.localizedDescription)")
+            
+            // Create a basic fallback visual guide
+            await MainActor.run {
+                let fallbackGuide = VisualGuide(
+                    styleGuide: "Colorful, child-friendly illustration style with warm colors",
+                    characterDefinitions: [:],
+                    settingDefinitions: ["Main Setting": "A warm, inviting environment suitable for children"]
+                )
+                story.setVisualGuide(fallbackGuide)
+                try? modelContext.save()
+                print("[StoryDetailView] Fallback visual guide created for story: '\(story.title)'")
+            }
+        }
+    }
 
     private func processIllustrations() {
         guard let currentStory = story else { return } // Ensure story is loaded
         // Only process illustrations once
         guard isFirstAppearance else { return }
         isFirstAppearance = false
+        
+        // Ensure the story has a visual guide for character consistency
+        Task {
+            await ensureVisualGuideExists(for: currentStory)
+        }
         
         // Check if any pages need illustration generation
         let pagesNeedingIllustrations = pages.filter { $0.illustrationStatus == .pending }
@@ -645,12 +689,28 @@ struct StoryDetailView: View {
             let totalPages = pages.count
             
             do {
-                // Use the image prompt directly instead of passing the modelContext
+                // Get previous illustration path for visual continuity
+                let previousPage = pageNumber > 1 ? 
+                    pages.first(where: { $0.pageNumber == pageNumber - 1 }) : nil
+                let previousIllustrationPath = previousPage?.illustrationPath
+                
+                // Get global reference path for visual consistency
+                let globalReferenceImagePath = getGlobalReferenceImagePath(for: story?.id ?? UUID())
+                
+                // Create visual guide for regeneration
+                guard let currentStory = story else {
+                    throw NSError(domain: "StoryDetailView", code: 1, userInfo: [NSLocalizedDescriptionKey: "No story available"])
+                }
+                let visualGuide = createInitialVisualGuide(for: currentStory)
+                
+                // Use the contextual generation method with all proper parameters
                 if let relativePath = try await illustrationService.generateIllustration(
                     for: imagePrompt,
                     pageNumber: pageNumber,
                     totalPages: totalPages,
-                    previousIllustrationPath: nil
+                    previousIllustrationPath: previousIllustrationPath,
+                    visualGuide: visualGuide,
+                    globalReferenceImagePath: globalReferenceImagePath
                 ) {
                     // Update page with the new illustration path
                     page.illustrationPath = relativePath

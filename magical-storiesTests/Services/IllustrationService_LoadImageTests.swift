@@ -10,8 +10,8 @@ final class IllustrationService_LoadImageTests: XCTestCase {
     var fileManager: FileManager!
     var tempDirectory: URL!
     
-    override func setUp() async throws {
-        try await super.setUp()
+    override func setUpWithError() throws {
+        try super.setUpWithError()
         
         // Create test service
         illustrationService = try IllustrationService(apiKey: "test-key")
@@ -28,14 +28,14 @@ final class IllustrationService_LoadImageTests: XCTestCase {
         try testImageData.write(to: testImageURL)
     }
     
-    override func tearDown() async throws {
+    override func tearDownWithError() throws {
         // Clean up test files
         if fileManager.fileExists(atPath: tempDirectory.path) {
             try fileManager.removeItem(at: tempDirectory)
         }
         
         illustrationService = nil
-        try await super.tearDown()
+        try super.tearDownWithError()
     }
     
     /// Test loading a valid image file as base64

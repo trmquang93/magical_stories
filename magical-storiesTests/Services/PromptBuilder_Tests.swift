@@ -9,9 +9,9 @@ struct PromptBuilder_Tests {
         // Arrange
         let promptBuilder = PromptBuilder()
         let parameters = StoryParameters(
-            childName: "Alex",
-            childAge: 7,
             theme: "Adventure",
+            childAge: 7,
+            childName: "Alex",
             favoriteCharacter: "Dragon"
         )
 
@@ -37,9 +37,9 @@ struct PromptBuilder_Tests {
         // Arrange
         let promptBuilder = PromptBuilder()
         let parameters = StoryParameters(
-            childName: "Alex",
-            childAge: 7,
             theme: "Adventure",
+            childAge: 7,
+            childName: "Alex",
             favoriteCharacter: "Dragon"
         )
 
@@ -60,9 +60,9 @@ struct PromptBuilder_Tests {
     func testBuildPromptWithoutOptionalFields() {
         let builder = PromptBuilder()
         let parameters = StoryParameters(
-            childName: "Alice",
-            childAge: 4,
             theme: "Magic",
+            childAge: 4,
+            childName: "Alice",
             favoriteCharacter: "Rabbit",
             storyLength: "short",
             developmentalFocus: nil,
@@ -89,9 +89,9 @@ struct PromptBuilder_Tests {
         let focus: [GrowthCategory] = [.cognitiveDevelopment]
         let emotionalThemes = ["Happiness", "Courage"]
         let parameters = StoryParameters(
-            childName: "Bob",
-            childAge: 6,
             theme: "Adventure",
+            childAge: 6,
+            childName: "Bob",
             favoriteCharacter: "Lion",
             storyLength: "medium",
             developmentalFocus: focus,

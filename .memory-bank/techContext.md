@@ -30,7 +30,12 @@ applyTo: '**'
 
 ## Tool Usage Patterns
 - **Accessibility Identifiers:** Used for UI elements to support UI automation.
-- **Test-Driven Development:** When fixing issues, always create a failing test first to verify the issue exists, then implement the fix to make the test pass.
+- **Test-Driven Development:** ✅ **ENFORCED** - Strict TDD methodology implemented:
+  - All new features require failing tests first (Red-Green-Refactor cycle)
+  - 100% test coverage requirement for new components
+  - Comprehensive test suites: `FluentPromptBuilderTests`, `AIGenerationStrategyTests`, `ConfigurablePromptTemplatesTests`
+- **Modular Architecture:** Strategy and Builder patterns for maintainable code
+- **External Configuration:** JSON-based templates for prompt management and A/B testing
 
 ## Testing Commands
 - **`run_tests.sh`:** Script for running all or targeted tests.

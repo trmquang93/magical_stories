@@ -39,9 +39,9 @@ struct StoryService_CategoryTests {
         )
 
         let parameters = StoryParameters(
-            childName: "Alex",
-            childAge: 7,
             theme: "Adventure",
+            childAge: 7,
+            childName: "Alex",
             favoriteCharacter: "Dragon"
         )
 
@@ -88,9 +88,9 @@ struct StoryService_CategoryTests {
         )
 
         let parameters = StoryParameters(
-            childName: "Alex",
-            childAge: 7,
             theme: "Adventure",
+            childAge: 7,
+            childName: "Alex",
             favoriteCharacter: "Dragon"
         )
 
@@ -124,9 +124,9 @@ struct StoryService_CategoryTests {
         )
 
         let parameters = StoryParameters(
-            childName: "Alex",
-            childAge: 7,
             theme: "Adventure",
+            childAge: 7,
+            childName: "Alex",
             favoriteCharacter: "Dragon"
         )
 
@@ -171,9 +171,9 @@ struct StoryService_CategoryTests {
         )
 
         let parameters = StoryParameters(
-            childName: "Alex",
-            childAge: 7,
             theme: "Adventure",
+            childAge: 7,
+            childName: "Alex",
             favoriteCharacter: "Dragon"
         )
 

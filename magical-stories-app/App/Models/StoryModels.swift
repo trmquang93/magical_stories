@@ -34,16 +34,28 @@ enum IllustrationStatus: String, Codable, CaseIterable, Equatable {
 }
 
 /// Represents the input parameters provided by the user to generate a story.
-struct StoryParameters: Codable, Hashable {
-    var childName: String?
-    var childAge: Int
-    var theme: String
-    var favoriteCharacter: String?
-    var storyLength: String?
-    var developmentalFocus: [GrowthCategory]?  // Optional array for developmental themes
-    var interactiveElements: Bool?  // Optional flag for interactive prompts
-    var emotionalThemes: [String]?  // Optional array for specific emotions
-    var languageCode: String?  // Make language code optional
+public struct StoryParameters: Codable, Hashable {
+    public var childName: String?
+    public var childAge: Int
+    public var theme: String
+    public var favoriteCharacter: String?
+    public var storyLength: String?
+    public var developmentalFocus: [GrowthCategory]?  // Optional array for developmental themes
+    public var interactiveElements: Bool?  // Optional flag for interactive prompts
+    public var emotionalThemes: [String]?  // Optional array for specific emotions
+    public var languageCode: String?  // Make language code optional
+    
+    public init(theme: String, childAge: Int, childName: String? = nil, favoriteCharacter: String? = nil, storyLength: String? = nil, developmentalFocus: [GrowthCategory]? = nil, interactiveElements: Bool? = nil, emotionalThemes: [String]? = nil, languageCode: String? = nil) {
+        self.theme = theme
+        self.childAge = childAge
+        self.childName = childName
+        self.favoriteCharacter = favoriteCharacter
+        self.storyLength = storyLength
+        self.developmentalFocus = developmentalFocus
+        self.interactiveElements = interactiveElements
+        self.emotionalThemes = emotionalThemes
+        self.languageCode = languageCode
+    }
 }
 
 /// Represents a page in a story.
@@ -136,6 +148,12 @@ final class Story: Identifiable, Codable {
     var lastReadAt: Date?
     var isFavorite: Bool = false
 
+    // Visual guide for character consistency across illustrations
+    var visualGuideData: Data?
+
+    // Collection context for stories that are part of a collection
+    var collectionContextData: Data?
+
     // Add relationship for achievements
     @Relationship(deleteRule: .cascade) var achievements: [AchievementModel] = []
 
@@ -151,6 +169,8 @@ final class Story: Identifiable, Codable {
         readCount: Int = 0,
         lastReadAt: Date? = nil,
         isFavorite: Bool = false,
+        visualGuideData: Data? = nil,
+        collectionContextData: Data? = nil,
         achievements: [AchievementModel] = []
     ) {
         self.id = id
@@ -164,12 +184,14 @@ final class Story: Identifiable, Codable {
         self.readCount = readCount
         self.lastReadAt = lastReadAt
         self.isFavorite = isFavorite
+        self.visualGuideData = visualGuideData
+        self.collectionContextData = collectionContextData
         self.achievements = achievements
     }
 
     enum CodingKeys: String, CodingKey {
         case id, title, pages, parameters, timestamp, isCompleted, collections, categoryName,
-            readCount, lastReadAt, isFavorite, achievements
+            readCount, lastReadAt, isFavorite, visualGuideData, collectionContextData, achievements
     }
 
     convenience init(from decoder: Decoder) throws {
@@ -185,6 +207,8 @@ final class Story: Identifiable, Codable {
         let readCount = try container.decodeIfPresent(Int.self, forKey: .readCount) ?? 0
         let lastReadAt = try container.decodeIfPresent(Date.self, forKey: .lastReadAt)
         let isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
+        let visualGuideData = try container.decodeIfPresent(Data.self, forKey: .visualGuideData)
+        let collectionContextData = try container.decodeIfPresent(Data.self, forKey: .collectionContextData)
         let achievements =
             try container.decodeIfPresent([AchievementModel].self, forKey: .achievements) ?? []
 
@@ -192,7 +216,7 @@ final class Story: Identifiable, Codable {
             id: id, title: title, pages: pages, parameters: parameters, timestamp: timestamp,
             isCompleted: isCompleted, collections: collections, categoryName: categoryName,
             readCount: readCount, lastReadAt: lastReadAt, isFavorite: isFavorite,
-            achievements: achievements)
+            visualGuideData: visualGuideData, collectionContextData: collectionContextData, achievements: achievements)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -208,6 +232,8 @@ final class Story: Identifiable, Codable {
         try container.encode(readCount, forKey: .readCount)
         try container.encodeIfPresent(lastReadAt, forKey: .lastReadAt)
         try container.encode(isFavorite, forKey: .isFavorite)
+        try container.encodeIfPresent(visualGuideData, forKey: .visualGuideData)
+        try container.encodeIfPresent(collectionContextData, forKey: .collectionContextData)
         try container.encode(achievements, forKey: .achievements)
     }
 
@@ -236,6 +262,50 @@ final class Story: Identifiable, Codable {
             timestamp: timestamp,
             categoryName: categoryName
         )
+    }
+    
+    // MARK: - Visual Guide Convenience Methods
+    
+    /// Get the visual guide for this story, if available
+    var visualGuide: VisualGuide? {
+        get {
+            guard let data = visualGuideData else { return nil }
+            return try? JSONDecoder().decode(VisualGuide.self, from: data)
+        }
+        set {
+            if let guide = newValue {
+                visualGuideData = try? JSONEncoder().encode(guide)
+            } else {
+                visualGuideData = nil
+            }
+        }
+    }
+    
+    /// Set the visual guide for this story
+    func setVisualGuide(_ guide: VisualGuide) {
+        self.visualGuide = guide
+    }
+    
+    // MARK: - Collection Context Convenience Methods
+    
+    /// Get the collection context for this story, if available
+    var collectionContext: CollectionVisualContext? {
+        get {
+            guard let data = collectionContextData else { return nil }
+            return try? JSONDecoder().decode(CollectionVisualContext.self, from: data)
+        }
+        set {
+            if let context = newValue {
+                collectionContextData = try? JSONEncoder().encode(context)
+            } else {
+                collectionContextData = nil
+            }
+        }
+    }
+    
+    /// Set the collection context for this story
+    func setCollectionContext(_ context: CollectionVisualContext) {
+        self.collectionContext = context
     }
 }
 
@@ -274,9 +344,9 @@ extension Story {
         title: String = "The Magical Forest Adventure", categoryName: String? = "Fantasy"
     ) -> Story {
         let params = StoryParameters(
-            childName: "Alex",
-            childAge: 5,
             theme: "Friendship",
+            childAge: 5,
+            childName: "Alex",
             favoriteCharacter: "Brave Bear"
                 // languageCode is optional, no need to set in basic preview
         )

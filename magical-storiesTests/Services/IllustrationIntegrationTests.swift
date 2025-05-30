@@ -81,7 +81,8 @@ struct IllustrationIntegrationTests {
                     pageNumber: pendingTask.pageNumber,
                     totalPages: pendingTask.totalPages,
                     previousIllustrationPath: nil,
-                    visualGuide: nil
+                    visualGuide: nil,
+                    globalReferenceImagePath: nil
                 )
                 
                 if path != nil {

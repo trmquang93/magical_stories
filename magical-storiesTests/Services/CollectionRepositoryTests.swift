@@ -10,19 +10,19 @@ final class CollectionRepositoryTests: XCTestCase {
     private var context: ModelContext!
     private var repository: CollectionRepository!
 
-    override func setUp() async throws {
-        try await super.setUp()
+    override func setUpWithError() throws {
+        try super.setUpWithError()
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         container = try ModelContainer(for: StoryCollection.self, configurations: config)
         context = container.mainContext
         repository = CollectionRepository(modelContext: context)
     }
 
-    override func tearDown() async throws {
+    override func tearDownWithError() throws {
         container = nil
         context = nil
         repository = nil
-        try await super.tearDown()
+        try super.tearDownWithError()
     }
 
     func testSaveCollection() async throws {
