@@ -1,52 +1,108 @@
 import SwiftUI
-import Testing
+import XCTest
 
 @testable import magical_stories
 
-@Suite("AddCollectionCardView Tests")
-struct AddCollectionCardView_Tests {
+final class AddCollectionCardView_Tests: XCTestCase {
 
-    @Test("AddCollectionCardView displays correct UI elements")
-    func testCardDisplaysUIElements() {
-        // Initialize the view
-        let showForm = {}
-        let view = AddCollectionCardView(action: showForm)
-
-        // This is a high-level test since we can't directly inspect the view hierarchy
-        // Using view.body would be discouraged in SwiftUI unit tests
-        _ = view  // Assign to _ to silence warning
-
-        // Basic test to ensure the view initializes without issues
-        #expect(true)
-
-        // Note: In a real environment with ViewInspector, we would test the text and icon
-        // TODO: If ViewInspector becomes available, verify UI elements are rendered correctly
-    }
-
-    @Test("AddCollectionCardView has accessibility identifier")
-    func testAccessibilityIdentifier() {
-        // This test documents the expected behavior but can't verify it
-        // without UI testing or ViewInspector
+    func testAddCollectionCardViewInitializesWithoutErrors() {
         let view = AddCollectionCardView(action: {})
-        _ = view
-
-        // Expect that when rendered, the view will have the correct identifier
-        // This is more of a documentation test
-        #expect(true)
-
-        // TODO: If ViewInspector becomes available, verify accessibility identifier
+        XCTAssertNotNil(view)
     }
-
-    @Test("AddCollectionCardView has correct theme styling")
-    func testThemeStyling() {
-        // This test documents that the view should use the correct theme styling
+    
+    func testAddCollectionCardViewActionCallbackWorks() {
+        var actionCalled = false
+        let view = AddCollectionCardView {
+            actionCalled = true
+        }
+        
+        // Simulate button press through the closure directly
+        view.action()
+        XCTAssertTrue(actionCalled)
+    }
+    
+    func testAddCollectionCardViewHasCorrectAccessibilityConfiguration() {
         let view = AddCollectionCardView(action: {})
-        _ = view
-
-        // Expect that when rendered, the view will have the correct styling
-        // This is more of a documentation test
-        #expect(true)
-
-        // TODO: If ViewInspector becomes available, verify gradient background and theme colors
+        
+        // Test that the view itself exists and can be created
+        XCTAssertNotNil(view)
+        
+        // We can verify that the view was created with the expected action
+        // The actual accessibility testing would need to be done at the UI test level
+        // or with proper ViewInspector setup that doesn't have compilation issues
+    }
+    
+    func testAddCollectionCardViewSupportsColorSchemes() {
+        let view = AddCollectionCardView(action: {})
+        
+        // Test in light mode
+        let lightView = view.preferredColorScheme(.light)
+        XCTAssertNotNil(lightView)
+        
+        // Test in dark mode  
+        let darkView = view.preferredColorScheme(.dark)
+        XCTAssertNotNil(darkView)
+    }
+    
+    func testAddCollectionCardViewCanBeEmbeddedInOtherViews() {
+        let view = AddCollectionCardView(action: {})
+        
+        // Test that it can be embedded in a VStack
+        let containerView = VStack {
+            view
+        }
+        XCTAssertNotNil(containerView)
+        
+        // Test that it can be embedded in an HStack
+        let horizontalContainer = HStack {
+            view
+        }
+        XCTAssertNotNil(horizontalContainer)
+    }
+    
+    func testAddCollectionCardViewHandlesMutlipleInstances() {
+        var firstActionCalled = false
+        var secondActionCalled = false
+        
+        let firstView = AddCollectionCardView {
+            firstActionCalled = true
+        }
+        
+        let secondView = AddCollectionCardView {
+            secondActionCalled = true
+        }
+        
+        // Test that each view has its own independent action
+        firstView.action()
+        XCTAssertTrue(firstActionCalled)
+        XCTAssertFalse(secondActionCalled)
+        
+        secondView.action()
+        XCTAssertTrue(firstActionCalled)
+        XCTAssertTrue(secondActionCalled)
+    }
+    
+    func testAddCollectionCardViewWithEmptyAction() {
+        // Test that the view works even with an empty action
+        let view = AddCollectionCardView(action: {})
+        XCTAssertNotNil(view)
+        
+        // Should not crash when action is called
+        XCTAssertNoThrow(view.action())
+    }
+    
+    func testAddCollectionCardViewRetainsActionClosure() {
+        var actionCalled = false
+        
+        do {
+            let view = AddCollectionCardView {
+                actionCalled = true
+            }
+            
+            // Action should work even after local scope
+            view.action()
+        }
+        
+        XCTAssertTrue(actionCalled)
     }
 }

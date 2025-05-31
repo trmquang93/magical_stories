@@ -11,6 +11,13 @@ protocol UsageAnalyticsServiceProtocol {
     func getLastGenerationDate() async -> Date?
     func updateLastGeneratedStoryId(id: UUID?) async
     func getLastGeneratedStoryId() async -> UUID?
+    
+    // Monthly usage tracking methods
+    func getMonthlyUsageCount() async -> Int
+    func canGenerateStoryThisMonth() async -> Bool
+    func resetMonthlyUsageIfNeeded() async
+    func updateSubscriptionStatus(isActive: Bool, productId: String?, expiryDate: Date?) async
+    func trackPremiumFeatureUsage(_ feature: String) async
     // Add other necessary methods as needed
 }
 
@@ -58,14 +65,25 @@ class UsageAnalyticsService: UsageAnalyticsServiceProtocol {
             logger.error("Cannot increment story count: UserProfile not loaded.")
             return
         }
+        
+        // Increment total count
         profile.storyGenerationCount += 1
+        
+        // Also increment monthly count for free users
+        if !profile.hasActiveSubscription {
+            profile.monthlyStoryCount += 1
+        }
+        
         do {
             try await userProfileRepository.update(profile) // Saves context
-            logger.debug("Incremented story generation count to \(profile.storyGenerationCount)")
+            logger.debug("Incremented story generation count to \(profile.storyGenerationCount), monthly: \(profile.monthlyStoryCount)")
         } catch {
             logger.error("Failed to save updated story generation count: \(error.localizedDescription)")
-            // Optionally revert the in-memory change?
-             profile.storyGenerationCount -= 1
+            // Optionally revert the in-memory changes
+            profile.storyGenerationCount -= 1
+            if !profile.hasActiveSubscription {
+                profile.monthlyStoryCount -= 1
+            }
         }
     }
 
@@ -109,4 +127,109 @@ class UsageAnalyticsService: UsageAnalyticsServiceProtocol {
         await loadProfileIntoCache()
         return cachedUserProfile?.lastGeneratedStoryId
     }
+    
+    // MARK: - Monthly Usage Tracking Methods
+    
+    func getMonthlyUsageCount() async -> Int {
+        await loadProfileIntoCache()
+        await resetMonthlyUsageIfNeeded()
+        return cachedUserProfile?.monthlyStoryCount ?? 0
+    }
+    
+    func canGenerateStoryThisMonth() async -> Bool {
+        await resetMonthlyUsageIfNeeded()
+        let monthlyCount = await getMonthlyUsageCount()
+        let hasActiveSubscription = cachedUserProfile?.hasActiveSubscription ?? false
+        
+        // Premium users have unlimited access
+        if hasActiveSubscription {
+            return true
+        }
+        
+        // Free users are limited to FreeTierLimits.storiesPerMonth per month
+        return monthlyCount < FreeTierLimits.storiesPerMonth
+    }
+    
+    func resetMonthlyUsageIfNeeded() async {
+        await loadProfileIntoCache()
+        guard let profile = cachedUserProfile else {
+            logger.error("Cannot check monthly reset: UserProfile not loaded.")
+            return
+        }
+        
+        guard let lastReset = profile.lastUsageReset else {
+            // First time setup - set reset date to start of current month
+            let calendar = Calendar.current
+            let startOfMonth = calendar.dateInterval(of: .month, for: Date())?.start ?? Date()
+            
+            profile.lastUsageReset = startOfMonth
+            profile.currentPeriodStart = startOfMonth
+            
+            do {
+                try await userProfileRepository.update(profile)
+                logger.info("Initialized monthly usage tracking")
+            } catch {
+                logger.error("Failed to initialize monthly usage: \(error.localizedDescription)")
+            }
+            return
+        }
+        
+        let calendar = Calendar.current
+        let now = Date()
+        
+        // Check if we're in a new month
+        if !calendar.isDate(lastReset, equalTo: now, toGranularity: .month) {
+            logger.info("New month detected, resetting monthly usage count")
+            
+            profile.monthlyStoryCount = 0
+            profile.lastUsageReset = now
+            profile.currentPeriodStart = calendar.dateInterval(of: .month, for: now)?.start ?? now
+            
+            do {
+                try await userProfileRepository.update(profile)
+                logger.info("Monthly usage reset completed")
+            } catch {
+                logger.error("Failed to reset monthly usage: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func updateSubscriptionStatus(isActive: Bool, productId: String?, expiryDate: Date?) async {
+        await loadProfileIntoCache()
+        guard let profile = cachedUserProfile else {
+            logger.error("Cannot update subscription status: UserProfile not loaded.")
+            return
+        }
+        
+        profile.hasActiveSubscription = isActive
+        profile.subscriptionProductId = productId
+        profile.subscriptionExpiryDate = expiryDate
+        
+        do {
+            try await userProfileRepository.update(profile)
+            logger.info("Updated subscription status: active=\(isActive), product=\(productId ?? "none")")
+        } catch {
+            logger.error("Failed to update subscription status: \(error.localizedDescription)")
+        }
+    }
+    
+    func trackPremiumFeatureUsage(_ feature: String) async {
+        await loadProfileIntoCache()
+        guard let profile = cachedUserProfile else {
+            logger.error("Cannot track premium feature usage: UserProfile not loaded.")
+            return
+        }
+        
+        if !profile.premiumFeaturesUsed.contains(feature) {
+            profile.premiumFeaturesUsed.append(feature)
+            
+            do {
+                try await userProfileRepository.update(profile)
+                logger.debug("Tracked premium feature usage: \(feature)")
+            } catch {
+                logger.error("Failed to track premium feature usage: \(error.localizedDescription)")
+            }
+        }
+    }
+    
 }

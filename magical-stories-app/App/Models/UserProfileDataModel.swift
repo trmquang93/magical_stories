@@ -36,6 +36,15 @@ final class UserProfile {
     var storyGenerationCount: Int
     var lastGenerationDate: Date?
     var lastGeneratedStoryId: UUID? // Store UUID directly
+    
+    // --- Subscription and Usage Tracking Fields ---
+    var monthlyStoryCount: Int
+    var currentPeriodStart: Date?
+    var subscriptionExpiryDate: Date?
+    var hasActiveSubscription: Bool
+    var subscriptionProductId: String?
+    var lastUsageReset: Date?
+    var premiumFeaturesUsed: [String] // Track which premium features have been used
 
     // --- Computed Properties ---
     var darkModePreference: DarkModePreference {
@@ -67,6 +76,15 @@ final class UserProfile {
         self.storyGenerationCount = 0
         self.lastGenerationDate = nil
         self.lastGeneratedStoryId = nil
+        
+        // Initialize subscription and usage tracking fields
+        self.monthlyStoryCount = 0
+        self.currentPeriodStart = Date()
+        self.subscriptionExpiryDate = nil
+        self.hasActiveSubscription = false
+        self.subscriptionProductId = nil
+        self.lastUsageReset = Date()
+        self.premiumFeaturesUsed = []
     }
 
     // Convenience initializer for migration

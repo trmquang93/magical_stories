@@ -767,9 +767,12 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
             self.isGenerating = true
         }
 
-        // Update status to generating
-        page.illustrationStatus = .generating
-        try context.save()
+        // Ensure ModelContext operations happen on the main actor to avoid concurrency issues
+        try await MainActor.run {
+            // Update status to generating
+            page.illustrationStatus = .generating
+            try context.save()
+        }
 
         // Construct the prompt from the page
         let imagePrompt = page.imagePrompt ?? createDefaultPrompt(from: page.content)
@@ -778,17 +781,21 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
             // Call our existing method to generate the illustration
             if let relativePath = try await generateIllustrationWithPrompt(imagePrompt) {
                 // Update the page with the result path and set status to ready
-                page.illustrationPath = relativePath
-                page.illustrationStatus = .ready
-                try context.save()
+                try await MainActor.run {
+                    page.illustrationPath = relativePath
+                    page.illustrationStatus = .ready
+                    try context.save()
+                }
 
                 print(
                     "--- IllustrationService: Successfully generated illustration for page \(page.id) ---"
                 )
             } else {
                 // If no path was returned but no error was thrown, set to failed
-                page.illustrationStatus = .failed
-                try context.save()
+                try await MainActor.run {
+                    page.illustrationStatus = .failed
+                    try context.save()
+                }
 
                 print(
                     "--- IllustrationService: No illustration path returned for page \(page.id) ---"
@@ -797,8 +804,10 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
             }
         } catch {
             // Update status to failed
-            page.illustrationStatus = .failed
-            try context.save()
+            try await MainActor.run {
+                page.illustrationStatus = .failed
+                try context.save()
+            }
 
             // Log the error
             AIErrorManager.logError(

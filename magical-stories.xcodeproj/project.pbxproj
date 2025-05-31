@@ -38,6 +38,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4DA2DF642DE9AF75007BEBEB /* subscription.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = subscription.storekit; sourceTree = "<group>"; };
 		4DB1D39A2DB48E06001E9287 /* magical-stories.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = "magical-stories.xctestplan"; sourceTree = "<group>"; };
 		4DDF1B472D98B911005D882A /* magical-stories.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "magical-stories.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4DDF1B592D98B918005D882A /* magical-storiesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "magical-storiesTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -108,6 +109,7 @@
 			isa = PBXGroup;
 			children = (
 				4DB1D39A2DB48E06001E9287 /* magical-stories.xctestplan */,
+				4DA2DF642DE9AF75007BEBEB /* subscription.storekit */,
 				4D5D563E2DA2D7DE001709F0 /* magical-stories-app */,
 				4DDF1B5C2D98B918005D882A /* magical-storiesTests */,
 				4DDF1B662D98B918005D882A /* magical-storiesUITests */,
