@@ -20,6 +20,9 @@ struct MagicalStoriesApp: App {
 
     // Initialization to handle dependencies between services
     init() {
+        // Handle UI testing launch arguments first
+        Self.handleLaunchArguments()
+        
         let router = AppRouter() // Initialize AppRouter
         // Initialize SwiftData container with schema
         let container: ModelContainer
@@ -118,6 +121,70 @@ struct MagicalStoriesApp: App {
                 .environmentObject(entitlementManager)
                 .environmentObject(usageTracker)
                 .modelContainer(container)
+        }
+    }
+    
+    // MARK: - UI Testing Support
+    
+    private static func handleLaunchArguments() {
+        let arguments = ProcessInfo.processInfo.arguments
+        
+        if arguments.contains("UI_TESTING") {
+            print("[MagicalStoriesApp] UI Testing mode enabled")
+        }
+        
+        if arguments.contains("ENABLE_SANDBOX_TESTING") {
+            print("[MagicalStoriesApp] Sandbox testing enabled")
+            // Configure app for sandbox testing
+        }
+        
+        if arguments.contains("RESET_SUBSCRIPTION_STATE") {
+            print("[MagicalStoriesApp] Resetting subscription state for testing")
+            // Reset subscription state
+            UserDefaults.standard.removeObject(forKey: "subscription_status")
+            UserDefaults.standard.removeObject(forKey: "usage_count")
+        }
+        
+        if arguments.contains("RESET_USAGE_COUNTERS") {
+            print("[MagicalStoriesApp] Resetting usage counters for testing")
+            // Reset usage counters
+            UserDefaults.standard.set(0, forKey: "monthly_story_count")
+            UserDefaults.standard.set(Date(), forKey: "last_reset_date")
+        }
+        
+        // Handle specific story count settings
+        for argument in arguments {
+            if argument.hasPrefix("SET_STORY_COUNT_") {
+                let countString = String(argument.dropFirst("SET_STORY_COUNT_".count))
+                if let count = Int(countString) {
+                    print("[MagicalStoriesApp] Setting story count to \(count) for testing")
+                    UserDefaults.standard.set(count, forKey: "monthly_story_count")
+                }
+            }
+        }
+        
+        if arguments.contains("SET_USER_AT_USAGE_LIMIT") {
+            print("[MagicalStoriesApp] Setting user at usage limit for testing")
+            UserDefaults.standard.set(3, forKey: "monthly_story_count")
+        }
+        
+        // Simulate subscription states
+        if arguments.contains("SIMULATE_PREMIUM_SUBSCRIPTION") {
+            print("[MagicalStoriesApp] Simulating premium subscription for testing")
+            UserDefaults.standard.set("premium_active", forKey: "subscription_status")
+            UserDefaults.standard.set(Date().addingTimeInterval(86400 * 30), forKey: "subscription_expiry") // 30 days
+        }
+        
+        if arguments.contains("SIMULATE_EXPIRED_SUBSCRIPTION") {
+            print("[MagicalStoriesApp] Simulating expired subscription for testing")
+            UserDefaults.standard.set("premium_expired", forKey: "subscription_status")
+            UserDefaults.standard.set(Date().addingTimeInterval(-86400), forKey: "subscription_expiry") // Yesterday
+        }
+        
+        if arguments.contains("SIMULATE_MONTHLY_RESET") {
+            print("[MagicalStoriesApp] Simulating monthly reset for testing")
+            UserDefaults.standard.set(0, forKey: "monthly_story_count")
+            UserDefaults.standard.set(Date(), forKey: "last_reset_date")
         }
     }
 }

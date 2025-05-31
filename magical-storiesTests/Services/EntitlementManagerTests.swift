@@ -158,24 +158,4 @@ struct EntitlementManagerTests {
 }
 
 // MARK: - Mock Analytics Service
-
-class MockUsageAnalyticsService: UsageAnalyticsServiceProtocol {
-    private var storyCount = 0
-    private var lastGenerationDate: Date?
-    
-    func incrementStoryGenerationCount() async {
-        storyCount += 1
-    }
-    
-    func getStoryGenerationCount() async -> Int {
-        return storyCount
-    }
-    
-    func updateLastGenerationDate(date: Date) async {
-        lastGenerationDate = date
-    }
-    
-    func getLastGenerationDate() async -> Date? {
-        return lastGenerationDate
-    }
-}
+// MockUsageAnalyticsService is now in Mocks/MockUsageAnalyticsService.swift
