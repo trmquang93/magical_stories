@@ -1,0 +1,224 @@
+import SwiftData
+import Testing
+
+@testable import magical_stories
+
+@MainActor
+struct StoryServiceSubscriptionTests {
+    
+    @Test("StoryService enforces usage limits for free users")
+    func testUsageLimitEnforcement() async throws {
+        let container = try ModelContainer(
+            for: Story.self, StoryCollection.self, UserProfile.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+        
+        // Arrange
+        let mockModel = MockGenerativeModel()
+        mockModel.generateContentHandler = { _ in
+            MockStoryGenerationResponse(text: """
+                <title>Test Story</title>
+                <content>Test content</content>
+                <category>Adventure</category>
+                """)
+        }
+        
+        let mockPersistenceService = MockPersistenceService()
+        let mockEntitlementManager = MockEntitlementManager(canGenerate: false)
+        
+        let storyService = try StoryService(
+            context: context,
+            persistenceService: mockPersistenceService,
+            model: mockModel,
+            entitlementManager: mockEntitlementManager
+        )
+        
+        let parameters = StoryParameters(
+            theme: "Adventure",
+            childAge: 7,
+            childName: "Alex",
+            favoriteCharacter: "Dragon",
+            storyLength: "short",
+            developmentalFocus: nil,
+            emotionalThemes: nil
+        )
+        
+        // Act & Assert
+        do {
+            _ = try await storyService.generateStory(parameters: parameters)
+            #expect(Bool(false), "Expected StoryServiceError.usageLimitReached to be thrown")
+        } catch {
+            #expect(error as? StoryServiceError == .usageLimitReached)
+        }
+    }
+    
+    @Test("StoryService allows story generation for premium users")
+    func testPremiumUserGeneration() async throws {
+        let container = try ModelContainer(
+            for: Story.self, StoryCollection.self, UserProfile.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+        
+        // Arrange
+        let mockModel = MockGenerativeModel()
+        mockModel.generateContentHandler = { _ in
+            MockStoryGenerationResponse(text: """
+                <title>Test Story</title>
+                <content>Test content</content>
+                <category>Adventure</category>
+                """)
+        }
+        
+        let mockPersistenceService = MockPersistenceService()
+        let mockEntitlementManager = MockEntitlementManager(canGenerate: true)
+        
+        let storyService = try StoryService(
+            context: context,
+            persistenceService: mockPersistenceService,
+            model: mockModel,
+            entitlementManager: mockEntitlementManager
+        )
+        
+        let parameters = StoryParameters(
+            theme: "Adventure",
+            childAge: 7,
+            childName: "Alex",
+            favoriteCharacter: "Dragon",
+            storyLength: "short",
+            developmentalFocus: nil,
+            emotionalThemes: nil
+        )
+        
+        // Act
+        let story = try await storyService.generateStory(parameters: parameters)
+        
+        // Assert
+        #expect(story.title == "Test Story")
+        #expect(mockEntitlementManager.incrementUsageCountCalled)
+    }
+    
+    @Test("StoryService checks feature access for premium features")
+    func testFeatureAccessControl() async throws {
+        let container = try ModelContainer(
+            for: Story.self, StoryCollection.self, UserProfile.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+        
+        // Arrange
+        let mockEntitlementManager = MockEntitlementManager(canGenerate: true)
+        mockEntitlementManager.premiumFeatures = [] // No premium features
+        
+        let storyService = try StoryService(
+            context: context,
+            entitlementManager: mockEntitlementManager
+        )
+        
+        // Act & Assert
+        #expect(!storyService.hasAccess(to: .growthPathCollections))
+        #expect(!storyService.hasAccess(to: .unlimitedStoryGeneration))
+        
+        do {
+            try storyService.checkFeatureAccess(.growthPathCollections)
+            #expect(Bool(false), "Expected StoryServiceError.subscriptionRequired to be thrown")
+        } catch {
+            #expect(error as? StoryServiceError == .subscriptionRequired)
+        }
+    }
+    
+    @Test("StoryService allows access for premium users with features")
+    func testPremiumFeatureAccess() async throws {
+        let container = try ModelContainer(
+            for: Story.self, StoryCollection.self, UserProfile.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+        
+        // Arrange
+        let mockEntitlementManager = MockEntitlementManager(canGenerate: true)
+        mockEntitlementManager.premiumFeatures = [.growthPathCollections, .unlimitedStoryGeneration]
+        
+        let storyService = try StoryService(
+            context: context,
+            entitlementManager: mockEntitlementManager
+        )
+        
+        // Act & Assert
+        #expect(storyService.hasAccess(to: .growthPathCollections))
+        #expect(storyService.hasAccess(to: .unlimitedStoryGeneration))
+        
+        // Should not throw
+        try storyService.checkFeatureAccess(.growthPathCollections)
+    }
+    
+    @Test("StoryService increments usage count after successful generation")
+    func testUsageCountIncrement() async throws {
+        let container = try ModelContainer(
+            for: Story.self, StoryCollection.self, UserProfile.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+        
+        // Arrange
+        let mockModel = MockGenerativeModel()
+        mockModel.generateContentHandler = { _ in
+            MockStoryGenerationResponse(text: """
+                <title>Test Story</title>
+                <content>Test content</content>
+                <category>Adventure</category>
+                """)
+        }
+        
+        let mockPersistenceService = MockPersistenceService()
+        let mockEntitlementManager = MockEntitlementManager(canGenerate: true)
+        
+        let storyService = try StoryService(
+            context: context,
+            persistenceService: mockPersistenceService,
+            model: mockModel,
+            entitlementManager: mockEntitlementManager
+        )
+        
+        let parameters = StoryParameters(
+            theme: "Adventure",
+            childAge: 7,
+            childName: "Alex",
+            favoriteCharacter: "Dragon",
+            storyLength: "short",
+            developmentalFocus: nil,
+            emotionalThemes: nil
+        )
+        
+        // Act
+        _ = try await storyService.generateStory(parameters: parameters)
+        
+        // Assert
+        #expect(mockEntitlementManager.incrementUsageCountCalled)
+    }
+}
+
+// MARK: - Mock EntitlementManager
+
+class MockEntitlementManager: EntitlementManager {
+    private let canGenerate: Bool
+    var premiumFeatures: [PremiumFeature] = []
+    var incrementUsageCountCalled = false
+    
+    init(canGenerate: Bool) {
+        self.canGenerate = canGenerate
+        super.init()
+    }
+    
+    override func canGenerateStory() async -> Bool {
+        return canGenerate
+    }
+    
+    override func incrementUsageCount() async {
+        incrementUsageCountCalled = true
+    }
+    
+    override func hasAccess(to feature: PremiumFeature) -> Bool {
+        return premiumFeatures.contains(feature)
+    }
+    
+    override func getRemainingStories() async -> Int {
+        return canGenerate ? Int.max : 0
+    }
+}

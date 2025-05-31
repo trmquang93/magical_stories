@@ -45,11 +45,69 @@ final class UserProfile {
     var subscriptionProductId: String?
     var lastUsageReset: Date?
     var premiumFeaturesUsed: [String] // Track which premium features have been used
+    var hasCompletedOnboarding: Bool
+    var hasCompletedFirstStory: Bool
+    var hasSeenPremiumFeatures: Bool
+    var trialStartDate: Date?
+    var subscriptionCancelledDate: Date?
 
     // --- Computed Properties ---
     var darkModePreference: DarkModePreference {
         get { DarkModePreference(rawValue: darkModePreferenceRaw) ?? .system }
         set { darkModePreferenceRaw = newValue.rawValue }
+    }
+    
+    /// Returns true if the user is currently on a free trial
+    var isOnFreeTrial: Bool {
+        guard let trialStart = trialStartDate else { return false }
+        guard let expiryDate = subscriptionExpiryDate else { return false }
+        let now = Date()
+        return now >= trialStart && now < expiryDate && hasActiveSubscription
+    }
+    
+    /// Returns true if the subscription has expired
+    var isSubscriptionExpired: Bool {
+        guard let expiryDate = subscriptionExpiryDate else { return false }
+        return Date() > expiryDate
+    }
+    
+    /// Returns the number of days remaining in the trial (if on trial)
+    var trialDaysRemaining: Int {
+        guard isOnFreeTrial, let expiryDate = subscriptionExpiryDate else { return 0 }
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.day], from: Date(), to: expiryDate)
+        return max(0, components.day ?? 0)
+    }
+    
+    /// Returns the number of stories remaining in the current month for free users
+    var remainingStoriesThisMonth: Int {
+        let limit = FreeTierLimits.storiesPerMonth
+        return max(0, limit - monthlyStoryCount)
+    }
+    
+    /// Returns true if the user has reached their monthly story limit
+    var hasReachedMonthlyLimit: Bool {
+        return monthlyStoryCount >= FreeTierLimits.storiesPerMonth && !hasActiveSubscription
+    }
+    
+    /// Returns the subscription status for display
+    var subscriptionStatusText: String {
+        if hasActiveSubscription {
+            if isOnFreeTrial {
+                return "Free Trial (\(trialDaysRemaining) days left)"
+            } else if let productId = subscriptionProductId {
+                if productId.contains("monthly") {
+                    return "Premium Monthly"
+                } else if productId.contains("yearly") {
+                    return "Premium Yearly"
+                }
+            }
+            return "Premium Active"
+        } else if isSubscriptionExpired {
+            return "Subscription Expired"
+        } else {
+            return "Free Plan"
+        }
     }
 
     // --- Initializer ---
@@ -85,9 +143,100 @@ final class UserProfile {
         self.subscriptionProductId = nil
         self.lastUsageReset = Date()
         self.premiumFeaturesUsed = []
+        self.hasCompletedOnboarding = false
+        self.hasCompletedFirstStory = false
+        self.hasSeenPremiumFeatures = false
+        self.trialStartDate = nil
+        self.subscriptionCancelledDate = nil
     }
 
     // Convenience initializer for migration
+    
+    // MARK: - Subscription Management Methods
+    
+    /// Updates the subscription status and related fields
+    /// - Parameters:
+    ///   - isActive: Whether the subscription is currently active
+    ///   - productId: The product ID of the subscription
+    ///   - expiryDate: When the subscription expires
+    func updateSubscriptionStatus(isActive: Bool, productId: String?, expiryDate: Date?) {
+        self.hasActiveSubscription = isActive
+        self.subscriptionProductId = productId
+        self.subscriptionExpiryDate = expiryDate
+        
+        // If subscription becomes active, reset monthly count
+        if isActive && !hasActiveSubscription {
+            self.monthlyStoryCount = 0
+        }
+    }
+    
+    /// Starts a free trial
+    /// - Parameters:
+    ///   - productId: The product ID for the trial
+    ///   - expiryDate: When the trial expires
+    func startFreeTrial(productId: String, expiryDate: Date) {
+        self.trialStartDate = Date()
+        self.hasActiveSubscription = true
+        self.subscriptionProductId = productId
+        self.subscriptionExpiryDate = expiryDate
+        self.monthlyStoryCount = 0 // Reset usage for trial
+    }
+    
+    /// Cancels the subscription (sets cancellation date but doesn't immediately revoke access)
+    func cancelSubscription() {
+        self.subscriptionCancelledDate = Date()
+        // Don't immediately set hasActiveSubscription to false - wait for expiry
+    }
+    
+    /// Increments the monthly story count
+    func incrementMonthlyStoryCount() {
+        self.monthlyStoryCount += 1
+        self.storyGenerationCount += 1
+        self.lastGenerationDate = Date()
+    }
+    
+    /// Resets the monthly usage counters (called at the start of each month)
+    func resetMonthlyUsage() {
+        self.monthlyStoryCount = 0
+        self.currentPeriodStart = Date()
+        self.lastUsageReset = Date()
+    }
+    
+    /// Marks a premium feature as used
+    /// - Parameter feature: The premium feature that was used
+    func markPremiumFeatureUsed(_ feature: PremiumFeature) {
+        if !premiumFeaturesUsed.contains(feature.rawValue) {
+            premiumFeaturesUsed.append(feature.rawValue)
+        }
+    }
+    
+    /// Completes the onboarding flow
+    func completeOnboarding() {
+        self.hasCompletedOnboarding = true
+    }
+    
+    /// Marks the first story as completed
+    func completeFirstStory() {
+        self.hasCompletedFirstStory = true
+    }
+    
+    /// Marks that the user has seen premium features
+    func markPremiumFeaturesSeen() {
+        self.hasSeenPremiumFeatures = true
+    }
+    
+    /// Checks if the user should see onboarding
+    /// - Returns: True if onboarding should be shown
+    func shouldShowOnboarding() -> Bool {
+        return !hasCompletedOnboarding
+    }
+    
+    /// Gets the age of the child in years
+    var childAgeInYears: Int {
+        let calendar = Calendar.current
+        let ageComponents = calendar.dateComponents([.year], from: dateOfBirth, to: Date())
+        return ageComponents.year ?? 5
+    }
 }
 
 // MARK: - Supporting Enums (Copied from Schema for completeness)

@@ -13,6 +13,9 @@ struct MagicalStoriesApp: App {
     @StateObject private var illustrationService: IllustrationService
     @StateObject private var illustrationTaskManager: IllustrationTaskManager
     @StateObject private var appRouter: AppRouter // Add AppRouter
+    @StateObject private var purchaseService: PurchaseService
+    @StateObject private var entitlementManager: EntitlementManager
+    @StateObject private var usageTracker: UsageTracker
     private let container: ModelContainer
 
     // Initialization to handle dependencies between services
@@ -22,7 +25,7 @@ struct MagicalStoriesApp: App {
         let container: ModelContainer
         do {
             container = try ModelContainer(
-                for: Story.self, Page.self, AchievementModel.self, StoryCollection.self,
+                for: Story.self, Page.self, AchievementModel.self, StoryCollection.self, UserProfile.self,
                 configurations: ModelConfiguration()
             )
             print(
@@ -71,6 +74,18 @@ struct MagicalStoriesApp: App {
         // Initialize IllustrationTaskManager
         let taskManager = IllustrationTaskManager()
         print("[MagicalStoriesApp] Successfully created IllustrationTaskManager")
+        
+        // Initialize subscription services
+        let purchaseService = PurchaseService()
+        let entitlementManager = EntitlementManager()
+        let usageTracker = UsageTracker(usageAnalyticsService: usageAnalyticsService)
+        
+        // Set up dependencies between subscription services
+        purchaseService.setEntitlementManager(entitlementManager)
+        entitlementManager.setUsageTracker(usageTracker)
+        story.setEntitlementManager(entitlementManager)
+        
+        print("[MagicalStoriesApp] Successfully created subscription services")
 
         // Assign to StateObjects
         _settingsService = StateObject(wrappedValue: settings)
@@ -80,6 +95,9 @@ struct MagicalStoriesApp: App {
         _illustrationService = StateObject(wrappedValue: illustration)
         _illustrationTaskManager = StateObject(wrappedValue: taskManager)
         _appRouter = StateObject(wrappedValue: router) // Assign AppRouter
+        _purchaseService = StateObject(wrappedValue: purchaseService)
+        _entitlementManager = StateObject(wrappedValue: entitlementManager)
+        _usageTracker = StateObject(wrappedValue: usageTracker)
 
         // Store container for environment injection
         self.container = container
@@ -96,6 +114,9 @@ struct MagicalStoriesApp: App {
                 .environmentObject(illustrationService)
                 .environmentObject(illustrationTaskManager)
                 .environmentObject(appRouter) // Inject AppRouter
+                .environmentObject(purchaseService) // Inject subscription services
+                .environmentObject(entitlementManager)
+                .environmentObject(usageTracker)
                 .modelContainer(container)
         }
     }

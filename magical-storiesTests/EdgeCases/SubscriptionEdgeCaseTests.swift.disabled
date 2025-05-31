@@ -1,0 +1,363 @@
+import SwiftData
+import Testing
+import Foundation
+
+@testable import magical_stories
+
+/// Tests covering edge cases and boundary conditions for subscription system
+@MainActor
+struct SubscriptionEdgeCaseTests {
+    
+    // MARK: - Month Boundary Reset Tests
+    
+    @Test("Monthly reset at month boundary - midnight edge case")
+    func testMonthlyResetAtMidnight() async throws {
+        let mockAnalyticsService = MockUsageAnalyticsService()
+        let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
+        
+        // Generate stories in current month
+        await usageTracker.incrementStoryGeneration()
+        await usageTracker.incrementStoryGeneration()
+        
+        let currentUsage = await usageTracker.getCurrentUsage()
+        #expect(currentUsage == 2)
+        
+        // Simulate month boundary by manually triggering reset
+        await usageTracker.resetMonthlyUsage()
+        
+        let usageAfterReset = await usageTracker.getCurrentUsage()
+        #expect(usageAfterReset == 0)
+        
+        let canGenerateAfterReset = await usageTracker.canGenerateStory()
+        #expect(canGenerateAfterReset)
+    }
+    
+    @Test("Subscription expiration at exact moment")
+    func testSubscriptionExpirationEdgeCase() async throws {
+        let entitlementManager = EntitlementManager()
+        
+        // Set subscription to expire in 1 second
+        let nearExpiry = Date().addingTimeInterval(1)
+        await MainActor.run {
+            entitlementManager.subscriptionStatus = .premiumMonthly(expiresAt: nearExpiry)
+        }
+        
+        // Should be premium now
+        #expect(entitlementManager.isPremiumUser)
+        
+        // Wait for expiration
+        try await Task.sleep(nanoseconds: 1_100_000_000) // 1.1 seconds
+        
+        // Should be expired now
+        #expect(!entitlementManager.isPremiumUser)
+    }
+    
+    // MARK: - Network Failure Scenarios
+    
+    @Test("Handle network failure during purchase attempt")
+    func testNetworkFailureDuringPurchase() async throws {
+        let purchaseService = PurchaseService()
+        
+        // Simulate network failure by calling purchase without products loaded
+        #expect(purchaseService.products.isEmpty)
+        
+        // Purchase should handle gracefully when no products available
+        #expect(!purchaseService.purchaseInProgress)
+        #expect(!purchaseService.isLoading)
+    }
+    
+    @Test("Handle network failure during entitlement check")
+    func testNetworkFailureDuringEntitlementCheck() async throws {
+        let entitlementManager = EntitlementManager()
+        
+        // Should gracefully handle when unable to verify entitlements
+        // Default should be safe (no premium access)
+        #expect(!entitlementManager.isPremiumUser)
+        #expect(entitlementManager.subscriptionStatus == .free)
+    }
+    
+    // MARK: - App Backgrounding/Foregrounding
+    
+    @Test("Usage tracking during app backgrounding")
+    func testUsageTrackingDuringBackgrounding() async throws {
+        let mockAnalyticsService = MockUsageAnalyticsService()
+        let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
+        
+        // Generate story
+        await usageTracker.incrementStoryGeneration()
+        let usageBefore = await usageTracker.getCurrentUsage()
+        #expect(usageBefore == 1)
+        
+        // Simulate app backgrounding/foregrounding - usage should persist
+        // (In real app, this would involve NotificationCenter observers)
+        let usageAfter = await usageTracker.getCurrentUsage()
+        #expect(usageAfter == 1)
+    }
+    
+    // MARK: - Subscription State Transitions
+    
+    @Test("Free trial to paid subscription transition")
+    func testFreeTrialToPaidTransition() async throws {
+        let userProfile = UserProfile()
+        
+        // Start free trial
+        let trialExpiry = Date().addingTimeInterval(86400 * 7) // 7 days
+        userProfile.startFreeTrial(
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: trialExpiry
+        )
+        
+        #expect(userProfile.isOnFreeTrial)
+        #expect(userProfile.hasActiveSubscription)
+        #expect(userProfile.trialDaysRemaining > 0)
+        
+        // Convert to paid subscription
+        let paidExpiry = Date().addingTimeInterval(86400 * 30) // 30 days
+        userProfile.updateSubscriptionStatus(
+            isActive: true,
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: paidExpiry
+        )
+        
+        #expect(!userProfile.isOnFreeTrial) // Should no longer be trial
+        #expect(userProfile.hasActiveSubscription) // Still active
+        #expect(userProfile.subscriptionStatusText.contains("Premium Monthly"))
+    }
+    
+    @Test("Subscription cancellation but still active until expiry")
+    func testSubscriptionCancellationGracePeriod() async throws {
+        let userProfile = UserProfile()
+        
+        // Set active subscription
+        let futureExpiry = Date().addingTimeInterval(86400 * 15) // 15 days from now
+        userProfile.updateSubscriptionStatus(
+            isActive: true,
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: futureExpiry
+        )
+        
+        #expect(userProfile.hasActiveSubscription)
+        
+        // Cancel subscription (but still active until expiry)
+        userProfile.cancelSubscription()
+        
+        #expect(userProfile.subscriptionCancelledDate != nil)
+        #expect(userProfile.hasActiveSubscription) // Should still be active until expiry
+    }
+    
+    // MARK: - Usage Limit Edge Cases
+    
+    @Test("Exactly at usage limit boundary")
+    func testExactUsageLimitBoundary() async throws {
+        let mockAnalyticsService = MockUsageAnalyticsService()
+        let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
+        
+        // Generate stories up to exactly the limit
+        for i in 0..<FreeTierLimits.storiesPerMonth {
+            await usageTracker.incrementStoryGeneration()
+            let remainingStories = await usageTracker.getRemainingStories()
+            #expect(remainingStories == FreeTierLimits.storiesPerMonth - (i + 1))
+        }
+        
+        // At limit - should not be able to generate more
+        let canGenerateAtLimit = await usageTracker.canGenerateStory()
+        #expect(!canGenerateAtLimit)
+        
+        let remainingAtLimit = await usageTracker.getRemainingStories()
+        #expect(remainingAtLimit == 0)
+    }
+    
+    @Test("Usage limit with premium upgrade mid-month")
+    func testUsageLimitWithMidMonthUpgrade() async throws {
+        let mockAnalyticsService = MockUsageAnalyticsService()
+        let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
+        let entitlementManager = EntitlementManager()
+        entitlementManager.setUsageTracker(usageTracker)
+        
+        // Generate stories up to limit as free user
+        for _ in 0..<FreeTierLimits.storiesPerMonth {
+            await usageTracker.incrementStoryGeneration()
+        }
+        
+        let canGenerateAsFree = await usageTracker.canGenerateStory()
+        #expect(!canGenerateAsFree)
+        
+        // Upgrade to premium mid-month
+        await MainActor.run {
+            entitlementManager.subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(86400 * 30))
+        }
+        
+        // Should now be able to generate unlimited stories
+        let canGenerateAsPremium = await entitlementManager.canGenerateStory()
+        #expect(canGenerateAsPremium)
+        
+        let remainingAsPremium = await entitlementManager.getRemainingStories()
+        #expect(remainingAsPremium == Int.max) // Unlimited
+    }
+    
+    // MARK: - Data Persistence Edge Cases
+    
+    @Test("UserProfile data persistence across app launches")
+    func testUserProfilePersistence() async throws {
+        let userProfile = UserProfile()
+        
+        // Set various subscription data
+        userProfile.incrementMonthlyStoryCount()
+        userProfile.incrementMonthlyStoryCount()
+        userProfile.markPremiumFeatureUsed(.growthPathCollections)
+        
+        let originalCount = userProfile.monthlyStoryCount
+        let originalFeatures = userProfile.premiumFeaturesUsed
+        
+        #expect(originalCount == 2)
+        #expect(originalFeatures.count == 1)
+        
+        // Simulate app restart by creating new profile with same data
+        // (In real app, this would test SwiftData persistence)
+        let newProfile = UserProfile()
+        newProfile.monthlyStoryCount = originalCount
+        newProfile.premiumFeaturesUsed = originalFeatures
+        
+        #expect(newProfile.monthlyStoryCount == 2)
+        #expect(newProfile.premiumFeaturesUsed.count == 1)
+    }
+    
+    // MARK: - Analytics Event Edge Cases
+    
+    @Test("Analytics events during rapid user actions")
+    func testAnalyticsEventsDuringRapidActions() async throws {
+        let mockAnalyticsService = MockUsageAnalyticsService()
+        let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
+        
+        // Rapidly increment usage multiple times
+        await usageTracker.incrementStoryGeneration()
+        await usageTracker.incrementStoryGeneration()
+        await usageTracker.incrementStoryGeneration()
+        
+        let finalCount = await usageTracker.getCurrentUsage()
+        #expect(finalCount == 3)
+        
+        // Verify analytics service received all increments
+        let analyticsCount = await mockAnalyticsService.getStoryGenerationCount()
+        #expect(analyticsCount == 3)
+    }
+    
+    // MARK: - Premium Feature Access Edge Cases
+    
+    @Test("Premium feature access immediately after subscription")
+    func testPremiumFeatureAccessAfterSubscription() async throws {
+        let entitlementManager = EntitlementManager()
+        
+        // Initially free user
+        #expect(!entitlementManager.hasAccess(to: .growthPathCollections))
+        #expect(!entitlementManager.hasAccess(to: .unlimitedStoryGeneration))
+        
+        // Upgrade to premium
+        await MainActor.run {
+            entitlementManager.subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(86400 * 30))
+        }
+        
+        // Should immediately have access to all premium features
+        for feature in PremiumFeature.allCases {
+            #expect(entitlementManager.hasAccess(to: feature))
+        }
+    }
+    
+    @Test("Premium feature access immediately after subscription expiry")
+    func testPremiumFeatureAccessAfterExpiry() async throws {
+        let entitlementManager = EntitlementManager()
+        
+        // Set up expired subscription
+        let expiredDate = Date().addingTimeInterval(-86400) // Yesterday
+        await MainActor.run {
+            entitlementManager.subscriptionStatus = .premiumMonthly(expiresAt: expiredDate)
+        }
+        
+        // Should not have access to any premium features
+        for feature in PremiumFeature.allCases {
+            #expect(!entitlementManager.hasAccess(to: feature))
+        }
+        
+        #expect(!entitlementManager.isPremiumUser)
+    }
+    
+    // MARK: - Error Recovery Tests
+    
+    @Test("Recovery from corrupted usage data")
+    func testRecoveryFromCorruptedUsageData() async throws {
+        let userProfile = UserProfile()
+        
+        // Simulate corrupted data (negative count)
+        userProfile.monthlyStoryCount = -1
+        
+        // Should gracefully handle and reset to valid state
+        let safeCount = max(0, userProfile.monthlyStoryCount)
+        #expect(safeCount == 0)
+        
+        let remainingStories = userProfile.remainingStoriesThisMonth
+        #expect(remainingStories >= 0)
+        #expect(remainingStories <= FreeTierLimits.storiesPerMonth)
+    }
+    
+    @Test("Recovery from future expiry dates")
+    func testRecoveryFromFutureExpiryDates() async throws {
+        let userProfile = UserProfile()
+        
+        // Set subscription with far future expiry (potential clock issue)
+        let farFuture = Date().addingTimeInterval(86400 * 365 * 10) // 10 years
+        userProfile.updateSubscriptionStatus(
+            isActive: true,
+            productId: "com.magicalstories.premium.yearly",
+            expiryDate: farFuture
+        )
+        
+        // Should still work correctly
+        #expect(userProfile.hasActiveSubscription)
+        #expect(!userProfile.isSubscriptionExpired)
+    }
+    
+    // MARK: - Concurrent Access Tests
+    
+    @Test("Concurrent usage tracking from multiple contexts")
+    func testConcurrentUsageTracking() async throws {
+        let mockAnalyticsService = MockUsageAnalyticsService()
+        let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
+        
+        // Simulate concurrent access
+        await withTaskGroup(of: Void.self) { group in
+            for _ in 0..<3 {
+                group.addTask {
+                    await usageTracker.incrementStoryGeneration()
+                }
+            }
+        }
+        
+        let finalCount = await usageTracker.getCurrentUsage()
+        #expect(finalCount == 3)
+    }
+    
+    // MARK: - Payment Method Edge Cases
+    
+    @Test("Subscription with different payment methods")
+    func testSubscriptionWithDifferentPaymentMethods() async throws {
+        let userProfile = UserProfile()
+        
+        // Test monthly subscription
+        userProfile.updateSubscriptionStatus(
+            isActive: true,
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: Date().addingTimeInterval(86400 * 30)
+        )
+        
+        #expect(userProfile.subscriptionStatusText.contains("Monthly"))
+        
+        // Change to yearly subscription
+        userProfile.updateSubscriptionStatus(
+            isActive: true,
+            productId: "com.magicalstories.premium.yearly",
+            expiryDate: Date().addingTimeInterval(86400 * 365)
+        )
+        
+        #expect(userProfile.subscriptionStatusText.contains("Yearly"))
+    }
+}

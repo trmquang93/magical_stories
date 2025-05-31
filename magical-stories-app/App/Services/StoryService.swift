@@ -19,6 +19,8 @@ enum StoryServiceError: LocalizedError, Equatable {
     case invalidParameters
     case persistenceFailed
     case networkError
+    case usageLimitReached
+    case subscriptionRequired
 
     var errorDescription: String? {
         switch self {
@@ -30,6 +32,10 @@ enum StoryServiceError: LocalizedError, Equatable {
             return "Failed to save or load story"
         case .networkError:
             return "Network error occurred"
+        case .usageLimitReached:
+            return "You've reached your monthly story limit. Upgrade to Premium for unlimited stories."
+        case .subscriptionRequired:
+            return "Premium subscription required for this feature"
         }
     }
 }
@@ -78,6 +84,7 @@ class StoryService: ObservableObject {
     private let storyProcessor: StoryProcessor
     private let persistenceService: PersistenceServiceProtocol
     private let settingsService: SettingsServiceProtocol?
+    private weak var entitlementManager: EntitlementManager?
     @Published private(set) var stories: [Story] = []
     @Published private(set) var isGenerating = false
 
@@ -89,13 +96,15 @@ class StoryService: ObservableObject {
         model: GenerativeModelProtocol? = nil,
         storyProcessor: StoryProcessor? = nil,  // Allow injecting for testing
         promptBuilder: PromptBuilder? = nil,  // Added promptBuilder parameter for testing
-        settingsService: SettingsServiceProtocol? = nil  // Add settings service for vocabulary boost
+        settingsService: SettingsServiceProtocol? = nil,  // Add settings service for vocabulary boost
+        entitlementManager: EntitlementManager? = nil  // Add entitlement manager for usage limits
     ) throws {  // Mark initializer as throwing
         self.model =
             model ?? GenerativeModelWrapper(name: "gemini-2.5-flash-preview-04-17", apiKey: apiKey)  // Updated to more creative model
         self.promptBuilder = promptBuilder ?? PromptBuilder()  // Use injected or create new
         self.persistenceService = persistenceService ?? PersistenceService(context: context)
         self.settingsService = settingsService  // Store the settings service
+        self.entitlementManager = entitlementManager  // Store the entitlement manager
 
         // Initialize StoryProcessor, potentially injecting dependencies like IllustrationService
         // If storyProcessor is provided (e.g., in tests), use it. Otherwise, create a default one.
@@ -127,6 +136,9 @@ class StoryService: ObservableObject {
         collectionContext: CollectionVisualContext? = nil
     ) async throws -> Story {
         print("[StoryService] generateStory START with collection context: \(collectionContext != nil)")
+
+        // Check usage limits before generation
+        try await checkUsageLimits()
 
         isGenerating = true
         defer { isGenerating = false }
@@ -185,6 +197,9 @@ class StoryService: ObservableObject {
             }
             
             try await persistenceService.saveStory(story)
+            
+            // Increment usage count after successful generation
+            await entitlementManager?.incrementUsageCount()
             
             if !stories.contains(where: { $0.id == story.id }) {
                 stories.insert(story, at: 0)
@@ -1095,6 +1110,74 @@ class StoryService: ObservableObject {
                     additionalInfo: "Failed to generate illustration for page \(page.pageNumber) in story \(story.title)"
                 )
             }
+        }
+    }
+    
+    // MARK: - Usage Limit Management
+    
+    /// Sets the entitlement manager dependency
+    /// - Parameter entitlementManager: The entitlement manager to use for usage limits
+    func setEntitlementManager(_ entitlementManager: EntitlementManager) {
+        self.entitlementManager = entitlementManager
+    }
+    
+    /// Checks if the user can generate a story based on subscription and usage limits
+    /// - Returns: True if user can generate a story, false otherwise
+    func canGenerateStory() async -> Bool {
+        return await entitlementManager?.canGenerateStory() ?? true
+    }
+    
+    /// Gets the number of remaining stories for free users
+    /// - Returns: Number of stories remaining this month
+    func getRemainingStories() async -> Int {
+        return await entitlementManager?.getRemainingStories() ?? Int.max
+    }
+    
+    /// Checks usage limits and throws an error if limit is reached
+    /// - Throws: StoryServiceError.usageLimitReached if user has reached their limit
+    private func checkUsageLimits() async throws {
+        guard let entitlementManager = entitlementManager else {
+            // If no entitlement manager is set, allow generation (for backward compatibility)
+            return
+        }
+        
+        let canGenerate = await entitlementManager.canGenerateStory()
+        if !canGenerate {
+            throw StoryServiceError.usageLimitReached
+        }
+    }
+    
+    /// Generates a story with explicit usage limit enforcement
+    /// - Parameters:
+    ///   - parameters: Story generation parameters
+    ///   - collectionContext: Optional collection context for visual consistency
+    /// - Returns: Generated story
+    /// - Throws: StoryServiceError.usageLimitReached if usage limit is reached
+    func generateStoryWithLimits(
+        parameters: StoryParameters,
+        collectionContext: CollectionVisualContext? = nil
+    ) async throws -> Story {
+        // Explicit usage check with detailed error handling
+        guard await canGenerateStory() else {
+            throw StoryServiceError.usageLimitReached
+        }
+        
+        return try await generateStory(parameters: parameters, collectionContext: collectionContext)
+    }
+    
+    /// Checks if a feature requires premium subscription
+    /// - Parameter feature: The premium feature to check
+    /// - Returns: True if user has access, false if premium required
+    func hasAccess(to feature: PremiumFeature) -> Bool {
+        return entitlementManager?.hasAccess(to: feature) ?? true
+    }
+    
+    /// Checks if a feature is restricted and throws appropriate error
+    /// - Parameter feature: The premium feature to check
+    /// - Throws: StoryServiceError.subscriptionRequired if feature requires premium
+    func checkFeatureAccess(_ feature: PremiumFeature) throws {
+        guard hasAccess(to: feature) else {
+            throw StoryServiceError.subscriptionRequired
         }
     }
 }

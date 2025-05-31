@@ -5,11 +5,11 @@ import OSLog
 /// Service responsible for handling all StoreKit operations including product loading,
 /// purchases, transaction verification, and subscription management
 @MainActor
-final class PurchaseService: ObservableObject {
+class PurchaseService: ObservableObject {
     
     // MARK: - Published Properties
     
-    @Published private(set) var products: [Product] = []
+    @Published internal(set) var products: [Product] = []
     @Published private(set) var isLoading = false
     @Published private(set) var purchaseInProgress = false
     @Published var errorMessage: String?

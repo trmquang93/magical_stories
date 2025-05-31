@@ -1,0 +1,319 @@
+import Testing
+import Foundation
+
+@testable import magical_stories
+
+/// Tests covering performance aspects of subscription system
+@MainActor
+struct SubscriptionPerformanceTests {
+    
+    // MARK: - Subscription Status Check Performance
+    
+    @Test("Subscription status check performance")
+    func testSubscriptionStatusCheckPerformance() async throws {
+        let entitlementManager = EntitlementManager()
+        
+        // Set up premium subscription
+        await MainActor.run {
+            entitlementManager.subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(86400 * 30))
+        }
+        
+        // Measure performance of subscription status checks
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        // Perform multiple status checks (simulating real app usage)
+        for _ in 0..<1000 {
+            _ = entitlementManager.isPremiumUser
+            _ = entitlementManager.subscriptionStatusText
+        }
+        
+        let endTime = CFAbsoluteTimeGetCurrent()
+        let executionTime = endTime - startTime
+        
+        // Should complete within reasonable time (under 100ms for 1000 checks)
+        #expect(executionTime < 0.1)
+    }
+    
+    @Test("Feature access check performance")
+    func testFeatureAccessCheckPerformance() async throws {
+        let entitlementManager = EntitlementManager()
+        
+        // Set up premium subscription
+        await MainActor.run {
+            entitlementManager.subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(86400 * 30))
+        }
+        
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        // Perform multiple feature access checks
+        for _ in 0..<100 {
+            for feature in PremiumFeature.allCases {
+                _ = entitlementManager.hasAccess(to: feature)
+            }
+        }
+        
+        let endTime = CFAbsoluteTimeGetCurrent()
+        let executionTime = endTime - startTime
+        
+        // Should complete efficiently (under 50ms for 800 checks)
+        #expect(executionTime < 0.05)
+    }
+    
+    // MARK: - Usage Tracking Performance
+    
+    @Test("Usage tracking performance under load")
+    func testUsageTrackingPerformance() async throws {
+        let mockAnalyticsService = MockUsageAnalyticsService()
+        let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
+        
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        // Simulate rapid usage tracking
+        for _ in 0..<100 {
+            await usageTracker.incrementStoryGeneration()
+            _ = await usageTracker.canGenerateStory()
+            _ = await usageTracker.getRemainingStories()
+        }
+        
+        let endTime = CFAbsoluteTimeGetCurrent()
+        let executionTime = endTime - startTime
+        
+        // Should handle rapid usage tracking efficiently (under 200ms)
+        #expect(executionTime < 0.2)
+        
+        // Verify accuracy wasn't compromised
+        let finalCount = await usageTracker.getCurrentUsage()
+        #expect(finalCount == 100)
+    }
+    
+    @Test("Concurrent usage tracking performance")
+    func testConcurrentUsageTrackingPerformance() async throws {
+        let mockAnalyticsService = MockUsageAnalyticsService()
+        let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
+        
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        // Simulate concurrent usage from multiple contexts
+        await withTaskGroup(of: Void.self) { group in
+            for _ in 0..<50 {
+                group.addTask {
+                    await usageTracker.incrementStoryGeneration()
+                }
+            }
+        }
+        
+        let endTime = CFAbsoluteTimeGetCurrent()
+        let executionTime = endTime - startTime
+        
+        // Should handle concurrent access efficiently (under 100ms)
+        #expect(executionTime < 0.1)
+        
+        // Verify all increments were tracked
+        let finalCount = await usageTracker.getCurrentUsage()
+        #expect(finalCount == 50)
+    }
+    
+    // MARK: - UserProfile Performance
+    
+    @Test("UserProfile data access performance")
+    func testUserProfileDataAccessPerformance() async throws {
+        let userProfile = UserProfile()
+        
+        // Set up profile with subscription data
+        userProfile.updateSubscriptionStatus(
+            isActive: true,
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: Date().addingTimeInterval(86400 * 30)
+        )
+        
+        // Add some usage data
+        for _ in 0..<10 {
+            userProfile.incrementMonthlyStoryCount()
+        }
+        
+        // Add premium features
+        for feature in PremiumFeature.allCases.prefix(3) {
+            userProfile.markPremiumFeatureUsed(feature)
+        }
+        
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        // Perform multiple data access operations
+        for _ in 0..<1000 {
+            _ = userProfile.subscriptionStatusText
+            _ = userProfile.hasActiveSubscription
+            _ = userProfile.remainingStoriesThisMonth
+            _ = userProfile.hasReachedMonthlyLimit
+            _ = userProfile.isOnFreeTrial
+            _ = userProfile.trialDaysRemaining
+        }
+        
+        let endTime = CFAbsoluteTimeGetCurrent()
+        let executionTime = endTime - startTime
+        
+        // Should access computed properties efficiently (under 100ms)
+        #expect(executionTime < 0.1)
+    }
+    
+    // MARK: - Memory Usage Performance
+    
+    @Test("Memory usage with large datasets")
+    func testMemoryUsageWithLargeDatasets() async throws {
+        let userProfile = UserProfile()
+        
+        // Add many premium features to test memory efficiency
+        for feature in PremiumFeature.allCases {
+            userProfile.markPremiumFeatureUsed(feature)
+        }
+        
+        // Verify memory-efficient storage
+        let featureCount = userProfile.premiumFeaturesUsed.count
+        #expect(featureCount == PremiumFeature.allCases.count)
+        
+        // Test that repeated additions don't bloat memory
+        for feature in PremiumFeature.allCases {
+            userProfile.markPremiumFeatureUsed(feature) // Add again
+        }
+        
+        let finalFeatureCount = userProfile.premiumFeaturesUsed.count
+        #expect(finalFeatureCount == PremiumFeature.allCases.count) // Should not increase
+    }
+    
+    // MARK: - Subscription Model Performance
+    
+    @Test("Subscription model instantiation performance")
+    func testSubscriptionModelInstantiationPerformance() async throws {
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        // Create many subscription-related objects
+        for _ in 0..<1000 {
+            _ = SubscriptionProduct.allCases
+            _ = PremiumFeature.allCases
+            _ = FreeTierFeature.allCases
+            _ = PaywallContext.allCases
+        }
+        
+        let endTime = CFAbsoluteTimeGetCurrent()
+        let executionTime = endTime - startTime
+        
+        // Should create objects efficiently (under 50ms)
+        #expect(executionTime < 0.05)
+    }
+    
+    @Test("Analytics event creation performance")
+    func testAnalyticsEventCreationPerformance() async throws {
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        // Create many analytics events
+        for _ in 0..<1000 {
+            _ = SubscriptionAnalyticsEvent.paywallShown(context: .usageLimitReached)
+            _ = SubscriptionAnalyticsEvent.productViewed(.premiumMonthly)
+            _ = SubscriptionAnalyticsEvent.purchaseStarted(.premiumYearly)
+            _ = SubscriptionAnalyticsEvent.featureRestricted(.growthPathCollections)
+            _ = SubscriptionAnalyticsEvent.usageLimitReached
+        }
+        
+        let endTime = CFAbsoluteTimeGetCurrent()
+        let executionTime = endTime - startTime
+        
+        // Should create analytics events efficiently (under 50ms)
+        #expect(executionTime < 0.05)
+    }
+    
+    // MARK: - Background Performance
+    
+    @Test("Background processing performance")
+    func testBackgroundProcessingPerformance() async throws {
+        let mockAnalyticsService = MockUsageAnalyticsService()
+        let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
+        
+        // Simulate background processing tasks
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        // Perform background operations
+        for _ in 0..<10 {
+            await usageTracker.resetMonthlyUsage()
+            
+            // Simulate some usage
+            for _ in 0..<5 {
+                await usageTracker.incrementStoryGeneration()
+            }
+        }
+        
+        let endTime = CFAbsoluteTimeGetCurrent()
+        let executionTime = endTime - startTime
+        
+        // Background operations should complete efficiently (under 100ms)
+        #expect(executionTime < 0.1)
+    }
+    
+    // MARK: - UI Performance Impact
+    
+    @Test("UI responsiveness with subscription checks")
+    func testUIResponsivenessWithSubscriptionChecks() async throws {
+        let entitlementManager = EntitlementManager()
+        
+        // Set up premium subscription
+        await MainActor.run {
+            entitlementManager.subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(86400 * 30))
+        }
+        
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        // Simulate UI operations that check subscription status
+        await MainActor.run {
+            for _ in 0..<100 {
+                // Simulate SwiftUI view updates checking subscription
+                _ = entitlementManager.isPremiumUser
+                _ = entitlementManager.subscriptionStatusText
+                
+                // Simulate feature gate checks
+                for feature in PremiumFeature.allCases {
+                    _ = entitlementManager.hasAccess(to: feature)
+                }
+            }
+        }
+        
+        let endTime = CFAbsoluteTimeGetCurrent()
+        let executionTime = endTime - startTime
+        
+        // UI operations should remain responsive (under 50ms)
+        #expect(executionTime < 0.05)
+    }
+    
+    // MARK: - Stress Testing
+    
+    @Test("System stress test with rapid subscription changes")
+    func testSystemStressWithRapidSubscriptionChanges() async throws {
+        let entitlementManager = EntitlementManager()
+        let mockAnalyticsService = MockUsageAnalyticsService()
+        let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
+        entitlementManager.setUsageTracker(usageTracker)
+        
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        // Rapidly change subscription status
+        for i in 0..<100 {
+            if i % 2 == 0 {
+                await MainActor.run {
+                    entitlementManager.subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(86400 * 30))
+                }
+            } else {
+                await MainActor.run {
+                    entitlementManager.subscriptionStatus = .free
+                }
+            }
+            
+            // Check system responsiveness
+            _ = entitlementManager.isPremiumUser
+            _ = await usageTracker.canGenerateStory()
+        }
+        
+        let endTime = CFAbsoluteTimeGetCurrent()
+        let executionTime = endTime - startTime
+        
+        // System should handle rapid changes gracefully (under 200ms)
+        #expect(executionTime < 0.2)
+    }
+}
+

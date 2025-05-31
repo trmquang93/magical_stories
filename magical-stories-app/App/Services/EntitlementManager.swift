@@ -4,7 +4,7 @@ import OSLog
 
 /// Service responsible for managing user subscription entitlements and feature access control
 @MainActor
-final class EntitlementManager: ObservableObject {
+class EntitlementManager: ObservableObject {
     
     // MARK: - Published Properties
     
@@ -54,7 +54,7 @@ final class EntitlementManager: ObservableObject {
     /// Checks if the user has access to a specific premium feature
     /// - Parameter feature: The premium feature to check
     /// - Returns: True if user has access, false otherwise
-    func hasAccess(to feature: PremiumFeature) -> Bool {
+    open func hasAccess(to feature: PremiumFeature) -> Bool {
         switch feature {
         case .unlimitedStoryGeneration:
             return isPremiumUser
@@ -77,7 +77,7 @@ final class EntitlementManager: ObservableObject {
     
     /// Checks if the user can generate a story based on their subscription and usage
     /// - Returns: True if user can generate a story, false if limit reached
-    func canGenerateStory() async -> Bool {
+    open func canGenerateStory() async -> Bool {
         // Premium users have unlimited access
         if isPremiumUser {
             return true
@@ -89,7 +89,7 @@ final class EntitlementManager: ObservableObject {
     
     /// Gets the number of remaining stories for free users
     /// - Returns: Number of stories remaining this month
-    func getRemainingStories() async -> Int {
+    open func getRemainingStories() async -> Int {
         if isPremiumUser {
             return Int.max // Unlimited for premium users
         }
@@ -98,7 +98,7 @@ final class EntitlementManager: ObservableObject {
     }
     
     /// Increments the usage count for free users
-    func incrementUsageCount() async {
+    open func incrementUsageCount() async {
         // Only track usage for free users
         if !isPremiumUser {
             await usageTracker?.incrementStoryGeneration()
