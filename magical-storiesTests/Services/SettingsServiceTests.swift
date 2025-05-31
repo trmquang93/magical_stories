@@ -34,8 +34,10 @@ struct SettingsServiceTests {
         let analytics = await MockUsageAnalyticsService()
         let service = await SettingsService(repository: repository, usageAnalyticsService: analytics)
         try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(await service.appSettings.darkModeEnabled == false)
-        #expect(await service.parentalControls.contentFiltering == true)
+        await MainActor.run {
+            #expect(service.appSettings.darkModeEnabled == false)
+            #expect(service.parentalControls.contentFiltering == true)
+        }
     }
 
     @Test
@@ -44,10 +46,12 @@ struct SettingsServiceTests {
         let analytics = await MockUsageAnalyticsService()
         let service = await SettingsService(repository: repository, usageAnalyticsService: analytics)
         try await Task.sleep(nanoseconds: 100_000_000)
-        let initial = await service.appSettings.darkModeEnabled
+        let initial = await MainActor.run { service.appSettings.darkModeEnabled }
         await service.toggleDarkMode()
         try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(await service.appSettings.darkModeEnabled != initial)
+        await MainActor.run {
+            #expect(service.appSettings.darkModeEnabled != initial)
+        }
         #expect(repository.saveAppSettingsCalled)
     }
 
@@ -59,7 +63,9 @@ struct SettingsServiceTests {
         try await Task.sleep(nanoseconds: 100_000_000)
         await service.updateFontScale(1.2)
         try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(await service.appSettings.fontScale == 1.2)
+        await MainActor.run {
+            #expect(service.appSettings.fontScale == 1.2)
+        }
         #expect(repository.saveAppSettingsCalled)
     }
 
@@ -69,10 +75,12 @@ struct SettingsServiceTests {
         let analytics = await MockUsageAnalyticsService()
         let service = await SettingsService(repository: repository, usageAnalyticsService: analytics)
         try await Task.sleep(nanoseconds: 100_000_000)
-        let initial = await service.appSettings.hapticFeedbackEnabled
+        let initial = await MainActor.run { service.appSettings.hapticFeedbackEnabled }
         await service.toggleHapticFeedback()
         try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(await service.appSettings.hapticFeedbackEnabled != initial)
+        await MainActor.run {
+            #expect(service.appSettings.hapticFeedbackEnabled != initial)
+        }
         #expect(repository.saveAppSettingsCalled)
     }
 
@@ -82,10 +90,12 @@ struct SettingsServiceTests {
         let analytics = await MockUsageAnalyticsService()
         let service = await SettingsService(repository: repository, usageAnalyticsService: analytics)
         try await Task.sleep(nanoseconds: 100_000_000)
-        let initial = await service.appSettings.soundEffectsEnabled
+        let initial = await MainActor.run { service.appSettings.soundEffectsEnabled }
         await service.toggleSoundEffects()
         try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(await service.appSettings.soundEffectsEnabled != initial)
+        await MainActor.run {
+            #expect(service.appSettings.soundEffectsEnabled != initial)
+        }
         #expect(repository.saveAppSettingsCalled)
     }
 
@@ -95,10 +105,12 @@ struct SettingsServiceTests {
         let analytics = await MockUsageAnalyticsService()
         let service = await SettingsService(repository: repository, usageAnalyticsService: analytics)
         try await Task.sleep(nanoseconds: 100_000_000)
-        let initial = await service.parentalControls.contentFiltering
+        let initial = await MainActor.run { service.parentalControls.contentFiltering }
         await service.toggleContentFiltering()
         try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(await service.parentalControls.contentFiltering != initial)
+        await MainActor.run {
+            #expect(service.parentalControls.contentFiltering != initial)
+        }
         #expect(repository.saveParentalControlsCalled)
     }
 
@@ -108,10 +120,12 @@ struct SettingsServiceTests {
         let analytics = await MockUsageAnalyticsService()
         let service = await SettingsService(repository: repository, usageAnalyticsService: analytics)
         try await Task.sleep(nanoseconds: 100_000_000)
-        let initial = await service.parentalControls.screenTimeEnabled
+        let initial = await MainActor.run { service.parentalControls.screenTimeEnabled }
         await service.toggleScreenTime()
         try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(await service.parentalControls.screenTimeEnabled != initial)
+        await MainActor.run {
+            #expect(service.parentalControls.screenTimeEnabled != initial)
+        }
         #expect(repository.saveParentalControlsCalled)
     }
 
@@ -123,7 +137,9 @@ struct SettingsServiceTests {
         try await Task.sleep(nanoseconds: 100_000_000)
         await service.updateMaxStoriesPerDay(7)
         try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(await service.parentalControls.maxStoriesPerDay == 7)
+        await MainActor.run {
+            #expect(service.parentalControls.maxStoriesPerDay == 7)
+        }
         #expect(repository.saveParentalControlsCalled)
     }
 
@@ -136,7 +152,9 @@ struct SettingsServiceTests {
         let newThemes: Set<StoryTheme> = [.adventure, .courage]
         await service.updateAllowedThemes(newThemes)
         try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(await service.parentalControls.allowedThemes == newThemes)
+        await MainActor.run {
+            #expect(service.parentalControls.allowedThemes == newThemes)
+        }
         #expect(repository.saveParentalControlsCalled)
     }
 
@@ -148,8 +166,10 @@ struct SettingsServiceTests {
         try await Task.sleep(nanoseconds: 100_000_000)
         await service.updateAgeRange(minimum: 5, maximum: 12)
         try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(await service.parentalControls.minimumAge == 5)
-        #expect(await service.parentalControls.maximumAge == 12)
+        await MainActor.run {
+            #expect(service.parentalControls.minimumAge == 5)
+            #expect(service.parentalControls.maximumAge == 12)
+        }
         #expect(repository.saveParentalControlsCalled)
     }
 }

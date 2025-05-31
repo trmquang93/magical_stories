@@ -37,7 +37,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 - No premium prompts appear
 - Story appears in library
 
-**Pass/Fail:** ___
+**Pass/Fail:** pass
 
 ---
 
@@ -58,7 +58,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 - Paywall shows monthly ($8.99) and yearly ($89.99) options
 - "Save 16% vs monthly" message appears for yearly plan
 
-**Pass/Fail:** ___
+**Pass/Fail:** pass
 
 ---
 
@@ -78,7 +78,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 - Friendly upgrade suggestion appears
 - Limit reached shows premium benefits
 
-**Pass/Fail:** ___
+**Pass/Fail:** pass.
 
 ---
 
@@ -101,7 +101,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 - Premium features become available
 - Usage counter shows "Unlimited" or similar
 
-**Pass/Fail:** ___
+**Pass/Fail:** fail. After purchase, the app should not show any usage limits and should allow unlimited story generation. Subscription expiry date should be set to 1 month from purchase date.
 
 ---
 
@@ -282,7 +282,27 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 
 ## Test Category 5: Subscription Management
 
-### TC-014: Restore Purchases
+### TC-014: Transaction Observer Functionality
+**Objective:** Verify TransactionObserver handles purchases from outside the app
+
+**Steps:**
+1. Subscribe using App Store directly (not in-app)
+2. Launch app
+3. Verify TransactionObserver detects external purchase
+4. Check subscription status updates automatically
+5. Verify expiration date calculated correctly
+
+**Expected Result:**
+- External purchases detected automatically
+- Subscription status updates without user action
+- Expiration date accurate (1 month/1 year from purchase)
+- Premium features unlock immediately
+
+**Pass/Fail:** ___
+
+---
+
+### TC-015: Restore Purchases
 **Objective:** Verify purchase restoration works correctly
 
 **Steps:**
@@ -302,7 +322,27 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 
 ---
 
-### TC-015: Subscription Expiry Handling
+### TC-016: Expiration Date Calculation
+**Objective:** Verify accurate expiration date calculation for different subscription types
+
+**Steps:**
+1. Purchase monthly subscription and verify expiry = purchase date + 1 month
+2. Purchase yearly subscription and verify expiry = purchase date + 1 year
+3. Test with introductory offers (if available)
+4. Verify calculations handle month boundaries correctly
+5. Check leap year calculations for yearly subscriptions
+
+**Expected Result:**
+- Monthly subscriptions expire exactly 1 month from purchase
+- Yearly subscriptions expire exactly 1 year from purchase
+- Introductory periods calculated separately from regular periods
+- Date calculations handle edge cases correctly
+
+**Pass/Fail:** ___
+
+---
+
+### TC-017: Subscription Expiry Handling
 **Objective:** Verify behavior when subscription expires
 
 **Steps:**
@@ -322,7 +362,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 
 ---
 
-### TC-016: Subscription Status Synchronization
+### TC-018: Subscription Status Synchronization
 **Objective:** Verify subscription status syncs across app launches
 
 **Steps:**
@@ -342,9 +382,29 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 
 ---
 
+### TC-019: Transaction Revocation Handling
+**Objective:** Verify proper handling of revoked transactions
+
+**Steps:**
+1. Purchase subscription normally
+2. Use Apple's Sandbox tools to revoke the transaction
+3. Verify app detects revocation automatically
+4. Check that premium features are disabled
+5. Verify user is notified appropriately
+
+**Expected Result:**
+- Revoked transactions detected automatically
+- Premium access removed immediately
+- Clear messaging about subscription status
+- User can repurchase if desired
+
+**Pass/Fail:** ___
+
+---
+
 ## Test Category 6: UI/UX Validation
 
-### TC-017: Paywall Presentation
+### TC-020: Paywall Presentation
 **Objective:** Verify paywall appears in correct contexts
 
 **Steps:**
@@ -363,7 +423,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 
 ---
 
-### TC-018: Usage Indicator Display
+### TC-021: Usage Indicator Display
 **Objective:** Verify usage indicators are clear and accurate
 
 **Steps:**
@@ -382,7 +442,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 
 ---
 
-### TC-019: Premium Feature Highlighting
+### TC-022: Premium Feature Highlighting
 **Objective:** Verify premium features are clearly marked
 
 **Steps:**
@@ -588,7 +648,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 ## Test Summary Report Template
 
 ### Test Execution Summary
-- **Total Test Cases:** 28
+- **Total Test Cases:** 30
 - **Passed:** ___
 - **Failed:** ___
 - **Blocked:** ___
@@ -622,6 +682,9 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 4. Test on multiple device types and iOS versions
 5. Verify behavior during app backgrounding/foregrounding
 6. Test with both strong and weak network connections
+7. Test TransactionObserver by purchasing subscriptions outside the app (via App Store)
+8. Verify expiration date calculations are accurate for different time zones
+9. Test transaction revocation scenarios using Apple's Sandbox tools
 
 ### Common Issues to Watch For
 1. Subscription status not updating immediately
