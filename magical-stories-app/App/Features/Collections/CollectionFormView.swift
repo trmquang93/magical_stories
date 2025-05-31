@@ -55,6 +55,7 @@ struct CollectionFormView: View {
 
     // State for showing error alert
     @State private var showErrorAlert = false
+    @State private var showPaywall = false
 
     var body: some View {
         ZStack {
@@ -172,6 +173,9 @@ struct CollectionFormView: View {
                 }
             }
         )
+        .sheet(isPresented: $showPaywall) {
+            PaywallView(context: .usageLimitReached)
+        }
         .onAppear {
             withAnimation(.easeInOut(duration: 1)) {
                 animateBackground = true
@@ -250,8 +254,14 @@ struct CollectionFormView: View {
                 isGenerating = false
             }
 
-            errorMessage = "Failed to generate collection: \(error.localizedDescription)"
-            showErrorAlert = true  // Show the alert on error
+            // Check if this is a usage limit error and show paywall instead of generic error
+            if let storyError = error as? StoryServiceError,
+               case .usageLimitReached = storyError {
+                showPaywall = true
+            } else {
+                errorMessage = "Failed to generate collection: \(error.localizedDescription)"
+                showErrorAlert = true  // Show the alert on error
+            }
             hapticError()
             print("[CollectionFormView] Error generating collection: \(error)")
         }
