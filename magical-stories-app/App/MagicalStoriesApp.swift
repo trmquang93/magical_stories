@@ -16,6 +16,7 @@ struct MagicalStoriesApp: App {
     @StateObject private var purchaseService: PurchaseService
     @StateObject private var entitlementManager: EntitlementManager
     @StateObject private var usageTracker: UsageTracker
+    @StateObject private var transactionObserver: TransactionObserver
     private let container: ModelContainer
 
     // Initialization to handle dependencies between services
@@ -82,11 +83,17 @@ struct MagicalStoriesApp: App {
         let purchaseService = PurchaseService()
         let entitlementManager = EntitlementManager()
         let usageTracker = UsageTracker(usageAnalyticsService: usageAnalyticsService)
+        let transactionObserver = TransactionObserver()
         
         // Set up dependencies between subscription services
         purchaseService.setEntitlementManager(entitlementManager)
         entitlementManager.setUsageTracker(usageTracker)
+        entitlementManager.setUsageAnalyticsService(usageAnalyticsService)
         story.setEntitlementManager(entitlementManager)
+        
+        // Set up transaction observer dependencies
+        transactionObserver.setEntitlementManager(entitlementManager)
+        transactionObserver.setPurchaseService(purchaseService)
         
         print("[MagicalStoriesApp] Successfully created subscription services")
 
@@ -101,6 +108,7 @@ struct MagicalStoriesApp: App {
         _purchaseService = StateObject(wrappedValue: purchaseService)
         _entitlementManager = StateObject(wrappedValue: entitlementManager)
         _usageTracker = StateObject(wrappedValue: usageTracker)
+        _transactionObserver = StateObject(wrappedValue: transactionObserver)
 
         // Store container for environment injection
         self.container = container
@@ -120,7 +128,14 @@ struct MagicalStoriesApp: App {
                 .environmentObject(purchaseService) // Inject subscription services
                 .environmentObject(entitlementManager)
                 .environmentObject(usageTracker)
+                .environmentObject(transactionObserver) // Inject transaction observer
                 .modelContainer(container)
+                .onAppear {
+                    // Process current entitlements when app appears
+                    Task {
+                        await transactionObserver.processCurrentEntitlements()
+                    }
+                }
         }
     }
     

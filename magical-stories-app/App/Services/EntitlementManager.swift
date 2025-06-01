@@ -29,6 +29,7 @@ class EntitlementManager: ObservableObject {
     // MARK: - Dependencies
     
     private weak var usageTracker: UsageTracker?
+    private var usageAnalyticsService: UsageAnalyticsServiceProtocol?
     
     // MARK: - Initialization
     
@@ -47,6 +48,12 @@ class EntitlementManager: ObservableObject {
     /// - Parameter usageTracker: The usage tracker to coordinate with
     func setUsageTracker(_ usageTracker: UsageTracker) {
         self.usageTracker = usageTracker
+    }
+    
+    /// Sets the usage analytics service dependency
+    /// - Parameter usageAnalyticsService: The usage analytics service to update user profile
+    func setUsageAnalyticsService(_ usageAnalyticsService: UsageAnalyticsServiceProtocol) {
+        self.usageAnalyticsService = usageAnalyticsService
     }
     
     // MARK: - Public API
@@ -125,7 +132,45 @@ class EntitlementManager: ObservableObject {
     
     // MARK: - Transaction Processing
     
-    /// Updates entitlements based on a verified transaction
+    /// Updates entitlements based on a verified transaction with calculated expiration
+    /// - Parameters:
+    ///   - transaction: The verified transaction to process
+    ///   - calculatedExpirationDate: The expiration date calculated from purchase date + period
+    func updateEntitlement(for transaction: Transaction, calculatedExpirationDate: Date) async {
+        logger.info("Processing transaction: \(transaction.id) for product: \(transaction.productID)")
+        logger.info("Using calculated expiration date: \(calculatedExpirationDate)")
+        
+        // Check if this is a subscription product we recognize
+        guard let subscriptionProduct = SubscriptionProduct(rawValue: transaction.productID) else {
+            logger.warning("Unknown product ID in transaction: \(transaction.productID)")
+            return
+        }
+        
+        // Check if transaction is revoked
+        if let revocationDate = transaction.revocationDate {
+            logger.info("Transaction \(transaction.id) was revoked on \(revocationDate)")
+            await handleRevokedTransaction(transaction)
+            return
+        }
+        
+        // Process based on subscription type using calculated expiration
+        switch subscriptionProduct {
+        case .premiumMonthly, .premiumYearly:
+            await processSubscriptionTransaction(transaction, product: subscriptionProduct, calculatedExpiration: calculatedExpirationDate)
+        }
+        
+        // Cache the updated state
+        cacheSubscriptionState()
+        
+        // Reset usage if user became premium
+        if isPremiumUser {
+            await usageTracker?.resetUsageForPremiumUpgrade()
+        }
+        
+        logger.info("Entitlement update completed for transaction: \(transaction.id)")
+    }
+    
+    /// Updates entitlements based on a verified transaction (legacy method)
     /// - Parameter transaction: The verified transaction to process
     func updateEntitlement(for transaction: Transaction) async {
         logger.info("Processing transaction: \(transaction.id) for product: \(transaction.productID)")
@@ -158,6 +203,130 @@ class EntitlementManager: ObservableObject {
         }
         
         logger.info("Entitlement update completed for transaction: \(transaction.id)")
+    }
+    
+    /// Processes a subscription transaction with calculated expiration date
+    /// - Parameters:
+    ///   - transaction: The verified subscription transaction
+    ///   - product: The subscription product being purchased
+    ///   - calculatedExpiration: The expiration date calculated from purchase date + period
+    private func processSubscriptionTransaction(_ transaction: Transaction, product: SubscriptionProduct, calculatedExpiration: Date) async {
+        // Check if subscription is still valid
+        if calculatedExpiration <= Date() {
+            logger.info("Calculated subscription \(transaction.productID) is already expired")
+            return
+        }
+        
+        // Update subscription status based on product type using calculated expiration
+        let newStatus: SubscriptionStatus
+        switch product {
+        case .premiumMonthly:
+            newStatus = .premiumMonthly(expiresAt: calculatedExpiration)
+        case .premiumYearly:
+            newStatus = .premiumYearly(expiresAt: calculatedExpiration)
+        }
+        
+        // Update the subscription status
+        await MainActor.run {
+            self.subscriptionStatus = newStatus
+        }
+        
+        logger.info("Updated subscription status to: \(self.subscriptionStatusText)")
+        
+        // Update UserProfile in database via UsageAnalyticsService
+        await updateUserProfileSubscription(
+            isActive: true,
+            productId: transaction.productID,
+            expiryDate: calculatedExpiration
+        )
+    }
+    
+    /// Processes a subscription transaction and updates the subscription status (legacy method)
+    /// - Parameters:
+    ///   - transaction: The verified subscription transaction
+    ///   - product: The subscription product being purchased
+    private func processSubscriptionTransaction(_ transaction: Transaction, product: SubscriptionProduct) async {
+        guard let expirationDate = transaction.expirationDate else {
+            logger.warning("Subscription transaction \(transaction.id) has no expiration date")
+            return
+        }
+        
+        // Check if subscription is still valid
+        if expirationDate <= Date() {
+            logger.info("Subscription \(transaction.productID) is already expired")
+            return
+        }
+        
+        // Update subscription status based on product type
+        let newStatus: SubscriptionStatus
+        switch product {
+        case .premiumMonthly:
+            newStatus = .premiumMonthly(expiresAt: expirationDate)
+        case .premiumYearly:
+            newStatus = .premiumYearly(expiresAt: expirationDate)
+        }
+        
+        // Update the subscription status
+        await MainActor.run {
+            self.subscriptionStatus = newStatus
+        }
+        
+        logger.info("Updated subscription status to: \(self.subscriptionStatusText)")
+        
+        // Update UserProfile in database via UsageAnalyticsService
+        await updateUserProfileSubscription(
+            isActive: true,
+            productId: transaction.productID,
+            expiryDate: expirationDate
+        )
+    }
+    
+    /// Updates the UserProfile subscription status in the database
+    /// - Parameters:
+    ///   - isActive: Whether the subscription is currently active
+    ///   - productId: The product ID of the subscription
+    ///   - expiryDate: When the subscription expires
+    private func updateUserProfileSubscription(isActive: Bool, productId: String?, expiryDate: Date?) async {
+        guard let usageAnalyticsService = usageAnalyticsService else {
+            logger.warning("UsageAnalyticsService not available - UserProfile will not be updated")
+            return
+        }
+        
+        await usageAnalyticsService.updateSubscriptionStatus(
+            isActive: isActive,
+            productId: productId,
+            expiryDate: expiryDate
+        )
+        
+        logger.info("Updated UserProfile subscription status: active=\(isActive), productId=\(productId ?? "nil")")
+    }
+    
+    /// Updates the UserProfile based on the current subscription status
+    private func updateUserProfileFromCurrentStatus() async {
+        let isActive = subscriptionStatus.isActive
+        let productId: String?
+        let expiryDate: Date?
+        
+        switch subscriptionStatus {
+        case .premiumMonthly(let expiry):
+            productId = SubscriptionProduct.premiumMonthly.productID
+            expiryDate = expiry
+        case .premiumYearly(let expiry):
+            productId = SubscriptionProduct.premiumYearly.productID
+            expiryDate = expiry
+        case .expired(let lastActive):
+            productId = nil
+            expiryDate = lastActive
+        case .free, .pending:
+            productId = nil
+            expiryDate = nil
+        }
+        
+        await updateUserProfileSubscription(
+            isActive: isActive,
+            productId: productId,
+            expiryDate: expiryDate
+        )
     }
     
     /// Refreshes the current entitlement status by checking all current entitlements
@@ -225,6 +394,9 @@ class EntitlementManager: ObservableObject {
         // Cache the updated state
         cacheSubscriptionState()
         
+        // Update UserProfile in database
+        await updateUserProfileFromCurrentStatus()
+        
         logger.info("Entitlement status refreshed: \(self.subscriptionStatusText)")
         
         // Update last check timestamp
@@ -248,42 +420,10 @@ class EntitlementManager: ObservableObject {
         }
     }
     
-    /// Processes a subscription transaction
-    /// - Parameters:
-    ///   - transaction: The transaction to process
-    ///   - product: The subscription product type
-    private func processSubscriptionTransaction(_ transaction: Transaction, product: SubscriptionProduct) async {
-        guard let expirationDate = transaction.expirationDate else {
-            logger.warning("Subscription transaction missing expiration date: \(transaction.id)")
-            return
-        }
-        
-        // Check if subscription is still active
-        if expirationDate <= Date() {
-            logger.info("Subscription expired: \(product.productID) expired on \(expirationDate)")
-            
-            await MainActor.run {
-                self.subscriptionStatus = .expired(lastActiveDate: expirationDate)
-            }
-            return
-        }
-        
-        // Update subscription status
-        await MainActor.run {
-            switch product {
-            case .premiumMonthly:
-                self.subscriptionStatus = .premiumMonthly(expiresAt: expirationDate)
-            case .premiumYearly:
-                self.subscriptionStatus = .premiumYearly(expiresAt: expirationDate)
-            }
-        }
-        
-        logger.info("Updated subscription: \(product.productID) expires on \(expirationDate)")
-    }
     
     /// Handles a revoked transaction
     /// - Parameter transaction: The revoked transaction
-    private func handleRevokedTransaction(_ transaction: Transaction) async {
+    func handleRevokedTransaction(_ transaction: Transaction) async {
         logger.info("Handling revoked transaction: \(transaction.id)")
         
         // If this was our active subscription, revert to free
@@ -304,6 +444,13 @@ class EntitlementManager: ObservableObject {
         
         // Reset usage tracking for former premium user
         await usageTracker?.resetForDowngrade()
+        
+        // Update UserProfile in database
+        await updateUserProfileSubscription(
+            isActive: false,
+            productId: nil,
+            expiryDate: nil
+        )
     }
     
     /// Verifies a transaction result

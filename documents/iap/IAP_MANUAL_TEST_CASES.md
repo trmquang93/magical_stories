@@ -463,7 +463,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 
 ## Test Category 7: Edge Cases and Error Scenarios
 
-### TC-020: Network Connectivity Issues
+### TC-023: Network Connectivity Issues
 **Objective:** Verify behavior during network issues
 
 **Steps:**
@@ -482,7 +482,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 
 ---
 
-### TC-021: App Store Account Issues
+### TC-024: App Store Account Issues
 **Objective:** Verify handling of various account states
 
 **Steps:**
@@ -501,7 +501,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 
 ---
 
-### TC-022: Concurrent Usage Scenarios
+### TC-025: Concurrent Usage Scenarios
 **Objective:** Verify app handles concurrent usage correctly
 
 **Steps:**
@@ -522,7 +522,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 
 ## Test Category 8: Analytics and Tracking
 
-### TC-023: Subscription Analytics Events
+### TC-026: Subscription Analytics Events
 **Objective:** Verify analytics events fire correctly
 
 **Steps:**
@@ -546,7 +546,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 
 ---
 
-### TC-024: Usage Analytics Tracking
+### TC-027: Usage Analytics Tracking
 **Objective:** Verify usage statistics are tracked correctly
 
 **Steps:**
@@ -567,7 +567,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 
 ## Test Category 9: Accessibility and Localization
 
-### TC-025: Accessibility Compliance
+### TC-028: Accessibility Compliance
 **Objective:** Verify subscription features are accessible
 
 **Steps:**
@@ -586,7 +586,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 
 ---
 
-### TC-026: Pricing Display Accuracy
+### TC-029: Pricing Display Accuracy
 **Objective:** Verify pricing displays correctly across regions
 
 **Steps:**
@@ -607,7 +607,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 
 ## Test Category 10: Performance and Stability
 
-### TC-027: Performance During Subscription Flow
+### TC-030: Performance During Subscription Flow
 **Objective:** Verify subscription flow performs well
 
 **Steps:**
@@ -626,7 +626,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 
 ---
 
-### TC-028: Subscription Service Reliability
+### TC-031: Subscription Service Reliability
 **Objective:** Verify subscription services are reliable
 
 **Steps:**
@@ -648,7 +648,7 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 ## Test Summary Report Template
 
 ### Test Execution Summary
-- **Total Test Cases:** 30
+- **Total Test Cases:** 31
 - **Passed:** ___
 - **Failed:** ___
 - **Blocked:** ___

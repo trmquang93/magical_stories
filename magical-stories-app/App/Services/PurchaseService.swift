@@ -18,7 +18,6 @@ class PurchaseService: ObservableObject {
     
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.magicalstories", 
                                category: "PurchaseService")
-    private var transactionListener: Task<Void, Error>?
     
     // MARK: - Dependencies
     
@@ -27,12 +26,12 @@ class PurchaseService: ObservableObject {
     // MARK: - Initialization
     
     init() {
-        // Start listening for transaction updates
-        transactionListener = listenForTransactions()
+        // Transaction listening is now handled at application level by TransactionObserver
+        // No need to start transaction listener here
     }
     
     deinit {
-        transactionListener?.cancel()
+        // Transaction listening is now handled at application level
     }
     
     // MARK: - Public API
@@ -233,39 +232,6 @@ class PurchaseService: ObservableObject {
     
     // MARK: - Private Methods
     
-    /// Starts listening for transaction updates
-    /// - Returns: Task that handles transaction updates
-    private func listenForTransactions() -> Task<Void, Error> {
-        return Task.detached { [weak self] in
-            for await result in Transaction.updates {
-                guard let self = self else { break }
-                
-                do {
-                    let transaction = try await self.checkVerified(result)
-                    
-                    await MainActor.run {
-                        self.logger.info("Received transaction update: \(transaction.id) - \(transaction.productID)")
-                    }
-                    
-                    // Notify entitlement manager of transaction update
-                    await self.entitlementManager?.updateEntitlement(for: transaction)
-                    
-                    // Finish the transaction
-                    await transaction.finish()
-                    
-                    await MainActor.run {
-                        self.logger.info("Finished transaction: \(transaction.id)")
-                    }
-                    
-                } catch {
-                    await MainActor.run {
-                        self.logger.error("Transaction verification failed: \(error.localizedDescription)")
-                    }
-                }
-            }
-        }
-    }
-    
     /// Verifies a transaction result
     /// - Parameter result: The verification result to check
     /// - Returns: The verified transaction
@@ -308,29 +274,75 @@ class PurchaseService: ObservableObject {
     }
 }
 
+// MARK: - Product Access Helper Methods
+
+extension PurchaseService {
+    
+    /// Gets a product by its product ID
+    /// - Parameter productID: The product identifier
+    /// - Returns: The StoreKit Product if found
+    func product(for productID: String) -> Product? {
+        return products.first { $0.id == productID }
+    }
+    
+    /// Gets the monthly subscription product
+    var monthlyProduct: Product? {
+        return product(for: .premiumMonthly)
+    }
+    
+    /// Gets the yearly subscription product
+    var yearlyProduct: Product? {
+        return product(for: .premiumYearly)
+    }
+    
+    /// Calculates the savings percentage for yearly vs monthly subscription
+    /// - Returns: Savings percentage as an integer, or nil if calculation not possible
+    var yearlySavingsPercentage: Int? {
+        guard let yearly = yearlyProduct,
+              let monthly = monthlyProduct else { return nil }
+        
+        let yearlyPrice = NSDecimalNumber(decimal: yearly.price)
+        let monthlyPrice = NSDecimalNumber(decimal: monthly.price)
+        let twelve = NSDecimalNumber(value: 12)
+        let annualMonthlyPrice = monthlyPrice.multiplying(by: twelve)
+        
+        if annualMonthlyPrice.compare(yearlyPrice) == .orderedDescending {
+            let savings = annualMonthlyPrice.subtracting(yearlyPrice)
+            let hundred = NSDecimalNumber(value: 100)
+            let savingsRatio = savings.dividing(by: annualMonthlyPrice)
+            let savingsPercentage = savingsRatio.multiplying(by: hundred)
+            return Int(savingsPercentage.doubleValue.rounded())
+        }
+        
+        return nil
+    }
+    
+    /// Gets dynamic pricing display for a subscription product
+    /// - Parameter subscriptionProduct: The subscription product
+    /// - Returns: Display price string from StoreKit or fallback
+    func displayPrice(for subscriptionProduct: SubscriptionProduct) -> String {
+        return subscriptionProduct.displayPrice(from: product(for: subscriptionProduct))
+    }
+    
+    /// Gets dynamic savings message for yearly subscription
+    /// - Returns: Savings message based on real product prices
+    func yearlySavingsMessage() -> String? {
+        return SubscriptionProduct.premiumYearly.savingsMessage(
+            yearlyProduct: yearlyProduct,
+            monthlyProduct: monthlyProduct
+        )
+    }
+}
+
 // MARK: - Transaction Processing
 
 extension PurchaseService {
     
     /// Processes current entitlements on app launch
+    /// Note: This is now handled by TransactionObserver at the application level
     func processCurrentEntitlements() async {
-        logger.info("Processing current entitlements")
-        
-        // Check for current entitlements
-        for await result in Transaction.currentEntitlements {
-            do {
-                let transaction = try await checkVerified(result)
-                logger.debug("Found current entitlement: \(transaction.productID)")
-                
-                // Notify entitlement manager
-                await entitlementManager?.updateEntitlement(for: transaction)
-                
-            } catch {
-                logger.error("Failed to verify current entitlement: \(error.localizedDescription)")
-            }
-        }
-        
-        logger.info("Finished processing current entitlements")
+        logger.info("Current entitlement processing is now handled by TransactionObserver")
+        // No-op - TransactionObserver handles this now
     }
 }
 

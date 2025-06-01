@@ -136,7 +136,9 @@ struct PaywallView: View {
                     SubscriptionOptionView(
                         product: product,
                         isSelected: selectedProduct?.id == product.id,
-                        onSelect: { selectedProduct = product }
+                        onSelect: { selectedProduct = product },
+                        yearlyProduct: purchaseService.yearlyProduct,
+                        monthlyProduct: purchaseService.monthlyProduct
                     )
                 }
             }
@@ -314,6 +316,8 @@ struct SubscriptionOptionView: View {
     let product: Product
     let isSelected: Bool
     let onSelect: () -> Void
+    let yearlyProduct: Product?
+    let monthlyProduct: Product?
     
     var body: some View {
         Button(action: onSelect) {
@@ -324,7 +328,11 @@ struct SubscriptionOptionView: View {
                             .font(.headingMedium.weight(.semibold))
                             .foregroundColor(.magicalTextPrimary)
                         
-                        if let savingsMessage = subscriptionProduct?.savingsMessage {
+                        if let subscriptionProduct = subscriptionProduct,
+                           let savingsMessage = subscriptionProduct.savingsMessage(
+                            yearlyProduct: yearlyProduct,
+                            monthlyProduct: monthlyProduct
+                           ) {
                             Text(savingsMessage)
                                 .font(.caption.weight(.medium))
                                 .foregroundColor(.magicalSuccess)

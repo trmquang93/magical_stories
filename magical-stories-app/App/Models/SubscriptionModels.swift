@@ -21,7 +21,15 @@ enum SubscriptionProduct: String, CaseIterable, Identifiable {
         }
     }
     
-    var displayPrice: String {
+    /// Gets the display price from a StoreKit Product, with fallback to hardcoded prices
+    /// - Parameter product: The StoreKit product containing real pricing information
+    /// - Returns: The display price string
+    func displayPrice(from product: Product?) -> String {
+        if let product = product {
+            return product.displayPrice
+        }
+        
+        // Fallback to hardcoded prices if product not available
         switch self {
         case .premiumMonthly:
             return "$8.99/month"
@@ -30,11 +38,35 @@ enum SubscriptionProduct: String, CaseIterable, Identifiable {
         }
     }
     
-    var savingsMessage: String? {
+    /// Gets the savings message by comparing monthly and yearly product prices
+    /// - Parameters:
+    ///   - yearlyProduct: The yearly subscription product
+    ///   - monthlyProduct: The monthly subscription product
+    /// - Returns: Savings message if applicable
+    func savingsMessage(yearlyProduct: Product?, monthlyProduct: Product?) -> String? {
         switch self {
         case .premiumMonthly:
             return nil
         case .premiumYearly:
+            // Calculate real savings if both products are available
+            if let yearly = yearlyProduct,
+               let monthly = monthlyProduct {
+                let yearlyPrice = NSDecimalNumber(decimal: yearly.price)
+                let monthlyPrice = NSDecimalNumber(decimal: monthly.price)
+                let twelve = NSDecimalNumber(value: 12)
+                let annualMonthlyPrice = monthlyPrice.multiplying(by: twelve)
+                
+                if annualMonthlyPrice.compare(yearlyPrice) == .orderedDescending {
+                    let savings = annualMonthlyPrice.subtracting(yearlyPrice)
+                    let hundred = NSDecimalNumber(value: 100)
+                    let savingsRatio = savings.dividing(by: annualMonthlyPrice)
+                    let savingsPercentage = savingsRatio.multiplying(by: hundred)
+                    let roundedSavings = Int(savingsPercentage.doubleValue.rounded())
+                    return "Save \(roundedSavings)% vs monthly"
+                }
+            }
+            
+            // Fallback to hardcoded savings message
             return "Save 16% vs monthly"
         }
     }
