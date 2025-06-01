@@ -6,6 +6,7 @@ struct StoryFormView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var storyService: StoryService
+    @EnvironmentObject private var entitlementManager: EntitlementManager
 
     // State Variables
     @State private var childName: String? = UserDefaults.standard.string(forKey: "childName")
@@ -77,6 +78,12 @@ struct StoryFormView: View {
         }
         .accentColor(Color(hex: "#7B61FF"))
         .onAppear { withAnimation { animateBackground = true } }
+        .onChange(of: entitlementManager.subscriptionStatus) { oldStatus, newStatus in
+            // If user upgraded to premium while paywall was showing, dismiss it
+            if showPaywall && newStatus.isPremium {
+                showPaywall = false
+            }
+        }
     }
 
     // MARK: - View Components

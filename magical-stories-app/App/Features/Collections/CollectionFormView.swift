@@ -16,6 +16,7 @@ enum DevelopmentalFocus: String, CaseIterable, Identifiable {
 struct CollectionFormView: View {
     // Access the CollectionService to trigger generation
     @EnvironmentObject private var collectionService: CollectionService
+    @EnvironmentObject private var entitlementManager: EntitlementManager
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
 
@@ -179,6 +180,12 @@ struct CollectionFormView: View {
         .onAppear {
             withAnimation(.easeInOut(duration: 1)) {
                 animateBackground = true
+            }
+        }
+        .onChange(of: entitlementManager.subscriptionStatus) { oldStatus, newStatus in
+            // If user upgraded to premium while paywall was showing, dismiss it
+            if showPaywall && newStatus.isPremium {
+                showPaywall = false
             }
         }
     }

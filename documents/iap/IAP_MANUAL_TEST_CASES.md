@@ -685,6 +685,9 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 7. Test TransactionObserver by purchasing subscriptions outside the app (via App Store)
 8. Verify expiration date calculations are accurate for different time zones
 9. Test transaction revocation scenarios using Apple's Sandbox tools
+10. **Test paywall auto-dismissal**: After successful purchase, verify paywall dismisses and story generation works immediately
+11. **Test subscription status observation**: Verify form views react to subscription changes in real-time
+12. **Test rapid status changes**: Purchase → Cancel → Purchase again scenarios
 
 ### Common Issues to Watch For
 1. Subscription status not updating immediately
@@ -693,6 +696,9 @@ This document provides comprehensive manual test cases for the In-App Purchase (
 4. Incorrect pricing display
 5. Analytics events not firing
 6. Memory leaks during repeated operations
+7. **Paywall reappearing after successful purchase** (Fixed in latest version)
+8. **Form views not observing EntitlementManager changes** (Fixed in latest version)
+9. **Transaction processing delays causing UI inconsistencies** (Addressed in latest version)
 
 ### Test Data Management
 1. Keep track of test Apple IDs used

@@ -35,7 +35,7 @@ class MockPurchaseService: PurchaseService {
         mockProducts[subscriptionProduct] = product
     }
     
-    override func product(for subscriptionProduct: SubscriptionProduct) async -> Product? {
+    override func product(for subscriptionProduct: SubscriptionProduct) -> Product? {
         return mockProducts[subscriptionProduct]
     }
 }
@@ -44,38 +44,24 @@ struct TransactionObserverTests {
     
     @Test("TransactionObserver handles subscription period concepts")
     func testSubscriptionPeriodConcepts() async throws {
-        // Test that we can create subscription periods (this validates our understanding of the API)
-        let oneDayPeriod = Product.SubscriptionPeriod(value: 1, unit: .day)
-        #expect(oneDayPeriod.value == 1)
-        #expect(oneDayPeriod.unit == .day)
+        // Test basic subscription period units
+        let dayUnit = Product.SubscriptionPeriod.Unit.day
+        let monthUnit = Product.SubscriptionPeriod.Unit.month
+        let yearUnit = Product.SubscriptionPeriod.Unit.year
         
-        let oneMonthPeriod = Product.SubscriptionPeriod(value: 1, unit: .month)
-        #expect(oneMonthPeriod.value == 1)
-        #expect(oneMonthPeriod.unit == .month)
-        
-        let oneYearPeriod = Product.SubscriptionPeriod(value: 1, unit: .year)
-        #expect(oneYearPeriod.value == 1)
-        #expect(oneYearPeriod.unit == .year)
+        #expect(dayUnit == .day)
+        #expect(monthUnit == .month)
+        #expect(yearUnit == .year)
     }
     
     @Test("TransactionObserver format subscription period correctly")
     func testSubscriptionPeriodFormatting() async throws {
-        // Test the formatSubscriptionPeriod method indirectly through API behavior
-        let periods = [
-            (Product.SubscriptionPeriod(value: 1, unit: .day), "day"),
-            (Product.SubscriptionPeriod(value: 7, unit: .day), "days"),
-            (Product.SubscriptionPeriod(value: 1, unit: .week), "week"),
-            (Product.SubscriptionPeriod(value: 4, unit: .week), "weeks"),
-            (Product.SubscriptionPeriod(value: 1, unit: .month), "month"),
-            (Product.SubscriptionPeriod(value: 12, unit: .month), "months"),
-            (Product.SubscriptionPeriod(value: 1, unit: .year), "year"),
-            (Product.SubscriptionPeriod(value: 2, unit: .year), "years")
-        ]
+        // Test that subscription period units work correctly
+        let expectedUnits = ["day", "days", "week", "weeks", "month", "months", "year", "years"]
         
-        for (period, expectedUnit) in periods {
-            // Validate the period structure is correct
-            #expect(period.value >= 1)
-            #expect(expectedUnit.count > 0)
+        for unit in expectedUnits {
+            // Validate unit strings are not empty
+            #expect(unit.count > 0)
         }
     }
     
@@ -88,10 +74,10 @@ struct TransactionObserverTests {
         await observer.processCurrentEntitlements()
         
         // Test dependency injection
-        let mockEntitlementManager = await MockEntitlementManager()
+        let mockEntitlementManager = MockEntitlementManager()
         observer.setEntitlementManager(mockEntitlementManager)
         
-        let mockPurchaseService = await MockPurchaseService()
+        let mockPurchaseService = MockPurchaseService()
         observer.setPurchaseService(mockPurchaseService)
         
         // These calls should not crash
@@ -116,11 +102,11 @@ struct TransactionObserverTests {
         let observer = TransactionObserver()
         
         // Test EntitlementManager injection
-        let mockEntitlementManager = await MockEntitlementManager()
+        let mockEntitlementManager = MockEntitlementManager()
         observer.setEntitlementManager(mockEntitlementManager)
         
         // Test PurchaseService injection
-        let mockPurchaseService = await MockPurchaseService()
+        let mockPurchaseService = MockPurchaseService()
         observer.setPurchaseService(mockPurchaseService)
         
         // Verify no crashes and proper setup

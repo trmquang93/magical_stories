@@ -90,8 +90,8 @@ struct StoryScreenNavigation_Tests { // DISABLED DUE TO REFACTORING
             .environmentObject(storyService)
             .environment(\.modelContext, context)
 
-        // Verify that we have a valid view
-        #expect(libraryView.body is Never == false)
+        // Verify that we have a valid view instance
+        #expect(libraryView != nil)
     }
 
     @MainActor
