@@ -17,6 +17,7 @@ applyTo: '**'
 - **Google AI (Gemini Pro & Imagen):** Used for text and illustration generation.
 - **StoreKit 2:** For handling in-app purchases and subscriptions.
 - **Swift Testing & XCTest:** For unit, integration, and UI testing.
+- **Documentation Organization:** Feature-specific documentation centralized in dedicated folders (e.g., `documents/iap/` for all IAP-related docs).
 
 ## Design Patterns
 - **Strategy Pattern:** `AIGenerationStrategy` with implementations for different AI models (`GeminiTextStrategy`, `GeminiImageStrategy`, `ImagenStrategy`).
@@ -42,4 +43,5 @@ applyTo: '**'
 - **Prompt Template Management:**
   - `ConfigurablePromptTemplates.shared` -> JSON template loading -> A/B testing selection -> Template substitution -> Final prompt
 - **Growth Collection Management:** Creation, progress tracking, display, and deletion of collections.
-- **In-App Purchase Flow:** Product display -> Purchase initiation -> Transaction handling -> Entitlement management.
+- **In-App Purchase Flow:** Product display -> Purchase initiation -> Transaction handling -> Entitlement management -> TransactionObserver processing.
+- **Documentation Organization Pattern:** Feature-specific documentation grouped in dedicated folders with comprehensive coverage (manual tests, automation, implementation details, verification procedures).

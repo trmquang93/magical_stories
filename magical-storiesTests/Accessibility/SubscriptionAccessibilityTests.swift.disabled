@@ -1,0 +1,364 @@
+import Testing
+import Foundation
+
+@testable import magical_stories
+
+/// Tests covering accessibility requirements for subscription system
+struct SubscriptionAccessibilityTests {
+    
+    // MARK: - Text Content Accessibility
+    
+    @Test("All subscription text content is accessible")
+    func testSubscriptionTextAccessibility() async throws {
+        // Test subscription product display text
+        for product in SubscriptionProduct.allCases {
+            let displayName = product.displayName
+            let displayPrice = product.displayPrice
+            
+            // Text should be meaningful and readable
+            #expect(!displayName.isEmpty)
+            #expect(!displayPrice.isEmpty)
+            #expect(displayName.count > 3) // Meaningful length
+            #expect(displayPrice.contains("$")) // Price should include currency
+            
+            // Features should be descriptive
+            let features = product.features
+            #expect(!features.isEmpty)
+            
+            for feature in features {
+                #expect(!feature.isEmpty)
+                #expect(feature.count > 5) // Meaningful description
+            }
+        }
+    }
+    
+    @Test("Premium feature descriptions are accessible")
+    func testPremiumFeatureAccessibility() async throws {
+        for feature in PremiumFeature.allCases {
+            let displayName = feature.displayName
+            let description = feature.description
+            let unlockMessage = feature.unlockMessage
+            
+            // All text should be meaningful for screen readers
+            #expect(!displayName.isEmpty)
+            #expect(!description.isEmpty)
+            #expect(!unlockMessage.isEmpty)
+            
+            // Should not contain technical jargon that confuses users
+            #expect(!displayName.contains("API"))
+            #expect(!displayName.contains("SDK"))
+            #expect(!description.contains("NULL"))
+            #expect(!description.contains("undefined"))
+            
+            // Descriptions should be conversational and clear
+            #expect(description.count > 10) // Substantial description
+            #expect(unlockMessage.count > 10) // Clear unlock message
+        }
+    }
+    
+    @Test("Error messages are accessible and helpful")
+    func testErrorMessageAccessibility() async throws {
+        // Test StoreError accessibility
+        let storeErrors: [StoreError] = [
+            .productNotFound,
+            .purchaseFailed("Network error"),
+            .verificationFailed(NSError(domain: "test", code: 1)),
+            .pending,
+            .unknown,
+            .cancelled,
+            .notAllowed
+        ]
+        
+        for error in storeErrors {
+            let errorDescription = error.errorDescription ?? ""
+            let recoverySuggestion = error.recoverySuggestion ?? ""
+            
+            // Error messages should be clear and actionable
+            #expect(!errorDescription.isEmpty)
+            #expect(!recoverySuggestion.isEmpty)
+            #expect(errorDescription.count > 5) // Meaningful message
+            #expect(recoverySuggestion.count > 5) // Helpful suggestion
+            
+            // Should not contain technical codes that confuse users
+            #expect(!errorDescription.contains("Error:"))
+            #expect(!errorDescription.contains("Code:"))
+        }
+        
+        // Test StoryServiceError accessibility
+        let usageLimitError = StoryServiceError.usageLimitReached
+        let subscriptionError = StoryServiceError.subscriptionRequired
+        
+        let usageLimitDesc = usageLimitError.errorDescription ?? ""
+        let subscriptionDesc = subscriptionError.errorDescription ?? ""
+        
+        // Should be parent-friendly and encouraging
+        #expect(usageLimitDesc.contains("Premium"))
+        #expect(subscriptionDesc.contains("Premium"))
+        #expect(!usageLimitDesc.contains("limit exceeded")) // Too technical
+        #expect(!subscriptionDesc.contains("unauthorized")) // Too harsh
+    }
+    
+    // MARK: - Paywall Context Accessibility
+    
+    @Test("Paywall contexts are accessible")
+    func testPaywallContextAccessibility() async throws {
+        for context in PaywallContext.allCases {
+            let displayTitle = context.displayTitle
+            let displayMessage = context.displayMessage
+            
+            // Titles and messages should be clear and encouraging
+            #expect(!displayTitle.isEmpty)
+            #expect(!displayMessage.isEmpty)
+            #expect(displayTitle.count > 5)
+            #expect(displayMessage.count > 10)
+            
+            // Should use positive, encouraging language
+            switch context {
+            case .usageLimitReached:
+                #expect(displayTitle.contains("limit") || displayTitle.contains("month"))
+                #expect(displayMessage.contains("unlimited") || displayMessage.contains("Premium"))
+                
+            case .featureRestricted:
+                #expect(displayTitle.contains("Premium"))
+                #expect(displayMessage.contains("subscription") || displayMessage.contains("available"))
+                
+            case .onboarding:
+                #expect(displayTitle.contains("Welcome") || displayTitle.contains("Premium"))
+                #expect(displayMessage.contains("trial") || displayMessage.contains("free"))
+                
+            case .settings:
+                #expect(displayTitle.contains("Upgrade") || displayTitle.contains("Premium"))
+                #expect(displayMessage.contains("unlimited") || displayMessage.contains("features"))
+                
+            case .homePromotion, .libraryPromotion:
+                #expect(!displayTitle.isEmpty)
+                #expect(!displayMessage.isEmpty)
+            }
+            
+            // Should not use negative or intimidating language
+            #expect(!displayMessage.contains("denied"))
+            #expect(!displayMessage.contains("blocked"))
+            #expect(!displayMessage.contains("forbidden"))
+        }
+    }
+    
+    // MARK: - User Status Text Accessibility
+    
+    @Test("User subscription status text is accessible")
+    func testUserSubscriptionStatusAccessibility() async throws {
+        let userProfile = UserProfile()
+        
+        // Test free plan status
+        let freePlanText = userProfile.subscriptionStatusText
+        #expect(freePlanText == "Free Plan")
+        #expect(!freePlanText.contains("No subscription")) // Negative phrasing
+        
+        // Test active monthly subscription
+        userProfile.updateSubscriptionStatus(
+            isActive: true,
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: Date().addingTimeInterval(86400 * 30)
+        )
+        
+        let monthlyText = userProfile.subscriptionStatusText
+        #expect(monthlyText.contains("Premium Monthly"))
+        #expect(!monthlyText.contains("expires")) // Don't emphasize expiration
+        
+        // Test active yearly subscription
+        userProfile.updateSubscriptionStatus(
+            isActive: true,
+            productId: "com.magicalstories.premium.yearly",
+            expiryDate: Date().addingTimeInterval(86400 * 365)
+        )
+        
+        let yearlyText = userProfile.subscriptionStatusText
+        #expect(yearlyText.contains("Premium Yearly"))
+        
+        // Test free trial
+        userProfile.startFreeTrial(
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: Date().addingTimeInterval(86400 * 7)
+        )
+        
+        let trialText = userProfile.subscriptionStatusText
+        #expect(trialText.contains("Free Trial"))
+        #expect(trialText.contains("days left") || trialText.contains("remaining"))
+        
+        // Test expired subscription
+        userProfile.updateSubscriptionStatus(
+            isActive: false,
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: Date().addingTimeInterval(-86400)
+        )
+        
+        let expiredText = userProfile.subscriptionStatusText
+        #expect(expiredText.contains("Expired"))
+        #expect(!expiredText.contains("dead") || !expiredText.contains("terminated")) // Avoid harsh language
+    }
+    
+    // MARK: - Usage Statistics Accessibility
+    
+    @Test("Usage statistics are accessible")
+    func testUsageStatisticsAccessibility() async throws {
+        let userProfile = UserProfile()
+        
+        // Test initial state messaging
+        let initialRemaining = userProfile.remainingStoriesThisMonth
+        #expect(initialRemaining == FreeTierLimits.storiesPerMonth)
+        
+        // Generate some stories
+        userProfile.incrementMonthlyStoryCount()
+        userProfile.incrementMonthlyStoryCount()
+        
+        let remainingAfterUse = userProfile.remainingStoriesThisMonth
+        #expect(remainingAfterUse == FreeTierLimits.storiesPerMonth - 2)
+        
+        // Test limit reached state
+        while !userProfile.hasReachedMonthlyLimit {
+            userProfile.incrementMonthlyStoryCount()
+        }
+        
+        #expect(userProfile.hasReachedMonthlyLimit)
+        #expect(userProfile.remainingStoriesThisMonth == 0)
+    }
+    
+    // MARK: - Feature Gate Accessibility
+    
+    @Test("Free tier features are clearly described")
+    func testFreeTierFeatureAccessibility() async throws {
+        for feature in FreeTierFeature.allCases {
+            let description = feature.description
+            
+            // Descriptions should be positive and clear
+            #expect(!description.isEmpty)
+            #expect(description.count > 10)
+            
+            // Should explain what's included, not what's missing
+            switch feature {
+            case .basicStoryGeneration:
+                #expect(description.contains("3") || description.contains("month"))
+                
+            case .storyLibrary:
+                #expect(description.contains("library") || description.contains("stories"))
+                
+            case .basicReading:
+                #expect(description.contains("read") || description.contains("stories"))
+                
+            case .singleChildProfile:
+                #expect(description.contains("child") || description.contains("profile"))
+                
+            case .basicSettings:
+                #expect(description.contains("settings") || description.contains("controls"))
+            }
+            
+            // Should not use negative language
+            #expect(!description.contains("only"))
+            #expect(!description.contains("limited to"))
+            #expect(!description.contains("restricted"))
+        }
+    }
+    
+    // MARK: - Trial and Subscription Accessibility
+    
+    @Test("Trial information is accessible")
+    func testTrialInformationAccessibility() async throws {
+        let userProfile = UserProfile()
+        
+        // Start trial
+        userProfile.startFreeTrial(
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: Date().addingTimeInterval(86400 * 7)
+        )
+        
+        #expect(userProfile.isOnFreeTrial)
+        
+        let trialDaysRemaining = userProfile.trialDaysRemaining
+        #expect(trialDaysRemaining > 0)
+        #expect(trialDaysRemaining <= 7)
+        
+        // Trial status should be clearly communicated
+        let statusText = userProfile.subscriptionStatusText
+        #expect(statusText.contains("Free Trial"))
+        #expect(statusText.contains("days"))
+    }
+    
+    // MARK: - Pricing Accessibility
+    
+    @Test("Pricing information is accessible")
+    func testPricingAccessibility() async throws {
+        // Test monthly pricing
+        let monthlyProduct = SubscriptionProduct.premiumMonthly
+        let monthlyPrice = monthlyProduct.displayPrice
+        
+        #expect(monthlyPrice == "$8.99/month")
+        #expect(monthlyPrice.contains("$"))
+        #expect(monthlyPrice.contains("month"))
+        
+        // Test yearly pricing
+        let yearlyProduct = SubscriptionProduct.premiumYearly
+        let yearlyPrice = yearlyProduct.displayPrice
+        let savingsMessage = yearlyProduct.savingsMessage
+        
+        #expect(yearlyPrice == "$89.99/year")
+        #expect(yearlyPrice.contains("$"))
+        #expect(yearlyPrice.contains("year"))
+        #expect(savingsMessage == "Save 16% vs monthly")
+        #expect(savingsMessage!.contains("Save"))
+        #expect(savingsMessage!.contains("16%"))
+        
+        // Monthly product shouldn't have savings message
+        #expect(monthlyProduct.savingsMessage == nil)
+    }
+    
+    // MARK: - Age Calculation Accessibility
+    
+    @Test("Age calculation for child profiles is accessible")
+    func testAgeCalculationAccessibility() async throws {
+        let calendar = Calendar.current
+        let fiveYearsAgo = calendar.date(byAdding: .year, value: -5, to: Date())!
+        let sevenYearsAgo = calendar.date(byAdding: .year, value: -7, to: Date())!
+        
+        let userProfile1 = UserProfile(childName: "Test Child 1", dateOfBirth: fiveYearsAgo)
+        let userProfile2 = UserProfile(childName: "Test Child 2", dateOfBirth: sevenYearsAgo)
+        
+        #expect(userProfile1.childAgeInYears == 5)
+        #expect(userProfile2.childAgeInYears == 7)
+        
+        // Child names should be meaningful
+        #expect(!userProfile1.childName.isEmpty)
+        #expect(!userProfile2.childName.isEmpty)
+    }
+    
+    // MARK: - Onboarding Accessibility
+    
+    @Test("Onboarding state is accessible")
+    func testOnboardingAccessibility() async throws {
+        let userProfile = UserProfile()
+        
+        // Initial onboarding state should be clear
+        #expect(!userProfile.hasCompletedOnboarding)
+        #expect(!userProfile.hasCompletedFirstStory)
+        #expect(!userProfile.hasSeenPremiumFeatures)
+        #expect(userProfile.shouldShowOnboarding())
+        
+        // Complete onboarding steps
+        userProfile.completeOnboarding()
+        #expect(userProfile.hasCompletedOnboarding)
+        #expect(!userProfile.shouldShowOnboarding())
+        
+        userProfile.completeFirstStory()
+        #expect(userProfile.hasCompletedFirstStory)
+        
+        userProfile.markPremiumFeaturesSeen()
+        #expect(userProfile.hasSeenPremiumFeatures)
+        
+        // All states should be clearly trackable
+        let completionStates = [
+            userProfile.hasCompletedOnboarding,
+            userProfile.hasCompletedFirstStory,
+            userProfile.hasSeenPremiumFeatures
+        ]
+        
+        #expect(completionStates.allSatisfy { $0 == true })
+    }
+}

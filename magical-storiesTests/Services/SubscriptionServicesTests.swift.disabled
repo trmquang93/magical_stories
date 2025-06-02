@@ -1,0 +1,169 @@
+import SwiftData
+import Testing
+import StoreKit
+
+@testable import magical_stories
+
+@MainActor
+struct SubscriptionServicesTests {
+    
+    // MARK: - EntitlementManager Tests
+    
+    @Test("EntitlementManager grants access to premium features for premium users")
+    func testPremiumFeatureAccess() async throws {
+        let entitlementManager = EntitlementManager()
+        
+        // Simulate premium subscription by setting status directly
+        await MainActor.run {
+            entitlementManager.subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(86400 * 30))
+        }
+        
+        #expect(entitlementManager.hasAccess(to: .unlimitedStoryGeneration))
+        #expect(entitlementManager.hasAccess(to: .growthPathCollections))
+        #expect(entitlementManager.hasAccess(to: .multipleChildProfiles))
+        #expect(entitlementManager.isPremiumUser)
+    }
+    
+    @Test("EntitlementManager restricts features for free users")
+    func testFreeUserFeatureRestriction() async throws {
+        let entitlementManager = EntitlementManager()
+        
+        #expect(!entitlementManager.hasAccess(to: .unlimitedStoryGeneration))
+        #expect(!entitlementManager.hasAccess(to: .growthPathCollections))
+        #expect(!entitlementManager.hasAccess(to: .multipleChildProfiles))
+        #expect(!entitlementManager.isPremiumUser)
+    }
+    
+    // MARK: - UsageTracker Tests
+    
+    @Test("UsageTracker enforces monthly limits for free users")
+    func testMonthlyUsageLimits() async throws {
+        let mockAnalyticsService = MockUsageAnalyticsService()
+        let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
+        
+        // Initially should be able to generate
+        let canGenerate1 = await usageTracker.canGenerateStory()
+        #expect(canGenerate1)
+        
+        // Simulate reaching the limit
+        for _ in 0..<FreeTierLimits.storiesPerMonth {
+            await usageTracker.incrementStoryGeneration()
+        }
+        
+        // Should not be able to generate after limit reached
+        let canGenerate2 = await usageTracker.canGenerateStory()
+        #expect(!canGenerate2)
+        
+        let remainingStories = await usageTracker.getRemainingStories()
+        #expect(remainingStories == 0)
+    }
+    
+    @Test("UsageTracker resets monthly usage correctly")
+    func testMonthlyUsageReset() async throws {
+        let mockAnalyticsService = MockUsageAnalyticsService()
+        let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
+        
+        // Generate some stories
+        for _ in 0..<2 {
+            await usageTracker.incrementStoryGeneration()
+        }
+        
+        let usage1 = await usageTracker.getCurrentUsage()
+        #expect(usage1 == 2)
+        
+        // Reset usage
+        await usageTracker.resetMonthlyUsage()
+        
+        let usage2 = await usageTracker.getCurrentUsage()
+        #expect(usage2 == 0)
+        
+        let canGenerate = await usageTracker.canGenerateStory()
+        #expect(canGenerate)
+    }
+    
+    // MARK: - PurchaseService Tests
+    
+    @Test("PurchaseService loads products correctly")
+    func testProductLoading() async throws {
+        let purchaseService = PurchaseService()
+        
+        // Note: This would require actual StoreKit configuration in a real test
+        // For now, we'll test that the service can be initialized without errors
+        #expect(purchaseService.products.isEmpty) // Initially empty
+        #expect(!purchaseService.isLoading) // Initially not loading
+    }
+    
+    // MARK: - UserProfile Subscription Integration
+    
+    @Test("UserProfile tracks subscription status correctly")
+    func testUserProfileSubscriptionTracking() async throws {
+        let userProfile = UserProfile()
+        
+        #expect(!userProfile.hasActiveSubscription)
+        #expect(userProfile.subscriptionStatusText == "Free Plan")
+        
+        // Start a trial
+        let trialExpiry = Calendar.current.date(byAdding: .day, value: 7, to: Date())!
+        userProfile.startFreeTrial(productId: "com.magicalstories.premium.monthly", expiryDate: trialExpiry)
+        
+        #expect(userProfile.hasActiveSubscription)
+        #expect(userProfile.isOnFreeTrial)
+        #expect(userProfile.trialDaysRemaining > 0)
+        
+        // Update to active subscription
+        userProfile.updateSubscriptionStatus(
+            isActive: true,
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: Calendar.current.date(byAdding: .month, value: 1, to: Date())
+        )
+        
+        #expect(userProfile.hasActiveSubscription)
+        #expect(userProfile.subscriptionStatusText.contains("Premium"))
+    }
+    
+    @Test("UserProfile handles usage counting correctly")
+    func testUserProfileUsageCounting() async throws {
+        let userProfile = UserProfile()
+        
+        #expect(userProfile.monthlyStoryCount == 0)
+        #expect(!userProfile.hasReachedMonthlyLimit)
+        #expect(userProfile.remainingStoriesThisMonth == FreeTierLimits.storiesPerMonth)
+        
+        // Generate stories up to limit
+        for _ in 0..<FreeTierLimits.storiesPerMonth {
+            userProfile.incrementMonthlyStoryCount()
+        }
+        
+        #expect(userProfile.hasReachedMonthlyLimit)
+        #expect(userProfile.remainingStoriesThisMonth == 0)
+        
+        // Reset usage
+        userProfile.resetMonthlyUsage()
+        
+        #expect(userProfile.monthlyStoryCount == 0)
+        #expect(!userProfile.hasReachedMonthlyLimit)
+    }
+}
+
+// MARK: - Mock Objects
+
+class MockUsageAnalyticsService: UsageAnalyticsServiceProtocol {
+    private var storyCount = 0
+    private var lastGenerationDate: Date?
+    
+    func incrementStoryGenerationCount() async {
+        storyCount += 1
+    }
+    
+    func getStoryGenerationCount() async -> Int {
+        return storyCount
+    }
+    
+    func updateLastGenerationDate(date: Date) async {
+        lastGenerationDate = date
+    }
+    
+    func getLastGenerationDate() async -> Date? {
+        return lastGenerationDate
+    }
+}

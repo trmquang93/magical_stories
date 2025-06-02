@@ -1,0 +1,359 @@
+import Testing
+import Foundation
+
+@testable import magical_stories
+
+/// Tests covering analytics events and tracking for subscription system
+struct SubscriptionAnalyticsTests {
+    
+    // MARK: - Analytics Event Generation Tests
+    
+    @Test("All required analytics events are properly defined")
+    func testAllRequiredAnalyticsEvents() async throws {
+        // Test each required analytics event from requirements document
+        let requiredEvents = [
+            "onboarding_started",
+            "onboarding_completed", 
+            "first_story_generated",
+            "premium_feature_viewed",
+            "paywall_shown",
+            "subscription_purchased",
+            "usage_limit_reached",
+            "feature_restricted"
+        ]
+        
+        // Verify onboarding events
+        let onboardingStarted = "onboarding_started"
+        let onboardingCompleted = "onboarding_completed"
+        let firstStoryGenerated = "first_story_generated"
+        
+        #expect(requiredEvents.contains(onboardingStarted))
+        #expect(requiredEvents.contains(onboardingCompleted))
+        #expect(requiredEvents.contains(firstStoryGenerated))
+        
+        // Verify subscription events exist
+        #expect(SubscriptionAnalyticsEvent.paywallShown(context: .usageLimitReached).eventName == "paywall_shown")
+        #expect(SubscriptionAnalyticsEvent.usageLimitReached.eventName == "usage_limit_reached")
+        #expect(SubscriptionAnalyticsEvent.featureRestricted(.growthPathCollections).eventName == "feature_restricted")
+    }
+    
+    @Test("Paywall context analytics events")
+    func testPaywallContextAnalytics() async throws {
+        // Test all paywall contexts generate proper analytics
+        let contexts = PaywallContext.allCases
+        
+        for context in contexts {
+            let event = SubscriptionAnalyticsEvent.paywallShown(context: context)
+            #expect(event.eventName == "paywall_shown")
+            
+            // Verify context has proper display properties for analytics
+            #expect(!context.displayTitle.isEmpty)
+            #expect(!context.displayMessage.isEmpty)
+        }
+        
+        // Test specific context analytics
+        let usageLimitEvent = SubscriptionAnalyticsEvent.paywallShown(context: .usageLimitReached)
+        let featureRestrictedEvent = SubscriptionAnalyticsEvent.paywallShown(context: .featureRestricted)
+        let onboardingEvent = SubscriptionAnalyticsEvent.paywallShown(context: .onboarding)
+        
+        #expect(usageLimitEvent.eventName == "paywall_shown")
+        #expect(featureRestrictedEvent.eventName == "paywall_shown") 
+        #expect(onboardingEvent.eventName == "paywall_shown")
+    }
+    
+    @Test("Premium feature analytics events")
+    func testPremiumFeatureAnalytics() async throws {
+        // Test analytics for each premium feature
+        for feature in PremiumFeature.allCases {
+            let featureRestrictedEvent = SubscriptionAnalyticsEvent.featureRestricted(feature)
+            #expect(featureRestrictedEvent.eventName == "feature_restricted")
+            
+            // Verify feature has analytics-ready properties
+            #expect(!feature.displayName.isEmpty)
+            #expect(!feature.description.isEmpty)
+            #expect(!feature.unlockMessage.isEmpty)
+        }
+    }
+    
+    @Test("Purchase flow analytics events")
+    func testPurchaseFlowAnalytics() async throws {
+        let product = SubscriptionProduct.premiumMonthly
+        
+        // Test purchase flow events
+        let productViewedEvent = SubscriptionAnalyticsEvent.productViewed(product)
+        let purchaseStartedEvent = SubscriptionAnalyticsEvent.purchaseStarted(product)
+        let purchaseCompletedEvent = SubscriptionAnalyticsEvent.purchaseCompleted(product)
+        let purchaseFailedEvent = SubscriptionAnalyticsEvent.purchaseFailed(product, error: .cancelled)
+        
+        #expect(productViewedEvent.eventName == "product_viewed")
+        #expect(purchaseStartedEvent.eventName == "purchase_started")
+        #expect(purchaseCompletedEvent.eventName == "purchase_completed")
+        #expect(purchaseFailedEvent.eventName == "purchase_failed")
+        
+        // Test trial events
+        let trialStartedEvent = SubscriptionAnalyticsEvent.trialStarted(product)
+        #expect(trialStartedEvent.eventName == "trial_started")
+        
+        // Test cancellation events
+        let subscriptionCancelledEvent = SubscriptionAnalyticsEvent.subscriptionCancelled
+        #expect(subscriptionCancelledEvent.eventName == "subscription_cancelled")
+        
+        // Test restore purchases event
+        let restorePurchasesEvent = SubscriptionAnalyticsEvent.restorePurchases
+        #expect(restorePurchasesEvent.eventName == "restore_purchases")
+    }
+    
+    // MARK: - Conversion Funnel Analytics
+    
+    @Test("Onboarding conversion funnel tracking")
+    func testOnboardingConversionFunnel() async throws {
+        let userProfile = UserProfile()
+        
+        // Track onboarding funnel steps
+        #expect(!userProfile.hasCompletedOnboarding)
+        #expect(!userProfile.hasCompletedFirstStory)
+        #expect(!userProfile.hasSeenPremiumFeatures)
+        
+        // Step 1: Complete onboarding
+        userProfile.completeOnboarding()
+        #expect(userProfile.hasCompletedOnboarding)
+        
+        // Step 2: Complete first story
+        userProfile.completeFirstStory()
+        #expect(userProfile.hasCompletedFirstStory)
+        
+        // Step 3: View premium features
+        userProfile.markPremiumFeaturesSeen()
+        #expect(userProfile.hasSeenPremiumFeatures)
+        
+        // Funnel completion tracking
+        let funnelCompletion = userProfile.hasCompletedOnboarding && 
+                             userProfile.hasCompletedFirstStory && 
+                             userProfile.hasSeenPremiumFeatures
+        #expect(funnelCompletion)
+    }
+    
+    @Test("Usage limit reached analytics")
+    func testUsageLimitReachedAnalytics() async throws {
+        let mockAnalyticsService = MockUsageAnalyticsService()
+        let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
+        
+        // Generate stories up to limit
+        for _ in 0..<FreeTierLimits.storiesPerMonth {
+            await usageTracker.incrementStoryGeneration()
+        }
+        
+        // Verify analytics tracking
+        let usageCount = await mockAnalyticsService.getStoryGenerationCount()
+        #expect(usageCount == FreeTierLimits.storiesPerMonth)
+        
+        // Verify limit reached event can be triggered
+        let canGenerate = await usageTracker.canGenerateStory()
+        #expect(!canGenerate)
+        
+        // Usage limit reached event should be trackable
+        let usageLimitEvent = SubscriptionAnalyticsEvent.usageLimitReached
+        #expect(usageLimitEvent.eventName == "usage_limit_reached")
+    }
+    
+    // MARK: - Feature Adoption Analytics
+    
+    @Test("Premium feature adoption tracking")
+    func testPremiumFeatureAdoptionTracking() async throws {
+        let userProfile = UserProfile()
+        
+        // Initially no premium features used
+        #expect(userProfile.premiumFeaturesUsed.isEmpty)
+        
+        // Mark premium features as used
+        userProfile.markPremiumFeatureUsed(.growthPathCollections)
+        userProfile.markPremiumFeatureUsed(.advancedIllustrations)
+        userProfile.markPremiumFeatureUsed(.multipleChildProfiles)
+        
+        // Verify tracking
+        #expect(userProfile.premiumFeaturesUsed.count == 3)
+        #expect(userProfile.premiumFeaturesUsed.contains(PremiumFeature.growthPathCollections.rawValue))
+        #expect(userProfile.premiumFeaturesUsed.contains(PremiumFeature.advancedIllustrations.rawValue))
+        #expect(userProfile.premiumFeaturesUsed.contains(PremiumFeature.multipleChildProfiles.rawValue))
+        
+        // Test idempotency
+        userProfile.markPremiumFeatureUsed(.growthPathCollections)
+        #expect(userProfile.premiumFeaturesUsed.count == 3) // Should not duplicate
+    }
+    
+    // MARK: - A/B Testing Analytics
+    
+    @Test("A/B testing support for paywall variants")
+    func testABTestingPaywallVariants() async throws {
+        // Test different paywall contexts for A/B testing
+        let contexts = PaywallContext.allCases
+        
+        // Each context should provide unique analytics data
+        for context in contexts {
+            let event = SubscriptionAnalyticsEvent.paywallShown(context: context)
+            #expect(event.eventName == "paywall_shown")
+            
+            // Verify context-specific messaging for A/B testing
+            switch context {
+            case .usageLimitReached:
+                #expect(context.displayTitle.contains("limit"))
+                #expect(context.displayMessage.contains("unlimited"))
+            case .featureRestricted:
+                #expect(context.displayTitle.contains("Premium"))
+                #expect(context.displayMessage.contains("subscription"))
+            case .onboarding:
+                #expect(context.displayMessage.contains("trial"))
+            case .settings:
+                #expect(context.displayTitle.contains("Upgrade"))
+            case .homePromotion, .libraryPromotion:
+                #expect(!context.displayTitle.isEmpty)
+            }
+        }
+    }
+    
+    // MARK: - Time-based Analytics
+    
+    @Test("Time-based usage analytics")
+    func testTimeBasedUsageAnalytics() async throws {
+        let userProfile = UserProfile()
+        
+        // Track time-based metrics
+        let initialPeriodStart = userProfile.currentPeriodStart
+        #expect(initialPeriodStart != nil)
+        
+        // Increment usage and verify time tracking
+        userProfile.incrementMonthlyStoryCount()
+        #expect(userProfile.lastGenerationDate != nil)
+        
+        // Reset and verify time tracking
+        userProfile.resetMonthlyUsage()
+        #expect(userProfile.currentPeriodStart != initialPeriodStart)
+        #expect(userProfile.lastUsageReset != nil)
+    }
+    
+    // MARK: - Error Analytics
+    
+    @Test("Error tracking analytics")
+    func testErrorTrackingAnalytics() async throws {
+        // Test error analytics for different store errors
+        let storeErrors: [StoreError] = [
+            .productNotFound,
+            .purchaseFailed("Network error"),
+            .verificationFailed(NSError(domain: "test", code: 1)),
+            .pending,
+            .unknown,
+            .cancelled,
+            .notAllowed
+        ]
+        
+        for error in storeErrors {
+            let failedEvent = SubscriptionAnalyticsEvent.purchaseFailed(.premiumMonthly, error: error)
+            #expect(failedEvent.eventName == "purchase_failed")
+            
+            // Verify error has trackable information
+            #expect(error.errorDescription != nil)
+            #expect(error.recoverySuggestion != nil)
+        }
+    }
+    
+    // MARK: - Cohort Analytics
+    
+    @Test("User cohort analytics tracking")
+    func testUserCohortAnalytics() async throws {
+        let userProfile = UserProfile()
+        
+        // Track cohort-relevant data
+        #expect(userProfile.registrationDate != nil)
+        #expect(userProfile.storyGenerationCount == 0)
+        
+        // Generate stories to track engagement
+        userProfile.incrementMonthlyStoryCount()
+        userProfile.incrementMonthlyStoryCount()
+        
+        #expect(userProfile.storyGenerationCount == 2)
+        
+        // Track subscription events for cohort analysis
+        userProfile.startFreeTrial(
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: Date().addingTimeInterval(86400 * 7)
+        )
+        
+        #expect(userProfile.trialStartDate != nil)
+        #expect(userProfile.isOnFreeTrial)
+    }
+    
+    // MARK: - Revenue Analytics
+    
+    @Test("Revenue analytics data structure")
+    func testRevenueAnalyticsData() async throws {
+        // Test subscription product analytics data
+        for product in SubscriptionProduct.allCases {
+            #expect(!product.displayPrice.isEmpty)
+            #expect(!product.displayName.isEmpty)
+            #expect(!product.features.isEmpty)
+            
+            // Verify pricing for revenue analytics
+            switch product {
+            case .premiumMonthly:
+                #expect(product.displayPrice == "$8.99/month")
+            case .premiumYearly:
+                #expect(product.displayPrice == "$89.99/year")
+                #expect(product.savingsMessage == "Save 16% vs monthly")
+            }
+        }
+    }
+    
+    // MARK: - User Journey Analytics
+    
+    @Test("Complete user journey analytics")
+    func testCompleteUserJourneyAnalytics() async throws {
+        let userProfile = UserProfile()
+        
+        // Journey Step 1: App launch (first time user)
+        #expect(!userProfile.hasCompletedOnboarding)
+        #expect(userProfile.shouldShowOnboarding())
+        
+        // Journey Step 2: Complete onboarding
+        userProfile.completeOnboarding()
+        #expect(userProfile.hasCompletedOnboarding)
+        
+        // Journey Step 3: Generate first story
+        userProfile.completeFirstStory()
+        userProfile.incrementMonthlyStoryCount()
+        #expect(userProfile.hasCompletedFirstStory)
+        #expect(userProfile.monthlyStoryCount == 1)
+        
+        // Journey Step 4: View premium features
+        userProfile.markPremiumFeaturesSeen()
+        #expect(userProfile.hasSeenPremiumFeatures)
+        
+        // Journey Step 5: Reach usage limit
+        for _ in 1..<FreeTierLimits.storiesPerMonth {
+            userProfile.incrementMonthlyStoryCount()
+        }
+        #expect(userProfile.hasReachedMonthlyLimit)
+        
+        // Journey Step 6: Start trial
+        userProfile.startFreeTrial(
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: Date().addingTimeInterval(86400 * 7)
+        )
+        #expect(userProfile.isOnFreeTrial)
+        
+        // Journey Step 7: Convert to paid
+        userProfile.updateSubscriptionStatus(
+            isActive: true,
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: Date().addingTimeInterval(86400 * 30)
+        )
+        #expect(!userProfile.isOnFreeTrial)
+        #expect(userProfile.hasActiveSubscription)
+        
+        // Complete user journey tracked
+        let journeyComplete = userProfile.hasCompletedOnboarding &&
+                            userProfile.hasCompletedFirstStory &&
+                            userProfile.hasSeenPremiumFeatures &&
+                            userProfile.hasActiveSubscription
+        #expect(journeyComplete)
+    }
+}

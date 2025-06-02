@@ -3,6 +3,7 @@ import Foundation
 import SwiftData
 
 /// Repository for Achievement-specific operations
+@MainActor
 class AchievementRepository: BaseRepository<AchievementModel>, AchievementRepositoryProtocol {
 
     /// Initialize with a ModelContext

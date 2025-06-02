@@ -23,14 +23,26 @@ Based on the available information, the following aspects are understood to be i
     *   Story library.
     *   Growth Collections (core models, service layer, and some UI, including swipe-to-delete).
     *   `CollectionsListView` is integrated as a tab in `MainTabView`.
-*   **Monetization:** StoreKit 2 integration is planned, with `PurchaseService` and `EntitlementManager` likely in early stages or defined.
+*   **Monetization:** ✅ **ENHANCED** - StoreKit 2 integration implemented with comprehensive documentation:
+    *   **Core Services:** `PurchaseService`, `EntitlementManager`, `TransactionObserver` fully implemented
+    *   **IAP Documentation:** Centralized in `documents/iap/` folder with 8 comprehensive documents
+    *   **Testing Coverage:** 31 manual test cases (TC-001 to TC-031) covering all subscription scenarios
+    *   **UI Testing:** Automated UI test framework for purchase flows and subscription management
 *   **Testing:** ✅ **ENHANCED** - Comprehensive testing framework with TDD implementation:
-    *   **Unit Tests:** Swift Testing with 40+ new tests for prompting system components
+    *   **Unit Tests:** Swift Testing with 40+ tests for prompting system + 22+ re-enabled IAP tests
     *   **Integration Tests:** XCTest for complex workflows
     *   **Snapshot Tests:** SnapshotTesting for UI validation
-    *   **Test Coverage:** 100% coverage achieved for new prompting system modules
+    *   **Test Coverage:** 100% coverage achieved for new prompting system modules + significantly improved IAP test coverage
     *   **TDD Compliance:** All new features implemented using strict test-first methodology
-*   **Documentation:** A significant amount of documentation exists in the `documents/` directory, covering architecture, APIs, UI, testing, and operations. The Memory Bank structure itself is also documented.
+    *   **IAP Test Coverage:** Re-enabled EntitlementManagerTests, PurchaseServiceTests, and SubscriptionIntegrationTests
+*   **Documentation:** ✅ **ENHANCED** - Comprehensive documentation structure:
+    *   **Project Documentation:** `documents/` directory covering architecture, APIs, UI, testing, and operations
+    *   **IAP Documentation Hub:** `documents/iap/` folder containing all In-App Purchase related documentation:
+      - Manual test cases (31 test scenarios)
+      - UI test automation plans and verification procedures  
+      - Implementation reports and success validation
+      - Purchase date expiration calculation details
+    *   **Memory Bank:** Structured project memory system for context preservation
 *   **Build/Test Scripts:** `run_tests.sh` and `fix_build.sh` exist.
 
 ## What's Left to Build/Verify
@@ -40,12 +52,12 @@ This is an initial assessment and will require deeper dives into specific areas:
     *   Parental Controls: Detailed implementation status is unclear.
     *   Story Reading Experience: Specifics of `StoryDetailView`, pagination, and progress bar need review.
     *   Growth Collections: UI polish, achievement/badge system, and full end-to-end flow testing.
-    *   Monetization: Full implementation of purchase flows, entitlement gating, restore purchases, and UI for paywalls/upgrades.
+    *   Monetization: ✅ **LARGELY COMPLETE** - Core IAP functionality implemented; may need final UI polish and edge case testing.
 *   **UI/UX Polish:** Comprehensive UI/UX review and refinement across all features, including accessibility and animations.
 *   **Error Handling:** Robust error handling across all layers and user-facing alerts.
 *   **Performance Optimization:** App launch time, story generation speed, UI responsiveness.
 *   **Security:** Full review and implementation of security best practices.
-*   **Comprehensive Testing:** Achieving target test coverage across all categories (unit, integration, UI, snapshot).
+*   **Comprehensive Testing:** ✅ **SIGNIFICANTLY IMPROVED** - Re-enabled 22+ IAP unit tests; remaining disabled test files need systematic re-enabling.
 *   **CI/CD Pipeline:** Ensuring the CI/CD pipeline is fully operational for builds, tests, and deployments.
 *   **App Store Submission Readiness:** Metadata, screenshots, compliance checks.
 

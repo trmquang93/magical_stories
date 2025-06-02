@@ -82,6 +82,10 @@ struct HomeView: View {
             // Load child name from UserDefaults when the view appears
             childName = UserDefaults.standard.string(forKey: "childName") ?? ""
         }
+        .task {
+            // Load stories when view appears
+            await storyService.loadStoriesIfNeeded()
+        }
     }
 
     // Define an enum for navigation destinations - This local enum is no longer needed, AppDestination is global

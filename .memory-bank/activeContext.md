@@ -7,9 +7,39 @@ applyTo: '**'
 ## Current Work Focus
 ✅ **COMPLETED:** Major prompting system refactoring using TDD methodology to eliminate code duplication and improve maintainability.
 
-**UPCOMING:** Phase 2 enhancements (Combine integration, actor coordination) and comprehensive testing.
+✅ **COMPLETED:** IAP (In-App Purchase) documentation organization and test case management
+- All IAP-related documentation centralized in `documents/iap/` folder
+- Fixed test case numbering conflicts in manual test cases
+- Enhanced TransactionObserver testing coverage
+
+✅ **COMPLETED:** IAP Test Coverage Enhancement
+- Re-enabled EntitlementManagerTests.swift with 9 comprehensive test methods
+- Created PurchaseServiceTests.swift with 13 new test methods covering TC-004 to TC-007
+- Fixed SubscriptionIntegrationTests.swift with proper service integration testing
+- Resolved property access issues and mock service conflicts
+
+**UPCOMING:** Phase 2 enhancements (Combine integration, actor coordination) and systematic re-enabling of remaining disabled test files.
 
 ## Recent Changes
+- **📋 IAP Documentation & Testing Organization:**
+  - **Centralized IAP Documentation:** All IAP-related documentation moved to `documents/iap/` folder
+    - `IAP_MANUAL_TEST_CASES.md` - 31 comprehensive manual test cases (TC-001 to TC-031)
+    - `IAP_TESTS_SUCCESS_REPORT.md` - Test execution results and validation
+    - `IAP_UI_TESTS_IMPLEMENTATION_SUMMARY.md` - UI testing framework summary
+    - `IAP_UI_TESTS_VERIFICATION.md` - UI test verification procedures
+    - `IAP_UI_TEST_AUTOMATION_PLAN.md` - Automation strategy and planning
+    - `IAP_UI_TEST_DEMO.md` - Demo and example documentation
+    - `PURCHASE_DATE_EXPIRATION_IMPLEMENTATION.md` - Expiration date calculation details
+    - `verify_iap_implementation.md` - Implementation verification checklist
+  - **Fixed Test Case Numbering:** Resolved duplicate test case numbers in manual test documentation
+  - **Enhanced TransactionObserver Tests:** Added comprehensive unit tests for subscription transaction handling
+
+- **🧪 IAP Test Coverage Enhancement:**
+  - **Re-enabled EntitlementManagerTests.swift:** Fixed property access issues, 9 test methods covering subscription status and feature access
+  - **Created PurchaseServiceTests.swift:** Brand new file with 13 test methods covering purchase flows, cancellation, and failure handling (TC-004 to TC-007)
+  - **Fixed SubscriptionIntegrationTests.swift:** Resolved property assignment issues, updated method signatures for SubscriptionProduct pricing
+  - **Technical Fixes Applied:** Replaced direct property assignments with service method calls, fixed mock service conflicts, corrected StoreKit integration approach
+
 - **🎯 MAJOR: Prompting System Refactoring (Phase 1 Complete)**
   - **FluentPromptBuilder:** Implemented composable fluent API for type-safe prompt construction
     - Chainable methods: `.story()`, `.character()`, `.vocabulary()`, `.moral()`
@@ -36,6 +66,10 @@ applyTo: '**'
   - Removed deprecated keyboard handling extensions
 
 ## Next Steps
+- **Test Coverage Continuation:**
+  - Systematically re-enable remaining 40+ disabled test files
+  - Fix compilation and property access issues in disabled tests
+  - Maintain test coverage improvements for IAP and core functionality
 - **Phase 2 Implementation:**
   - Implement Combine-based event system for reactive prompt updates
   - Add actor-based prompt coordination for better concurrency

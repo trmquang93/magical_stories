@@ -3,6 +3,7 @@ import SwiftData
 /**
  Generic repository protocol for SwiftData persistence operations
  */
+@MainActor
 protocol Repository {
     associatedtype T: PersistentModel
     
@@ -32,6 +33,7 @@ protocol Repository {
 
 
 /// Base implementation of the Repository protocol using SwiftData's ModelContext
+@MainActor
 class BaseRepository<T: PersistentModel>: Repository {
     
     internal let modelContext: ModelContext
@@ -46,8 +48,8 @@ class BaseRepository<T: PersistentModel>: Repository {
     /// - Parameter descriptor: The descriptor defining what to fetch
     /// - Returns: An array of fetched entities
     func fetch(_ descriptor: FetchDescriptor<T>) async throws -> [T] {
-        // SwiftData context operations are often implicitly async or handled by the framework
-        try modelContext.fetch(descriptor)
+        // Simple direct access - let @MainActor handle thread safety
+        return try modelContext.fetch(descriptor)
     }
     
     /// Save an entity to the persistent store

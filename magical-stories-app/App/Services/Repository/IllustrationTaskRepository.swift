@@ -3,6 +3,7 @@ import SwiftData
 import OSLog
 
 /// Repository responsible for persisting and retrieving illustration tasks
+@MainActor
 class IllustrationTaskRepository: IllustrationTaskRepositoryProtocol {
     /// The model context for SwiftData operations
     private let modelContext: ModelContext

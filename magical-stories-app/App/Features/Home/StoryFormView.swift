@@ -6,6 +6,7 @@ struct StoryFormView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var storyService: StoryService
+    @EnvironmentObject private var entitlementManager: EntitlementManager
 
     // State Variables
     @State private var childName: String? = UserDefaults.standard.string(forKey: "childName")
@@ -17,6 +18,7 @@ struct StoryFormView: View {
     @State private var isGenerating = false
     @State private var error: Error?
     @State private var showError = false
+    @State private var showPaywall = false
     @State private var animateBackground = false
     @FocusState private var focusedField: FormField?
 
@@ -70,9 +72,18 @@ struct StoryFormView: View {
                     "We couldn't create your story: \(error.localizedDescription)\n\nPlease try again later."
                 )
             }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView(context: .usageLimitReached)
+            }
         }
         .accentColor(Color(hex: "#7B61FF"))
         .onAppear { withAnimation { animateBackground = true } }
+        .onChange(of: entitlementManager.subscriptionStatus) { oldStatus, newStatus in
+            // If user upgraded to premium while paywall was showing, dismiss it
+            if showPaywall && newStatus.isPremium {
+                showPaywall = false
+            }
+        }
     }
 
     // MARK: - View Components
@@ -230,8 +241,14 @@ struct StoryFormView: View {
                 }
             } catch {
                 await MainActor.run {
-                    self.error = error
-                    self.showError = true
+                    // Check if this is a usage limit error and show paywall instead of generic error
+                    if let storyError = error as? StoryServiceError,
+                       case .usageLimitReached = storyError {
+                        self.showPaywall = true
+                    } else {
+                        self.error = error
+                        self.showError = true
+                    }
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         self.isGenerating = false
                     }

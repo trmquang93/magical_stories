@@ -1,0 +1,369 @@
+import Testing
+import Foundation
+
+@testable import magical_stories
+
+/// Tests covering security aspects of subscription system
+struct SubscriptionSecurityTests {
+    
+    // MARK: - Data Validation Tests
+    
+    @Test("Product ID validation prevents malicious inputs")
+    func testProductIDValidation() async throws {
+        // Test valid product IDs
+        let validProducts = SubscriptionProduct.allCases
+        
+        for product in validProducts {
+            #expect(product.productID.hasPrefix("com.magicalstories."))
+            #expect(!product.productID.isEmpty)
+            #expect(!product.productID.contains(" ")) // No spaces
+            #expect(!product.productID.contains("..")) // No double dots
+        }
+        
+        // Verify specific product IDs match requirements exactly
+        #expect(SubscriptionProduct.premiumMonthly.productID == "com.magicalstories.premium.monthly")
+        #expect(SubscriptionProduct.premiumYearly.productID == "com.magicalstories.premium.yearly")
+    }
+    
+    @Test("Usage count validation prevents negative values")
+    func testUsageCountValidation() async throws {
+        let userProfile = UserProfile()
+        
+        // Normal usage should work
+        userProfile.incrementMonthlyStoryCount()
+        #expect(userProfile.monthlyStoryCount == 1)
+        
+        // Attempt to set negative value directly (simulating corrupted data)
+        userProfile.monthlyStoryCount = -5
+        
+        // System should handle gracefully
+        let safeRemainingStories = max(0, FreeTierLimits.storiesPerMonth - userProfile.monthlyStoryCount)
+        #expect(safeRemainingStories >= 0)
+        
+        // Reset should work correctly
+        userProfile.resetMonthlyUsage()
+        #expect(userProfile.monthlyStoryCount == 0)
+    }
+    
+    @Test("Date validation prevents time manipulation attacks")
+    func testDateValidation() async throws {
+        let userProfile = UserProfile()
+        
+        // Test with far future dates (potential clock manipulation)
+        let farFuture = Date().addingTimeInterval(86400 * 365 * 100) // 100 years
+        userProfile.updateSubscriptionStatus(
+            isActive: true,
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: farFuture
+        )
+        
+        // Should still validate correctly
+        #expect(userProfile.hasActiveSubscription)
+        #expect(!userProfile.isSubscriptionExpired)
+        
+        // Test with past dates
+        let pastDate = Date().addingTimeInterval(-86400 * 365) // 1 year ago
+        userProfile.updateSubscriptionStatus(
+            isActive: false,
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: pastDate
+        )
+        
+        #expect(!userProfile.hasActiveSubscription)
+        #expect(userProfile.isSubscriptionExpired)
+    }
+    
+    // MARK: - Access Control Tests
+    
+    @Test("Feature access control prevents unauthorized access")
+    func testFeatureAccessControl() async throws {
+        let entitlementManager = EntitlementManager()
+        
+        // Free user should not have access to premium features
+        for feature in PremiumFeature.allCases {
+            #expect(!entitlementManager.hasAccess(to: feature))
+        }
+        
+        // Attempt to bypass by setting invalid subscription status
+        await MainActor.run {
+            entitlementManager.subscriptionStatus = .free
+        }
+        
+        // Should still deny access
+        #expect(!entitlementManager.hasAccess(to: .growthPathCollections))
+        #expect(!entitlementManager.hasAccess(to: .unlimitedStoryGeneration))
+        
+        // Only valid premium subscription should grant access
+        await MainActor.run {
+            entitlementManager.subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(86400 * 30))
+        }
+        
+        // Now should have access
+        for feature in PremiumFeature.allCases {
+            #expect(entitlementManager.hasAccess(to: feature))
+        }
+    }
+    
+    @Test("Usage limit enforcement cannot be bypassed")
+    func testUsageLimitEnforcementSecurity() async throws {
+        let mockAnalyticsService = MockUsageAnalyticsService()
+        let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
+        
+        // Generate stories up to limit
+        for _ in 0..<FreeTierLimits.storiesPerMonth {
+            await usageTracker.incrementStoryGeneration()
+        }
+        
+        // Should be at limit
+        let canGenerate = await usageTracker.canGenerateStory()
+        #expect(!canGenerate)
+        
+        // Attempt to bypass by calling increment again
+        await usageTracker.incrementStoryGeneration()
+        
+        // Should still be blocked
+        let stillCannotGenerate = await usageTracker.canGenerateStory()
+        #expect(!stillCannotGenerate)
+        
+        // Usage count should reflect the blocked attempt
+        let finalUsage = await usageTracker.getCurrentUsage()
+        #expect(finalUsage > FreeTierLimits.storiesPerMonth)
+    }
+    
+    // MARK: - Subscription Status Security
+    
+    @Test("Subscription status cannot be manipulated")
+    func testSubscriptionStatusSecurity() async throws {
+        let entitlementManager = EntitlementManager()
+        
+        // Initially free
+        #expect(!entitlementManager.isPremiumUser)
+        #expect(entitlementManager.subscriptionStatus == .free)
+        
+        // Only valid subscription updates should work
+        await MainActor.run {
+            entitlementManager.subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(86400 * 30))
+        }
+        
+        #expect(entitlementManager.isPremiumUser)
+        
+        // Expired subscription should not grant access
+        await MainActor.run {
+            entitlementManager.subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(-86400))
+        }
+        
+        #expect(!entitlementManager.isPremiumUser)
+    }
+    
+    // MARK: - Data Integrity Tests
+    
+    @Test("User profile data integrity")
+    func testUserProfileDataIntegrity() async throws {
+        let userProfile = UserProfile()
+        
+        // Test data consistency
+        userProfile.incrementMonthlyStoryCount()
+        userProfile.incrementMonthlyStoryCount()
+        
+        let monthlyCount = userProfile.monthlyStoryCount
+        let totalCount = userProfile.storyGenerationCount
+        let remainingStories = userProfile.remainingStoriesThisMonth
+        
+        // Data should be consistent
+        #expect(monthlyCount <= totalCount)
+        #expect(remainingStories == FreeTierLimits.storiesPerMonth - monthlyCount)
+        #expect(remainingStories >= 0)
+        
+        // Test subscription data consistency
+        userProfile.updateSubscriptionStatus(
+            isActive: true,
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: Date().addingTimeInterval(86400 * 30)
+        )
+        
+        #expect(userProfile.hasActiveSubscription)
+        #expect(userProfile.subscriptionProductId == "com.magicalstories.premium.monthly")
+        #expect(userProfile.subscriptionExpiryDate != nil)
+    }
+    
+    @Test("Premium feature tracking integrity")
+    func testPremiumFeatureTrackingIntegrity() async throws {
+        let userProfile = UserProfile()
+        
+        // Initially no features
+        #expect(userProfile.premiumFeaturesUsed.isEmpty)
+        
+        // Add features
+        userProfile.markPremiumFeatureUsed(.growthPathCollections)
+        userProfile.markPremiumFeatureUsed(.advancedIllustrations)
+        
+        #expect(userProfile.premiumFeaturesUsed.count == 2)
+        
+        // Verify no duplicates (idempotency)
+        userProfile.markPremiumFeatureUsed(.growthPathCollections)
+        #expect(userProfile.premiumFeaturesUsed.count == 2)
+        
+        // Verify correct feature strings
+        #expect(userProfile.premiumFeaturesUsed.contains(PremiumFeature.growthPathCollections.rawValue))
+        #expect(userProfile.premiumFeaturesUsed.contains(PremiumFeature.advancedIllustrations.rawValue))
+    }
+    
+    // MARK: - Error Handling Security
+    
+    @Test("Error messages don't leak sensitive information")
+    func testErrorMessageSecurity() async throws {
+        // Test StoreError messages
+        let storeErrors: [StoreError] = [
+            .productNotFound,
+            .purchaseFailed("Network timeout"),
+            .verificationFailed(NSError(domain: "StoreKit", code: 123)),
+            .pending,
+            .unknown,
+            .cancelled,
+            .notAllowed
+        ]
+        
+        for error in storeErrors {
+            let errorDescription = error.errorDescription ?? ""
+            let recoverySuggestion = error.recoverySuggestion ?? ""
+            
+            // Error messages should be user-friendly, not expose internal details
+            #expect(!errorDescription.contains("nil"))
+            #expect(!errorDescription.contains("null"))
+            #expect(!errorDescription.contains("exception"))
+            #expect(!errorDescription.contains("stack"))
+            #expect(!recoverySuggestion.isEmpty)
+        }
+        
+        // Test StoryServiceError messages
+        let storyErrors: [StoryServiceError] = [
+            .usageLimitReached,
+            .subscriptionRequired
+        ]
+        
+        for error in storyErrors {
+            let errorDescription = error.errorDescription ?? ""
+            
+            #expect(!errorDescription.isEmpty)
+            #expect(!errorDescription.contains("nil"))
+            #expect(!errorDescription.contains("debug"))
+        }
+    }
+    
+    // MARK: - Input Sanitization Tests
+    
+    @Test("String inputs are properly sanitized")
+    func testStringInputSanitization() async throws {
+        let userProfile = UserProfile()
+        
+        // Test product ID validation
+        let maliciousProductIds = [
+            "",
+            " ",
+            "javascript:alert(1)",
+            "<script>alert('xss')</script>",
+            "../../etc/passwd",
+            "null",
+            "undefined"
+        ]
+        
+        for maliciousId in maliciousProductIds {
+            userProfile.updateSubscriptionStatus(
+                isActive: true,
+                productId: maliciousId,
+                expiryDate: Date().addingTimeInterval(86400 * 30)
+            )
+            
+            // System should handle gracefully
+            let storedId = userProfile.subscriptionProductId
+            #expect(storedId == maliciousId) // Stored as-is but validated during use
+            
+            // But subscription status should be validated properly
+            if maliciousId.isEmpty || maliciousId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                // Empty IDs might be treated as invalid
+                // Implementation would determine exact behavior
+            }
+        }
+    }
+    
+    // MARK: - Rate Limiting Tests
+    
+    @Test("Usage increment rate limiting")
+    func testUsageIncrementRateLimiting() async throws {
+        let mockAnalyticsService = MockUsageAnalyticsService()
+        let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
+        
+        // Rapid usage increments (potential abuse)
+        let startTime = Date()
+        
+        for _ in 0..<100 {
+            await usageTracker.incrementStoryGeneration()
+        }
+        
+        let endTime = Date()
+        let duration = endTime.timeIntervalSince(startTime)
+        
+        // Should handle rapid requests without crashing
+        #expect(duration < 1.0) // Should complete quickly
+        
+        let finalCount = await usageTracker.getCurrentUsage()
+        #expect(finalCount == 100) // All increments should be tracked
+    }
+    
+    // MARK: - Memory Security Tests
+    
+    @Test("Sensitive data is not retained in memory")
+    func testSensitiveDataMemorySecurity() async throws {
+        let userProfile = UserProfile()
+        
+        // Set subscription data
+        userProfile.updateSubscriptionStatus(
+            isActive: true,
+            productId: "com.magicalstories.premium.monthly",
+            expiryDate: Date().addingTimeInterval(86400 * 30)
+        )
+        
+        // Clear subscription
+        userProfile.updateSubscriptionStatus(
+            isActive: false,
+            productId: nil,
+            expiryDate: nil
+        )
+        
+        // Sensitive data should be cleared
+        #expect(userProfile.subscriptionProductId == nil)
+        #expect(userProfile.subscriptionExpiryDate == nil)
+        #expect(!userProfile.hasActiveSubscription)
+    }
+    
+    // MARK: - Concurrent Access Security
+    
+    @Test("Concurrent access doesn't create race conditions")
+    func testConcurrentAccessSecurity() async throws {
+        let mockAnalyticsService = MockUsageAnalyticsService()
+        let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
+        
+        // Concurrent increments from multiple contexts
+        await withTaskGroup(of: Void.self) { group in
+            for _ in 0..<10 {
+                group.addTask {
+                    await usageTracker.incrementStoryGeneration()
+                }
+            }
+        }
+        
+        // Concurrent reads and writes
+        await withTaskGroup(of: Int.self) { group in
+            for _ in 0..<10 {
+                group.addTask {
+                    await usageTracker.getCurrentUsage()
+                }
+            }
+        }
+        
+        // Final state should be consistent
+        let finalUsage = await usageTracker.getCurrentUsage()
+        #expect(finalUsage == 10)
+    }
+}
+

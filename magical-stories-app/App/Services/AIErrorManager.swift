@@ -190,6 +190,10 @@ enum AIError: Error, LocalizedError, Identifiable {
             return .resourceUnavailable("Story storage")
         case .networkError:
             return .networkError(NSError(domain: "StoryService", code: 0, userInfo: [NSLocalizedDescriptionKey: "Network connection error"]))
+        case .usageLimitReached:
+            return .resourceUnavailable("Monthly story limit reached")
+        case .subscriptionRequired:
+            return .resourceUnavailable("Premium subscription required")
         }
     }
 }

@@ -101,7 +101,7 @@ final class EnhancedPageView_Tests: XCTestCase {
         // Create PageViews for testing
         let pendingPageView = PageView(page: pendingPage)
         let generatingPageView = PageView(page: generatingPage)
-        let failedPageView = PageView(page: failedPage)
+        _ = PageView(page: failedPage)
         let readyPageView = PageView(page: readyPage)
 
         // Verify accessibility is correctly defined for each state
