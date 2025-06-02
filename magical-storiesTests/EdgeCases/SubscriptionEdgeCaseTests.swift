@@ -4,6 +4,67 @@ import Foundation
 
 @testable import magical_stories
 
+/// Testable EntitlementManager for edge case testing (avoiding StoreKit calls)
+@MainActor
+class TestableEntitlementManagerForEdgeCases: EntitlementManager {
+    
+    /// Private storage for test subscription status to override the parent's status
+    private var testSubscriptionStatus: SubscriptionStatus?
+    
+    /// Override init to prevent automatic entitlement checking
+    override init() {
+        super.init()
+        
+        // Set a recent timestamp to prevent checkInitialEntitlements from calling refreshEntitlementStatus
+        let userDefaults = UserDefaults.standard
+        userDefaults.set(Date(), forKey: "last_entitlement_check")
+    }
+    
+    /// Override to prevent StoreKit system dialog calls during testing
+    override func refreshEntitlementStatus() async {
+        let userDefaults = UserDefaults.standard
+        userDefaults.set(Date(), forKey: "last_entitlement_check")
+    }
+    
+    /// Override isPremiumUser to use test status when available
+    override var isPremiumUser: Bool {
+        if let testStatus = testSubscriptionStatus {
+            return testStatus.isPremium || hasLifetimeAccess
+        }
+        return super.isPremiumUser
+    }
+    
+    /// Override subscriptionStatus to use test status when available
+    override var subscriptionStatusText: String {
+        if let testStatus = testSubscriptionStatus {
+            if hasLifetimeAccess {
+                return "Lifetime Premium"
+            }
+            return testStatus.displayText
+        }
+        return super.subscriptionStatusText
+    }
+    
+    /// Test helper method to simulate premium subscription activation
+    func simulatePremiumUpgrade(productId: String, expiryDate: Date) {
+        if productId.contains("monthly") {
+            testSubscriptionStatus = .premiumMonthly(expiresAt: expiryDate)
+        } else if productId.contains("yearly") {
+            testSubscriptionStatus = .premiumYearly(expiresAt: expiryDate)
+        }
+    }
+    
+    /// Test helper method to simulate subscription expiration
+    func simulateSubscriptionExpiration() {
+        testSubscriptionStatus = .free
+    }
+    
+    /// Test helper method to set subscription status directly for edge case testing
+    func setTestSubscriptionStatus(_ status: SubscriptionStatus) {
+        testSubscriptionStatus = status
+    }
+}
+
 /// Tests covering edge cases and boundary conditions for subscription system
 @MainActor
 struct SubscriptionEdgeCaseTests {
@@ -34,13 +95,11 @@ struct SubscriptionEdgeCaseTests {
     
     @Test("Subscription expiration at exact moment")
     func testSubscriptionExpirationEdgeCase() async throws {
-        let entitlementManager = EntitlementManager()
+        let entitlementManager = TestableEntitlementManagerForEdgeCases()
         
         // Set subscription to expire in 1 second
         let nearExpiry = Date().addingTimeInterval(1)
-        await MainActor.run {
-            entitlementManager.subscriptionStatus = .premiumMonthly(expiresAt: nearExpiry)
-        }
+        entitlementManager.setTestSubscriptionStatus(.premiumMonthly(expiresAt: nearExpiry))
         
         // Should be premium now
         #expect(entitlementManager.isPremiumUser)
@@ -171,8 +230,8 @@ struct SubscriptionEdgeCaseTests {
     func testUsageLimitWithMidMonthUpgrade() async throws {
         let mockAnalyticsService = MockUsageAnalyticsService()
         let usageTracker = UsageTracker(usageAnalyticsService: mockAnalyticsService)
-        let entitlementManager = EntitlementManager()
-        entitlementManager.setUsageTracker(usageTracker)
+        let testableEntitlementManager = TestableEntitlementManagerForEdgeCases()
+        testableEntitlementManager.setUsageTracker(usageTracker)
         
         // Generate stories up to limit as free user
         for _ in 0..<FreeTierLimits.storiesPerMonth {
@@ -182,16 +241,14 @@ struct SubscriptionEdgeCaseTests {
         let canGenerateAsFree = await usageTracker.canGenerateStory()
         #expect(!canGenerateAsFree)
         
-        // Upgrade to premium mid-month
-        await MainActor.run {
-            entitlementManager.subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(86400 * 30))
-        }
+        // Upgrade to premium mid-month using test helper
+        testableEntitlementManager.setTestSubscriptionStatus(.premiumMonthly(expiresAt: Date().addingTimeInterval(86400 * 30)))
         
         // Should now be able to generate unlimited stories
-        let canGenerateAsPremium = await entitlementManager.canGenerateStory()
+        let canGenerateAsPremium = await testableEntitlementManager.canGenerateStory()
         #expect(canGenerateAsPremium)
         
-        let remainingAsPremium = await entitlementManager.getRemainingStories()
+        let remainingAsPremium = await testableEntitlementManager.getRemainingStories()
         #expect(remainingAsPremium == Int.max) // Unlimited
     }
     
@@ -246,39 +303,35 @@ struct SubscriptionEdgeCaseTests {
     
     @Test("Premium feature access immediately after subscription")
     func testPremiumFeatureAccessAfterSubscription() async throws {
-        let entitlementManager = EntitlementManager()
+        let testableEntitlementManager = TestableEntitlementManagerForEdgeCases()
         
         // Initially free user
-        #expect(!entitlementManager.hasAccess(to: .growthPathCollections))
-        #expect(!entitlementManager.hasAccess(to: .unlimitedStoryGeneration))
+        #expect(!testableEntitlementManager.hasAccess(to: .growthPathCollections))
+        #expect(!testableEntitlementManager.hasAccess(to: .unlimitedStoryGeneration))
         
-        // Upgrade to premium
-        await MainActor.run {
-            entitlementManager.subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(86400 * 30))
-        }
+        // Upgrade to premium using test helper
+        testableEntitlementManager.setTestSubscriptionStatus(.premiumMonthly(expiresAt: Date().addingTimeInterval(86400 * 30)))
         
         // Should immediately have access to all premium features
         for feature in PremiumFeature.allCases {
-            #expect(entitlementManager.hasAccess(to: feature))
+            #expect(testableEntitlementManager.hasAccess(to: feature))
         }
     }
     
     @Test("Premium feature access immediately after subscription expiry")
     func testPremiumFeatureAccessAfterExpiry() async throws {
-        let entitlementManager = EntitlementManager()
+        let testableEntitlementManager = TestableEntitlementManagerForEdgeCases()
         
-        // Set up expired subscription
+        // Set up expired subscription using test helper
         let expiredDate = Date().addingTimeInterval(-86400) // Yesterday
-        await MainActor.run {
-            entitlementManager.subscriptionStatus = .premiumMonthly(expiresAt: expiredDate)
-        }
+        testableEntitlementManager.setTestSubscriptionStatus(.premiumMonthly(expiresAt: expiredDate))
         
         // Should not have access to any premium features
         for feature in PremiumFeature.allCases {
-            #expect(!entitlementManager.hasAccess(to: feature))
+            #expect(!testableEntitlementManager.hasAccess(to: feature))
         }
         
-        #expect(!entitlementManager.isPremiumUser)
+        #expect(!testableEntitlementManager.isPremiumUser)
     }
     
     // MARK: - Error Recovery Tests

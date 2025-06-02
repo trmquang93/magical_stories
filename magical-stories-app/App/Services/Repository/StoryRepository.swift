@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 
 /// Repository for Story-specific operations, handling Story persistence and relationships.
+@MainActor
 class StoryRepository: BaseRepository<Story> {
 
     /// Initialize with a ModelContext

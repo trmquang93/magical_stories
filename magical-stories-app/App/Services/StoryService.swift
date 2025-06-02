@@ -124,10 +124,8 @@ class StoryService: ObservableObject {
                 generativeModel: illustrationDescriptionModel
             )
 
-        // Task must be after all properties are initialized
-        Task {
-            await loadStories()
-        }
+        // Don't load stories in initializer to avoid threading issues
+        // Stories will be loaded when first accessed via loadStoriesIfNeeded()
     }
 
     // Enhanced generateStory method with collection context support
@@ -201,6 +199,9 @@ class StoryService: ObservableObject {
             // Increment usage count after successful generation
             await entitlementManager?.incrementUsageCount()
             
+            // Ensure stories are loaded before modifying the collection
+            await loadStoriesIfNeeded()
+            
             if !stories.contains(where: { $0.id == story.id }) {
                 stories.insert(story, at: 0)
             }
@@ -242,6 +243,15 @@ class StoryService: ObservableObject {
         )
     }
 
+    private var hasLoadedStories = false
+    
+    // Load stories on demand to avoid threading issues during initialization
+    func loadStoriesIfNeeded() async {
+        guard !hasLoadedStories else { return }
+        await loadStories()
+        hasLoadedStories = true
+    }
+    
     func loadStories() async {
         do {
             let loadedStories = try await persistenceService.loadStories()

@@ -89,6 +89,10 @@ struct LibraryView: View {
             }
         }
         .background(UITheme.Colors.background.ignoresSafeArea())
+        .task {
+            // Load stories when view appears
+            await storyService.loadStoriesIfNeeded()
+        }
         .alert(
             "Delete Failed", isPresented: $showDeleteError,
             actions: {

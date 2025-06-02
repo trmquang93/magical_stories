@@ -203,7 +203,7 @@ extension MainTabView {
         )
 
         Task {
-            await storyService.loadStories()
+            await storyService.loadStoriesIfNeeded()
             if storyService.stories.isEmpty {
                 // Inject mock stories for preview
                 let mockStories = [
@@ -214,15 +214,18 @@ extension MainTabView {
                 for story in mockStories {
                     try? await persistenceService.saveStory(story)
                 }
-                await storyService.loadStories()
+                await storyService.loadStoriesIfNeeded()
             }
         }
 
+        let appRouter = AppRouter()
+        
         return MainTabView(selectedTab: .constant(.home))
             .modelContainer(container)
             .environmentObject(settingsService)
             .environmentObject(storyService)
             .environmentObject(collectionService)
+            .environmentObject(appRouter)
     }
 }
 

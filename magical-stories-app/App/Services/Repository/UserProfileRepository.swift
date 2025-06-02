@@ -3,6 +3,7 @@ import SwiftData
 
 /// Repository specifically for managing the UserProfile entity.
 /// Assumes a single UserProfile instance exists in the data store.
+@MainActor
 class UserProfileRepository: BaseRepository<UserProfile> {
 
     /// Fetches the single UserProfile instance from the data store.

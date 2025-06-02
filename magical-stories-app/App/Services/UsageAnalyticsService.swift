@@ -35,9 +35,7 @@ class UsageAnalyticsService: UsageAnalyticsServiceProtocol {
         userProfileRepository: UserProfileRepository
     ) {
         self.userProfileRepository = userProfileRepository
-        Task {
-            await loadProfileIntoCache()
-        }
+        // Don't load profile during init - defer until first access
     }
 
     private func loadProfileIntoCache() async {
