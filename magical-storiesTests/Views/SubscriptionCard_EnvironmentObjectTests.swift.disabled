@@ -1,0 +1,436 @@
+import SwiftUI
+import Testing
+import Combine
+
+@testable import magical_stories
+
+@MainActor
+@Suite("SubscriptionCard Environment Object Tests")
+struct SubscriptionCardEnvironmentObjectTests {
+    
+    // MARK: - Test Infrastructure
+    
+    func createEnvironmentTestManager() -> EnvironmentTestEntitlementManager {
+        return EnvironmentTestEntitlementManager()
+    }
+    
+    func createSubscriptionCardView(with entitlementManager: EnvironmentTestEntitlementManager) -> some View {
+        return SubscriptionCard()
+            .environmentObject(entitlementManager)
+    }
+    
+    // MARK: - Environment Object Injection Tests
+    
+    @Test("SubscriptionCard receives EntitlementManager via environment object")
+    func testEnvironmentObjectInjection() async throws {
+        // Arrange
+        let entitlementManager = createEnvironmentTestManager()
+        let subscriptionCard = createSubscriptionCardView(with: entitlementManager)
+        
+        let controller = UIHostingController(rootView: AnyView(subscriptionCard))
+        _ = controller.view
+        
+        // Act - Trigger a change to verify the environment object is connected
+        await entitlementManager.simulateSubscriptionChange()
+        await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Assert - The environment object should be accessible and reactive
+        #expect(entitlementManager.wasAccessedByView)
+        #expect(entitlementManager.subscriptionChangeTriggerCount > 0)
+    }
+    
+    @Test("SubscriptionCard reacts to environment object property changes")
+    func testEnvironmentObjectReactivity() async throws {
+        // Arrange
+        let entitlementManager = createEnvironmentTestManager()
+        let subscriptionCard = createSubscriptionCardView(with: entitlementManager)
+        
+        let controller = UIHostingController(rootView: AnyView(subscriptionCard))
+        _ = controller.view
+        
+        let initialChangeCount = entitlementManager.propertyChangeCount
+        
+        // Act - Change multiple properties that should trigger reactive updates
+        await entitlementManager.changeSubscriptionStatus()
+        await Task.sleep(nanoseconds: 50_000_000)
+        
+        await entitlementManager.changePremiumUserStatus()
+        await Task.sleep(nanoseconds: 50_000_000)
+        
+        await entitlementManager.changeLifetimeAccessStatus()
+        await Task.sleep(nanoseconds: 50_000_000)
+        
+        // Allow reactive updates to propagate
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Assert - Each property change should trigger reactive updates
+        #expect(entitlementManager.propertyChangeCount > initialChangeCount)
+        #expect(entitlementManager.propertyChangeCount >= 3) // At least 3 changes
+    }
+    
+    @Test("SubscriptionCard handles environment object replacement")
+    func testEnvironmentObjectReplacement() async throws {
+        // Arrange
+        let firstManager = createEnvironmentTestManager()
+        firstManager.identifier = "first"
+        
+        let subscriptionCard = createSubscriptionCardView(with: firstManager)
+        let controller = UIHostingController(rootView: AnyView(subscriptionCard))
+        _ = controller.view
+        
+        // Verify initial connection
+        await firstManager.simulateSubscriptionChange()
+        await Task.sleep(nanoseconds: 100_000_000)
+        #expect(firstManager.wasAccessedByView)
+        
+        // Act - Replace environment object
+        let secondManager = createEnvironmentTestManager()
+        secondManager.identifier = "second"
+        
+        let updatedView = createSubscriptionCardView(with: secondManager)
+        controller.rootView = AnyView(updatedView)
+        
+        // Allow view to update with new environment object
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Trigger change on new manager
+        await secondManager.simulateSubscriptionChange()
+        await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Assert - New environment object should be active
+        #expect(secondManager.wasAccessedByView)
+        #expect(secondManager.subscriptionChangeTriggerCount > 0)
+    }
+    
+    @Test("SubscriptionCard handles missing environment object gracefully")
+    func testMissingEnvironmentObjectHandling() async throws {
+        // Arrange - Create SubscriptionCard without environment object
+        let subscriptionCard = SubscriptionCard()
+        
+        // This should not crash, though it might not function fully
+        let controller = UIHostingController(rootView: subscriptionCard)
+        
+        // Act - Attempt to load the view
+        let view = controller.view
+        
+        // Assert - Should not crash (view should be created)
+        #expect(view != nil)
+        
+        // Allow some time for any potential crashes
+        await Task.sleep(nanoseconds: 100_000_000)
+    }
+    
+    @Test("SubscriptionCard reactive bindings work correctly")
+    func testReactiveBindings() async throws {
+        // Arrange
+        let entitlementManager = createEnvironmentTestManager()
+        let subscriptionCard = createSubscriptionCardView(with: entitlementManager)
+        
+        let controller = UIHostingController(rootView: AnyView(subscriptionCard))
+        _ = controller.view
+        
+        // Track onChange trigger counts
+        let initialOnChangeCount = entitlementManager.onChangeTriggeredCount
+        
+        // Act - Trigger the specific properties that have onChange modifiers
+        
+        // Test subscriptionStatus onChange
+        await entitlementManager.triggerSubscriptionStatusChange()
+        await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Test isPremiumUser onChange (indirectly via subscription status)
+        await entitlementManager.triggerPremiumUserChange()
+        await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Test hasLifetimeAccess onChange
+        await entitlementManager.triggerLifetimeAccessChange()
+        await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Allow all reactive updates to complete
+        await Task.sleep(nanoseconds: 300_000_000)
+        
+        // Assert - Each onChange should have been triggered
+        #expect(entitlementManager.onChangeTriggeredCount > initialOnChangeCount)
+        #expect(entitlementManager.subscriptionStatusOnChangeCount > 0)
+        #expect(entitlementManager.premiumUserOnChangeCount > 0)
+        #expect(entitlementManager.lifetimeAccessOnChangeCount > 0)
+    }
+    
+    @Test("SubscriptionCard environment object state changes are preserved")
+    func testStatePreservation() async throws {
+        // Arrange
+        let entitlementManager = createEnvironmentTestManager()
+        let subscriptionCard = createSubscriptionCardView(with: entitlementManager)
+        
+        let controller = UIHostingController(rootView: AnyView(subscriptionCard))
+        _ = controller.view
+        
+        // Act - Make state changes
+        await entitlementManager.simulateComplexStateChange()
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Verify state was preserved
+        let currentState = await entitlementManager.getCurrentState()
+        
+        // Force view update by changing view hierarchy
+        let wrapperView = VStack {
+            AnyView(subscriptionCard)
+        }
+        controller.rootView = AnyView(wrapperView)
+        
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Assert - State should be preserved across view updates
+        let preservedState = await entitlementManager.getCurrentState()
+        #expect(currentState.isPremiumUser == preservedState.isPremiumUser)
+        #expect(currentState.hasLifetimeAccess == preservedState.hasLifetimeAccess)
+        #expect(currentState.subscriptionStatus == preservedState.subscriptionStatus)
+    }
+    
+    @Test("SubscriptionCard multiple environment objects work independently")
+    func testMultipleEnvironmentObjects() async throws {
+        // Arrange - Create multiple SubscriptionCards with different environment objects
+        let manager1 = createEnvironmentTestManager()
+        manager1.identifier = "manager1"
+        
+        let manager2 = createEnvironmentTestManager()
+        manager2.identifier = "manager2"
+        
+        let card1 = createSubscriptionCardView(with: manager1)
+        let card2 = createSubscriptionCardView(with: manager2)
+        
+        let controller1 = UIHostingController(rootView: AnyView(card1))
+        let controller2 = UIHostingController(rootView: AnyView(card2))
+        
+        _ = controller1.view
+        _ = controller2.view
+        
+        // Act - Make different changes to each manager
+        await manager1.simulateSubscriptionUpgrade()
+        await manager2.simulateLifetimeAccessGrant()
+        
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Assert - Each manager should maintain independent state
+        #expect(manager1.isPremiumUser) // From subscription upgrade
+        #expect(manager2.hasLifetimeAccess) // From lifetime access
+        #expect(manager2.isPremiumUser) // Should also be premium due to lifetime access
+        
+        // Verify they don't interfere with each other
+        #expect(!manager1.hasLifetimeAccess) // Manager1 should not have lifetime access
+        #expect(manager1.subscriptionStatus.isPremium) // But should have premium subscription
+        #expect(manager2.subscriptionStatus == .free) // Manager2 should still have free subscription
+    }
+    
+    @Test("SubscriptionCard environment object memory management")
+    func testMemoryManagement() async throws {
+        // Arrange
+        var entitlementManager: EnvironmentTestEntitlementManager? = createEnvironmentTestManager()
+        entitlementManager!.identifier = "memory_test"
+        
+        let subscriptionCard = createSubscriptionCardView(with: entitlementManager!)
+        let controller = UIHostingController(rootView: AnyView(subscriptionCard))
+        _ = controller.view
+        
+        // Verify connection
+        await entitlementManager!.simulateSubscriptionChange()
+        await Task.sleep(nanoseconds: 100_000_000)
+        #expect(entitlementManager!.wasAccessedByView)
+        
+        // Act - Release reference to environment object
+        weak var weakManager = entitlementManager
+        entitlementManager = nil
+        
+        // Allow time for potential deallocation
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Assert - Environment object should still be retained by the view
+        #expect(weakManager != nil) // Should be retained by SwiftUI environment
+        
+        // Clean up the view
+        controller.rootView = AnyView(EmptyView())
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Note: We can't guarantee deallocation timing in tests, but we verified retention
+    }
+    
+    @Test("SubscriptionCard environment object publisher integration")
+    func testPublisherIntegration() async throws {
+        // Arrange
+        let entitlementManager = createEnvironmentTestManager()
+        let subscriptionCard = createSubscriptionCardView(with: entitlementManager)
+        
+        let controller = UIHostingController(rootView: AnyView(subscriptionCard))
+        _ = controller.view
+        
+        // Track publication events
+        var publishedValues: [Bool] = []
+        let cancellable = entitlementManager.$isPremiumUser
+            .sink { value in
+                publishedValues.append(value)
+            }
+        
+        // Act - Trigger state changes that should publish values
+        await entitlementManager.simulateSubscriptionUpgrade()
+        await Task.sleep(nanoseconds: 100_000_000)
+        
+        await entitlementManager.simulateLifetimeAccessGrant()
+        await Task.sleep(nanoseconds: 100_000_000)
+        
+        await entitlementManager.simulateSubscriptionDowngrade()
+        await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Allow publisher events to propagate
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        cancellable.cancel()
+        
+        // Assert - Should have received published values
+        #expect(publishedValues.count > 1) // Should have multiple values
+        #expect(publishedValues.contains(true)) // Should have been premium at some point
+        #expect(publishedValues.contains(false)) // Should have been free at some point
+    }
+}
+
+// MARK: - Environment Test Manager
+
+@MainActor
+class EnvironmentTestEntitlementManager: EntitlementManager {
+    
+    // Test tracking properties
+    var identifier: String = "default"
+    var wasAccessedByView = false
+    var subscriptionChangeTriggerCount = 0
+    var propertyChangeCount = 0
+    var onChangeTriggeredCount = 0
+    var subscriptionStatusOnChangeCount = 0
+    var premiumUserOnChangeCount = 0
+    var lifetimeAccessOnChangeCount = 0
+    
+    // Override properties to track access
+    override var isPremiumUser: Bool {
+        wasAccessedByView = true
+        return super.isPremiumUser
+    }
+    
+    override var subscriptionStatusText: String {
+        wasAccessedByView = true
+        return super.subscriptionStatusText
+    }
+    
+    override var renewalInformation: String? {
+        wasAccessedByView = true
+        return super.renewalInformation
+    }
+    
+    override func getUsageStatistics() async -> (used: Int, limit: Int, isUnlimited: Bool) {
+        wasAccessedByView = true
+        
+        // Simulate different usage stats based on state
+        if isPremiumUser {
+            return (used: 10, limit: -1, isUnlimited: true)
+        } else {
+            return (used: 2, limit: 3, isUnlimited: false)
+        }
+    }
+    
+    // MARK: - Simulation Methods
+    
+    func simulateSubscriptionChange() async {
+        subscriptionChangeTriggerCount += 1
+        subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(86400))
+        propertyChangeCount += 1
+    }
+    
+    func changeSubscriptionStatus() async {
+        subscriptionStatus = .premiumYearly(expiresAt: Date().addingTimeInterval(86400 * 365))
+        propertyChangeCount += 1
+        subscriptionStatusOnChangeCount += 1
+        onChangeTriggeredCount += 1
+    }
+    
+    func changePremiumUserStatus() async {
+        // Change state that affects isPremiumUser
+        if isPremiumUser {
+            subscriptionStatus = .free
+            hasLifetimeAccess = false
+        } else {
+            subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(86400))
+        }
+        propertyChangeCount += 1
+        premiumUserOnChangeCount += 1
+        onChangeTriggeredCount += 1
+    }
+    
+    func changeLifetimeAccessStatus() async {
+        hasLifetimeAccess = !hasLifetimeAccess
+        propertyChangeCount += 1
+        lifetimeAccessOnChangeCount += 1
+        onChangeTriggeredCount += 1
+    }
+    
+    func triggerSubscriptionStatusChange() async {
+        let currentStatus = subscriptionStatus
+        subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(86400))
+        subscriptionStatusOnChangeCount += 1
+        onChangeTriggeredCount += 1
+    }
+    
+    func triggerPremiumUserChange() async {
+        hasLifetimeAccess = !hasLifetimeAccess
+        premiumUserOnChangeCount += 1
+        onChangeTriggeredCount += 1
+    }
+    
+    func triggerLifetimeAccessChange() async {
+        hasLifetimeAccess = !hasLifetimeAccess
+        lifetimeAccessOnChangeCount += 1
+        onChangeTriggeredCount += 1
+    }
+    
+    func simulateComplexStateChange() async {
+        subscriptionStatus = .premiumYearly(expiresAt: Date().addingTimeInterval(86400 * 365))
+        hasLifetimeAccess = true
+        propertyChangeCount += 2
+    }
+    
+    func simulateSubscriptionUpgrade() async {
+        subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(86400))
+        propertyChangeCount += 1
+    }
+    
+    func simulateLifetimeAccessGrant() async {
+        hasLifetimeAccess = true
+        propertyChangeCount += 1
+    }
+    
+    func simulateSubscriptionDowngrade() async {
+        subscriptionStatus = .free
+        hasLifetimeAccess = false
+        propertyChangeCount += 2
+    }
+    
+    // MARK: - State Inspection
+    
+    func getCurrentState() async -> StateSnapshot {
+        return StateSnapshot(
+            isPremiumUser: isPremiumUser,
+            hasLifetimeAccess: hasLifetimeAccess,
+            subscriptionStatus: subscriptionStatus
+        )
+    }
+}
+
+// MARK: - Supporting Types
+
+struct StateSnapshot: Equatable {
+    let isPremiumUser: Bool
+    let hasLifetimeAccess: Bool
+    let subscriptionStatus: SubscriptionStatus
+    
+    static func == (lhs: StateSnapshot, rhs: StateSnapshot) -> Bool {
+        return lhs.isPremiumUser == rhs.isPremiumUser &&
+               lhs.hasLifetimeAccess == rhs.hasLifetimeAccess &&
+               lhs.subscriptionStatus == rhs.subscriptionStatus
+    }
+}

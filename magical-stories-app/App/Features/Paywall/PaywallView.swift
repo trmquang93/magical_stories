@@ -275,7 +275,9 @@ struct PaywallView: View {
             do {
                 let success = try await purchaseService.purchase(product)
                 if success {
-                    // Purchase successful, dismiss paywall
+                    // Purchase successful - wait briefly for transaction processing then dismiss
+                    // The TransactionObserver will handle updating EntitlementManager
+                    try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
                     await MainActor.run {
                         dismiss()
                     }

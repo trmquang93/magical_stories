@@ -109,6 +109,9 @@ class TransactionObserver: ObservableObject {
             return
         }
         
+        logger.info("[TRANSACTION_OBSERVER] About to calculate expiration date for transaction: \(transaction.id)")
+        logger.info("[TRANSACTION_OBSERVER] Transaction purchase date: \(transaction.purchaseDate)")
+        
         // Calculate proper expiration date using purchase date + subscription period
         let calculatedExpirationDate = await calculateExpirationDate(
             for: transaction,
@@ -116,11 +119,12 @@ class TransactionObserver: ObservableObject {
         )
         
         guard let expirationDate = calculatedExpirationDate else {
-            logger.warning("Could not calculate expiration date for transaction: \(transaction.id)")
+            logger.error("[TRANSACTION_OBSERVER] CRITICAL: Could not calculate expiration date for transaction: \(transaction.id)")
             return
         }
         
-        logger.info("Calculated expiration date: \(expirationDate) for transaction: \(transaction.id)")
+        logger.info("[TRANSACTION_OBSERVER] Successfully calculated expiration date: \(expirationDate) for transaction: \(transaction.id)")
+        logger.info("[TRANSACTION_OBSERVER] Time until expiration: \(expirationDate.timeIntervalSince(Date())) seconds")
         
         // Update entitlements with calculated expiration
         await entitlementManager?.updateEntitlement(
@@ -175,13 +179,18 @@ class TransactionObserver: ObservableObject {
             // This transaction is for the regular subscription period
             let regularPeriodText = formatSubscriptionPeriod(subscription.subscriptionPeriod)
             let regularExpirationDate = addSubscriptionPeriod(subscription.subscriptionPeriod, to: purchaseDate)
-            logger.info("Transaction is for regular period (\(regularPeriodText)): \(regularExpirationDate ?? Date())")
+            logger.info("[EXPIRATION_CALC] Transaction is for regular period (\(regularPeriodText))")
+            logger.info("[EXPIRATION_CALC] Purchase date: \(purchaseDate)")
+            logger.info("[EXPIRATION_CALC] Calculated expiration: \(regularExpirationDate ?? Date())")
+            logger.info("[EXPIRATION_CALC] Time from purchase to expiration: \(regularExpirationDate?.timeIntervalSince(purchaseDate) ?? 0) seconds")
             
             return regularExpirationDate
         } else {
-            logger.warning("No StoreKit product found, using fallback calculation")
+            logger.warning("[EXPIRATION_CALC] No StoreKit product found, using fallback calculation")
+            let fallbackExpiration = addDefaultPeriod(for: subscriptionProduct, to: transaction.purchaseDate)
+            logger.info("[EXPIRATION_CALC] Fallback expiration: \(fallbackExpiration ?? Date())")
             // Fallback to default periods if StoreKit product not available
-            return addDefaultPeriod(for: subscriptionProduct, to: transaction.purchaseDate)
+            return fallbackExpiration
         }
     }
     

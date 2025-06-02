@@ -1,0 +1,379 @@
+import SwiftUI
+import Testing
+import Combine
+
+@testable import magical_stories
+
+@MainActor
+@Suite("SubscriptionCard Usage Statistics Update Tests")
+struct SubscriptionCardUsageStatsUpdateTests {
+    
+    // MARK: - Test Infrastructure
+    
+    func createUsageStatsTestManager() -> UsageStatsTestEntitlementManager {
+        return UsageStatsTestEntitlementManager()
+    }
+    
+    func createMockUsageTracker() -> MockDetailedUsageTracker {
+        let mockAnalytics = MockUsageAnalyticsService()
+        return MockDetailedUsageTracker(usageAnalyticsService: mockAnalytics)
+    }
+    
+    func setupSubscriptionCardWithUsageTracking() -> (UIHostingController<some View>, UsageStatsTestEntitlementManager, MockDetailedUsageTracker) {
+        let entitlementManager = createUsageStatsTestManager()
+        let usageTracker = createMockUsageTracker()
+        
+        entitlementManager.setUsageTracker(usageTracker)
+        entitlementManager.setUsageAnalyticsService(usageTracker.usageAnalyticsService as! MockUsageAnalyticsService)
+        
+        let subscriptionCard = SubscriptionCard()
+            .environmentObject(entitlementManager)
+        
+        let controller = UIHostingController(rootView: subscriptionCard)
+        _ = controller.view
+        
+        return (controller, entitlementManager, usageTracker)
+    }
+    
+    // MARK: - Usage Statistics Update Tests
+    
+    @Test("Usage statistics update when subscription status changes")
+    func testUsageStatsUpdateOnSubscriptionStatusChange() async throws {
+        // Arrange
+        let (controller, entitlementManager, usageTracker) = setupSubscriptionCardWithUsageTracking()
+        
+        // Set initial free user usage
+        await usageTracker.incrementStoryGeneration()
+        await usageTracker.incrementStoryGeneration()
+        
+        let initialStats = await entitlementManager.getUsageStatistics()
+        #expect(initialStats.used == 2)
+        #expect(!initialStats.isUnlimited)
+        #expect(initialStats.limit == 3) // Default free limit
+        
+        let initialLoadCount = entitlementManager.usageStatsLoadCount
+        
+        // Act - Change subscription status to premium
+        await entitlementManager.simulateSubscriptionUpgrade(to: .premiumMonthly(expiresAt: Date().addingTimeInterval(86400)))
+        
+        // Allow reactive updates to propagate
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Assert - Usage stats should be updated
+        #expect(entitlementManager.usageStatsLoadCount > initialLoadCount)
+        
+        let updatedStats = await entitlementManager.getUsageStatistics()
+        #expect(updatedStats.isUnlimited)
+        #expect(updatedStats.limit == -1) // Unlimited
+        
+        // Usage count should still be tracked but limit is unlimited
+        #expect(updatedStats.used >= 2)
+    }
+    
+    @Test("Usage statistics update when isPremiumUser changes")
+    func testUsageStatsUpdateOnPremiumUserChange() async throws {
+        // Arrange
+        let (controller, entitlementManager, usageTracker) = setupSubscriptionCardWithUsageTracking()
+        
+        await usageTracker.incrementStoryGeneration()
+        let initialLoadCount = entitlementManager.usageStatsLoadCount
+        
+        // Act - Trigger isPremiumUser change via lifetime access
+        await entitlementManager.simulateLifetimeAccessGrant()
+        
+        // Allow reactive updates
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Assert - Usage stats should update due to isPremiumUser change
+        #expect(entitlementManager.usageStatsLoadCount > initialLoadCount)
+        #expect(entitlementManager.isPremiumUser)
+        
+        let stats = await entitlementManager.getUsageStatistics()
+        #expect(stats.isUnlimited)
+    }
+    
+    @Test("Usage statistics update when hasLifetimeAccess changes")
+    func testUsageStatsUpdateOnLifetimeAccessChange() async throws {
+        // Arrange
+        let (controller, entitlementManager, usageTracker) = setupSubscriptionCardWithUsageTracking()
+        
+        let initialLoadCount = entitlementManager.usageStatsLoadCount
+        
+        // Act - Grant lifetime access
+        await entitlementManager.simulateLifetimeAccessGrant()
+        
+        // Allow reactive updates
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Assert - Usage stats should update
+        #expect(entitlementManager.usageStatsLoadCount > initialLoadCount)
+        #expect(entitlementManager.hasLifetimeAccess)
+        
+        let stats = await entitlementManager.getUsageStatistics()
+        #expect(stats.isUnlimited)
+        
+        // Test revocation
+        let preRevocationLoadCount = entitlementManager.usageStatsLoadCount
+        await entitlementManager.simulateLifetimeAccessRevoke()
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        #expect(entitlementManager.usageStatsLoadCount > preRevocationLoadCount)
+        
+        let revokedStats = await entitlementManager.getUsageStatistics()
+        #expect(!revokedStats.isUnlimited)
+    }
+    
+    @Test("Usage statistics accuracy across subscription transitions")
+    func testUsageStatsAccuracyAcrossTransitions() async throws {
+        // Arrange
+        let (controller, entitlementManager, usageTracker) = setupSubscriptionCardWithUsageTracking()
+        
+        // Set up initial usage as free user
+        await usageTracker.incrementStoryGeneration()
+        await usageTracker.incrementStoryGeneration()
+        await usageTracker.incrementStoryGeneration() // At limit
+        
+        let freeStats = await entitlementManager.getUsageStatistics()
+        #expect(freeStats.used == 3)
+        #expect(freeStats.limit == 3)
+        #expect(!freeStats.isUnlimited)
+        
+        // Upgrade to premium
+        await entitlementManager.simulateSubscriptionUpgrade(to: .premiumYearly(expiresAt: Date().addingTimeInterval(86400 * 365)))
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        let premiumStats = await entitlementManager.getUsageStatistics()
+        #expect(premiumStats.isUnlimited)
+        #expect(premiumStats.used >= 0) // Usage may be reset or preserved
+        
+        // Add more usage as premium user
+        await usageTracker.incrementStoryGeneration()
+        await usageTracker.incrementStoryGeneration()
+        
+        let extendedPremiumStats = await entitlementManager.getUsageStatistics()
+        #expect(extendedPremiumStats.isUnlimited)
+        #expect(extendedPremiumStats.used >= 2)
+        
+        // Downgrade back to free
+        await entitlementManager.simulateSubscriptionDowngrade()
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        let downgradeStats = await entitlementManager.getUsageStatistics()
+        #expect(!downgradeStats.isUnlimited)
+        #expect(downgradeStats.limit == 3)
+        #expect(downgradeStats.used >= 0)
+    }
+    
+    @Test("Usage statistics update frequency is appropriate")
+    func testUsageStatsUpdateFrequency() async throws {
+        // Arrange
+        let (controller, entitlementManager, usageTracker) = setupSubscriptionCardWithUsageTracking()
+        let initialLoadCount = entitlementManager.usageStatsLoadCount
+        
+        // Act - Perform multiple subscription changes
+        await entitlementManager.simulateSubscriptionUpgrade(to: .premiumMonthly(expiresAt: Date().addingTimeInterval(86400)))
+        await Task.sleep(nanoseconds: 100_000_000)
+        
+        await entitlementManager.simulateLifetimeAccessGrant()
+        await Task.sleep(nanoseconds: 100_000_000)
+        
+        await entitlementManager.simulateSubscriptionDowngrade()
+        await Task.sleep(nanoseconds: 100_000_000)
+        
+        await entitlementManager.simulateLifetimeAccessRevoke()
+        await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Assert - Usage stats should be loaded for each change plus initial load
+        let finalLoadCount = entitlementManager.usageStatsLoadCount
+        let expectedMinimumLoads = initialLoadCount + 4 // One for each subscription change
+        
+        #expect(finalLoadCount >= expectedMinimumLoads)
+        
+        // But not excessive (no more than 2x expected)
+        #expect(finalLoadCount <= expectedMinimumLoads * 2)
+    }
+    
+    @Test("Usage statistics handle concurrent subscription changes")
+    func testUsageStatsConcurrentChanges() async throws {
+        // Arrange
+        let (controller, entitlementManager, usageTracker) = setupSubscriptionCardWithUsageTracking()
+        let initialLoadCount = entitlementManager.usageStatsLoadCount
+        
+        // Act - Trigger concurrent subscription changes
+        async let change1: Void = entitlementManager.simulateSubscriptionUpgrade(to: .premiumMonthly(expiresAt: Date().addingTimeInterval(86400)))
+        async let change2: Void = entitlementManager.simulateLifetimeAccessGrant()
+        async let change3: Void = entitlementManager.simulateUsageIncrement()
+        
+        let _ = await (change1, change2, change3)
+        
+        // Allow all reactive updates to complete
+        await Task.sleep(nanoseconds: 300_000_000)
+        
+        // Assert - Usage stats should eventually be consistent
+        #expect(entitlementManager.usageStatsLoadCount > initialLoadCount)
+        
+        let finalStats = await entitlementManager.getUsageStatistics()
+        #expect(finalStats.isUnlimited == entitlementManager.isPremiumUser)
+    }
+    
+    @Test("Usage statistics preserve user data during subscription changes")
+    func testUsageStatsDataPreservation() async throws {
+        // Arrange
+        let (controller, entitlementManager, usageTracker) = setupSubscriptionCardWithUsageTracking()
+        
+        // Build usage history as free user
+        await usageTracker.incrementStoryGeneration()
+        await usageTracker.incrementStoryGeneration()
+        
+        let freeUserUsage = await usageTracker.getCurrentUsage()
+        #expect(freeUserUsage == 2)
+        
+        // Upgrade to premium
+        await entitlementManager.simulateSubscriptionUpgrade(to: .premiumMonthly(expiresAt: Date().addingTimeInterval(86400)))
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Add more usage as premium
+        await usageTracker.incrementStoryGeneration()
+        await usageTracker.incrementStoryGeneration()
+        
+        let premiumUserUsage = await usageTracker.getCurrentUsage()
+        #expect(premiumUserUsage >= 2) // Should preserve previous usage
+        
+        // Verify usage statistics reflect the accumulated usage
+        let stats = await entitlementManager.getUsageStatistics()
+        #expect(stats.used >= 2)
+        #expect(stats.isUnlimited)
+    }
+    
+    @Test("Usage statistics handle subscription expiration correctly")
+    func testUsageStatsSubscriptionExpiration() async throws {
+        // Arrange
+        let (controller, entitlementManager, usageTracker) = setupSubscriptionCardWithUsageTracking()
+        
+        // Start with premium subscription
+        await entitlementManager.simulateSubscriptionUpgrade(to: .premiumMonthly(expiresAt: Date().addingTimeInterval(86400)))
+        await Task.sleep(nanoseconds: 100_000_000)
+        
+        let premiumStats = await entitlementManager.getUsageStatistics()
+        #expect(premiumStats.isUnlimited)
+        
+        let preExpirationLoadCount = entitlementManager.usageStatsLoadCount
+        
+        // Simulate subscription expiration
+        await entitlementManager.simulateSubscriptionExpiration()
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Assert - Usage stats should update to reflect expired state
+        #expect(entitlementManager.usageStatsLoadCount > preExpirationLoadCount)
+        
+        let expiredStats = await entitlementManager.getUsageStatistics()
+        #expect(!expiredStats.isUnlimited)
+        #expect(expiredStats.limit > 0) // Should revert to free user limits
+    }
+    
+    @Test("Usage statistics update triggers are efficient")
+    func testUsageStatsUpdateEfficiency() async throws {
+        // Arrange
+        let (controller, entitlementManager, usageTracker) = setupSubscriptionCardWithUsageTracking()
+        
+        // Measure baseline performance
+        let startTime = Date()
+        let initialLoadCount = entitlementManager.usageStatsLoadCount
+        
+        // Perform a series of subscription changes
+        for i in 0..<5 {
+            if i % 2 == 0 {
+                await entitlementManager.simulateSubscriptionUpgrade(to: .premiumMonthly(expiresAt: Date().addingTimeInterval(86400)))
+            } else {
+                await entitlementManager.simulateSubscriptionDowngrade()
+            }
+            await Task.sleep(nanoseconds: 50_000_000) // Small delay between changes
+        }
+        
+        await Task.sleep(nanoseconds: 200_000_000) // Allow final updates
+        
+        let endTime = Date()
+        let duration = endTime.timeIntervalSince(startTime)
+        let finalLoadCount = entitlementManager.usageStatsLoadCount
+        
+        // Assert - Should be efficient (complete within reasonable time)
+        #expect(duration < 2.0) // Should complete within 2 seconds
+        
+        // Should have appropriate number of usage stats loads (not excessive)
+        let loadCountIncrease = finalLoadCount - initialLoadCount
+        #expect(loadCountIncrease >= 5) // At least one for each subscription change
+        #expect(loadCountIncrease <= 15) // But not excessive
+    }
+}
+
+// MARK: - Usage Stats Test Manager
+
+@MainActor
+class UsageStatsTestEntitlementManager: EntitlementManager {
+    var usageStatsLoadCount = 0
+    
+    override func getUsageStatistics() async -> (used: Int, limit: Int, isUnlimited: Bool) {
+        usageStatsLoadCount += 1
+        return await super.getUsageStatistics()
+    }
+    
+    // Simulation methods
+    func simulateSubscriptionUpgrade(to status: SubscriptionStatus) async {
+        subscriptionStatus = status
+    }
+    
+    func simulateSubscriptionDowngrade() async {
+        subscriptionStatus = .free
+    }
+    
+    func simulateLifetimeAccessGrant() async {
+        hasLifetimeAccess = true
+    }
+    
+    func simulateLifetimeAccessRevoke() async {
+        hasLifetimeAccess = false
+    }
+    
+    func simulateSubscriptionExpiration() async {
+        subscriptionStatus = .expired(lastActiveDate: Date())
+    }
+    
+    func simulateUsageIncrement() async {
+        // This would typically trigger usage tracker increment
+        // For testing, we just simulate the activity
+        await Task.sleep(nanoseconds: 10_000_000) // 0.01 seconds
+    }
+}
+
+// MARK: - Detailed Usage Tracker Mock
+
+class MockDetailedUsageTracker: UsageTracker {
+    private var currentUsage = 0
+    private let maxFreeStories = 3
+    
+    override func getCurrentUsage() async -> Int {
+        return currentUsage
+    }
+    
+    override func incrementStoryGeneration() async {
+        currentUsage += 1
+    }
+    
+    override func getRemainingStories() async -> Int {
+        return max(0, maxFreeStories - currentUsage)
+    }
+    
+    override func canGenerateStory() async -> Bool {
+        return currentUsage < maxFreeStories
+    }
+    
+    override func resetUsageForPremiumUpgrade() async {
+        // Premium users might keep their usage count for analytics
+        // but are not limited by it
+    }
+    
+    override func resetForDowngrade() async {
+        // When downgrading, might reset to a reasonable free tier starting point
+        currentUsage = min(currentUsage, maxFreeStories)
+    }
+}

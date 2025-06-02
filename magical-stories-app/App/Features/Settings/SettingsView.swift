@@ -34,6 +34,8 @@ struct SettingsView: View {
                 VStack(spacing: UITheme.Spacing.lg) {
                     ProfileCard(childName: $childName)
                     
+                    SubscriptionCard()
+                    
                     ParentalControlsCard(
                         contentFiltering: $contentFiltering,
                         screenTimeEnabled: $screenTimeEnabled,

@@ -1,0 +1,460 @@
+import SwiftUI
+import Testing
+import StoreKit
+
+@testable import magical_stories
+
+@MainActor
+@Suite("SubscriptionCard Integration Tests")
+struct SubscriptionCardIntegrationTests {
+    
+    // MARK: - Test Infrastructure
+    
+    func createIntegrationTestManager() -> IntegrationTestEntitlementManager {
+        return IntegrationTestEntitlementManager()
+    }
+    
+    func createMockUsageTracker() -> MockIntegrationUsageTracker {
+        let mockAnalytics = MockUsageAnalyticsService()
+        return MockIntegrationUsageTracker(usageAnalyticsService: mockAnalytics)
+    }
+    
+    func setupIntegratedSubscriptionCard() -> (UIHostingController<some View>, IntegrationTestEntitlementManager, MockIntegrationUsageTracker) {
+        let entitlementManager = createIntegrationTestManager()
+        let usageTracker = createMockUsageTracker()
+        
+        // Wire up dependencies
+        entitlementManager.setUsageTracker(usageTracker)
+        entitlementManager.setUsageAnalyticsService(usageTracker.mockAnalyticsService)
+        
+        let subscriptionCard = SubscriptionCard()
+            .environmentObject(entitlementManager)
+        
+        let controller = UIHostingController(rootView: subscriptionCard)
+        _ = controller.view
+        
+        return (controller, entitlementManager, usageTracker)
+    }
+    
+    // MARK: - Full Integration Flow Tests
+    
+    @Test("Full subscription upgrade flow updates all components")
+    func testFullSubscriptionUpgradeFlow() async throws {
+        // Arrange
+        let (controller, entitlementManager, usageTracker) = setupIntegratedSubscriptionCard()
+        
+        // Initial state - free user
+        #expect(!entitlementManager.isPremiumUser)
+        #expect(!await entitlementManager.canGenerateStory() || await entitlementManager.getRemainingStories() <= 3)
+        
+        // Simulate purchase transaction
+        let mockTransaction = MockTransaction(
+            id: 12345,
+            productID: "com.magicalstories.premium.monthly",
+            purchaseDate: Date(),
+            expirationDate: Date().addingTimeInterval(86400 * 30)
+        )
+        
+        // Act - Process subscription upgrade
+        await entitlementManager.updateEntitlement(for: mockTransaction)
+        
+        // Allow reactive updates to propagate
+        await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
+        
+        // Assert - All components should be updated
+        #expect(entitlementManager.isPremiumUser)
+        #expect(entitlementManager.subscriptionStatus.isPremium)
+        #expect(await entitlementManager.canGenerateStory())
+        #expect(await entitlementManager.getRemainingStories() == Int.max)
+        
+        // Usage tracker should have been reset for premium upgrade
+        #expect(usageTracker.wasResetForPremiumUpgrade)
+        
+        // Usage statistics should reflect unlimited access
+        let stats = await entitlementManager.getUsageStatistics()
+        #expect(stats.isUnlimited)
+    }
+    
+    @Test("Full subscription downgrade flow updates all components")
+    func testFullSubscriptionDowngradeFlow() async throws {
+        // Arrange - Start with premium user
+        let (controller, entitlementManager, usageTracker) = setupIntegratedSubscriptionCard()
+        
+        // Set up premium state
+        let upgradeTransaction = MockTransaction(
+            id: 12345,
+            productID: "com.magicalstories.premium.monthly",
+            purchaseDate: Date(),
+            expirationDate: Date().addingTimeInterval(86400 * 30)
+        )
+        await entitlementManager.updateEntitlement(for: upgradeTransaction)
+        await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Verify premium state
+        #expect(entitlementManager.isPremiumUser)
+        
+        // Act - Simulate subscription cancellation/expiration
+        let revokedTransaction = MockTransaction(
+            id: 12345,
+            productID: "com.magicalstories.premium.monthly",
+            purchaseDate: Date(),
+            revocationDate: Date()
+        )
+        await entitlementManager.handleRevokedTransaction(revokedTransaction)
+        
+        // Allow reactive updates to propagate
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Assert - Should revert to free user
+        #expect(!entitlementManager.isPremiumUser)
+        #expect(entitlementManager.subscriptionStatus == .free)
+        
+        // Usage tracker should have been reset for downgrade
+        #expect(usageTracker.wasResetForDowngrade)
+        
+        // Usage statistics should reflect limited access
+        let stats = await entitlementManager.getUsageStatistics()
+        #expect(!stats.isUnlimited)
+        #expect(stats.limit > 0)
+    }
+    
+    @Test("Purchase completion to UI update flow")
+    func testPurchaseCompletionToUIUpdate() async throws {
+        // Arrange
+        let (controller, entitlementManager, usageTracker) = setupIntegratedSubscriptionCard()
+        
+        // Track initial usage stats load count
+        let initialLoadCount = entitlementManager.usageStatsLoadCount
+        
+        // Act - Simulate complete purchase flow
+        await entitlementManager.simulateCompletePurchaseFlow(
+            productID: "com.magicalstories.premium.yearly",
+            expirationDate: Date().addingTimeInterval(86400 * 365)
+        )
+        
+        // Allow all reactive updates to complete
+        await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+        
+        // Assert - UI should be fully updated
+        #expect(entitlementManager.isPremiumUser)
+        #expect(entitlementManager.subscriptionStatusText.contains("Premium"))
+        #expect(entitlementManager.usageStatsLoadCount > initialLoadCount)
+        
+        // Verify usage analytics was updated
+        #expect(usageTracker.mockAnalyticsService.subscriptionUpdated)
+        #expect(usageTracker.mockAnalyticsService.lastProductId == "com.magicalstories.premium.yearly")
+    }
+    
+    @Test("Concurrent subscription changes are handled correctly")
+    func testConcurrentSubscriptionChanges() async throws {
+        // Arrange
+        let (controller, entitlementManager, usageTracker) = setupIntegratedSubscriptionCard()
+        
+        // Act - Simulate multiple concurrent subscription changes
+        async let change1: Void = entitlementManager.simulateCompletePurchaseFlow(
+            productID: "com.magicalstories.premium.monthly",
+            expirationDate: Date().addingTimeInterval(86400 * 30)
+        )
+        
+        async let change2: Void = entitlementManager.simulateLifetimeAccessGrant()
+        
+        async let change3: Void = entitlementManager.refreshEntitlementStatus()
+        
+        // Wait for all changes to complete
+        let _ = await (change1, change2, change3)
+        
+        // Allow UI to stabilize
+        await Task.sleep(nanoseconds: 300_000_000)
+        
+        // Assert - Final state should be consistent
+        #expect(entitlementManager.isPremiumUser)
+        
+        // Should have lifetime access from change2
+        #expect(entitlementManager.hasLifetimeAccess)
+        
+        // Usage stats should reflect premium status
+        let stats = await entitlementManager.getUsageStatistics()
+        #expect(stats.isUnlimited)
+    }
+    
+    @Test("Network delay simulation doesn't break reactive updates")
+    func testNetworkDelayHandling() async throws {
+        // Arrange
+        let (controller, entitlementManager, usageTracker) = setupIntegratedSubscriptionCard()
+        
+        // Enable network delay simulation
+        entitlementManager.simulateNetworkDelay = true
+        entitlementManager.networkDelayDuration = 0.5 // 500ms delay
+        
+        let initialLoadCount = entitlementManager.usageStatsLoadCount
+        
+        // Act - Trigger subscription change with network delay
+        await entitlementManager.simulateCompletePurchaseFlow(
+            productID: "com.magicalstories.premium.monthly",
+            expirationDate: Date().addingTimeInterval(86400 * 30)
+        )
+        
+        // Allow for network delay + reactive updates
+        await Task.sleep(nanoseconds: 800_000_000) // 0.8 seconds
+        
+        // Assert - Updates should still work despite delay
+        #expect(entitlementManager.isPremiumUser)
+        #expect(entitlementManager.usageStatsLoadCount > initialLoadCount)
+        
+        // Verify analytics update happened despite delay
+        #expect(usageTracker.mockAnalyticsService.subscriptionUpdated)
+    }
+    
+    @Test("Usage statistics accurately update across subscription changes")
+    func testUsageStatisticsAccuracy() async throws {
+        // Arrange
+        let (controller, entitlementManager, usageTracker) = setupIntegratedSubscriptionCard()
+        
+        // Set initial usage for free user
+        await usageTracker.incrementStoryGeneration()
+        await usageTracker.incrementStoryGeneration()
+        
+        // Free user stats
+        let freeStats = await entitlementManager.getUsageStatistics()
+        #expect(freeStats.used == 2)
+        #expect(!freeStats.isUnlimited)
+        
+        // Upgrade to premium
+        await entitlementManager.simulateCompletePurchaseFlow(
+            productID: "com.magicalstories.premium.monthly",
+            expirationDate: Date().addingTimeInterval(86400 * 30)
+        )
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Premium stats should show unlimited
+        let premiumStats = await entitlementManager.getUsageStatistics()
+        #expect(premiumStats.isUnlimited)
+        
+        // Downgrade back to free
+        await entitlementManager.simulateSubscriptionRevocation()
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Should revert to limited stats
+        let revertedStats = await entitlementManager.getUsageStatistics()
+        #expect(!revertedStats.isUnlimited)
+        #expect(revertedStats.limit > 0)
+    }
+    
+    @Test("Environment object changes propagate correctly")
+    func testEnvironmentObjectPropagation() async throws {
+        // Arrange
+        let entitlementManager = createIntegrationTestManager()
+        let usageTracker = createMockUsageTracker()
+        entitlementManager.setUsageTracker(usageTracker)
+        
+        // Create view with environment object
+        let subscriptionCard = SubscriptionCard()
+            .environmentObject(entitlementManager)
+        
+        let controller = UIHostingController(rootView: subscriptionCard)
+        _ = controller.view
+        
+        // Act - Change environment object state
+        await entitlementManager.simulateCompletePurchaseFlow(
+            productID: "com.magicalstories.premium.yearly",
+            expirationDate: Date().addingTimeInterval(86400 * 365)
+        )
+        
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Assert - Changes should propagate to view
+        #expect(entitlementManager.isPremiumUser)
+        #expect(entitlementManager.subscriptionStatusText.contains("Premium"))
+        #expect(entitlementManager.usageStatsLoadCount >= 2)
+    }
+}
+
+// MARK: - Integration Test Mocks
+
+@MainActor
+class IntegrationTestEntitlementManager: ObservableObject {
+    @Published var subscriptionStatus: SubscriptionStatus = .free
+    @Published var hasLifetimeAccess = false
+    @Published var isCheckingEntitlements = false
+    
+    var usageStatsLoadCount = 0
+    var simulateNetworkDelay = false
+    var networkDelayDuration: TimeInterval = 0.0
+    private weak var usageTracker: UsageTracker?
+    private var usageAnalyticsService: UsageAnalyticsServiceProtocol?
+    
+    var isPremiumUser: Bool {
+        return subscriptionStatus.isPremium || hasLifetimeAccess
+    }
+    
+    var subscriptionStatusText: String {
+        if hasLifetimeAccess {
+            return "Lifetime Premium"
+        }
+        return subscriptionStatus.displayText
+    }
+    
+    var renewalInformation: String? {
+        return subscriptionStatus.renewalText
+    }
+    
+    func setUsageTracker(_ usageTracker: UsageTracker) {
+        self.usageTracker = usageTracker
+    }
+    
+    func setUsageAnalyticsService(_ usageAnalyticsService: UsageAnalyticsServiceProtocol) {
+        self.usageAnalyticsService = usageAnalyticsService
+    }
+    
+    func getUsageStatistics() async -> (used: Int, limit: Int, isUnlimited: Bool) {
+        usageStatsLoadCount += 1
+        
+        if simulateNetworkDelay {
+            try? await Task.sleep(nanoseconds: UInt64(networkDelayDuration * 1_000_000_000))
+        }
+        
+        if isPremiumUser {
+            let used = await usageTracker?.getCurrentUsage() ?? 0
+            return (used: used, limit: -1, isUnlimited: true)
+        } else {
+            let used = await usageTracker?.getCurrentUsage() ?? 0
+            let remaining = await usageTracker?.getRemainingStories() ?? 0
+            let limit = used + remaining
+            return (used: used, limit: limit, isUnlimited: false)
+        }
+    }
+    
+    func updateEntitlement(for transaction: any Transaction) async {
+        // Mock implementation that processes subscription changes
+        if transaction.productID.contains("monthly") {
+            subscriptionStatus = .premiumMonthly(expiresAt: transaction.expirationDate ?? Date().addingTimeInterval(86400 * 30))
+        } else if transaction.productID.contains("yearly") {
+            subscriptionStatus = .premiumYearly(expiresAt: transaction.expirationDate ?? Date().addingTimeInterval(86400 * 365))
+        }
+        
+        // Update analytics
+        await usageAnalyticsService?.updateSubscriptionStatus(
+            isActive: isPremiumUser,
+            productId: transaction.productID,
+            expiryDate: transaction.expirationDate
+        )
+        
+        // Reset usage for premium upgrade
+        if isPremiumUser {
+            await usageTracker?.resetUsageForPremiumUpgrade()
+        }
+    }
+    
+    func handleRevokedTransaction(_ transaction: any Transaction) async {
+        subscriptionStatus = .free
+        hasLifetimeAccess = false
+        
+        await usageTracker?.resetForDowngrade()
+        await usageAnalyticsService?.updateSubscriptionStatus(isActive: false, productId: nil, expiryDate: nil)
+    }
+    
+    func refreshEntitlementStatus() async {
+        // Mock refresh implementation
+        try? await Task.sleep(nanoseconds: 100_000_000)
+    }
+    
+    func simulateCompletePurchaseFlow(productID: String, expirationDate: Date) async {
+        let mockTransaction = MockTransaction(
+            id: UInt64.random(in: 10000...99999),
+            productID: productID,
+            purchaseDate: Date(),
+            expirationDate: expirationDate
+        )
+        
+        await updateEntitlement(for: mockTransaction)
+    }
+    
+    func simulateLifetimeAccessGrant() async {
+        hasLifetimeAccess = true
+    }
+    
+    func simulateSubscriptionRevocation() async {
+        let revokedTransaction = MockTransaction(
+            id: 12345,
+            productID: "com.magicalstories.premium.monthly",
+            purchaseDate: Date(),
+            revocationDate: Date()
+        )
+        await handleRevokedTransaction(revokedTransaction)
+    }
+}
+
+class MockIntegrationUsageTracker {
+    let mockAnalyticsService: MockUsageAnalyticsService
+    var wasResetForPremiumUpgrade = false
+    var wasResetForDowngrade = false
+    private var currentUsage = 0
+    private let maxFreeStories = 3
+    
+    init(usageAnalyticsService: MockUsageAnalyticsService) {
+        self.mockAnalyticsService = usageAnalyticsService
+    }
+    
+    func getCurrentUsage() async -> Int {
+        return currentUsage
+    }
+    
+    func incrementStoryGeneration() async {
+        currentUsage += 1
+        await mockAnalyticsService.incrementStoryGenerationCount()
+    }
+    
+    func getRemainingStories() async -> Int {
+        return max(0, maxFreeStories - currentUsage)
+    }
+    
+    func canGenerateStory() async -> Bool {
+        return currentUsage < maxFreeStories
+    }
+    
+    func resetUsageForPremiumUpgrade() async {
+        wasResetForPremiumUpgrade = true
+        // Premium users keep their usage count for analytics
+    }
+    
+    func resetForDowngrade() async {
+        wasResetForDowngrade = true
+        currentUsage = min(currentUsage, maxFreeStories)
+    }
+}
+
+// Mock Transaction for testing
+struct MockTransaction: Transaction {
+    let id: UInt64
+    let productID: String
+    let purchaseDate: Date
+    let expirationDate: Date?
+    let revocationDate: Date?
+    
+    init(id: UInt64, productID: String, purchaseDate: Date, expirationDate: Date? = nil, revocationDate: Date? = nil) {
+        self.id = id
+        self.productID = productID
+        self.purchaseDate = purchaseDate
+        self.expirationDate = expirationDate
+        self.revocationDate = revocationDate
+    }
+    
+    // Implement other required Transaction properties with defaults
+    var originalID: UInt64 { id }
+    var webOrderLineItemID: UInt64? { nil }
+    var appBundleID: String { "com.magicalstories.app" }
+    var subscriptionGroupID: String? { nil }
+    var isUpgraded: Bool { false }
+    var offerType: StoreKit.Transaction.OfferType? { nil }
+    var offerID: String? { nil }
+    var signedDate: Date { purchaseDate }
+    var environment: StoreKit.AppStore.Environment { .sandbox }
+    var ownershipType: StoreKit.Transaction.OwnershipType { .purchased }
+    var storefront: String? { nil }
+    var storefrontCountryCode: String? { nil }
+    var price: Decimal? { nil }
+    var currency: String? { nil }
+    var reason: StoreKit.Transaction.RevocationReason? { nil }
+    var deviceVerification: Data { Data() }
+    var deviceVerificationNonce: UUID { UUID() }
+}

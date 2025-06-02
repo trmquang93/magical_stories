@@ -7,6 +7,8 @@ class MockUsageAnalyticsService: UsageAnalyticsServiceProtocol {
     private var lastGenerationDate: Date?
     private var lastGeneratedStoryId: UUID?
     private var monthlyUsageCount = 0
+    var subscriptionUpdated = false
+    var lastProductId: String?
     private var subscriptionActive = false
     private var subscriptionProductId: String?
     private var subscriptionExpiryDate: Date?
@@ -55,6 +57,8 @@ class MockUsageAnalyticsService: UsageAnalyticsServiceProtocol {
         subscriptionActive = isActive
         subscriptionProductId = productId
         subscriptionExpiryDate = expiryDate
+        subscriptionUpdated = true
+        lastProductId = productId
     }
     
     func trackPremiumFeatureUsage(_ feature: String) async {

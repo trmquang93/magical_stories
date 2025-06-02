@@ -137,8 +137,10 @@ class EntitlementManager: ObservableObject {
     ///   - transaction: The verified transaction to process
     ///   - calculatedExpirationDate: The expiration date calculated from purchase date + period
     func updateEntitlement(for transaction: Transaction, calculatedExpirationDate: Date) async {
-        logger.info("Processing transaction: \(transaction.id) for product: \(transaction.productID)")
-        logger.info("Using calculated expiration date: \(calculatedExpirationDate)")
+        logger.info("[TRANSACTION_FLOW] Processing transaction: \(transaction.id) for product: \(transaction.productID)")
+        logger.info("[TRANSACTION_FLOW] Using calculated expiration date: \(calculatedExpirationDate)")
+        logger.info("[TRANSACTION_FLOW] Current time: \(Date())")
+        logger.info("[TRANSACTION_FLOW] Current subscription status: \(String(describing: self.subscriptionStatus))")
         
         // Check if this is a subscription product we recognize
         guard let subscriptionProduct = SubscriptionProduct(rawValue: transaction.productID) else {
@@ -211,11 +213,20 @@ class EntitlementManager: ObservableObject {
     ///   - product: The subscription product being purchased
     ///   - calculatedExpiration: The expiration date calculated from purchase date + period
     private func processSubscriptionTransaction(_ transaction: Transaction, product: SubscriptionProduct, calculatedExpiration: Date) async {
+        logger.info("[TRANSACTION_FLOW] processSubscriptionTransaction called for product: \(String(describing: product))")
+        logger.info("[TRANSACTION_FLOW] Calculated expiration: \(calculatedExpiration)")
+        logger.info("[TRANSACTION_FLOW] Current time: \(Date())")
+        logger.info("[TRANSACTION_FLOW] Is expiration in future? \(calculatedExpiration > Date())")
+        
         // Check if subscription is still valid
         if calculatedExpiration <= Date() {
-            logger.info("Calculated subscription \(transaction.productID) is already expired")
+            logger.error("[TRANSACTION_FLOW] CRITICAL: Calculated subscription \(transaction.productID) is already expired!")
+            logger.error("[TRANSACTION_FLOW] Expiration: \(calculatedExpiration), Current: \(Date())")
+            logger.error("[TRANSACTION_FLOW] Time difference: \(calculatedExpiration.timeIntervalSince(Date())) seconds")
             return
         }
+        
+        logger.info("[TRANSACTION_FLOW] Expiration is valid, proceeding with subscription update")
         
         // Update subscription status based on product type using calculated expiration
         let newStatus: SubscriptionStatus
@@ -226,19 +237,24 @@ class EntitlementManager: ObservableObject {
             newStatus = .premiumYearly(expiresAt: calculatedExpiration)
         }
         
+        logger.info("[TRANSACTION_FLOW] About to update subscription status to: \(String(describing: newStatus))")
+        
         // Update the subscription status
         await MainActor.run {
             self.subscriptionStatus = newStatus
         }
         
-        logger.info("Updated subscription status to: \(self.subscriptionStatusText)")
+        logger.info("[TRANSACTION_FLOW] Successfully updated subscription status to: \(self.subscriptionStatusText)")
+        logger.info("[TRANSACTION_FLOW] isPremiumUser is now: \(self.isPremiumUser)")
         
         // Update UserProfile in database via UsageAnalyticsService
+        logger.info("[TRANSACTION_FLOW] About to update UserProfile with active=true, productId=\(transaction.productID)")
         await updateUserProfileSubscription(
             isActive: true,
             productId: transaction.productID,
             expiryDate: calculatedExpiration
         )
+        logger.info("[TRANSACTION_FLOW] Finished updating UserProfile")
     }
     
     /// Processes a subscription transaction and updates the subscription status (legacy method)
@@ -303,6 +319,9 @@ class EntitlementManager: ObservableObject {
     
     /// Updates the UserProfile based on the current subscription status
     private func updateUserProfileFromCurrentStatus() async {
+        logger.info("[USER_PROFILE_UPDATE] updateUserProfileFromCurrentStatus called")
+        logger.info("[USER_PROFILE_UPDATE] Current subscription status: \(String(describing: self.subscriptionStatus))")
+        
         let isActive = subscriptionStatus.isActive
         let productId: String?
         let expiryDate: Date?
@@ -322,15 +341,22 @@ class EntitlementManager: ObservableObject {
             expiryDate = nil
         }
         
+        logger.info("[USER_PROFILE_UPDATE] About to call updateUserProfileSubscription with active=\(isActive), productId=\(productId ?? "nil")")
+        
         await updateUserProfileSubscription(
             isActive: isActive,
             productId: productId,
             expiryDate: expiryDate
         )
+        
+        logger.info("[USER_PROFILE_UPDATE] Finished updateUserProfileFromCurrentStatus")
     }
     
     /// Refreshes the current entitlement status by checking all current entitlements
     func refreshEntitlementStatus() async {
+        logger.info("[REFRESH_ENTITLEMENTS] refreshEntitlementStatus called")
+        logger.info("[REFRESH_ENTITLEMENTS] Current subscription status before refresh: \(String(describing: self.subscriptionStatus))")
+        
         isCheckingEntitlements = true
         
         defer {
@@ -339,13 +365,17 @@ class EntitlementManager: ObservableObject {
             }
         }
         
-        logger.info("Refreshing entitlement status")
+        logger.info("[REFRESH_ENTITLEMENTS] Starting entitlement refresh process")
         
-        var newSubscriptionStatus: SubscriptionStatus = .free
-        var newHasLifetimeAccess = false
+        // Preserve current status instead of defaulting to .free
+        // This prevents overwriting valid subscription status when StoreKit entitlements are unavailable
+        var newSubscriptionStatus: SubscriptionStatus = subscriptionStatus
+        var newHasLifetimeAccess = hasLifetimeAccess
+        var foundAnyEntitlements = false
         
         // Check current entitlements
         for await result in Transaction.currentEntitlements {
+            foundAnyEntitlements = true
             do {
                 let transaction = try await checkVerified(result)
                 
@@ -358,6 +388,9 @@ class EntitlementManager: ObservableObject {
                 // Check if transaction is still valid
                 if let revocationDate = transaction.revocationDate {
                     logger.info("Entitlement \(transaction.productID) was revoked on \(revocationDate)")
+                    // Reset to free if subscription was revoked
+                    newSubscriptionStatus = .free
+                    newHasLifetimeAccess = false
                     continue
                 }
                 
@@ -365,10 +398,12 @@ class EntitlementManager: ObservableObject {
                 if let expirationDate = transaction.expirationDate {
                     if expirationDate <= Date() {
                         logger.info("Subscription \(transaction.productID) expired on \(expirationDate)")
+                        // Reset to free if subscription is expired
+                        newSubscriptionStatus = .free
                         continue
                     }
                     
-                    // Valid subscription
+                    // Valid subscription found - update to premium
                     switch subscriptionProduct {
                     case .premiumMonthly:
                         newSubscriptionStatus = .premiumMonthly(expiresAt: expirationDate)
@@ -385,7 +420,16 @@ class EntitlementManager: ObservableObject {
             }
         }
         
+        // Only reset to free if we found entitlements but they were all invalid
+        // If no entitlements found (e.g., test environment), preserve current status
+        if foundAnyEntitlements {
+            logger.info("Found StoreKit entitlements - using StoreKit data")
+        } else {
+            logger.info("No StoreKit entitlements found - preserving current subscription status")
+        }
+        
         // Update state
+        logger.info("[REFRESH_ENTITLEMENTS] Updating subscription status to: \(String(describing: newSubscriptionStatus))")
         await MainActor.run {
             self.subscriptionStatus = newSubscriptionStatus
             self.hasLifetimeAccess = newHasLifetimeAccess
@@ -395,9 +439,11 @@ class EntitlementManager: ObservableObject {
         cacheSubscriptionState()
         
         // Update UserProfile in database
+        logger.info("[REFRESH_ENTITLEMENTS] About to call updateUserProfileFromCurrentStatus")
         await updateUserProfileFromCurrentStatus()
         
-        logger.info("Entitlement status refreshed: \(self.subscriptionStatusText)")
+        logger.info("[REFRESH_ENTITLEMENTS] Entitlement status refreshed: \(self.subscriptionStatusText)")
+        logger.info("[REFRESH_ENTITLEMENTS] Final isPremiumUser: \(self.isPremiumUser)")
         
         // Update last check timestamp
         userDefaults.set(Date(), forKey: UserDefaultsKeys.lastEntitlementCheck)

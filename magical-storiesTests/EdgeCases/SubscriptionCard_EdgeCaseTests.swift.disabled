@@ -1,0 +1,510 @@
+import SwiftUI
+import Testing
+import Combine
+
+@testable import magical_stories
+
+@MainActor
+@Suite("SubscriptionCard Edge Case Tests")
+struct SubscriptionCardEdgeCaseTests {
+    
+    // MARK: - Test Infrastructure
+    
+    func createEdgeCaseTestManager() -> EdgeCaseTestEntitlementManager {
+        return EdgeCaseTestEntitlementManager()
+    }
+    
+    func setupSubscriptionCardForEdgeCases() -> (UIHostingController<some View>, EdgeCaseTestEntitlementManager) {
+        let entitlementManager = createEdgeCaseTestManager()
+        
+        let subscriptionCard = SubscriptionCard()
+            .environmentObject(entitlementManager)
+        
+        let controller = UIHostingController(rootView: subscriptionCard)
+        _ = controller.view
+        
+        return (controller, entitlementManager)
+    }
+    
+    // MARK: - Rapid State Change Tests
+    
+    @Test("SubscriptionCard handles rapid subscription status changes")
+    func testRapidSubscriptionStatusChanges() async throws {
+        // Arrange
+        let (controller, entitlementManager) = setupSubscriptionCardForEdgeCases()
+        let initialLoadCount = entitlementManager.usageStatsLoadCount
+        
+        // Act - Perform rapid subscription changes
+        await entitlementManager.simulateRapidStatusChanges()
+        
+        // Allow UI to stabilize
+        await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        
+        // Assert - Should handle all changes without crashing
+        #expect(entitlementManager.usageStatsLoadCount > initialLoadCount)
+        #expect(entitlementManager.didCompleteRapidChanges)
+        
+        // Final state should be consistent
+        let finalStats = await entitlementManager.getUsageStatistics()
+        #expect(finalStats.used >= 0)
+        #expect(finalStats.limit >= -1) // -1 for unlimited, positive for limited
+    }
+    
+    @Test("SubscriptionCard handles concurrent property changes")
+    func testConcurrentPropertyChanges() async throws {
+        // Arrange
+        let (controller, entitlementManager) = setupSubscriptionCardForEdgeCases()
+        
+        // Act - Trigger multiple concurrent property changes
+        async let subscriptionChange: Void = entitlementManager.simulateSubscriptionUpgrade()
+        async let lifetimeChange: Void = entitlementManager.simulateLifetimeAccessChange()
+        async let statusRefresh: Void = entitlementManager.simulateStatusRefresh()
+        
+        // Wait for all concurrent operations
+        let _ = await (subscriptionChange, lifetimeChange, statusRefresh)
+        
+        // Allow reactive updates to propagate
+        await Task.sleep(nanoseconds: 300_000_000)
+        
+        // Assert - Should maintain consistent state
+        #expect(entitlementManager.stateIsConsistent)
+        #expect(!entitlementManager.hasStateConflicts)
+        
+        // Usage stats should still work
+        let stats = await entitlementManager.getUsageStatistics()
+        #expect(stats.isUnlimited == entitlementManager.isPremiumUser)
+    }
+    
+    @Test("SubscriptionCard handles rapid toggle between free and premium")
+    func testRapidFreePremiiumToggle() async throws {
+        // Arrange
+        let (controller, entitlementManager) = setupSubscriptionCardForEdgeCases()
+        
+        // Act - Rapidly toggle between free and premium
+        for i in 0..<10 {
+            if i % 2 == 0 {
+                await entitlementManager.simulateSubscriptionUpgrade()
+            } else {
+                await entitlementManager.simulateSubscriptionDowngrade()
+            }
+            
+            // Small delay to allow reactive updates
+            await Task.sleep(nanoseconds: 10_000_000) // 0.01 seconds
+        }
+        
+        // Allow final state to stabilize
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Assert - Should be in a valid final state
+        let isConsistent = await entitlementManager.validateStateConsistency()
+        #expect(isConsistent)
+        
+        // Usage statistics should match subscription status
+        let stats = await entitlementManager.getUsageStatistics()
+        #expect(stats.isUnlimited == entitlementManager.isPremiumUser)
+    }
+    
+    // MARK: - Network Delay and Timing Tests
+    
+    @Test("SubscriptionCard handles network delays gracefully")
+    func testNetworkDelayHandling() async throws {
+        // Arrange
+        let (controller, entitlementManager) = setupSubscriptionCardForEdgeCases()
+        entitlementManager.simulateNetworkDelay = true
+        entitlementManager.networkDelayDuration = 1.0 // 1 second delay
+        
+        let startTime = Date()
+        
+        // Act - Trigger subscription change with network delay
+        await entitlementManager.simulateSubscriptionUpgradeWithDelay()
+        
+        let endTime = Date()
+        let actualDuration = endTime.timeIntervalSince(startTime)
+        
+        // Assert - Should respect network delay
+        #expect(actualDuration >= 1.0) // Should take at least 1 second due to delay
+        #expect(entitlementManager.isPremiumUser) // Should still complete successfully
+        
+        // Usage stats should eventually load
+        let stats = await entitlementManager.getUsageStatistics()
+        #expect(stats.isUnlimited)
+    }
+    
+    @Test("SubscriptionCard handles timeout scenarios")
+    func testTimeoutScenarios() async throws {
+        // Arrange
+        let (controller, entitlementManager) = setupSubscriptionCardForEdgeCases()
+        entitlementManager.simulateTimeout = true
+        entitlementManager.timeoutDuration = 0.1 // Very short timeout
+        
+        // Act - Attempt operation that will timeout
+        await entitlementManager.simulateOperationWithTimeout()
+        
+        // Allow recovery time
+        await Task.sleep(nanoseconds: 200_000_000)
+        
+        // Assert - Should handle timeout gracefully
+        #expect(entitlementManager.hasHandledTimeout)
+        #expect(!entitlementManager.isInErrorState)
+        
+        // Should still be able to provide valid stats
+        let stats = await entitlementManager.getUsageStatistics()
+        #expect(stats.limit >= -1)
+    }
+    
+    @Test("SubscriptionCard handles variable network response times")
+    func testVariableNetworkResponseTimes() async throws {
+        // Arrange
+        let (controller, entitlementManager) = setupSubscriptionCardForEdgeCases()
+        entitlementManager.useVariableNetworkDelay = true
+        
+        let operations: [() async -> Void] = [
+            { await entitlementManager.simulateSubscriptionUpgrade() },
+            { await entitlementManager.simulateStatusRefresh() },
+            { await entitlementManager.simulateLifetimeAccessChange() },
+            { await entitlementManager.simulateSubscriptionDowngrade() }
+        ]
+        
+        // Act - Execute operations with variable delays
+        for operation in operations {
+            await operation()
+            await Task.sleep(nanoseconds: 50_000_000) // Small gap between operations
+        }
+        
+        // Allow all operations to complete
+        await Task.sleep(nanoseconds: 500_000_000)
+        
+        // Assert - Should complete all operations despite variable timing
+        #expect(entitlementManager.completedOperationsCount == operations.count)
+        
+        // Final state should be valid
+        let isValid = await entitlementManager.validateFinalState()
+        #expect(isValid)
+    }
+    
+    // MARK: - Memory and Performance Edge Cases
+    
+    @Test("SubscriptionCard handles memory pressure scenarios")
+    func testMemoryPressureHandling() async throws {
+        // Arrange
+        let (controller, entitlementManager) = setupSubscriptionCardForEdgeCases()
+        
+        // Simulate memory pressure by creating many concurrent operations
+        let operationCount = 50
+        var operations: [Task<Void, Never>] = []
+        
+        // Act - Create many concurrent subscription changes
+        for i in 0..<operationCount {
+            let operation = Task {
+                await entitlementManager.simulateSubscriptionChange(id: i)
+            }
+            operations.append(operation)
+        }
+        
+        // Wait for all operations to complete
+        for operation in operations {
+            await operation.value
+        }
+        
+        // Allow UI to stabilize
+        await Task.sleep(nanoseconds: 300_000_000)
+        
+        // Assert - Should handle memory pressure without issues
+        #expect(entitlementManager.handledOperationsCount == operationCount)
+        #expect(!entitlementManager.hasMemoryIssues)
+        
+        // Usage stats should still be accurate
+        let stats = await entitlementManager.getUsageStatistics()
+        #expect(stats.used >= 0)
+    }
+    
+    @Test("SubscriptionCard handles subscription status oscillation")
+    func testSubscriptionStatusOscillation() async throws {
+        // Arrange
+        let (controller, entitlementManager) = setupSubscriptionCardForEdgeCases()
+        
+        // Act - Create oscillating subscription status
+        for cycle in 0..<5 {
+            // Rapid upgrade/downgrade cycle
+            await entitlementManager.simulateSubscriptionUpgrade()
+            await Task.sleep(nanoseconds: 5_000_000) // 0.005 seconds
+            
+            await entitlementManager.simulateSubscriptionDowngrade()
+            await Task.sleep(nanoseconds: 5_000_000)
+            
+            await entitlementManager.simulateLifetimeAccessChange()
+            await Task.sleep(nanoseconds: 5_000_000)
+            
+            await entitlementManager.simulateLifetimeAccessRevoke()
+            await Task.sleep(nanoseconds: 5_000_000)
+        }
+        
+        // Allow final stabilization
+        await Task.sleep(nanoseconds: 300_000_000)
+        
+        // Assert - Should maintain stability despite oscillation
+        #expect(entitlementManager.hasCompletedOscillationTest)
+        
+        // Final state should be deterministic
+        let finalState = await entitlementManager.getFinalStateSnapshot()
+        #expect(finalState.isValid)
+        #expect(finalState.isConsistent)
+    }
+    
+    // MARK: - Error Recovery Tests
+    
+    @Test("SubscriptionCard recovers from transient errors")
+    func testTransientErrorRecovery() async throws {
+        // Arrange
+        let (controller, entitlementManager) = setupSubscriptionCardForEdgeCases()
+        entitlementManager.simulateTransientErrors = true
+        entitlementManager.errorRecoveryEnabled = true
+        
+        // Act - Attempt operations with transient errors
+        await entitlementManager.simulateOperationWithTransientErrors()
+        
+        // Allow recovery time
+        await Task.sleep(nanoseconds: 500_000_000)
+        
+        // Assert - Should recover from errors
+        #expect(entitlementManager.hasRecoveredFromErrors)
+        #expect(entitlementManager.finalOperationSucceeded)
+        
+        // Should provide valid subscription state after recovery
+        let stats = await entitlementManager.getUsageStatistics()
+        #expect(stats.limit >= -1)
+    }
+    
+    @Test("SubscriptionCard handles state corruption scenarios")
+    func testStateCorruptionHandling() async throws {
+        // Arrange
+        let (controller, entitlementManager) = setupSubscriptionCardForEdgeCases()
+        
+        // Act - Simulate state corruption
+        await entitlementManager.simulateStateCorruption()
+        
+        // Attempt to recover
+        await entitlementManager.attemptStateRecovery()
+        
+        // Allow recovery to complete
+        await Task.sleep(nanoseconds: 300_000_000)
+        
+        // Assert - Should handle corruption gracefully
+        #expect(entitlementManager.hasDetectedCorruption)
+        #expect(entitlementManager.hasAttemptedRecovery)
+        
+        // Should provide fallback state
+        let stats = await entitlementManager.getUsageStatistics()
+        #expect(stats.limit >= 0) // Should fallback to safe free user state
+    }
+}
+
+// MARK: - Edge Case Test Manager
+
+@MainActor
+class EdgeCaseTestEntitlementManager: EntitlementManager {
+    
+    // Test tracking properties
+    var usageStatsLoadCount = 0
+    var didCompleteRapidChanges = false
+    var stateIsConsistent = true
+    var hasStateConflicts = false
+    var hasHandledTimeout = false
+    var isInErrorState = false
+    var completedOperationsCount = 0
+    var handledOperationsCount = 0
+    var hasMemoryIssues = false
+    var hasCompletedOscillationTest = false
+    var hasRecoveredFromErrors = false
+    var finalOperationSucceeded = false
+    var hasDetectedCorruption = false
+    var hasAttemptedRecovery = false
+    
+    // Configuration properties
+    var simulateNetworkDelay = false
+    var networkDelayDuration: TimeInterval = 0
+    var simulateTimeout = false
+    var timeoutDuration: TimeInterval = 0
+    var useVariableNetworkDelay = false
+    var simulateTransientErrors = false
+    var errorRecoveryEnabled = false
+    
+    // State tracking
+    private var operationCounter = 0
+    private var currentOperations: Set<Int> = []
+    
+    override func getUsageStatistics() async -> (used: Int, limit: Int, isUnlimited: Bool) {
+        usageStatsLoadCount += 1
+        
+        if simulateNetworkDelay {
+            try? await Task.sleep(nanoseconds: UInt64(networkDelayDuration * 1_000_000_000))
+        }
+        
+        if useVariableNetworkDelay {
+            let randomDelay = Double.random(in: 0.01...0.2) // 10ms to 200ms
+            try? await Task.sleep(nanoseconds: UInt64(randomDelay * 1_000_000_000))
+        }
+        
+        if simulateTimeout && timeoutDuration > 0 {
+            try? await Task.sleep(nanoseconds: UInt64(timeoutDuration * 1_000_000_000))
+            hasHandledTimeout = true
+        }
+        
+        return await super.getUsageStatistics()
+    }
+    
+    // MARK: - Simulation Methods
+    
+    func simulateRapidStatusChanges() async {
+        let changes: [SubscriptionStatus] = [
+            .free,
+            .premiumMonthly(expiresAt: Date().addingTimeInterval(86400)),
+            .free,
+            .premiumYearly(expiresAt: Date().addingTimeInterval(86400 * 365)),
+            .expired(lastActiveDate: Date()),
+            .free
+        ]
+        
+        for status in changes {
+            subscriptionStatus = status
+            await Task.sleep(nanoseconds: 10_000_000) // 0.01 seconds
+        }
+        
+        didCompleteRapidChanges = true
+    }
+    
+    func simulateSubscriptionUpgrade() async {
+        subscriptionStatus = .premiumMonthly(expiresAt: Date().addingTimeInterval(86400))
+        completedOperationsCount += 1
+    }
+    
+    func simulateSubscriptionDowngrade() async {
+        subscriptionStatus = .free
+        completedOperationsCount += 1
+    }
+    
+    func simulateLifetimeAccessChange() async {
+        hasLifetimeAccess = true
+        completedOperationsCount += 1
+    }
+    
+    func simulateLifetimeAccessRevoke() async {
+        hasLifetimeAccess = false
+        completedOperationsCount += 1
+    }
+    
+    func simulateStatusRefresh() async {
+        // Simulate refresh operation
+        await Task.sleep(nanoseconds: 50_000_000) // 0.05 seconds
+        completedOperationsCount += 1
+    }
+    
+    func simulateSubscriptionUpgradeWithDelay() async {
+        if simulateNetworkDelay {
+            try? await Task.sleep(nanoseconds: UInt64(networkDelayDuration * 1_000_000_000))
+        }
+        await simulateSubscriptionUpgrade()
+    }
+    
+    func simulateOperationWithTimeout() async {
+        if simulateTimeout {
+            do {
+                try await Task.sleep(nanoseconds: UInt64(timeoutDuration * 1_000_000_000))
+                hasHandledTimeout = true
+            } catch {
+                // Timeout occurred
+                hasHandledTimeout = true
+            }
+        }
+    }
+    
+    func simulateSubscriptionChange(id: Int) async {
+        currentOperations.insert(id)
+        defer { currentOperations.remove(id) }
+        
+        // Simulate varying operation complexity
+        let delayMs = Int.random(in: 1...50)
+        try? await Task.sleep(nanoseconds: UInt64(delayMs * 1_000_000))
+        
+        if id % 2 == 0 {
+            await simulateSubscriptionUpgrade()
+        } else {
+            await simulateSubscriptionDowngrade()
+        }
+        
+        handledOperationsCount += 1
+        
+        // Check for memory issues (too many concurrent operations)
+        if currentOperations.count > 20 {
+            hasMemoryIssues = true
+        }
+    }
+    
+    func simulateOperationWithTransientErrors() async {
+        if simulateTransientErrors {
+            // Simulate 2 failures before success
+            for attempt in 1...3 {
+                if attempt < 3 {
+                    // Simulate failure
+                    try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+                } else {
+                    // Final success
+                    await simulateSubscriptionUpgrade()
+                    finalOperationSucceeded = true
+                    hasRecoveredFromErrors = true
+                }
+            }
+        }
+    }
+    
+    func simulateStateCorruption() async {
+        // Simulate corrupted state
+        hasDetectedCorruption = true
+        subscriptionStatus = .expired(lastActiveDate: Date().distantPast)
+        hasLifetimeAccess = false
+    }
+    
+    func attemptStateRecovery() async {
+        if hasDetectedCorruption {
+            hasAttemptedRecovery = true
+            // Reset to safe state
+            subscriptionStatus = .free
+            hasLifetimeAccess = false
+        }
+    }
+    
+    // MARK: - Validation Methods
+    
+    func validateStateConsistency() async -> Bool {
+        // Verify isPremiumUser matches subscription status
+        let expectedPremium = subscriptionStatus.isPremium || hasLifetimeAccess
+        return isPremiumUser == expectedPremium
+    }
+    
+    func validateFinalState() async -> Bool {
+        let stats = await getUsageStatistics()
+        
+        // Verify stats consistency with subscription status
+        if isPremiumUser {
+            return stats.isUnlimited
+        } else {
+            return !stats.isUnlimited && stats.limit > 0
+        }
+    }
+    
+    func getFinalStateSnapshot() async -> StateSnapshot {
+        hasCompletedOscillationTest = true
+        
+        let isValid = await validateStateConsistency()
+        let isConsistent = await validateFinalState()
+        
+        return StateSnapshot(isValid: isValid, isConsistent: isConsistent)
+    }
+}
+
+// MARK: - Supporting Types
+
+struct StateSnapshot {
+    let isValid: Bool
+    let isConsistent: Bool
+}

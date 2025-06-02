@@ -131,7 +131,22 @@ class PurchaseService: ObservableObject {
                 
                 logger.info("Transaction verified successfully: \(transaction.id)")
                 
-                // The transaction listener will handle entitlement updates
+                // Calculate expiration date for the transaction
+                let calculatedExpiration = calculateExpirationDate(for: transaction, product: product)
+                logger.info("[PURCHASE_SERVICE] Calculated expiration: \(calculatedExpiration?.description ?? "nil")")
+                
+                // Update entitlements immediately since TransactionObserver might not receive this transaction
+                if let expiration = calculatedExpiration {
+                    logger.info("[PURCHASE_SERVICE] Updating entitlements directly for transaction: \(transaction.id)")
+                    await entitlementManager?.updateEntitlement(for: transaction, calculatedExpirationDate: expiration)
+                } else {
+                    logger.error("[PURCHASE_SERVICE] Could not calculate expiration date for transaction: \(transaction.id)")
+                }
+                
+                // Finish the transaction so it doesn't appear in updates again
+                await transaction.finish()
+                logger.info("[PURCHASE_SERVICE] Transaction finished: \(transaction.id)")
+                
                 return true
                 
             case .userCancelled:
@@ -343,6 +358,86 @@ extension PurchaseService {
     func processCurrentEntitlements() async {
         logger.info("Current entitlement processing is now handled by TransactionObserver")
         // No-op - TransactionObserver handles this now
+    }
+    
+    /// Calculates expiration date for a transaction
+    /// - Parameters:
+    ///   - transaction: The verified transaction
+    ///   - product: The StoreKit product
+    /// - Returns: The calculated expiration date
+    private func calculateExpirationDate(for transaction: Transaction, product: Product) -> Date? {
+        let purchaseDate = transaction.purchaseDate
+        logger.info("[PURCHASE_SERVICE] Calculating expiration for purchase date: \(purchaseDate)")
+        
+        // If the product has subscription info, use it for accurate calculation
+        if let subscription = product.subscription {
+            let period = subscription.subscriptionPeriod
+            let expirationDate = addSubscriptionPeriod(period, to: purchaseDate)
+            
+            logger.info("[PURCHASE_SERVICE] Using StoreKit subscription period: \(self.formatSubscriptionPeriod(period))")
+            logger.info("[PURCHASE_SERVICE] Calculated expiration: \(expirationDate ?? Date())")
+            
+            return expirationDate
+        } else {
+            // Fallback calculation based on product ID
+            logger.warning("[PURCHASE_SERVICE] No subscription info available, using fallback calculation")
+            return addDefaultPeriod(for: product.id, to: purchaseDate)
+        }
+    }
+    
+    /// Adds a subscription period to a date
+    private func addSubscriptionPeriod(_ period: Product.SubscriptionPeriod, to date: Date) -> Date? {
+        var dateComponents = DateComponents()
+        
+        switch period.unit {
+        case .day:
+            dateComponents.day = period.value
+        case .week:
+            dateComponents.weekOfYear = period.value
+        case .month:
+            dateComponents.month = period.value
+        case .year:
+            dateComponents.year = period.value
+        @unknown default:
+            logger.warning("Unknown subscription period unit")
+            return nil
+        }
+        
+        return Calendar.current.date(byAdding: dateComponents, to: date)
+    }
+    
+    /// Adds default subscription period when StoreKit data unavailable
+    private func addDefaultPeriod(for productID: String, to date: Date) -> Date? {
+        var dateComponents = DateComponents()
+        
+        if productID.contains("monthly") {
+            dateComponents.month = 1
+        } else if productID.contains("yearly") {
+            dateComponents.year = 1
+        } else {
+            logger.warning("[PURCHASE_SERVICE] Unknown product ID format: \(productID)")
+            return nil
+        }
+        
+        return Calendar.current.date(byAdding: dateComponents, to: date)
+    }
+    
+    /// Formats a subscription period into human-readable text
+    private func formatSubscriptionPeriod(_ period: Product.SubscriptionPeriod) -> String {
+        let value = period.value
+        
+        switch period.unit {
+        case .day:
+            return value == 1 ? "1 day" : "\(value) days"
+        case .week:
+            return value == 1 ? "1 week" : "\(value) weeks"
+        case .month:
+            return value == 1 ? "1 month" : "\(value) months"
+        case .year:
+            return value == 1 ? "1 year" : "\(value) years"
+        @unknown default:
+            return "\(value) period(s)"
+        }
     }
 }
 
