@@ -1,0 +1,423 @@
+/* 
+   Localizable.strings
+   Magical Stories
+   
+   Vietnamese localization for R.swift
+   Translated for Vietnamese families and children aged 3-12
+*/
+
+// MARK: - Navigation & Tabs
+"navigation.home" = "Trang chủ";
+"navigation.library" = "Thư viện";
+"navigation.collections" = "Bộ sưu tập";
+"navigation.settings" = "Cài đặt";
+"navigation.back" = "Quay lại";
+"navigation.close" = "Đóng";
+"navigation.done" = "Xong";
+"navigation.cancel" = "Hủy";
+"navigation.save" = "Lưu";
+"navigation.edit" = "Chỉnh sửa";
+"navigation.delete" = "Xóa";
+
+// MARK: - General Actions
+"action.create" = "Tạo";
+"action.retry" = "Thử lại";
+"action.tryAgain" = "Thử lại";
+"action.share" = "Chia sẻ";
+"action.copy" = "Sao chép";
+"action.paste" = "Dán";
+"action.cut" = "Cắt";
+"action.undo" = "Hoàn tác";
+"action.redo" = "Làm lại";
+"action.select" = "Chọn";
+"action.selectAll" = "Chọn tất cả";
+"action.clear" = "Xóa";
+"action.reset" = "Đặt lại";
+"action.refresh" = "Làm mới";
+"action.reload" = "Tải lại";
+"action.continue" = "Tiếp tục";
+"action.skip" = "Bỏ qua";
+"action.next" = "Tiếp theo";
+"action.previous" = "Trước";
+"action.start" = "Bắt đầu";
+"action.stop" = "Dừng";
+
+// MARK: - Home Screen
+"home.welcomeBack" = "Chào mừng bạn trở lại!";
+"home.welcomeBackWithName" = "Chào mừng %@ trở lại!";
+"home.subtitle" = "Hôm nay bé sẽ tạo ra câu chuyện kỳ diệu nào?";
+"home.createStory.title" = "Tạo Câu Chuyện Mới";
+"home.createStory.subtitle" = "Tạo cuộc phiêu lưu riêng cho giờ ngủ";
+"home.createStory.button" = "Bắt đầu";
+"home.collections.title" = "Bộ Sưu Tập Phát Triển";
+"home.createCollection.title" = "Tạo Bộ Sưu Tập Phát Triển";
+"home.createCollection.subtitle" = "Hướng dẫn sự phát triển của con với bộ truyện theo chủ đề";
+"home.createCollection.button" = "Tạo Bộ Sưu Tập";
+"home.library.title" = "Thư Viện Truyện Của Bạn";
+"home.library.viewAll" = "Xem Tất Cả Truyện";
+"home.tip" = "Mẹo: Đọc truyện cùng nhau tạo nên những kỷ niệm kỳ diệu!";
+
+// MARK: - Story Form
+"storyForm.title" = "Tạo Truyện";
+"storyForm.header" = "Nhà Sáng Tạo Truyện Kỳ Diệu";
+"storyForm.loading.title" = "Đang tạo câu chuyện kỳ diệu cho bạn...";
+"storyForm.loading.subtitle" = "Đang dệt nên phép thuật và kỳ quan dành riêng cho %@...";
+"storyForm.error.title" = "Lỗi Tạo Truyện";
+"storyForm.error.message" = "Chúng tôi không thể tạo câu chuyện của bạn: %@\n\nVui lòng thử lại sau.";
+"storyForm.create.header" = "Tạo Phép Thuật";
+"storyForm.create.subtitle" = "Cá nhân hóa câu chuyện kỳ diệu của bạn";
+"storyForm.childName.label" = "Tên Bé";
+"storyForm.childName.placeholder" = "Nhập tên bé";
+"storyForm.character.label" = "Nhân Vật Yêu Thích";
+"storyForm.character.placeholder" = "Nhập một nhân vật (rồng, công chúa...)";
+"storyForm.ageRange.label" = "Độ Tuổi";
+"storyForm.theme.label" = "Chủ Đề Truyện";
+"storyForm.length.label" = "Độ Dài Truyện";
+"storyForm.length.short" = "Ngắn";
+"storyForm.length.medium" = "Vừa";
+"storyForm.length.long" = "Dài";
+"storyForm.language.label" = "Ngôn Ngữ Truyện";
+"storyForm.generating" = "Đang Tạo Phép Thuật...";
+"storyForm.generate.button" = "Tạo Câu Chuyện Kỳ Diệu";
+
+// MARK: - Character Options
+"character.dragon" = "Rồng";
+"character.princess" = "Công Chúa";
+"character.knight" = "Hiệp Sĩ";
+"character.wizard" = "Phù Thủy";
+"character.fairy" = "Nàng Tiên";
+"character.unicorn" = "Kỳ Lân";
+"character.pirate" = "Cướp Biển";
+"character.astronaut" = "Nhà Du Hành Vũ Trụ";
+"character.detective" = "Thám Tử";
+"character.superhero" = "Siêu Anh Hùng";
+"character.animal" = "Bạn Động Vật";
+"character.robot" = "Người Máy";
+
+// MARK: - Story Themes
+"theme.adventure" = "Phiêu Lưu";
+"theme.friendship" = "Tình Bạn";
+"theme.learning" = "Học Hỏi";
+"theme.courage" = "Dũng Cảm";
+"theme.kindness" = "Lòng Tốt";
+"theme.mystery" = "Bí Ẩn";
+"theme.magic" = "Phép Thuật";
+"theme.family" = "Gia Đình";
+"theme.nature" = "Thiên Nhiên";
+"theme.space" = "Không Gian";
+"theme.ocean" = "Đại Dương";
+"theme.fantasy" = "Thần Thoại";
+
+// MARK: - Age Groups
+"ageGroup.preschool" = "3-5 tuổi";
+"ageGroup.earlyReader" = "6-8 tuổi";
+"ageGroup.middleGrade" = "9-12 tuổi";
+
+// MARK: - Library Screen
+"library.title" = "Thư Viện";
+"library.sortBy" = "Sắp xếp theo:";
+"library.sort.newest" = "Mới nhất";
+"library.sort.oldest" = "Cũ nhất";
+"library.sort.alphabetical" = "A-Z";
+"library.sort.mostRead" = "Đọc nhiều nhất";
+"library.search.placeholder" = "Tìm kiếm truyện...";
+"library.empty.title" = "Thư viện của bạn đang trống";
+"library.empty.message" = "Tạo câu chuyện kỳ diệu đầu tiên ở tab Trang chủ";
+"library.noResults.title" = "Không tìm thấy truyện";
+"library.noResults.message" = "Thử điều chỉnh tìm kiếm hoặc bộ lọc";
+"library.category.fantasy" = "Thần Thoại";
+"library.category.animals" = "Động Vật";
+"library.category.bedtime" = "Trước Khi Ngủ";
+"library.category.adventure" = "Phiêu Lưu";
+
+// MARK: - Story Detail & Reading
+"storyDetail.title" = "Chi Tiết Truyện";
+"storyDetail.readingTime" = "Thời gian đọc: %@ phút";
+"storyDetail.pages" = "%d trang";
+"storyDetail.created" = "Tạo %@";
+"storyDetail.lastRead" = "Đọc lần cuối %@";
+"storyDetail.read" = "Đọc Truyện";
+"storyDetail.share" = "Chia Sẻ Truyện";
+"storyDetail.delete" = "Xóa Truyện";
+"storyDetail.edit" = "Chỉnh Sửa Truyện";
+"storyReading.page" = "Trang %d / %d";
+"storyReading.nextPage" = "Trang Tiếp";
+"storyReading.previousPage" = "Trang Trước";
+"storyReading.readAloud" = "Đọc To";
+"storyReading.pauseReading" = "Tạm Dừng Đọc";
+"storyReading.bookmarkPage" = "Đánh Dấu Trang Này";
+"storyReading.fontSize" = "Cỡ Chữ";
+"storyReading.nightMode" = "Chế Độ Ban Đêm";
+"storyReading.fullscreen" = "Toàn Màn Hình";
+"storyReading.exitFullscreen" = "Thoát Toàn Màn Hình";
+"storyReading.completed" = "Hoàn Thành Truyện!";
+"storyReading.congratulations" = "Chúc mừng bé đã hoàn thành câu chuyện!";
+"storyReading.readAnother" = "Đọc Truyện Khác";
+"storyReading.backToLibrary" = "Về Thư Viện";
+
+// MARK: - Collections
+"collections.title" = "Bộ Sưu Tập";
+"collections.progress" = "Hoàn thành %d/%d truyện";
+"collections.unlock" = "Mở Khóa Bộ Sưu Tập";
+"collections.locked" = "Bộ Sưu Tập Premium";
+"collections.complete" = "Hoàn Thành Bộ Sưu Tập!";
+"collections.inProgress" = "Đang Thực Hiện";
+"collections.notStarted" = "Chưa Bắt Đầu";
+"collectionForm.title" = "Tạo Bộ Sưu Tập Phát Triển";
+"collectionForm.header" = "Bộ Sưu Tập Phát Triển";
+"collectionForm.subtitle" = "Truyện cá nhân hóa cho sự phát triển";
+"collectionForm.ageGroup.label" = "Độ Tuổi";
+"collectionForm.childName.label" = "Tên Bé (Tùy chọn)";
+"collectionForm.childName.placeholder" = "Nhập tên bé";
+"collectionForm.characters.label" = "Nhân Vật (Tùy chọn)";
+"collectionForm.characters.placeholder" = "Rồng, kỳ lân, phù thủy...";
+"collectionForm.characters.hint" = "Phân cách nhiều nhân vật bằng dấu phẩy";
+"collectionForm.interests.label" = "Sở Thích Của Bé (Bắt buộc)";
+"collectionForm.interests.placeholder" = "Không gian, khủng long, múa ba lê...";
+"collectionForm.createButton" = "Tạo Bộ Sưu Tập";
+"collectionForm.error.title" = "Lỗi Tạo Bộ Sưu Tập";
+"collectionForm.error.unknown" = "Đã xảy ra lỗi không xác định.";
+"collectionForm.error.interests" = "Vui lòng nhập sở thích của bé.";
+"collectionForm.error.generation" = "Không thể tạo bộ sưu tập: %@";
+
+// MARK: - Growth Categories
+"growthCategory.emotionalIntelligence" = "Trí Tuệ Cảm Xúc";
+"growthCategory.cognitiveDevelopment" = "Phát Triển Nhận Thức";
+"growthCategory.socialSkills" = "Kỹ Năng Xã Hội";
+"growthCategory.creativity" = "Sáng Tạo & Tưởng Tượng";
+"growthCategory.problemSolving" = "Giải Quyết Vấn Đề";
+"growthCategory.resilience" = "Kiên Cường & Bền Bỉ";
+"growthCategory.kindness" = "Lòng Tốt & Đồng Cảm";
+"growthCategory.curiosity" = "Tò Mò & Khám Phá";
+"growthCategory.cooperation" = "Chia Sẻ & Hợp Tác";
+"growthCategory.coping" = "Kiên Cường & Đối Phó";
+
+// MARK: - Settings
+"settings.title" = "Cài Đặt";
+"settings.profile.title" = "Hồ Sơ";
+"settings.profile.subtitle" = "Quản lý tài khoản";
+"settings.subscription.title" = "Đăng Ký";
+"settings.subscription.subtitle" = "Quản lý gói của bạn";
+"settings.about.title" = "Về Ứng Dụng";
+"settings.about.subtitle" = "Thông tin ứng dụng";
+"settings.parentalControls.title" = "Kiểm Soát Của Phụ Huynh";
+"settings.parentalControls.subtitle" = "Bộ lọc nội dung và an toàn";
+"settings.privacy.title" = "Quyền Riêng Tư";
+"settings.privacy.subtitle" = "Cài đặt dữ liệu và quyền riêng tư";
+"settings.support.title" = "Hỗ Trợ";
+"settings.support.subtitle" = "Trợ giúp và phản hồi";
+"settings.termsOfService" = "Điều Khoản Dịch Vụ";
+"settings.privacyPolicy" = "Chính Sách Bảo Mật";
+"settings.version" = "Phiên bản %@";
+"settings.build" = "Bản dựng %@";
+"settings.copyright" = "© 2024 Magical Stories";
+"settings.madeWith" = "Được tạo với ❤️ cho các gia đình";
+"settings.contact" = "Liên Hệ Chúng Tôi";
+"settings.feedback" = "Gửi Phản Hồi";
+"settings.rateApp" = "Đánh Giá Ứng Dụng";
+"settings.shareApp" = "Chia Sẻ Ứng Dụng";
+"settings.restorePurchases" = "Khôi Phục Mua Hàng";
+"settings.signOut" = "Đăng Xuất";
+"settings.deleteAccount" = "Xóa Tài Khoản";
+"settings.notifications" = "Thông Báo";
+"settings.language" = "Ngôn Ngữ";
+"settings.accessibility" = "Khả Năng Tiếp Cận";
+"settings.dataUsage" = "Sử Dụng Dữ Liệu";
+"settings.offlineMode" = "Chế Độ Ngoại Tuyến";
+
+// MARK: - Subscription & Paywall
+"paywall.title" = "Chọn Gói Của Bạn";
+"paywall.subtitle" = "Mở khóa truyện kỳ diệu không giới hạn";
+"paywall.loading" = "Đang tải tùy chọn đăng ký...";
+"paywall.error.loading" = "Không thể tải tùy chọn đăng ký";
+"paywall.feature.unlimitedStories" = "Tạo truyện không giới hạn";
+"paywall.feature.growthCollections" = "Bộ Sưu Tập Phát Triển";
+"paywall.feature.illustrations" = "Tính năng minh họa nâng cao";
+"paywall.feature.profiles" = "Nhiều hồ sơ trẻ em";
+"paywall.feature.analytics" = "Kiểm soát phụ huynh & phân tích";
+"paywall.feature.priority" = "Tốc độ tạo ưu tiên";
+"paywall.feature.trial" = "Dùng thử miễn phí 7 ngày";
+"paywall.trust.secure" = "Thanh Toán An Toàn";
+"paywall.trust.cancel" = "Hủy Bất Kỳ Lúc Nào";
+"paywall.trust.noFees" = "Không Phí Ẩn";
+"paywall.restore" = "Khôi Phục Mua Hàng";
+"paywall.terms" = "Điều Khoản Dịch Vụ";
+"paywall.privacy" = "Chính Sách Bảo Mật";
+"paywall.usageLimit.title" = "Bạn đã đạt giới hạn hàng tháng";
+"paywall.usageLimit.message" = "Nâng cấp lên Premium để tạo truyện không giới hạn";
+"paywall.feature.title" = "Tính Năng Premium";
+"paywall.feature.message" = "Tính năng này có sẵn với đăng ký Premium";
+"paywall.onboarding.title" = "Chào Mừng Đến Với Magical Stories Premium";
+"paywall.onboarding.message" = "Bắt đầu dùng thử miễn phí và mở khóa tất cả tính năng premium";
+"paywall.upgrade.title" = "Nâng Cấp Lên Premium";
+"paywall.upgrade.message" = "Có truyện không giới hạn và tính năng độc quyền";
+"subscription.status.free" = "Gói Miễn Phí";
+"subscription.status.monthlyExpires" = "Premium Hàng Tháng (hết hạn %@)";
+"subscription.status.yearlyExpires" = "Premium Hàng Năm (hết hạn %@)";
+"subscription.status.expired" = "Đã hết hạn (hoạt động đến %@)";
+"subscription.status.pending" = "Đang Chờ Mua Hàng";
+"subscription.renewal" = "Gia hạn vào %@";
+"subscription.expiresOn" = "Hết hạn vào %@";
+"subscription.product.monthly" = "Premium Hàng Tháng";
+"subscription.product.yearly" = "Premium Hàng Năm";
+
+// MARK: - Usage Limits
+"usage.storiesCount" = "Truyện tháng này: %d/%d";
+"usage.unlimited" = "Truyện Không Giới Hạn";
+"usage.limitReached.title" = "Bạn đã sử dụng hết truyện miễn phí trong tháng!";
+"usage.limitReached.message" = "Nâng cấp lên Premium để có cuộc phiêu lưu kỳ diệu không giới hạn và tính năng độc quyền";
+"usage.limitReached.header" = "Đã Đạt Giới Hạn Sử Dụng";
+"usage.upgrade.button" = "Nâng Cấp Lên Premium";
+"usage.maybeLater" = "Để Sau";
+"usage.reset.tomorrow" = "Giới hạn truyện sẽ đặt lại vào ngày mai";
+"usage.reset.oneDay" = "Giới hạn truyện sẽ đặt lại sau 1 ngày";
+"usage.reset.days" = "Giới hạn truyện sẽ đặt lại sau %d ngày";
+"usage.feature.unlimited.desc" = "Tạo bao nhiêu truyện tùy thích";
+"usage.feature.collections.desc" = "Bộ truyện phát triển";
+"usage.feature.profiles.desc" = "Hoàn hảo cho gia đình";
+"usage.feature.priority.desc" = "Bỏ qua thời gian chờ";
+
+// MARK: - Illustrations
+"illustration.generating" = "Đang tạo minh họa...";
+"illustration.error" = "Tạo minh họa thất bại";
+"illustration.retry" = "Thử lại minh họa";
+"illustration.style.whimsical" = "Kỳ Quặc";
+"illustration.style.realistic" = "Thực Tế";
+"illustration.style.cartoon" = "Hoạt Hình";
+"illustration.style.watercolor" = "Màu Nước";
+"illustration.style.sketchy" = "Phác Họa";
+"illustration.placeholder" = "Minh họa sắp có...";
+"illustration.loading" = "Đang tạo tác phẩm nghệ thuật kỳ diệu...";
+"illustration.complete" = "Minh họa đã sẵn sàng!";
+"illustration.settings" = "Cài Đặt Minh Họa";
+"illustration.quality" = "Chất Lượng";
+"illustration.style" = "Phong Cách";
+
+// MARK: - Error Handling
+"error.network.title" = "Lỗi Kết Nối";
+"error.network.message" = "Vui lòng kiểm tra kết nối internet và thử lại.";
+"error.ai.title" = "Lỗi Dịch Vụ AI";
+"error.ai.message" = "Chúng tôi không thể tạo nội dung ngay bây giờ. Vui lòng thử lại sau.";
+"error.storage.title" = "Lỗi Lưu Trữ";
+"error.storage.message" = "Không thể lưu truyện của bạn. Vui lòng thử lại.";
+"error.subscription.title" = "Lỗi Đăng Ký";
+"error.subscription.message" = "Có vấn đề với đăng ký của bạn. Vui lòng thử lại.";
+"error.storyGeneration" = "Không thể tạo truyện. Vui lòng thử lại.";
+"error.invalidParameters" = "Các tham số được cung cấp không hợp lệ.";
+"error.persistence" = "Không thể lưu hoặc tải truyện.";
+"error.productNotFound" = "Không tìm thấy sản phẩm trong App Store";
+"error.purchaseFailed" = "Mua hàng thất bại: %@";
+"error.verificationFailed" = "Xác minh giao dịch thất bại: %@";
+"error.pending" = "Mua hàng đang chờ phê duyệt";
+"error.unknown" = "Đã xảy ra lỗi không xác định";
+"error.cancelled" = "Mua hàng đã bị hủy";
+"error.notAllowed" = "Mua hàng không được phép";
+"error.retry" = "Thử Lại";
+"error.dismiss" = "Bỏ Qua";
+"error.contactSupport" = "Liên Hệ Hỗ Trợ";
+
+// MARK: - Loading & Success States
+"loading.creatingStory" = "Đang tạo câu chuyện kỳ diệu cho bạn...";
+"loading.generatingIllustration" = "Đang tạo tác phẩm nghệ thuật đẹp mắt...";
+"loading.savingStory" = "Đang lưu truyện của bạn...";
+"loading.loadingLibrary" = "Đang tải truyện của bạn...";
+"loading.processing" = "Đang xử lý...";
+"loading.pleaseWait" = "Vui lòng chờ...";
+"success.storyCreated" = "Tạo truyện thành công!";
+"success.storySaved" = "Truyện đã được lưu vào thư viện";
+"success.storyShared" = "Chia sẻ truyện thành công";
+"success.subscriptionActivated" = "Đăng ký Premium đã được kích hoạt!";
+"success.purchaseComplete" = "Mua hàng hoàn tất thành công";
+"success.restored" = "Khôi phục mua hàng thành công";
+
+// MARK: - Accessibility Labels
+"accessibility.homeTab" = "Tab Trang Chủ";
+"accessibility.libraryTab" = "Tab Thư Viện";
+"accessibility.collectionsTab" = "Tab Bộ Sưu Tập";
+"accessibility.settingsTab" = "Tab Cài Đặt";
+"accessibility.storyCard" = "Truyện: %@";
+"accessibility.collectionCard" = "Bộ sưu tập: %@";
+"accessibility.pageProgress" = "Trang %d / %d";
+"accessibility.clearCharacter" = "Xóa nhân vật yêu thích";
+"accessibility.clearChildName" = "Xóa tên bé";
+"accessibility.clearCharacters" = "Xóa nhân vật";
+"accessibility.clearInterests" = "Xóa sở thích";
+"accessibility.viewAllStories" = "Xem Tất Cả Truyện";
+"accessibility.playStory" = "Phát truyện";
+"accessibility.pauseStory" = "Tạm dừng truyện";
+"accessibility.nextPage" = "Trang tiếp";
+"accessibility.previousPage" = "Trang trước";
+"accessibility.closeStory" = "Đóng truyện";
+
+// MARK: - Date & Time
+"time.now" = "Bây giờ";
+"time.today" = "Hôm nay";
+"time.yesterday" = "Hôm qua";
+"time.thisWeek" = "Tuần này";
+"time.lastWeek" = "Tuần trước";
+"time.thisMonth" = "Tháng này";
+"time.lastMonth" = "Tháng trước";
+"time.minutesAgo" = "%d phút trước";
+
+// MARK: - Validation Messages
+"validation.required" = "Trường này là bắt buộc";
+"validation.tooShort" = "Phải có ít nhất %d ký tự";
+"validation.tooLong" = "Không được quá %d ký tự";
+"validation.invalidEmail" = "Vui lòng nhập địa chỉ email hợp lệ";
+"validation.invalidName" = "Vui lòng nhập tên hợp lệ";
+"validation.noSpecialCharacters" = "Không được phép ký tự đặc biệt";
+"validation.numbersOnly" = "Chỉ số";
+"validation.lettersOnly" = "Chỉ chữ cái";
+"validation.alphanumeric" = "Chỉ chữ cái và số";
+
+// MARK: - Confirmation Dialogs
+"confirm.deleteStory.title" = "Xóa Truyện";
+"confirm.deleteStory.message" = "Bạn có chắc chắn muốn xóa truyện này? Hành động này không thể hoàn tác.";
+"confirm.deleteCollection.title" = "Xóa Bộ Sưu Tập";
+"confirm.deleteCollection.message" = "Bạn có chắc chắn muốn xóa bộ sưu tập này? Tất cả truyện trong bộ sưu tập này cũng sẽ bị xóa.";
+"confirm.signOut.title" = "Đăng Xuất";
+"confirm.signOut.message" = "Bạn có chắc chắn muốn đăng xuất?";
+"confirm.deleteAccount.title" = "Xóa Tài Khoản";
+"confirm.deleteAccount.message" = "Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản? Hành động này không thể hoàn tác.";
+
+// MARK: - Premium Feature Gates
+"premium.required" = "Yêu cầu đăng ký Premium";
+"premium.upgradeToAccess" = "Nâng cấp lên premium để truy cập tính năng này";
+"premium.trialAvailable" = "Bắt đầu dùng thử miễn phí";
+"premium.learnMore" = "Tìm hiểu thêm về premium";
+"premium.features" = "Tính Năng Premium";
+"premium.benefits" = "Lợi Ích Premium";
+
+// MARK: - Search & Filters
+"search.placeholder" = "Tìm kiếm...";
+"search.noResults" = "Không tìm thấy kết quả";
+"search.clearSearch" = "Xóa tìm kiếm";
+"search.recentSearches" = "Tìm Kiếm Gần Đây";
+"filter.all" = "Tất Cả";
+"filter.favorites" = "Yêu Thích";
+"filter.recent" = "Gần Đây";
+"filter.unread" = "Chưa Đọc";
+"filter.completed" = "Đã Hoàn Thành";
+"filter.inProgress" = "Đang Thực Hiện";
+
+// MARK: - Sharing
+"share.story" = "Xem câu chuyện kỳ diệu này!";
+"share.app" = "Tạo truyện kỳ diệu với ứng dụng tuyệt vời này!";
+"share.collection" = "Khám phá bộ sưu tập phát triển này";
+"share.via" = "Chia sẻ qua";
+
+// MARK: - Notifications
+"notification.storyReady" = "Truyện của bạn đã sẵn sàng!";
+"notification.newStoryAvailable" = "Một câu chuyện mới đang chờ bạn";
+"notification.reminderToRead" = "Đến giờ đọc truyện kỳ diệu!";
+"notification.collectionComplete" = "Hoàn thành bộ sưu tập!";
+"notification.subscriptionExpiring" = "Đăng ký của bạn sắp hết hạn";
+"notification.subscriptionRenewed" = "Gia hạn đăng ký thành công";
+
+// MARK: - App Metadata
+"app.name" = "Magical Stories";
+"app.tagline" = "Truyện cá nhân hóa được tạo bởi AI cho trẻ em";
+"app.description" = "Tạo truyện kỳ diệu, cá nhân hóa phát triển cùng con bạn";
+"app.keywords" = "truyện, trẻ em, AI, giáo dục, giờ ngủ";
+"app.category" = "Giáo dục & Giải trí";
+"app.developer" = "Đội ngũ Magical Stories";
