@@ -52,7 +52,7 @@ struct SettingsView: View {
                 .padding(.vertical, UITheme.Spacing.xl)
             }
         }
-        .navigationTitle("Settings") // This should still work
+        .navigationTitle(R.string.localizable.settingsTitle()) // This should still work
         .navigationBarTitleDisplayMode(.large) // This should still work
         .onAppear {
                 // Load all settings when view appears

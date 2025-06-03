@@ -30,11 +30,14 @@ struct StoryFormView: View {
     // Constants
     private let ageRanges = ["3-5", "6-8", "9-12"]
     private let storyThemes: [StoryTheme] = StoryTheme.allCases
-    private let storyLengthLabels = ["Short", "Medium", "Long"]
+    private let storyLengthLabels = [
+        R.string.localizable.storyFormLengthShort(), 
+        R.string.localizable.storyFormLengthMedium(), 
+        R.string.localizable.storyFormLengthLong()
+    ]
     private let characterSuggestions = [
-        "Dragon", "Unicorn", "Lion", "Panda", "Superhero", "Princess",
-        "Wizard", "Fairy", "Robot", "Dinosaur", "Astronaut", "Pirate",
-        "Knight", "Mermaid", "Detective",
+        R.string.localizable.characterDragon(), R.string.localizable.characterUnicorn(), R.string.localizable.characterKnight(), R.string.localizable.characterWizard(), R.string.localizable.characterPrincess(), R.string.localizable.characterFairy(),
+        R.string.localizable.characterPirate(), R.string.localizable.characterAstronaut(), R.string.localizable.characterDetective(), R.string.localizable.characterSuperhero(), R.string.localizable.characterAnimal(), R.string.localizable.characterRobot(),
     ]
     private let languages: [(String, String)] = StoryLanguages.languageOptions
 
@@ -53,24 +56,22 @@ struct StoryFormView: View {
                     .ignoresSafeArea(.container, edges: .bottom)
                 formContentView
             }
-            .navigationTitle("Create Story")
+            .navigationTitle(R.string.localizable.storyFormTitle())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
             .overlay {
                 if isGenerating {
                     LoadingOverlayView(
                         isLoading: isGenerating,
-                        title: "Creating your magical story...",
-                        subtitle: "Weaving enchantment and wonder just for \(childName ?? "")..."
+                        title: R.string.localizable.storyFormLoadingTitle(),
+                        subtitle: R.string.localizable.storyFormLoadingSubtitle(childName ?? "")
                     )
                 }
             }
-            .alert("Story Creation Error", isPresented: $showError, presenting: error) { _ in
+            .alert(R.string.localizable.storyFormErrorTitle(), isPresented: $showError, presenting: error) { _ in
                 errorAlertButtons
             } message: { error in
-                Text(
-                    "We couldn't create your story: \(error.localizedDescription)\n\nPlease try again later."
-                )
+                Text(R.string.localizable.storyFormErrorMessage(error.localizedDescription))
             }
             .sheet(isPresented: $showPaywall) {
                 PaywallView(context: .usageLimitReached)
@@ -160,11 +161,11 @@ struct StoryFormView: View {
                                     ? Color(hex: "#4A5568") : Color(hex: "#E2E8F0"))
                     }
                 }
-                .accessibilityLabel("Back")
+                .accessibilityLabel(R.string.localizable.navigationBack())
             }
 
             ToolbarItem(placement: .principal) {
-                Text("Magical Story Creator")
+                Text(R.string.localizable.storyFormHeader())
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(
                         colorScheme == .light ? Color(hex: "#7B61FF") : Color(hex: "#a78bfa"))
@@ -177,12 +178,12 @@ struct StoryFormView: View {
             Button {
                 showError = false
             } label: {
-                Text("Try Again").bold().foregroundColor(Color(hex: "#7B61FF"))
+                Text(R.string.localizable.actionTryAgain()).bold().foregroundColor(Color(hex: "#7B61FF"))
             }
             Button(role: .cancel) {
                 showError = false
             } label: {
-                Text("Cancel")
+                Text(R.string.localizable.navigationCancel())
             }
         }
     }

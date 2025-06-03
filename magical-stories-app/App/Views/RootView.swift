@@ -10,13 +10,13 @@ enum TabItem {
     var title: String {
         switch self {
         case .home:
-            return "Home"
+            return R.string.localizable.navigationHome()
         case .library:
-            return "Library"
+            return R.string.localizable.navigationLibrary()
         case .settings:
-            return "Settings"
+            return R.string.localizable.navigationSettings()
         case .collections:
-            return "Collections"
+            return R.string.localizable.navigationCollections()
         }
     }
 

@@ -48,13 +48,13 @@ struct LibraryView: View {
 
                         // Sort Options
                         HStack {
-                            Text("Sort by:")
+                            Text(R.string.localizable.librarySortBy())
                                 .font(UITheme.Typography.bodyMedium)
                                 .foregroundColor(UITheme.Colors.textSecondary)
 
-                            Picker("Sort", selection: $sortOption) {
+                            Picker(R.string.localizable.librarySortBy(), selection: $sortOption) {
                                 ForEach(AllStoriesSortOptions.SortOption.allCases) { option in
-                                    Text(option.rawValue).tag(option)
+                                    Text(option.localizedTitle).tag(option)
                                 }
                             }
                             .pickerStyle(.menu)
@@ -96,7 +96,7 @@ struct LibraryView: View {
         .alert(
             "Delete Failed", isPresented: $showDeleteError,
             actions: {
-                Button("OK", role: .cancel) {}
+                Button(R.string.localizable.navigationDone(), role: .cancel) {}
             },
             message: {
                 Text(deleteErrorMessage)

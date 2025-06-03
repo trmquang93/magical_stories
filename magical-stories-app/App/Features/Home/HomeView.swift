@@ -29,8 +29,8 @@ struct HomeView: View {
 
             // Scroll-aware header positioned at top of ZStack
             ScrollAwareHeader(
-                title: "Welcome back\(childName.isEmpty ? "!" : ", \(childName)!")",
-                subtitle: "What magical story will you create today?",
+                title: childName.isEmpty ? R.string.localizable.homeWelcomeBack() : R.string.localizable.homeWelcomeBackWithName(childName),
+                subtitle: R.string.localizable.homeSubtitle(),
                 isVisible: $showScrollHeader
             ) {
                 Image(systemName: "wand.and.stars")
@@ -141,12 +141,12 @@ struct HomeView: View {
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Welcome back\(childName.isEmpty ? "!" : ", \(childName)!")")
+            Text(childName.isEmpty ? R.string.localizable.homeWelcomeBack() : R.string.localizable.homeWelcomeBackWithName(childName))
                 .font(.displayMedium)
                 .foregroundColor(UITheme.Colors.textPrimary)
                 .padding(.top, Spacing.xl)
                 .accessibilityIdentifier("HomeView_WelcomeHeading")
-            Text("What magical story will you create today?")
+            Text(R.string.localizable.homeSubtitle())
                 .font(.bodyMedium)
                 .foregroundColor(UITheme.Colors.textSecondary)
                 .accessibilityIdentifier("HomeView_WelcomeSubtitle")
@@ -159,9 +159,9 @@ struct HomeView: View {
         ActionCard(
             iconName: "wand.and.stars",
             iconColor: UITheme.Colors.primary,
-            title: "Create a New Story",
-            subtitle: "Personalize a bedtime adventure",
-            buttonTitle: "Start",
+            title: R.string.localizable.homeCreateStoryTitle(),
+            subtitle: R.string.localizable.homeCreateStorySubtitle(),
+            buttonTitle: R.string.localizable.homeCreateStoryButton(),
             buttonAction: { showingStoryForm = true }
         )
         .accessibilityIdentifier("HomeView_CreateStoryCard")
@@ -169,7 +169,7 @@ struct HomeView: View {
 
     private var growthCollectionsPreview: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Growth Path Collections")
+            Text(R.string.localizable.homeCollectionsTitle())
                 .font(.headingMedium)
                 .foregroundColor(UITheme.Colors.textPrimary)
                 .padding(.horizontal, Spacing.lg)
@@ -201,9 +201,9 @@ struct HomeView: View {
         ActionCard(
             iconName: "plus",
             iconColor: UITheme.Colors.primary,
-            title: "Create a Growth Collection",
-            subtitle: "Guide your child's growth with themed story sets",
-            buttonTitle: "Create Collection",
+            title: R.string.localizable.homeCreateCollectionTitle(),
+            subtitle: R.string.localizable.homeCreateCollectionSubtitle(),
+            buttonTitle: R.string.localizable.homeCreateCollectionButton(),
             buttonAction: { showingGrowthStoryForm = true }
         )
         .accessibilityIdentifier("HomeView_CreateCollectionCard")
@@ -211,7 +211,7 @@ struct HomeView: View {
 
     private var libraryPreview: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Your Story Library")
+            Text(R.string.localizable.homeLibraryTitle())
                 .font(.headingMedium)
                 .foregroundColor(UITheme.Colors.textPrimary)
                 .padding(.horizontal, Spacing.lg)
@@ -228,7 +228,7 @@ struct HomeView: View {
                     // Use appRouter to change tabs
                     appRouter.activeTab = .library
                 }) {
-                    Text("View All Stories")
+                    Text(R.string.localizable.homeLibraryViewAll())
                         .font(.headingSmall)
                         .foregroundColor(.magicalPrimary)
                         .frame(maxWidth: .infinity)
@@ -238,7 +238,7 @@ struct HomeView: View {
                                 .stroke(UITheme.Colors.primary, lineWidth: 2)
                         )
                         .padding(.horizontal, Spacing.lg)
-                        .accessibilityLabel("View All Stories")
+                        .accessibilityLabel(R.string.localizable.accessibilityViewAllStories())
                 }
                 .buttonStyle(PlainButtonStyle())
                 .accessibilityIdentifier("ViewAllStoriesButton")
@@ -250,7 +250,7 @@ struct HomeView: View {
     }
 
     private var footerTip: some View {
-        Text("Tip: Reading together builds magical memories!")
+        Text(R.string.localizable.homeTip())
             .font(.bodySmall)
             .foregroundColor(UITheme.Colors.accent)
             .multilineTextAlignment(.center)

@@ -12,13 +12,13 @@ struct FormHeader: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Create Magic")
+                Text(R.string.localizable.storyFormCreateHeader())
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(
                         colorScheme == .light
                             ? Color(hex: "#7B61FF") : Color(hex: "#a78bfa"))
 
-                Text("Personalize your magical story")
+                Text(R.string.localizable.storyFormCreateSubtitle())
                     .font(.system(size: 16))
                     .foregroundColor(
                         Color(colorScheme == .light ? .black : .white).opacity(0.6))
@@ -46,11 +46,11 @@ struct ChildNameField: View {
 
     var body: some View {
         FormFieldContainer {
-            Text("Child's Name")
+            Text(R.string.localizable.storyFormChildNameLabel())
                 .formSectionLabel(iconName: "person.fill")
 
             TextField(
-                "Enter child's name",
+                R.string.localizable.storyFormChildNamePlaceholder(),
                 text: Binding(
                     get: { childName ?? "" },
                     set: { childName = $0.isEmpty ? nil : $0 }
@@ -71,11 +71,11 @@ struct CharacterField: View {
 
     var body: some View {
         FormFieldContainer {
-            Text("Favorite Character")
+            Text(R.string.localizable.storyFormCharacterLabel())
                 .formSectionLabel(iconName: "heart.fill")
 
             HStack {
-                TextField("Enter a character (dragon, princess...)", text: $favoriteCharacter)
+                TextField(R.string.localizable.storyFormCharacterPlaceholder(), text: $favoriteCharacter)
                     .formFieldStyle()
                     .submitLabel(.next)
                     .autocorrectionDisabled()
@@ -121,10 +121,10 @@ struct AgeRangeField: View {
 
     var body: some View {
         FormFieldContainer {
-            Text("Age Range")
+            Text(R.string.localizable.storyFormAgeRangeLabel())
                 .formSectionLabel(iconName: "person.2.fill")
 
-            Picker("Age Range", selection: $selectedAgeRange) {
+            Picker(R.string.localizable.storyFormAgeRangeLabel(), selection: $selectedAgeRange) {
                 ForEach(ageRanges, id: \.self) { range in
                     Text(range).tag(range)
                 }
@@ -141,7 +141,7 @@ struct ThemeField: View {
 
     var body: some View {
         FormFieldContainer {
-            Text("Story Theme")
+            Text(R.string.localizable.storyFormThemeLabel())
                 .formSectionLabel(iconName: "book.fill")
 
             themeGrid
@@ -193,7 +193,7 @@ struct StoryLengthField: View {
 
     var body: some View {
         FormFieldContainer {
-            Text("Story Length")
+            Text(R.string.localizable.storyFormLengthLabel())
                 .formSectionLabel(iconName: "text.book.closed.fill")
 
             storyLengthSlider
@@ -234,10 +234,10 @@ struct LanguageField: View {
 
     var body: some View {
         FormFieldContainer {
-            Text("Story Language")
+            Text(R.string.localizable.storyFormLanguageLabel())
                 .formSectionLabel(iconName: "globe")
 
-            Picker("Language", selection: $selectedLanguage) {
+            Picker(R.string.localizable.storyFormLanguageLabel(), selection: $selectedLanguage) {
                 ForEach(languages, id: \.0) { code, name in
                     Text(name).tag(code)
                 }
@@ -292,7 +292,7 @@ struct GenerateButton: View {
 
                         Text(
                             isGenerating
-                                ? "Creating Magic..." : "Generate Magical Story"
+                                ? R.string.localizable.storyFormGenerating() : R.string.localizable.storyFormGenerateButton()
                         )
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(.white)

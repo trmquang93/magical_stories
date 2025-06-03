@@ -31,7 +31,7 @@ struct MainTabView: View {
                         Text(TabItem.home.title)
                             .font(.headingSmall)
                     }
-                    .accessibilityLabel("Home Tab")
+                    .accessibilityLabel(R.string.localizable.accessibilityHomeTab())
                     .accessibilityIdentifier("HomeTabButton")
                 }
                 .tag(TabItem.home)
@@ -49,7 +49,7 @@ struct MainTabView: View {
                         Text(TabItem.library.title)
                             .font(.headingSmall)
                     }
-                    .accessibilityLabel("Library Tab")
+                    .accessibilityLabel(R.string.localizable.accessibilityLibraryTab())
                     .accessibilityIdentifier("LibraryTabButton")
                 }
                 .tag(TabItem.library)
@@ -67,7 +67,7 @@ struct MainTabView: View {
                         Text(TabItem.collections.title)
                             .font(.headingSmall)
                     }
-                    .accessibilityLabel("Collections Tab")
+                    .accessibilityLabel(R.string.localizable.accessibilityCollectionsTab())
                     .accessibilityIdentifier("CollectionsTabButton")
                 }
                 .tag(TabItem.collections)
@@ -85,7 +85,7 @@ struct MainTabView: View {
                         Text(TabItem.settings.title)
                             .font(.headingSmall)
                     }
-                    .accessibilityLabel("Settings Tab")
+                    .accessibilityLabel(R.string.localizable.accessibilitySettingsTab())
                     .accessibilityIdentifier("SettingsTabButton")
                 }
                 .tag(TabItem.settings)

@@ -18,7 +18,6 @@
 		4DBDB0562DB0B7F200252B5A /* InlineSnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB0552DB0B7F200252B5A /* InlineSnapshotTesting */; };
 		4DBDB0582DB0B7F200252B5A /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB0572DB0B7F200252B5A /* SnapshotTesting */; };
 		4DBDB05A2DB0B7F200252B5A /* SnapshotTestingCustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB0592DB0B7F200252B5A /* SnapshotTestingCustomDump */; };
-		4DF6CEB62DEE668E0057B284 /* RswiftLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = 4DF6CEB52DEE668E0057B284 /* RswiftLibrary */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,7 +70,6 @@
 			files = (
 				4DB482AB2DD2F4DB0012F67A /* KeyboardAvoider in Frameworks */,
 				4D33415F2DBA2D4C0067A4FE /* GoogleGenerativeAI in Frameworks */,
-				4DF6CEB62DEE668E0057B284 /* RswiftLibrary in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -144,7 +142,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				4DF6CEB82DEE66A20057B284 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				4D5D563E2DA2D7DE001709F0 /* magical-stories-app */,
@@ -153,7 +150,6 @@
 			packageProductDependencies = (
 				4D33415E2DBA2D4C0067A4FE /* GoogleGenerativeAI */,
 				4DB482AA2DD2F4DB0012F67A /* KeyboardAvoider */,
-				4DF6CEB52DEE668E0057B284 /* RswiftLibrary */,
 			);
 			productName = "magical-stories";
 			productReference = 4DDF1B472D98B911005D882A /* magical-stories.app */;
@@ -250,7 +246,6 @@
 				4D33415D2DBA2D4C0067A4FE /* XCRemoteSwiftPackageReference "generative-ai-swift" */,
 				4D9B9F082DBF208800A5C0F7 /* XCRemoteSwiftPackageReference "ViewInspector" */,
 				4DB482A92DD2F4DB0012F67A /* XCRemoteSwiftPackageReference "KeyboardAvoider" */,
-				4DF6CEB42DEE668E0057B284 /* XCRemoteSwiftPackageReference "R" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4DDF1B482D98B911005D882A /* Products */;
@@ -323,10 +318,6 @@
 			isa = PBXTargetDependency;
 			target = 4DDF1B462D98B911005D882A /* magical-stories */;
 			targetProxy = 4DDF1B642D98B918005D882A /* PBXContainerItemProxy */;
-		};
-		4DF6CEB82DEE66A20057B284 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = 4DF6CEB72DEE66A20057B284 /* RswiftGenerateInternalResources */;
 		};
 /* End PBXTargetDependency section */
 
@@ -654,14 +645,6 @@
 				minimumVersion = 1.18.3;
 			};
 		};
-		4DF6CEB42DEE668E0057B284 /* XCRemoteSwiftPackageReference "R" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/mac-cain13/R.swift";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 7.8.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -714,16 +697,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 4DBDB04E2DB0B7E100252B5A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
 			productName = SnapshotTestingCustomDump;
-		};
-		4DF6CEB52DEE668E0057B284 /* RswiftLibrary */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 4DF6CEB42DEE668E0057B284 /* XCRemoteSwiftPackageReference "R" */;
-			productName = RswiftLibrary;
-		};
-		4DF6CEB72DEE66A20057B284 /* RswiftGenerateInternalResources */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 4DF6CEB42DEE668E0057B284 /* XCRemoteSwiftPackageReference "R" */;
-			productName = "plugin:RswiftGenerateInternalResources";
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -1,0 +1,422 @@
+/* 
+   Localizable.strings
+   Magical Stories
+   
+   Generated for R.swift localization
+*/
+
+// MARK: - Navigation & Tabs
+"navigation.home" = "Home";
+"navigation.library" = "Library";
+"navigation.collections" = "Collections";
+"navigation.settings" = "Settings";
+"navigation.back" = "Back";
+"navigation.close" = "Close";
+"navigation.done" = "Done";
+"navigation.cancel" = "Cancel";
+"navigation.save" = "Save";
+"navigation.edit" = "Edit";
+"navigation.delete" = "Delete";
+
+// MARK: - General Actions
+"action.create" = "Create";
+"action.retry" = "Retry";
+"action.tryAgain" = "Try Again";
+"action.share" = "Share";
+"action.copy" = "Copy";
+"action.paste" = "Paste";
+"action.cut" = "Cut";
+"action.undo" = "Undo";
+"action.redo" = "Redo";
+"action.select" = "Select";
+"action.selectAll" = "Select All";
+"action.clear" = "Clear";
+"action.reset" = "Reset";
+"action.refresh" = "Refresh";
+"action.reload" = "Reload";
+"action.continue" = "Continue";
+"action.skip" = "Skip";
+"action.next" = "Next";
+"action.previous" = "Previous";
+"action.start" = "Start";
+"action.stop" = "Stop";
+
+// MARK: - Home Screen
+"home.welcomeBack" = "Welcome back!";
+"home.welcomeBackWithName" = "Welcome back, %@!";
+"home.subtitle" = "What magical story will you create today?";
+"home.createStory.title" = "Create a New Story";
+"home.createStory.subtitle" = "Personalize a bedtime adventure";
+"home.createStory.button" = "Start";
+"home.collections.title" = "Growth Path Collections";
+"home.createCollection.title" = "Create a Growth Collection";
+"home.createCollection.subtitle" = "Guide your child's growth with themed story sets";
+"home.createCollection.button" = "Create Collection";
+"home.library.title" = "Your Story Library";
+"home.library.viewAll" = "View All Stories";
+"home.tip" = "Tip: Reading together builds magical memories!";
+
+// MARK: - Story Form
+"storyForm.title" = "Create Story";
+"storyForm.header" = "Magical Story Creator";
+"storyForm.loading.title" = "Creating your magical story...";
+"storyForm.loading.subtitle" = "Weaving enchantment and wonder just for %@...";
+"storyForm.error.title" = "Story Creation Error";
+"storyForm.error.message" = "We couldn't create your story: %@\n\nPlease try again later.";
+"storyForm.create.header" = "Create Magic";
+"storyForm.create.subtitle" = "Personalize your magical story";
+"storyForm.childName.label" = "Child's Name";
+"storyForm.childName.placeholder" = "Enter child's name";
+"storyForm.character.label" = "Favorite Character";
+"storyForm.character.placeholder" = "Enter a character (dragon, princess...)";
+"storyForm.ageRange.label" = "Age Range";
+"storyForm.theme.label" = "Story Theme";
+"storyForm.length.label" = "Story Length";
+"storyForm.length.short" = "Short";
+"storyForm.length.medium" = "Medium";
+"storyForm.length.long" = "Long";
+"storyForm.language.label" = "Story Language";
+"storyForm.generating" = "Creating Magic...";
+"storyForm.generate.button" = "Generate Magical Story";
+
+// MARK: - Character Options
+"character.dragon" = "Dragon";
+"character.princess" = "Princess";
+"character.knight" = "Knight";
+"character.wizard" = "Wizard";
+"character.fairy" = "Fairy";
+"character.unicorn" = "Unicorn";
+"character.pirate" = "Pirate";
+"character.astronaut" = "Astronaut";
+"character.detective" = "Detective";
+"character.superhero" = "Superhero";
+"character.animal" = "Animal Friend";
+"character.robot" = "Robot";
+
+// MARK: - Story Themes
+"theme.adventure" = "Adventure";
+"theme.friendship" = "Friendship";
+"theme.learning" = "Learning";
+"theme.courage" = "Courage";
+"theme.kindness" = "Kindness";
+"theme.mystery" = "Mystery";
+"theme.magic" = "Magic";
+"theme.family" = "Family";
+"theme.nature" = "Nature";
+"theme.space" = "Space";
+"theme.ocean" = "Ocean";
+"theme.fantasy" = "Fantasy";
+
+// MARK: - Age Groups
+"ageGroup.preschool" = "3-5 years";
+"ageGroup.earlyReader" = "6-8 years";
+"ageGroup.middleGrade" = "9-12 years";
+
+// MARK: - Library Screen
+"library.title" = "Library";
+"library.sortBy" = "Sort by:";
+"library.sort.newest" = "Newest";
+"library.sort.oldest" = "Oldest";
+"library.sort.alphabetical" = "A-Z";
+"library.sort.mostRead" = "Most Read";
+"library.search.placeholder" = "Search stories...";
+"library.empty.title" = "Your library is empty";
+"library.empty.message" = "Create your first magical story on the Home tab";
+"library.noResults.title" = "No stories found";
+"library.noResults.message" = "Try adjusting your search or filters";
+"library.category.fantasy" = "Fantasy";
+"library.category.animals" = "Animals";
+"library.category.bedtime" = "Bedtime";
+"library.category.adventure" = "Adventure";
+
+// MARK: - Story Detail & Reading
+"storyDetail.title" = "Story Details";
+"storyDetail.readingTime" = "Reading time: %@ min";
+"storyDetail.pages" = "%d pages";
+"storyDetail.created" = "Created %@";
+"storyDetail.lastRead" = "Last read %@";
+"storyDetail.read" = "Read Story";
+"storyDetail.share" = "Share Story";
+"storyDetail.delete" = "Delete Story";
+"storyDetail.edit" = "Edit Story";
+"storyReading.page" = "Page %d of %d";
+"storyReading.nextPage" = "Next Page";
+"storyReading.previousPage" = "Previous Page";
+"storyReading.readAloud" = "Read Aloud";
+"storyReading.pauseReading" = "Pause Reading";
+"storyReading.bookmarkPage" = "Bookmark This Page";
+"storyReading.fontSize" = "Font Size";
+"storyReading.nightMode" = "Night Mode";
+"storyReading.fullscreen" = "Fullscreen";
+"storyReading.exitFullscreen" = "Exit Fullscreen";
+"storyReading.completed" = "Story Completed!";
+"storyReading.congratulations" = "Congratulations on finishing the story!";
+"storyReading.readAnother" = "Read Another Story";
+"storyReading.backToLibrary" = "Back to Library";
+
+// MARK: - Collections
+"collections.title" = "Collections";
+"collections.progress" = "%d of %d stories completed";
+"collections.unlock" = "Unlock Collection";
+"collections.locked" = "Premium Collection";
+"collections.complete" = "Collection Complete!";
+"collections.inProgress" = "In Progress";
+"collections.notStarted" = "Not Started";
+"collectionForm.title" = "Create Growth Collection";
+"collectionForm.header" = "Growth Collections";
+"collectionForm.subtitle" = "Personalized stories for development";
+"collectionForm.ageGroup.label" = "Age Group";
+"collectionForm.childName.label" = "Child's Name (Optional)";
+"collectionForm.childName.placeholder" = "Enter child's name";
+"collectionForm.characters.label" = "Characters (Optional)";
+"collectionForm.characters.placeholder" = "Dragon, unicorn, wizard...";
+"collectionForm.characters.hint" = "Separate multiple characters with commas";
+"collectionForm.interests.label" = "Child's Interests (Required)";
+"collectionForm.interests.placeholder" = "Space, dinosaurs, ballet...";
+"collectionForm.createButton" = "Create Collection";
+"collectionForm.error.title" = "Error Creating Collection";
+"collectionForm.error.unknown" = "An unknown error occurred.";
+"collectionForm.error.interests" = "Please enter the child's interests.";
+"collectionForm.error.generation" = "Failed to generate collection: %@";
+
+// MARK: - Growth Categories
+"growthCategory.emotionalIntelligence" = "Emotional Intelligence";
+"growthCategory.cognitiveDevelopment" = "Cognitive Development";
+"growthCategory.socialSkills" = "Social Skills";
+"growthCategory.creativity" = "Creativity & Imagination";
+"growthCategory.problemSolving" = "Problem Solving";
+"growthCategory.resilience" = "Resilience & Grit";
+"growthCategory.kindness" = "Kindness & Empathy";
+"growthCategory.curiosity" = "Curiosity & Exploration";
+"growthCategory.cooperation" = "Sharing & Cooperation";
+"growthCategory.coping" = "Resilience & Coping";
+
+// MARK: - Settings
+"settings.title" = "Settings";
+"settings.profile.title" = "Profile";
+"settings.profile.subtitle" = "Manage your account";
+"settings.subscription.title" = "Subscription";
+"settings.subscription.subtitle" = "Manage your plan";
+"settings.about.title" = "About";
+"settings.about.subtitle" = "App information";
+"settings.parentalControls.title" = "Parental Controls";
+"settings.parentalControls.subtitle" = "Content filters and safety";
+"settings.privacy.title" = "Privacy";
+"settings.privacy.subtitle" = "Data and privacy settings";
+"settings.support.title" = "Support";
+"settings.support.subtitle" = "Help and feedback";
+"settings.termsOfService" = "Terms of Service";
+"settings.privacyPolicy" = "Privacy Policy";
+"settings.version" = "Version %@";
+"settings.build" = "Build %@";
+"settings.copyright" = "© 2024 Magical Stories";
+"settings.madeWith" = "Made with ❤️ for families";
+"settings.contact" = "Contact Us";
+"settings.feedback" = "Send Feedback";
+"settings.rateApp" = "Rate App";
+"settings.shareApp" = "Share App";
+"settings.restorePurchases" = "Restore Purchases";
+"settings.signOut" = "Sign Out";
+"settings.deleteAccount" = "Delete Account";
+"settings.notifications" = "Notifications";
+"settings.language" = "Language";
+"settings.accessibility" = "Accessibility";
+"settings.dataUsage" = "Data Usage";
+"settings.offlineMode" = "Offline Mode";
+
+// MARK: - Subscription & Paywall
+"paywall.title" = "Choose Your Plan";
+"paywall.subtitle" = "Unlock unlimited magical stories";
+"paywall.loading" = "Loading subscription options...";
+"paywall.error.loading" = "Unable to load subscription options";
+"paywall.feature.unlimitedStories" = "Unlimited story generation";
+"paywall.feature.growthCollections" = "Growth Path Collections";
+"paywall.feature.illustrations" = "Advanced illustration features";
+"paywall.feature.profiles" = "Multiple child profiles";
+"paywall.feature.analytics" = "Parental controls & analytics";
+"paywall.feature.priority" = "Priority generation speed";
+"paywall.feature.trial" = "7-day free trial";
+"paywall.trust.secure" = "Secure Payment";
+"paywall.trust.cancel" = "Cancel Anytime";
+"paywall.trust.noFees" = "No Hidden Fees";
+"paywall.restore" = "Restore Purchases";
+"paywall.terms" = "Terms of Service";
+"paywall.privacy" = "Privacy Policy";
+"paywall.usageLimit.title" = "You've reached your monthly limit";
+"paywall.usageLimit.message" = "Upgrade to Premium for unlimited story generation";
+"paywall.feature.title" = "Premium Feature";
+"paywall.feature.message" = "This feature is available with Premium subscription";
+"paywall.onboarding.title" = "Welcome to Magical Stories Premium";
+"paywall.onboarding.message" = "Start your free trial and unlock all premium features";
+"paywall.upgrade.title" = "Upgrade to Premium";
+"paywall.upgrade.message" = "Get unlimited stories and exclusive features";
+"subscription.status.free" = "Free Plan";
+"subscription.status.monthlyExpires" = "Premium Monthly (expires %@)";
+"subscription.status.yearlyExpires" = "Premium Yearly (expires %@)";
+"subscription.status.expired" = "Expired (was active until %@)";
+"subscription.status.pending" = "Purchase Pending";
+"subscription.renewal" = "Renews on %@";
+"subscription.expiresOn" = "Expires on %@";
+"subscription.product.monthly" = "Premium Monthly";
+"subscription.product.yearly" = "Premium Yearly";
+
+// MARK: - Usage Limits
+"usage.storiesCount" = "Stories this month: %d/%d";
+"usage.unlimited" = "Unlimited Stories";
+"usage.limitReached.title" = "You've used all your free stories this month!";
+"usage.limitReached.message" = "Upgrade to Premium for unlimited magical adventures and exclusive features";
+"usage.limitReached.header" = "Usage Limit Reached";
+"usage.upgrade.button" = "Upgrade to Premium";
+"usage.maybeLater" = "Maybe Later";
+"usage.reset.tomorrow" = "Your story limit resets tomorrow";
+"usage.reset.oneDay" = "Your story limit resets in 1 day";
+"usage.reset.days" = "Your story limit resets in %d days";
+"usage.feature.unlimited.desc" = "Create as many stories as you want";
+"usage.feature.collections.desc" = "Developmental story sets";
+"usage.feature.profiles.desc" = "Perfect for families";
+"usage.feature.priority.desc" = "Skip the wait";
+
+// MARK: - Illustrations
+"illustration.generating" = "Generating illustration...";
+"illustration.error" = "Illustration generation failed";
+"illustration.retry" = "Retry illustration";
+"illustration.style.whimsical" = "Whimsical";
+"illustration.style.realistic" = "Realistic";
+"illustration.style.cartoon" = "Cartoon";
+"illustration.style.watercolor" = "Watercolor";
+"illustration.style.sketchy" = "Sketchy";
+"illustration.placeholder" = "Illustration coming soon...";
+"illustration.loading" = "Creating magical artwork...";
+"illustration.complete" = "Illustration ready!";
+"illustration.settings" = "Illustration Settings";
+"illustration.quality" = "Quality";
+"illustration.style" = "Style";
+
+// MARK: - Error Handling
+"error.network.title" = "Connection Error";
+"error.network.message" = "Please check your internet connection and try again.";
+"error.ai.title" = "AI Service Error";
+"error.ai.message" = "We couldn't generate content right now. Please try again later.";
+"error.storage.title" = "Storage Error";
+"error.storage.message" = "Unable to save your story. Please try again.";
+"error.subscription.title" = "Subscription Error";
+"error.subscription.message" = "There was a problem with your subscription. Please try again.";
+"error.storyGeneration" = "Failed to generate the story. Please try again.";
+"error.invalidParameters" = "The provided parameters were invalid.";
+"error.persistence" = "Failed to save or load the story.";
+"error.productNotFound" = "Product not found in the App Store";
+"error.purchaseFailed" = "Purchase failed: %@";
+"error.verificationFailed" = "Transaction verification failed: %@";
+"error.pending" = "Purchase is pending approval";
+"error.unknown" = "An unknown error occurred";
+"error.cancelled" = "Purchase was cancelled";
+"error.notAllowed" = "Purchase not allowed";
+"error.retry" = "Retry";
+"error.dismiss" = "Dismiss";
+"error.contactSupport" = "Contact Support";
+
+// MARK: - Loading & Success States
+"loading.creatingStory" = "Creating your magical story...";
+"loading.generatingIllustration" = "Generating beautiful artwork...";
+"loading.savingStory" = "Saving your story...";
+"loading.loadingLibrary" = "Loading your stories...";
+"loading.processing" = "Processing...";
+"loading.pleaseWait" = "Please wait...";
+"success.storyCreated" = "Story created successfully!";
+"success.storySaved" = "Story saved to your library";
+"success.storyShared" = "Story shared successfully";
+"success.subscriptionActivated" = "Premium subscription activated!";
+"success.purchaseComplete" = "Purchase completed successfully";
+"success.restored" = "Purchases restored successfully";
+
+// MARK: - Accessibility Labels
+"accessibility.homeTab" = "Home Tab";
+"accessibility.libraryTab" = "Library Tab";
+"accessibility.collectionsTab" = "Collections Tab";
+"accessibility.settingsTab" = "Settings Tab";
+"accessibility.storyCard" = "Story: %@";
+"accessibility.collectionCard" = "Collection: %@";
+"accessibility.pageProgress" = "Page %d of %d";
+"accessibility.clearCharacter" = "Clear favorite character";
+"accessibility.clearChildName" = "Clear child name";
+"accessibility.clearCharacters" = "Clear characters";
+"accessibility.clearInterests" = "Clear interests";
+"accessibility.viewAllStories" = "View All Stories";
+"accessibility.playStory" = "Play story";
+"accessibility.pauseStory" = "Pause story";
+"accessibility.nextPage" = "Next page";
+"accessibility.previousPage" = "Previous page";
+"accessibility.closeStory" = "Close story";
+
+// MARK: - Date & Time
+"time.now" = "Now";
+"time.today" = "Today";
+"time.yesterday" = "Yesterday";
+"time.thisWeek" = "This week";
+"time.lastWeek" = "Last week";
+"time.thisMonth" = "This month";
+"time.lastMonth" = "Last month";
+"time.minutesAgo" = "%d minutes ago";
+
+// MARK: - Validation Messages
+"validation.required" = "This field is required";
+"validation.tooShort" = "Must be at least %d characters";
+"validation.tooLong" = "Must be no more than %d characters";
+"validation.invalidEmail" = "Please enter a valid email address";
+"validation.invalidName" = "Please enter a valid name";
+"validation.noSpecialCharacters" = "Special characters are not allowed";
+"validation.numbersOnly" = "Numbers only";
+"validation.lettersOnly" = "Letters only";
+"validation.alphanumeric" = "Letters and numbers only";
+
+// MARK: - Confirmation Dialogs
+"confirm.deleteStory.title" = "Delete Story";
+"confirm.deleteStory.message" = "Are you sure you want to delete this story? This action cannot be undone.";
+"confirm.deleteCollection.title" = "Delete Collection";
+"confirm.deleteCollection.message" = "Are you sure you want to delete this collection? All stories in this collection will also be deleted.";
+"confirm.signOut.title" = "Sign Out";
+"confirm.signOut.message" = "Are you sure you want to sign out?";
+"confirm.deleteAccount.title" = "Delete Account";
+"confirm.deleteAccount.message" = "Are you sure you want to permanently delete your account? This action cannot be undone.";
+
+// MARK: - Premium Feature Gates
+"premium.required" = "Premium subscription required";
+"premium.upgradeToAccess" = "Upgrade to premium to access this feature";
+"premium.trialAvailable" = "Start your free trial";
+"premium.learnMore" = "Learn more about premium";
+"premium.features" = "Premium Features";
+"premium.benefits" = "Premium Benefits";
+
+// MARK: - Search & Filters
+"search.placeholder" = "Search...";
+"search.noResults" = "No results found";
+"search.clearSearch" = "Clear search";
+"search.recentSearches" = "Recent Searches";
+"filter.all" = "All";
+"filter.favorites" = "Favorites";
+"filter.recent" = "Recent";
+"filter.unread" = "Unread";
+"filter.completed" = "Completed";
+"filter.inProgress" = "In Progress";
+
+// MARK: - Sharing
+"share.story" = "Check out this magical story!";
+"share.app" = "Create magical stories with this amazing app!";
+"share.collection" = "Discover this growth collection";
+"share.via" = "Share via";
+
+// MARK: - Notifications
+"notification.storyReady" = "Your story is ready!";
+"notification.newStoryAvailable" = "A new story is waiting for you";
+"notification.reminderToRead" = "Time for a magical story!";
+"notification.collectionComplete" = "Collection completed!";
+"notification.subscriptionExpiring" = "Your subscription expires soon";
+"notification.subscriptionRenewed" = "Subscription renewed successfully";
+
+// MARK: - App Metadata
+"app.name" = "Magical Stories";
+"app.tagline" = "AI-powered personalized stories for children";
+"app.description" = "Create magical, personalized stories that grow with your child";
+"app.keywords" = "stories, children, AI, education, bedtime";
+"app.category" = "Education & Entertainment";
+"app.developer" = "Magical Stories Team";
