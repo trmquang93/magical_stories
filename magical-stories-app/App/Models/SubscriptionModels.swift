@@ -91,7 +91,7 @@ enum SubscriptionProduct: String, CaseIterable, Identifiable {
 // MARK: - Premium Feature Definitions
 
 /// Represents premium features that require subscription access
-enum PremiumFeature: String, CaseIterable, Identifiable {
+enum PremiumFeature: String, CaseIterable, Identifiable, Codable {
     case unlimitedStoryGeneration = "unlimited_story_generation"
     case growthPathCollections = "growth_path_collections"
     case multipleChildProfiles = "multiple_child_profiles"

@@ -11,6 +11,8 @@ class EntitlementManager: ObservableObject {
     @Published private(set) var subscriptionStatus: SubscriptionStatus = .free
     @Published private(set) var hasLifetimeAccess = false
     @Published private(set) var isCheckingEntitlements = false
+    @Published private(set) var hasActiveAccessCode = false
+    @Published private(set) var accessCodeFeatures: Set<PremiumFeature> = []
     
     // MARK: - Private Properties
     
@@ -30,6 +32,8 @@ class EntitlementManager: ObservableObject {
     
     private weak var usageTracker: UsageTracker?
     private var usageAnalyticsService: UsageAnalyticsServiceProtocol?
+    private var accessCodeStorage: AccessCodeStorage?
+    private var accessCodeValidator: AccessCodeValidator?
     
     // MARK: - Initialization
     
@@ -39,6 +43,7 @@ class EntitlementManager: ObservableObject {
         // Check entitlements on initialization
         Task {
             await checkInitialEntitlements()
+            await refreshAccessCodeStatus()
         }
     }
     
@@ -56,12 +61,36 @@ class EntitlementManager: ObservableObject {
         self.usageAnalyticsService = usageAnalyticsService
     }
     
+    /// Sets the access code storage dependency
+    /// - Parameter accessCodeStorage: The access code storage service
+    func setAccessCodeStorage(_ accessCodeStorage: AccessCodeStorage) {
+        self.accessCodeStorage = accessCodeStorage
+        
+        // Listen for changes in access code storage
+        Task {
+            await refreshAccessCodeStatus()
+        }
+    }
+    
+    /// Sets the access code validator dependency
+    /// - Parameter accessCodeValidator: The access code validator service
+    func setAccessCodeValidator(_ accessCodeValidator: AccessCodeValidator) {
+        self.accessCodeValidator = accessCodeValidator
+    }
+    
     // MARK: - Public API
     
     /// Checks if the user has access to a specific premium feature
     /// - Parameter feature: The premium feature to check
     /// - Returns: True if user has access, false otherwise
     open func hasAccess(to feature: PremiumFeature) -> Bool {
+        // Access codes take precedence over subscription status
+        if hasActiveAccessCode && accessCodeFeatures.contains(feature) {
+            logger.debug("Access granted via access code for feature: \(feature.rawValue)")
+            return true
+        }
+        
+        // Fall back to subscription status
         switch feature {
         case .unlimitedStoryGeneration:
             return isPremiumUser
@@ -85,6 +114,12 @@ class EntitlementManager: ObservableObject {
     /// Checks if the user can generate a story based on their subscription and usage
     /// - Returns: True if user can generate a story, false if limit reached
     open func canGenerateStory() async -> Bool {
+        // Access code users with unlimited story generation have unlimited access
+        if hasActiveAccessCode && accessCodeFeatures.contains(.unlimitedStoryGeneration) {
+            logger.debug("Story generation allowed via access code")
+            return true
+        }
+        
         // Premium users have unlimited access
         if isPremiumUser {
             return true
@@ -97,6 +132,11 @@ class EntitlementManager: ObservableObject {
     /// Gets the number of remaining stories for free users
     /// - Returns: Number of stories remaining this month
     open func getRemainingStories() async -> Int {
+        // Access code users with unlimited story generation get unlimited stories
+        if hasActiveAccessCode && accessCodeFeatures.contains(.unlimitedStoryGeneration) {
+            return Int.max
+        }
+        
         if isPremiumUser {
             return Int.max // Unlimited for premium users
         }
@@ -106,6 +146,23 @@ class EntitlementManager: ObservableObject {
     
     /// Increments the usage count for free users
     open func incrementUsageCount() async {
+        // Don't track usage for access code users with unlimited story generation
+        if hasActiveAccessCode && accessCodeFeatures.contains(.unlimitedStoryGeneration) {
+            logger.debug("Usage tracking skipped for access code user")
+            
+            // Still increment access code usage for tracking purposes
+            if let storage = accessCodeStorage {
+                let activeCodes = storage.getActiveAccessCodes()
+                for storedCode in activeCodes {
+                    if storedCode.accessCode.grantedFeatures.contains(.unlimitedStoryGeneration) {
+                        await storage.incrementUsage(for: storedCode.accessCode.code)
+                        break // Only increment the first matching code
+                    }
+                }
+            }
+            return
+        }
+        
         // Only track usage for free users
         if !isPremiumUser {
             await usageTracker?.incrementStoryGeneration()
@@ -117,8 +174,26 @@ class EntitlementManager: ObservableObject {
         return subscriptionStatus.isPremium || hasLifetimeAccess
     }
     
+    /// Computed property to check if user has access code premium access
+    var hasAccessCodePremiumAccess: Bool {
+        return hasActiveAccessCode && !accessCodeFeatures.isEmpty
+    }
+    
+    /// Computed property to check if user has any form of premium access
+    var hasAnyPremiumAccess: Bool {
+        return isPremiumUser || hasAccessCodePremiumAccess
+    }
+    
     /// Gets user-friendly subscription status text
     var subscriptionStatusText: String {
+        if hasActiveAccessCode && !accessCodeFeatures.isEmpty {
+            if accessCodeFeatures.count == PremiumFeature.allCases.count {
+                return "Full Access Code Premium"
+            } else {
+                return "Partial Access Code Premium"
+            }
+        }
+        
         if hasLifetimeAccess {
             return "Lifetime Premium"
         }
@@ -445,6 +520,9 @@ class EntitlementManager: ObservableObject {
         logger.info("[REFRESH_ENTITLEMENTS] Entitlement status refreshed: \(self.subscriptionStatusText)")
         logger.info("[REFRESH_ENTITLEMENTS] Final isPremiumUser: \(self.isPremiumUser)")
         
+        // Refresh access code status
+        await refreshAccessCodeStatus()
+        
         // Update last check timestamp
         userDefaults.set(Date(), forKey: UserDefaultsKeys.lastEntitlementCheck)
     }
@@ -560,6 +638,99 @@ class EntitlementManager: ObservableObject {
         
         logger.debug("Cached subscription state: \(self.subscriptionStatusText)")
     }
+    
+    // MARK: - Access Code Management
+    
+    /// Refreshes the access code status and updates published properties
+    @MainActor
+    private func refreshAccessCodeStatus() async {
+        guard let storage = accessCodeStorage else {
+            logger.debug("No access code storage available")
+            hasActiveAccessCode = false
+            accessCodeFeatures = []
+            return
+        }
+        
+        let activeFeatures = storage.getAccessibleFeatures()
+        let hasActiveCodes = !storage.getActiveAccessCodes().isEmpty
+        
+        logger.debug("Access code status: \(hasActiveCodes) active codes, \(activeFeatures.count) features")
+        
+        hasActiveAccessCode = hasActiveCodes
+        accessCodeFeatures = activeFeatures
+    }
+    
+    /// Validates and stores a new access code
+    /// - Parameter codeString: The access code string to validate and store
+    /// - Returns: True if successfully validated and stored, false otherwise
+    /// - Throws: AccessCodeValidationError if validation fails
+    @MainActor
+    func validateAndStoreAccessCode(_ codeString: String) async throws -> Bool {
+        guard let validator = accessCodeValidator,
+              let storage = accessCodeStorage else {
+            logger.error("Access code services not available")
+            throw AccessCodeValidationError.unknown("Access code services not available")
+        }
+        
+        logger.info("Validating access code: \(codeString.prefix(4))...")
+        
+        let validationResult = await validator.validateAccessCode(codeString)
+        
+        switch validationResult {
+        case .valid(let accessCode):
+            try await storage.storeAccessCode(accessCode)
+            await refreshAccessCodeStatus()
+            
+            logger.info("Access code validated and stored successfully")
+            logger.info("New access code features: \(accessCode.grantedFeatures.map { $0.rawValue })")
+            
+            return true
+            
+        case .invalid(let error):
+            logger.warning("Access code validation failed: \(error.localizedDescription)")
+            throw error
+        }
+    }
+    
+    /// Removes an access code from storage
+    /// - Parameter codeString: The access code string to remove
+    @MainActor
+    func removeAccessCode(_ codeString: String) async {
+        guard let storage = accessCodeStorage else {
+            logger.warning("Access code storage not available")
+            return
+        }
+        
+        await storage.removeAccessCode(codeString)
+        await refreshAccessCodeStatus()
+        
+        logger.info("Access code removed: \(codeString.prefix(4))...")
+    }
+    
+    /// Gets all active access codes
+    /// - Returns: Array of active stored access codes
+    func getActiveAccessCodes() -> [StoredAccessCode] {
+        return accessCodeStorage?.getActiveAccessCodes() ?? []
+    }
+    
+    /// Clears all stored access codes
+    @MainActor
+    func clearAllAccessCodes() async {
+        guard let storage = accessCodeStorage else {
+            logger.warning("Access code storage not available")
+            return
+        }
+        
+        await storage.clearAllAccessCodes()
+        await refreshAccessCodeStatus()
+        
+        logger.info("All access codes cleared")
+    }
+    
+    /// Gets access code status summary
+    var accessCodeStatusSummary: AccessCodeStatusSummary? {
+        return accessCodeStorage?.statusSummary
+    }
 }
 
 // MARK: - Feature Access Helpers
@@ -603,6 +774,12 @@ extension EntitlementManager {
     
     /// Gets usage statistics for the current period
     func getUsageStatistics() async -> (used: Int, limit: Int, isUnlimited: Bool) {
+        // Access code users with unlimited generation get unlimited status
+        if hasActiveAccessCode && accessCodeFeatures.contains(.unlimitedStoryGeneration) {
+            let used = await usageTracker?.getCurrentUsage() ?? 0
+            return (used: used, limit: -1, isUnlimited: true)
+        }
+        
         if isPremiumUser {
             let used = await usageTracker?.getCurrentUsage() ?? 0
             return (used: used, limit: -1, isUnlimited: true)
