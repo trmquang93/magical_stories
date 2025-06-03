@@ -52,7 +52,8 @@ class SharedMockIllustrationService: IllustrationServiceProtocol {
         totalPages: Int,
         previousIllustrationPath: String?,
         visualGuide: VisualGuide?,
-        globalReferenceImagePath: String?
+        globalReferenceImagePath: String?,
+        collectionContext: CollectionVisualContext?
     ) async throws -> String? {
         generateContextualIllustrationCallCount += 1
         lastContextualCallParameters = (

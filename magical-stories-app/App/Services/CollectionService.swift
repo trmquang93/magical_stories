@@ -292,7 +292,7 @@ final class CollectionService: ObservableObject, CollectionServiceProtocol {
                          userInfo: [NSLocalizedDescriptionKey: "Collection not found"])
         }
 
-        guard var stories = collection.stories else {
+        guard let stories = collection.stories else {
             throw NSError(domain: "CollectionService", code: 404,
                          userInfo: [NSLocalizedDescriptionKey: "No stories in collection"])
         }

@@ -3,7 +3,7 @@ import SwiftData
 
 /// Represents a collection of stories, often themed around a specific growth category.
 @Model
-final class StoryCollection: Sendable, Codable {
+final class StoryCollection: Codable {
     @Attribute(.unique) var id: UUID
     var title: String
     var descriptionText: String  // Renamed from description to avoid conflict

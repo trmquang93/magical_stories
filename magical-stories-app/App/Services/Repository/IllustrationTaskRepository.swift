@@ -260,4 +260,49 @@ class IllustrationTaskRepository: IllustrationTaskRepositoryProtocol {
         logger.debug("Restored \(restoredCount) tasks to the task manager")
         return restoredCount
     }
+    
+    /// Get the completed global reference task for a story
+    /// - Parameter storyId: The ID of the story
+    /// - Returns: The completed global reference task if found, nil otherwise
+    @MainActor
+    func getCompletedGlobalReferenceTask(for storyId: UUID) throws -> PendingIllustrationTask? {
+        let readyStatus = IllustrationStatus.ready.rawValue
+        let globalReferenceType = IllustrationTaskType.globalReference.rawValue
+        
+        let descriptor = FetchDescriptor<PendingIllustrationTask>(
+            predicate: #Predicate<PendingIllustrationTask> { task in
+                task.storyId == storyId && 
+                task.taskTypeRawValue == globalReferenceType &&
+                task.statusRawValue == readyStatus &&
+                task.illustrationPath != nil
+            },
+            sortBy: [SortDescriptor(\.lastUpdatedAt, order: .reverse)]
+        )
+        
+        let tasks = try modelContext.fetch(descriptor)
+        logger.debug("Found \(tasks.count) completed global reference tasks for story \(storyId.uuidString)")
+        
+        return tasks.first
+    }
+    
+    /// Update the illustration path for a completed task
+    /// - Parameters:
+    ///   - id: The ID of the task
+    ///   - illustrationPath: The path to the generated illustration
+    /// - Returns: The updated task if found, nil otherwise
+    @MainActor
+    func updateTaskIllustrationPath(_ id: UUID, illustrationPath: String) throws -> PendingIllustrationTask? {
+        guard let task = try getTaskById(id) else {
+            logger.warning("Task not found for illustration path update: \(id.uuidString)")
+            return nil
+        }
+        
+        task.illustrationPath = illustrationPath
+        task.lastUpdatedAt = Date()
+        
+        try modelContext.save()
+        
+        logger.debug("Updated illustration path for task \(id.uuidString): \(illustrationPath)")
+        return task
+    }
 }

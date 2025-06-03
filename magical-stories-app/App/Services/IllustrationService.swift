@@ -330,7 +330,8 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
         totalPages: Int,
         previousIllustrationPath: String? = nil,
         visualGuide: VisualGuide? = nil,
-        globalReferenceImagePath: String? = nil
+        globalReferenceImagePath: String? = nil,
+        collectionContext: CollectionVisualContext? = nil
     ) async throws -> String? {
         // Log the generation start with task type info
         let taskType = pageNumber == 0 ? "GLOBAL REFERENCE" : "PAGE ILLUSTRATION"
@@ -338,6 +339,7 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
         print("[IllustrationService] Has visual guide: \(visualGuide != nil)")
         print("[IllustrationService] Has previous illustration reference: \(previousIllustrationPath != nil)")
         print("[IllustrationService] Has global reference: \(globalReferenceImagePath != nil)")
+        print("[IllustrationService] Has collection context: \(collectionContext != nil)")
         
         // Use PromptBuilder to generate appropriate prompt based on page type
         let promptBuilder = PromptBuilder()
@@ -349,11 +351,13 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
                 throw IllustrationError.invalidResponse("Visual guide is required for global reference generation")
             }
             let storyTitle = "Story Title" // TODO: Pass actual story title
-            enhancedPrompt = promptBuilder.buildGlobalReferenceImagePrompt(
+            enhancedPrompt = promptBuilder.buildEnhancedGlobalReferencePrompt(
                 visualGuide: visualGuide,
-                storyTitle: storyTitle
+                storyStructure: nil, // TODO: Pass story structure if available
+                storyTitle: storyTitle,
+                collectionContext: collectionContext
             )
-            print("[IllustrationService] Generated global reference prompt")
+            print("[IllustrationService] Generated enhanced global reference prompt with collection context")
         } else {
             // Page Illustration Generation (Page > 0)
             guard let visualGuide = visualGuide else {
@@ -366,14 +370,16 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
                 pageNumber: pageNumber
             )
             
-            enhancedPrompt = promptBuilder.buildSequentialIllustrationPrompt(
+            enhancedPrompt = promptBuilder.buildEnhancedSequentialIllustrationPrompt(
                 page: tempPage,
                 pageIndex: pageNumber - 1, // Convert to 0-based index
+                storyStructure: nil, // TODO: Pass story structure if available
                 visualGuide: visualGuide,
                 globalReferenceImageBase64: globalReferenceImagePath != nil ? "available" : nil,
-                previousIllustrationBase64: previousIllustrationPath != nil ? "available" : nil
+                previousIllustrationBase64: previousIllustrationPath != nil ? "available" : nil,
+                collectionContext: collectionContext
             )
-            print("[IllustrationService] Generated sequential page prompt with visual references")
+            print("[IllustrationService] Generated enhanced sequential page prompt with visual references and collection context")
         }
 
         print(

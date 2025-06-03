@@ -167,7 +167,8 @@ class StoryService: ObservableObject {
                 illustrations: illustrations ?? [],
                 theme: parameters.theme,
                 visualGuide: visualGuide,
-                storyStructure: storyStructure
+                storyStructure: storyStructure,
+                collectionContext: collectionContext
             )
 
             let story = Story(

@@ -49,6 +49,7 @@ protocol IllustrationServiceProtocol {
     ///   - previousIllustrationPath: The relative path to the previous page's illustration, if available. Defaults to nil.
     ///   - visualGuide: The visual guide containing character and setting definitions, if available. Defaults to nil.
     ///   - globalReferenceImagePath: The relative path to the global reference image containing all characters and key elements. Defaults to nil.
+    ///   - collectionContext: The collection visual context for unified art style and consistency across collection stories. Defaults to nil.
     /// - Returns: A relative path string pointing to the generated illustration, or `nil` if generation fails gracefully.
     /// - Throws: `IllustrationError` for configuration, network, or API issues.
     func generateIllustration(
@@ -57,7 +58,8 @@ protocol IllustrationServiceProtocol {
         totalPages: Int,
         previousIllustrationPath: String?,
         visualGuide: VisualGuide?,
-        globalReferenceImagePath: String?
+        globalReferenceImagePath: String?,
+        collectionContext: CollectionVisualContext?
     ) async throws -> String?
 }
 

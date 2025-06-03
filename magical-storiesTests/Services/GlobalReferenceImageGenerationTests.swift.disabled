@@ -1,0 +1,430 @@
+import XCTest
+import Foundation
+@testable import magical_stories
+
+/// Comprehensive tests for global reference image generation functionality
+class GlobalReferenceImageGenerationTests: XCTestCase {
+    
+    // MARK: - Test Properties
+    
+    private var mockIllustrationService: SharedMockIllustrationService!
+    private var mockRepository: MockIllustrationTaskRepository!
+    private var promptBuilder: PromptBuilder!
+    private var illustrationCoordinator: IllustrationCoordinator!
+    
+    // Test data
+    private let testVisualGuide = VisualGuide(
+        styleGuide: "Watercolor style with soft edges and warm lighting",
+        characterDefinitions: [
+            "Luna": "A 6-year-old girl with curly brown hair, bright blue eyes, wearing a yellow sunflower dress",
+            "Whiskers": "A fluffy white cat with orange patches and green eyes"
+        ],
+        settingDefinitions: [
+            "Garden": "A colorful flower garden with tall sunflowers and a stone path"
+        ]
+    )
+    
+    private let testCollectionContext = CollectionVisualContext(
+        collectionId: UUID(),
+        collectionTheme: "Nature Adventures",
+        sharedCharacters: ["Luna", "Whiskers"],
+        unifiedArtStyle: "Watercolor children's book illustration",
+        developmentalFocus: "Emotional Intelligence",
+        ageGroup: "3-6 years",
+        requiresCharacterConsistency: true,
+        allowsStyleVariation: false,
+        sharedProps: ["Garden tools", "Flower seeds"]
+    )
+    
+    // MARK: - Setup and Teardown
+    
+    override func setUp() {
+        super.setUp()
+        mockRepository = MockIllustrationTaskRepository()
+        promptBuilder = PromptBuilder()
+        
+        // Reset non-main actor mocks
+        mockRepository.reset()
+    }
+    
+    @MainActor
+    private func setupMainActorMocks() {
+        mockIllustrationService = SharedMockIllustrationService()
+        mockIllustrationService.reset()
+    }
+    
+    override func tearDown() {
+        mockIllustrationService = nil
+        mockRepository = nil
+        promptBuilder = nil
+        illustrationCoordinator = nil
+        super.tearDown()
+    }
+    
+    // MARK: - Global Reference Prompt Generation Tests
+    
+    func testGlobalReferencePromptGeneration() {
+        // Given
+        let storyTitle = "Luna's Magical Garden Adventure"
+        
+        // When
+        let prompt = promptBuilder.buildEnhancedGlobalReferencePrompt(
+            visualGuide: testVisualGuide,
+            storyStructure: nil,
+            storyTitle: storyTitle,
+            collectionContext: testCollectionContext
+        )
+        
+        // Then - Verify comprehensive character reference sheet structure
+        XCTAssertTrue(prompt.contains("COMPREHENSIVE CHARACTER REFERENCE SHEET"), 
+                     "Prompt should include character reference sheet header")
+        XCTAssertTrue(prompt.contains("Luna's Magical Garden Adventure"), 
+                     "Prompt should include story title")
+        XCTAssertTrue(prompt.contains("CHARACTER LINEUP"), 
+                     "Prompt should include character lineup section")
+        XCTAssertTrue(prompt.contains("KEY EXPRESSIONS"), 
+                     "Prompt should include key expressions section")
+        XCTAssertTrue(prompt.contains("KEY PROPS AND SETTINGS"), 
+                     "Prompt should include props and settings section")
+        
+        // Verify visual guide integration
+        XCTAssertTrue(prompt.contains("ARTISTIC STYLE:"), 
+                     "Prompt should include artistic style section")
+        XCTAssertTrue(prompt.contains("Watercolor style with soft edges"), 
+                     "Prompt should include style guide content")
+        XCTAssertTrue(prompt.contains("CHARACTER - Luna:"), 
+                     "Prompt should include Luna character definition")
+        XCTAssertTrue(prompt.contains("curly brown hair, bright blue eyes"), 
+                     "Prompt should include detailed character description")
+        XCTAssertTrue(prompt.contains("CHARACTER - Whiskers:"), 
+                     "Prompt should include Whiskers character definition")
+        XCTAssertTrue(prompt.contains("fluffy white cat with orange patches"), 
+                     "Prompt should include detailed cat description")
+        
+        // Verify collection context integration
+        XCTAssertTrue(prompt.contains("COLLECTION CONSISTENCY REQUIREMENTS:"), 
+                     "Prompt should include collection consistency section")
+        XCTAssertTrue(prompt.contains("Art style must be: Watercolor children's book illustration"), 
+                     "Prompt should specify required art style")
+        XCTAssertTrue(prompt.contains("Collection theme: Nature Adventures"), 
+                     "Prompt should include collection theme")
+        XCTAssertTrue(prompt.contains("Target age group: 3-6 years"), 
+                     "Prompt should include target age group")
+        XCTAssertTrue(prompt.contains("Shared elements: Garden tools, Flower seeds"), 
+                     "Prompt should include shared props")
+        
+        // Verify text-free requirements
+        XCTAssertTrue(prompt.contains("🚫 NO TEXT OR LABELS"), 
+                     "Prompt should include no text requirement")
+        XCTAssertTrue(prompt.contains("⛔️ CRITICAL: NO TEXT, LETTERS, OR WRITTEN ELEMENTS"), 
+                     "Prompt should emphasize text-free requirement")
+        
+        // Verify prompt is comprehensive
+        XCTAssertGreaterThan(prompt.count, 1000, 
+                            "Global reference prompt should be comprehensive")
+    }
+    
+    func testGlobalReferencePromptWithoutCollectionContext() {
+        // Given
+        let storyTitle = "Simple Story"
+        
+        // When
+        let prompt = promptBuilder.buildEnhancedGlobalReferencePrompt(
+            visualGuide: testVisualGuide,
+            storyStructure: nil,
+            storyTitle: storyTitle,
+            collectionContext: nil
+        )
+        
+        // Then - Verify basic structure without collection requirements
+        XCTAssertTrue(prompt.contains("COMPREHENSIVE CHARACTER REFERENCE SHEET"), 
+                     "Prompt should include basic structure")
+        XCTAssertTrue(prompt.contains("CHARACTER LINEUP"), 
+                     "Prompt should include character lineup")
+        XCTAssertFalse(prompt.contains("COLLECTION CONSISTENCY REQUIREMENTS:"), 
+                      "Prompt should not include collection requirements when context is nil")
+        XCTAssertTrue(prompt.contains("CHARACTER - Luna:"), 
+                     "Prompt should still include character definitions")
+    }
+    
+    func testGlobalReferencePromptWithEmptyVisualGuide() {
+        // Given
+        let emptyGuide = VisualGuide(
+            styleGuide: "Basic style",
+            characterDefinitions: [:],
+            settingDefinitions: [:]
+        )
+        let storyTitle = "Empty Story"
+        
+        // When
+        let prompt = promptBuilder.buildEnhancedGlobalReferencePrompt(
+            visualGuide: emptyGuide,
+            storyStructure: nil,
+            storyTitle: storyTitle,
+            collectionContext: nil
+        )
+        
+        // Then - Verify graceful handling of empty guide
+        XCTAssertTrue(prompt.contains("COMPREHENSIVE CHARACTER REFERENCE SHEET"), 
+                     "Prompt should include basic structure even with empty guide")
+        XCTAssertTrue(prompt.contains("ARTISTIC STYLE:"), 
+                     "Prompt should include style section")
+        XCTAssertTrue(prompt.contains("Basic style"), 
+                     "Prompt should include basic style")
+        XCTAssertFalse(prompt.contains("CHARACTER -"), 
+                      "Prompt should not include character definitions when none exist")
+        XCTAssertFalse(prompt.contains("SETTING -"), 
+                      "Prompt should not include setting definitions when none exist")
+    }
+    
+    // MARK: - Global Reference Task Creation Tests
+    
+    func testGlobalReferenceTaskCreation() throws {
+        // Given
+        let storyId = UUID()
+        let taskType = IllustrationTaskType.globalReference
+        
+        // When
+        let task = IllustrationTask(
+            id: UUID(),
+            storyId: storyId,
+            pageId: nil,
+            type: taskType,
+            status: .pending,
+            priority: .high,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        // Then
+        XCTAssertEqual(task.type, .globalReference, 
+                      "Task should be global reference type")
+        XCTAssertEqual(task.storyId, storyId, 
+                      "Task should be associated with correct story")
+        XCTAssertNil(task.pageId, 
+                    "Global reference task should not be associated with specific page")
+        XCTAssertEqual(task.priority, .high, 
+                      "Global reference should have high priority")
+    }
+    
+    // MARK: - Repository Integration Tests
+    
+    func testSaveGlobalReferenceTask() throws {
+        // Given
+        let task = IllustrationTask(
+            id: UUID(),
+            storyId: UUID(),
+            pageId: nil,
+            type: .globalReference,
+            status: .pending,
+            priority: .high,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        // When
+        let savedTask = try mockRepository.saveTask(
+            task,
+            pageNumber: 0, // Global reference is page 0
+            totalPages: 5,
+            description: "Global character reference sheet",
+            previousIllustrationPath: nil
+        )
+        
+        // Then
+        XCTAssertEqual(savedTask.id, task.id, 
+                      "Saved task should have same ID")
+        XCTAssertEqual(savedTask.type, .globalReference, 
+                      "Saved task should maintain global reference type")
+        XCTAssertEqual(savedTask.pageNumber, 0, 
+                      "Global reference should be saved as page 0")
+        XCTAssertNil(savedTask.previousIllustrationPath, 
+                    "Global reference should not have previous illustration")
+        XCTAssertTrue(mockRepository.savedTasks.keys.contains(task.id), 
+                     "Repository should track saved task")
+    }
+    
+    func testRetrieveGlobalReferenceTask() throws {
+        // Given
+        let taskId = UUID()
+        let globalTask = PendingIllustrationTask(
+            id: taskId,
+            storyId: UUID(),
+            pageId: nil,
+            type: .globalReference,
+            status: .pending,
+            priority: .high,
+            maxAttempts: 3,
+            attemptCount: 0,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            pageNumber: 0,
+            totalPages: 5,
+            illustrationDescription: "Global character reference",
+            previousIllustrationPath: nil
+        )
+        
+        mockRepository.taskToReturn = globalTask
+        
+        // When
+        let retrievedTask = try mockRepository.getTaskById(taskId)
+        
+        // Then
+        XCTAssertNotNil(retrievedTask, "Should retrieve task")
+        XCTAssertEqual(retrievedTask?.id, taskId, "Should retrieve correct task")
+        XCTAssertEqual(retrievedTask?.type, .globalReference, "Should maintain task type")
+        XCTAssertTrue(mockRepository.fetchedById.contains(taskId), "Repository should track fetch operation")
+    }
+    
+    // MARK: - Visual Guide Global Reference URL Tests
+    
+    func testVisualGuideWithGlobalReferenceURL() {
+        // Given
+        let originalGuide = VisualGuide(
+            styleGuide: "Original style",
+            characterDefinitions: ["Hero": "Brave character"],
+            settingDefinitions: ["Castle": "Stone fortress"]
+        )
+        let referenceURL = URL(string: "https://example.com/global-reference.png")!
+        
+        // When
+        let updatedGuide = originalGuide.withGlobalReferenceImageURL(referenceURL)
+        
+        // Then
+        XCTAssertEqual(updatedGuide.globalReferenceImageURL, referenceURL, 
+                      "Updated guide should have reference URL")
+        XCTAssertEqual(updatedGuide.styleGuide, originalGuide.styleGuide, 
+                      "Updated guide should maintain style guide")
+        XCTAssertEqual(updatedGuide.characterDefinitions, originalGuide.characterDefinitions, 
+                      "Updated guide should maintain character definitions")
+        XCTAssertEqual(updatedGuide.settingDefinitions, originalGuide.settingDefinitions, 
+                      "Updated guide should maintain setting definitions")
+        XCTAssertNil(originalGuide.globalReferenceImageURL, 
+                    "Original guide should remain unchanged")
+    }
+    
+    func testVisualGuideFormattedPromptWithGlobalReference() {
+        // Given
+        let referenceURL = URL(string: "https://example.com/reference.png")!
+        let guideWithReference = testVisualGuide.withGlobalReferenceImageURL(referenceURL)
+        
+        // When
+        let formattedPrompt = guideWithReference.formattedForPrompt()
+        
+        // Then
+        XCTAssertTrue(formattedPrompt.contains("STYLE GUIDE:"), 
+                     "Formatted prompt should include style guide section")
+        XCTAssertTrue(formattedPrompt.contains("CHARACTER - Luna:"), 
+                     "Formatted prompt should include character definitions")
+        XCTAssertTrue(formattedPrompt.contains("🚫 ABSOLUTELY NO TEXT ALLOWED IN ILLUSTRATION 🚫"), 
+                     "Formatted prompt should include text restriction")
+        XCTAssertTrue(formattedPrompt.contains("✅ Focus ONLY on visual storytelling"), 
+                     "Formatted prompt should emphasize visual storytelling")
+    }
+    
+    // MARK: - Error Handling Tests
+    
+    func testGlobalReferenceTaskCreationWithInvalidData() {
+        // Given
+        let invalidTaskId = UUID()
+        mockRepository.shouldThrowError = true
+        mockRepository.errorToThrow = NSError(domain: "TestError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Database error"])
+        
+        // When/Then
+        XCTAssertThrowsError(try mockRepository.getTaskById(invalidTaskId)) { error in
+            XCTAssertEqual((error as NSError).domain, "TestError", 
+                          "Should throw configured error")
+        }
+    }
+    
+    func testGlobalReferencePromptWithNilVisualGuide() {
+        // This test ensures the system handles edge cases gracefully
+        // In practice, visual guide should always be provided, but we test defensive programming
+        
+        // Given
+        let storyTitle = "Test Story"
+        let nilGuide = VisualGuide(styleGuide: "", characterDefinitions: [:], settingDefinitions: [:])
+        
+        // When
+        let prompt = promptBuilder.buildEnhancedGlobalReferencePrompt(
+            visualGuide: nilGuide,
+            storyStructure: nil,
+            storyTitle: storyTitle,
+            collectionContext: nil
+        )
+        
+        // Then
+        XCTAssertTrue(prompt.contains("COMPREHENSIVE CHARACTER REFERENCE SHEET"), 
+                     "Prompt should handle empty visual guide gracefully")
+        XCTAssertFalse(prompt.contains("CHARACTER -"), 
+                      "Prompt should not include character sections when none exist")
+    }
+    
+    // MARK: - Integration Test - End-to-End Global Reference Flow
+    
+    func testEndToEndGlobalReferenceFlow() throws {
+        // Given - A complete story setup requiring global reference
+        let storyId = UUID()
+        let visualGuide = testVisualGuide
+        let collectionContext = testCollectionContext
+        
+        // When - Create global reference task
+        let globalTask = IllustrationTask(
+            id: UUID(),
+            storyId: storyId,
+            pageId: nil,
+            type: .globalReference,
+            status: .pending,
+            priority: .high,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        // Save task to repository
+        let savedTask = try mockRepository.saveTask(
+            globalTask,
+            pageNumber: 0,
+            totalPages: 3,
+            description: "Global character reference for consistent illustrations",
+            previousIllustrationPath: nil
+        )
+        
+        // Generate prompt for global reference
+        let globalPrompt = promptBuilder.buildEnhancedGlobalReferencePrompt(
+            visualGuide: visualGuide,
+            storyStructure: nil,
+            storyTitle: "Luna's Adventure",
+            collectionContext: collectionContext
+        )
+        
+        // Then - Verify complete flow
+        XCTAssertEqual(savedTask.type, .globalReference, 
+                      "Task should be saved as global reference")
+        XCTAssertEqual(savedTask.pageNumber, 0, 
+                      "Global reference should be page 0")
+        
+        // Verify prompt contains all required elements for visual consistency
+        XCTAssertTrue(globalPrompt.contains("CHARACTER LINEUP"), 
+                     "Global prompt should request character lineup")
+        XCTAssertTrue(globalPrompt.contains("Luna"), 
+                     "Global prompt should include story characters")
+        XCTAssertTrue(globalPrompt.contains("Whiskers"), 
+                     "Global prompt should include all characters")
+        XCTAssertTrue(globalPrompt.contains("Nature Adventures"), 
+                     "Global prompt should include collection context")
+        
+        // Verify repository tracking
+        XCTAssertTrue(mockRepository.savedTasks.keys.contains(globalTask.id), 
+                     "Repository should track global reference task")
+        
+        // Verify prompt is substantial enough for comprehensive reference
+        XCTAssertGreaterThan(globalPrompt.count, 1500, 
+                            "Global reference prompt should be comprehensive")
+    }
+}

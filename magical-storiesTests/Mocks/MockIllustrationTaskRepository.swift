@@ -166,4 +166,36 @@ class MockIllustrationTaskRepository: IllustrationTaskRepositoryProtocol {
         
         return restoredCount
     }
+    
+    @MainActor
+    func getCompletedGlobalReferenceTask(for storyId: UUID) throws -> PendingIllustrationTask? {
+        if shouldThrowError {
+            throw errorToThrow
+        }
+        
+        // Return the first completed global reference task for the story
+        for task in tasksToReturn {
+            if task.storyId == storyId && 
+               task.taskType == .globalReference && 
+               task.status == .ready {
+                return task
+            }
+        }
+        return nil
+    }
+    
+    @MainActor
+    func updateTaskIllustrationPath(_ id: UUID, illustrationPath: String) throws -> PendingIllustrationTask? {
+        if shouldThrowError {
+            throw errorToThrow
+        }
+        
+        // Track the update operation
+        if var task = taskToReturn {
+            task.illustrationPath = illustrationPath
+            return task
+        }
+        
+        return nil
+    }
 }

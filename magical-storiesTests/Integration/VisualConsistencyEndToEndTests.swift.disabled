@@ -1,0 +1,800 @@
+import XCTest
+import Foundation
+@testable import magical_stories
+
+/// Integration tests for end-to-end visual consistency system
+class VisualConsistencyEndToEndTests: XCTestCase {
+    
+    // MARK: - Test Properties
+    
+    private var mockIllustrationService: SharedMockIllustrationService!
+    private var mockRepository: MockIllustrationTaskRepository!
+    private var promptBuilder: PromptBuilder!
+    private var taskManager: IllustrationTaskManager!
+    
+    // Test data
+    private let testStoryId = UUID()
+    private let testPageIds = [UUID(), UUID(), UUID(), UUID()]
+    
+    private let testVisualGuide = VisualGuide(
+        styleGuide: "Whimsical watercolor illustration with soft pastel colors and gentle lighting",
+        characterDefinitions: [
+            "Emma": "A 5-year-old girl with short blonde hair and curious green eyes, wearing a blue overalls and yellow t-shirt",
+            "Oliver": "A 6-year-old boy with brown curly hair and freckles, wearing red shorts and a white striped shirt",
+            "Buddy": "A golden retriever puppy with fluffy fur and a red collar with a bell"
+        ],
+        settingDefinitions: [
+            "Park": "A sunny neighborhood park with green grass, tall oak trees, and a wooden playground",
+            "Library": "A cozy children's library with colorful bookshelves and reading nooks",
+            "Home": "A warm family home with a large kitchen and a backyard garden"
+        ]
+    )
+    
+    private let testCollectionContext = CollectionVisualContext(
+        collectionId: UUID(),
+        collectionTheme: "Friendship and Learning",
+        sharedCharacters: ["Emma", "Oliver", "Buddy"],
+        unifiedArtStyle: "Whimsical watercolor children's book style",
+        developmentalFocus: "Social Skills and Empathy",
+        ageGroup: "4-7 years",
+        requiresCharacterConsistency: true,
+        allowsStyleVariation: false,
+        sharedProps: ["Friendship journal", "Learning tools", "Adventure backpack"]
+    )
+    
+    private let testStoryStructure = StoryStructure(
+        pages: [
+            PageVisualPlan(
+                pageNumber: 1,
+                characters: ["Emma", "Oliver", "Buddy"],
+                settings: ["Park"],
+                props: ["Adventure backpack"],
+                visualFocus: "Three friends meeting for adventure",
+                emotionalTone: "Excitement and friendship"
+            ),
+            PageVisualPlan(
+                pageNumber: 2,
+                characters: ["Oliver"],
+                settings: ["Park"],
+                props: ["Books"],
+                visualFocus: "Oliver's reading difficulty",
+                emotionalTone: "Vulnerability and concern"
+            ),
+            PageVisualPlan(
+                pageNumber: 3,
+                characters: ["Emma", "Oliver"],
+                settings: ["Library"],
+                props: ["Books", "Friendship journal"],
+                visualFocus: "Emma helping Oliver find books",
+                emotionalTone: "Supportive and encouraging"
+            ),
+            PageVisualPlan(
+                pageNumber: 4,
+                characters: ["Emma", "Oliver", "Buddy"],
+                settings: ["Library"],
+                props: ["Books", "Learning tools"],
+                visualFocus: "Oliver reading with confidence",
+                emotionalTone: "Joy and accomplishment"
+            )
+        ]
+    )
+    
+    // MARK: - Setup and Teardown
+    
+    override func setUp() {
+        super.setUp()
+        mockRepository = MockIllustrationTaskRepository()
+        promptBuilder = PromptBuilder()
+        taskManager = IllustrationTaskManager()
+        
+        // Reset non-main actor mocks
+        mockRepository.reset()
+    }
+    
+    @MainActor
+    private func setupMainActorMocks() {
+        mockIllustrationService = SharedMockIllustrationService()
+        mockIllustrationService.reset()
+    }
+    
+    override func tearDown() {
+        mockIllustrationService = nil
+        mockRepository = nil
+        promptBuilder = nil
+        taskManager = nil
+        super.tearDown()
+    }
+    
+    // MARK: - Complete Story Visual Consistency Flow
+    
+    func testCompleteStoryVisualConsistencyFlow() async throws {
+        // Setup main actor mocks first
+        await setupMainActorMocks()
+        
+        // Given - A complete story requiring visual consistency
+        let storyTitle = "Emma and Oliver's Library Adventure"
+        let pages = [
+            Page(content: "Emma and Oliver meet Buddy at the park for their daily adventure", pageNumber: 1),
+            Page(content: "Oliver admits he's afraid of reading because the words seem too hard", pageNumber: 2),
+            Page(content: "Emma suggests they visit the library together to find easy books", pageNumber: 3),
+            Page(content: "With Buddy's encouragement, Oliver discovers a book about dogs and starts reading with confidence", pageNumber: 4)
+        ]
+        
+        // When - Execute complete visual consistency flow
+        
+        // Step 1: Generate global reference prompt
+        let globalReferencePrompt = promptBuilder.buildEnhancedGlobalReferencePrompt(
+            visualGuide: testVisualGuide,
+            storyStructure: testStoryStructure,
+            storyTitle: storyTitle,
+            collectionContext: testCollectionContext
+        )
+        
+        // Step 2: Create and save global reference task
+        let globalTask = IllustrationTask(
+            id: UUID(),
+            storyId: testStoryId,
+            pageId: nil,
+            type: .globalReference,
+            status: .pending,
+            priority: .high,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let savedGlobalTask = try mockRepository.saveTask(
+            globalTask,
+            pageNumber: 0,
+            totalPages: pages.count + 1,
+            description: "Global character reference for visual consistency across story",
+            previousIllustrationPath: nil
+        )
+        
+        // Step 3: Create and save page illustration tasks
+        var savedPageTasks: [PendingIllustrationTask] = []
+        for (index, page) in pages.enumerated() {
+            let pageTask = IllustrationTask(
+                id: UUID(),
+                storyId: testStoryId,
+                pageId: testPageIds[index],
+                type: .pageIllustration,
+                status: .pending,
+                priority: .medium,
+                maxAttempts: 3,
+                createdAt: Date(),
+                lastUpdatedAt: Date(),
+                attemptCount: 0
+            )
+            
+            let previousPath = index > 0 ? "page\(index)-illustration.png" : nil
+            let savedPageTask = try mockRepository.saveTask(
+                pageTask,
+                pageNumber: index + 1,
+                totalPages: pages.count + 1,
+                description: page.content,
+                previousIllustrationPath: previousPath
+            )
+            savedPageTasks.append(savedPageTask)
+        }
+        
+        // Step 4: Add tasks to manager and simulate processing
+        taskManager.addTask(globalTask)
+        for (index, _) in pages.enumerated() {
+            let pageTask = IllustrationTask(
+                id: savedPageTasks[index].id,
+                storyId: testStoryId,
+                pageId: testPageIds[index],
+                type: .pageIllustration,
+                status: .pending,
+                priority: .medium,
+                maxAttempts: 3,
+                createdAt: Date(),
+                lastUpdatedAt: Date(),
+                attemptCount: 0
+            )
+            taskManager.addTask(pageTask)
+        }
+        
+        // Step 5: Process global reference task
+        let firstTask = taskManager.getNextTask()
+        XCTAssertEqual(firstTask?.type, .globalReference, "Global reference should be processed first")
+        
+        // Simulate global reference generation
+        mockIllustrationService.urlToReturn = URL(string: "file://path/to/global-reference.png")
+        let globalIllustrationPath = try await mockIllustrationService.generateIllustration(
+            for: globalReferencePrompt,
+            theme: "Character Reference Sheet"
+        )
+        
+        // Complete global reference task
+        taskManager.updateTaskStatus(globalTask.id, status: .completed)
+        mockRepository.taskToReturn = PendingIllustrationTask(
+            id: globalTask.id,
+            storyId: testStoryId,
+            pageId: nil,
+            type: .globalReference,
+            status: .completed,
+            priority: .high,
+            maxAttempts: 3,
+            attemptCount: 1,
+            createdAt: globalTask.createdAt,
+            lastUpdatedAt: Date(),
+            pageNumber: 0,
+            totalPages: pages.count + 1,
+            illustrationDescription: "Global character reference for visual consistency across story",
+            previousIllustrationPath: nil
+        )
+        _ = try mockRepository.updateTaskStatus(globalTask.id, status: .completed)
+        
+        // Step 6: Process page illustrations sequentially
+        var generatedPrompts: [String] = []
+        var previousIllustrationBase64: String? = nil
+        let globalReferenceBase64 = "mock-global-reference-base64-data"
+        
+        for (index, page) in pages.enumerated() {
+            // Get next page task from manager
+            let pageTask = taskManager.getNextTask()
+            XCTAssertEqual(pageTask?.pageId, testPageIds[index], "Should process pages in order")
+            
+            // Generate sequential illustration prompt
+            let sequentialPrompt = promptBuilder.buildEnhancedSequentialIllustrationPrompt(
+                page: page,
+                pageIndex: index,
+                storyStructure: testStoryStructure,
+                visualGuide: testVisualGuide,
+                globalReferenceImageBase64: globalReferenceBase64,
+                previousIllustrationBase64: previousIllustrationBase64,
+                collectionContext: testCollectionContext
+            )
+            generatedPrompts.append(sequentialPrompt)
+            
+            // Simulate illustration generation
+            mockIllustrationService.urlToReturn = URL(string: "file://path/to/page\(index + 1)-illustration.png")
+            let pageIllustrationPath = try await mockIllustrationService.generateIllustration(
+                for: page.content,
+                pageNumber: index + 1,
+                totalPages: pages.count,
+                previousIllustrationPath: previousIllustrationBase64,
+                visualGuide: testVisualGuide,
+                globalReferenceImagePath: globalIllustrationPath
+            )
+            
+            // Complete page task
+            taskManager.updateTaskStatus(pageTask!.id, status: .completed)
+            
+            // Update previous illustration for next iteration
+            previousIllustrationBase64 = "page\(index + 1)-base64-data"
+        }
+        
+        // Then - Verify complete visual consistency flow
+        
+        // Verify global reference prompt quality
+        XCTAssertTrue(globalReferencePrompt.contains("COMPREHENSIVE CHARACTER REFERENCE SHEET"), 
+                     "Global prompt should include comprehensive reference")
+        XCTAssertTrue(globalReferencePrompt.contains("Emma and Oliver's Library Adventure"), 
+                     "Global prompt should include story title")
+        XCTAssertTrue(globalReferencePrompt.contains("CHARACTER LINEUP"), 
+                     "Global prompt should include character lineup section")
+        XCTAssertTrue(globalReferencePrompt.contains("Emma"), 
+                     "Global prompt should include all main characters")
+        XCTAssertTrue(globalReferencePrompt.contains("Oliver"), 
+                     "Global prompt should include all main characters")
+        XCTAssertTrue(globalReferencePrompt.contains("Buddy"), 
+                     "Global prompt should include all main characters")
+        XCTAssertGreaterThan(globalReferencePrompt.count, 2000, 
+                            "Global reference prompt should be comprehensive")
+        
+        // Verify sequential prompts maintain consistency
+        XCTAssertEqual(generatedPrompts.count, 4, "Should generate prompts for all pages")
+        
+        for (index, prompt) in generatedPrompts.enumerated() {
+            // All prompts should reference global character sheet
+            XCTAssertTrue(prompt.contains("GLOBAL REFERENCE USAGE:"), 
+                         "Prompt \(index + 1) should include global reference usage")
+            XCTAssertTrue(prompt.contains("comprehensive character reference sheet is attached"), 
+                         "Prompt \(index + 1) should reference attached character sheet")
+            
+            // All prompts should include visual guide specifications
+            XCTAssertTrue(prompt.contains("VISUAL GUIDE SPECIFICATIONS:"), 
+                         "Prompt \(index + 1) should include visual guide specifications")
+            XCTAssertTrue(prompt.contains("CHARACTER - Emma:"), 
+                         "Prompt \(index + 1) should include Emma's character definition")
+            XCTAssertTrue(prompt.contains("CHARACTER - Oliver:"), 
+                         "Prompt \(index + 1) should include Oliver's character definition")
+            XCTAssertTrue(prompt.contains("CHARACTER - Buddy:"), 
+                         "Prompt \(index + 1) should include Buddy's character definition")
+            
+            // All prompts should include consistency requirements
+            XCTAssertTrue(prompt.contains("CONSISTENCY REQUIREMENTS:"), 
+                         "Prompt \(index + 1) should include consistency requirements")
+            XCTAssertTrue(prompt.contains("Match character faces, proportions, and clothing EXACTLY"), 
+                         "Prompt \(index + 1) should emphasize exact character matching")
+            
+            // All prompts should include collection consistency
+            XCTAssertTrue(prompt.contains("COLLECTION CONSISTENCY:"), 
+                         "Prompt \(index + 1) should include collection consistency")
+            XCTAssertTrue(prompt.contains("Friendship and Learning"), 
+                         "Prompt \(index + 1) should include collection theme")
+            
+            // Previous illustration context should be included after first page
+            if index > 0 {
+                XCTAssertTrue(prompt.contains("PREVIOUS ILLUSTRATION CONTEXT:"), 
+                             "Prompt \(index + 1) should include previous illustration context")
+            } else {
+                XCTAssertFalse(prompt.contains("PREVIOUS ILLUSTRATION CONTEXT:"), 
+                              "First prompt should not include previous illustration context")
+            }
+            
+            // Page-specific content should be preserved
+            XCTAssertTrue(prompt.contains(pages[index].content), 
+                         "Prompt \(index + 1) should include page-specific content")
+            
+            // Text-free requirements should be included
+            XCTAssertTrue(prompt.contains("🚫 NO TEXT in illustration"), 
+                         "Prompt \(index + 1) should include text-free requirement")
+            
+            // Prompt should be substantial
+            XCTAssertGreaterThan(prompt.count, 1000, 
+                                "Prompt \(index + 1) should be comprehensive")
+        }
+        
+        // Verify task processing order and dependencies
+        XCTAssertEqual(mockIllustrationService.generateIllustrationCallCount, 1, 
+                      "Should call basic illustration generation once for global reference")
+        XCTAssertEqual(mockIllustrationService.generateContextualIllustrationCallCount, 4, 
+                      "Should call contextual illustration generation for all pages")
+        
+        // Verify repository operations
+        XCTAssertEqual(mockRepository.savedTasks.count, 5, 
+                      "Should save global reference + 4 page tasks")
+        XCTAssertTrue(mockRepository.updatedStatuses.keys.contains(globalTask.id), 
+                     "Should update global reference task status")
+        
+        // Verify all saved tasks have correct properties
+        let globalTaskEntry = mockRepository.savedTasks[globalTask.id]
+        XCTAssertNotNil(globalTaskEntry, "Should save global reference task")
+        XCTAssertEqual(globalTaskEntry?.pageNumber, 0, "Global reference should be page 0")
+        XCTAssertNil(globalTaskEntry?.previousIllustrationPath, "Global reference should not have previous illustration")
+        
+        for (index, savedTask) in savedPageTasks.enumerated() {
+            let taskEntry = mockRepository.savedTasks[savedTask.id]
+            XCTAssertNotNil(taskEntry, "Should save page task \(index + 1)")
+            XCTAssertEqual(taskEntry?.pageNumber, index + 1, "Page task should have correct page number")
+            
+            if index > 0 {
+                XCTAssertNotNil(taskEntry?.previousIllustrationPath, "Page task \(index + 1) should have previous illustration reference")
+            } else {
+                XCTAssertNil(taskEntry?.previousIllustrationPath, "First page task should not have previous illustration reference")
+            }
+        }
+    }
+    
+    // MARK: - Multi-Story Collection Consistency Tests
+    
+    func testMultiStoryCollectionVisualConsistency() async throws {
+        // Given - Multiple stories in the same collection
+        let story1Id = UUID()
+        let story2Id = UUID()
+        
+        let story1Title = "Emma's First Day at School"
+        let story2Title = "Oliver's Pet Show Adventure"
+        
+        // When - Generate global references for both stories in collection
+        let story1GlobalPrompt = promptBuilder.buildEnhancedGlobalReferencePrompt(
+            visualGuide: testVisualGuide,
+            storyStructure: nil,
+            storyTitle: story1Title,
+            collectionContext: testCollectionContext
+        )
+        
+        let story2GlobalPrompt = promptBuilder.buildEnhancedGlobalReferencePrompt(
+            visualGuide: testVisualGuide,
+            storyStructure: nil,
+            storyTitle: story2Title,
+            collectionContext: testCollectionContext
+        )
+        
+        // Then - Verify collection consistency across stories
+        
+        // Both prompts should include the same collection requirements
+        let expectedCollectionElements = [
+            "COLLECTION CONSISTENCY REQUIREMENTS:",
+            "Collection theme: Friendship and Learning",
+            "unified art style: Whimsical watercolor children's book style",
+            "target age group: 4-7 years",
+            "developmental focus: Social Skills and Empathy",
+            "Shared characters (maintain identical across collection): Emma, Oliver, Buddy",
+            "Shared elements: Friendship journal, Learning tools, Adventure backpack"
+        ]
+        
+        for element in expectedCollectionElements {
+            XCTAssertTrue(story1GlobalPrompt.contains(element), 
+                         "Story 1 global prompt should include collection element: \(element)")
+            XCTAssertTrue(story2GlobalPrompt.contains(element), 
+                         "Story 2 global prompt should include collection element: \(element)")
+        }
+        
+        // Both prompts should include identical character definitions
+        let expectedCharacterDefinitions = [
+            "CHARACTER - Emma: A 5-year-old girl with short blonde hair",
+            "CHARACTER - Oliver: A 6-year-old boy with brown curly hair",
+            "CHARACTER - Buddy: A golden retriever puppy with fluffy fur"
+        ]
+        
+        for characterDef in expectedCharacterDefinitions {
+            XCTAssertTrue(story1GlobalPrompt.contains(characterDef), 
+                         "Story 1 should include character definition: \(characterDef)")
+            XCTAssertTrue(story2GlobalPrompt.contains(characterDef), 
+                         "Story 2 should include character definition: \(characterDef)")
+        }
+        
+        // Both prompts should include identical style requirements
+        XCTAssertTrue(story1GlobalPrompt.contains("Whimsical watercolor illustration with soft pastel colors"), 
+                     "Story 1 should include consistent style guide")
+        XCTAssertTrue(story2GlobalPrompt.contains("Whimsical watercolor illustration with soft pastel colors"), 
+                     "Story 2 should include consistent style guide")
+        
+        // Verify story-specific elements are different
+        XCTAssertTrue(story1GlobalPrompt.contains(story1Title), 
+                     "Story 1 prompt should include its specific title")
+        XCTAssertFalse(story1GlobalPrompt.contains(story2Title), 
+                      "Story 1 prompt should not include other story's title")
+        
+        XCTAssertTrue(story2GlobalPrompt.contains(story2Title), 
+                     "Story 2 prompt should include its specific title")
+        XCTAssertFalse(story2GlobalPrompt.contains(story1Title), 
+                      "Story 2 prompt should not include other story's title")
+    }
+    
+    // MARK: - Error Recovery in Visual Consistency Flow
+    
+    func testVisualConsistencyFlowWithErrorRecovery() async throws {
+        // Given - A story with potential illustration generation failures
+        let page = Page(content: "Emma and Oliver explore the library together", pageNumber: 1)
+        
+        let globalTask = IllustrationTask(
+            id: UUID(),
+            storyId: testStoryId,
+            pageId: nil,
+            type: .globalReference,
+            status: .pending,
+            priority: .high,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let pageTask = IllustrationTask(
+            id: UUID(),
+            storyId: testStoryId,
+            pageId: testPageIds[0],
+            type: .pageIllustration,
+            status: .pending,
+            priority: .medium,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        // When - Simulate error in global reference generation
+        taskManager.addTask(globalTask)
+        taskManager.addTask(pageTask)
+        
+        // Process global reference with initial failure
+        let firstTask = taskManager.getNextTask()
+        XCTAssertEqual(firstTask?.id, globalTask.id, "Should get global reference task first")
+        
+        // Simulate generation failure
+        mockIllustrationService.generateIllustrationShouldThrowError = NSError(
+            domain: "IllustrationError", 
+            code: 500, 
+            userInfo: [NSLocalizedDescriptionKey: "AI service temporarily unavailable"]
+        )
+        
+        do {
+            _ = try await mockIllustrationService.generateIllustration(
+                for: "Global reference prompt",
+                theme: "Character Reference"
+            )
+            XCTFail("Should have thrown error")
+        } catch {
+            // Expected error
+        }
+        
+        // Mark task as failed and increment attempt
+        taskManager.updateTaskStatus(globalTask.id, status: .failed)
+        mockRepository.taskToReturn = PendingIllustrationTask(
+            id: globalTask.id,
+            storyId: testStoryId,
+            pageId: nil,
+            type: .globalReference,
+            status: .failed,
+            priority: .high,
+            maxAttempts: 3,
+            attemptCount: 1,
+            createdAt: globalTask.createdAt,
+            lastUpdatedAt: Date(),
+            pageNumber: 0,
+            totalPages: 2,
+            illustrationDescription: "Global reference",
+            previousIllustrationPath: nil
+        )
+        _ = try mockRepository.incrementTaskAttempt(globalTask.id)
+        
+        // Verify page task is still blocked
+        let blockedTask = taskManager.getNextTask()
+        XCTAssertNil(blockedTask, "Page task should be blocked while global reference is failed")
+        
+        // Retry global reference with success
+        taskManager.updateTaskStatus(globalTask.id, status: .pending)
+        mockIllustrationService.generateIllustrationShouldThrowError = nil
+        mockIllustrationService.urlToReturn = URL(string: "file://path/to/recovered-global-reference.png")
+        
+        let retryTask = taskManager.getNextTask()
+        XCTAssertEqual(retryTask?.id, globalTask.id, "Should retry global reference task")
+        
+        let recoveredPath = try await mockIllustrationService.generateIllustration(
+            for: "Global reference prompt",
+            theme: "Character Reference"
+        )
+        XCTAssertNotNil(recoveredPath, "Should successfully generate global reference on retry")
+        
+        // Complete global reference
+        taskManager.updateTaskStatus(globalTask.id, status: .completed)
+        
+        // Then - Page task should become available
+        let unlockedPageTask = taskManager.getNextTask()
+        XCTAssertEqual(unlockedPageTask?.id, pageTask.id, "Page task should become available after global reference recovery")
+        
+        // Verify error handling and recovery tracking
+        XCTAssertTrue(mockRepository.incrementedAttempts.contains(globalTask.id), 
+                     "Should track attempt increment for failed global reference")
+        XCTAssertEqual(mockIllustrationService.generateIllustrationCallCount, 2, 
+                      "Should attempt global reference generation twice (failure + recovery)")
+    }
+    
+    // MARK: - Performance and Scalability Tests
+    
+    func testVisualConsistencyPerformanceWithLargeStory() async throws {
+        // Given - A large story with many pages
+        let largeStoryId = UUID()
+        let pageCount = 10
+        let pageIds = (0..<pageCount).map { _ in UUID() }
+        
+        let pages = (0..<pageCount).map { index in
+            Page(content: "Page \(index + 1): Emma and Oliver continue their adventure", pageNumber: index + 1)
+        }
+        
+        // When - Process complete visual consistency flow for large story
+        let startTime = Date()
+        
+        // Generate global reference
+        let globalPrompt = promptBuilder.buildEnhancedGlobalReferencePrompt(
+            visualGuide: testVisualGuide,
+            storyStructure: testStoryStructure,
+            storyTitle: "Emma and Oliver's Epic Adventure",
+            collectionContext: testCollectionContext
+        )
+        
+        // Generate all sequential prompts
+        var sequentialPrompts: [String] = []
+        var previousBase64: String? = nil
+        let globalReferenceBase64 = "global-reference-data"
+        
+        for (index, page) in pages.enumerated() {
+            let prompt = promptBuilder.buildEnhancedSequentialIllustrationPrompt(
+                page: page,
+                pageIndex: index,
+                storyStructure: testStoryStructure,
+                visualGuide: testVisualGuide,
+                globalReferenceImageBase64: globalReferenceBase64,
+                previousIllustrationBase64: previousBase64,
+                collectionContext: testCollectionContext
+            )
+            sequentialPrompts.append(prompt)
+            previousBase64 = "page\(index + 1)-data"
+        }
+        
+        let endTime = Date()
+        let processingTime = endTime.timeIntervalSince(startTime)
+        
+        // Then - Verify performance and consistency across large story
+        
+        // Performance verification
+        XCTAssertLessThan(processingTime, 5.0, 
+                         "Should generate prompts for large story in reasonable time")
+        
+        // Consistency verification
+        XCTAssertEqual(sequentialPrompts.count, pageCount, 
+                      "Should generate prompts for all pages")
+        
+        // Verify all prompts maintain visual consistency
+        for (index, prompt) in sequentialPrompts.enumerated() {
+            XCTAssertTrue(prompt.contains("GLOBAL REFERENCE USAGE:"), 
+                         "Page \(index + 1) should reference global character sheet")
+            XCTAssertTrue(prompt.contains("CONSISTENCY REQUIREMENTS:"), 
+                         "Page \(index + 1) should include consistency requirements")
+            XCTAssertTrue(prompt.contains("CHARACTER - Emma:"), 
+                         "Page \(index + 1) should include Emma's character definition")
+            XCTAssertTrue(prompt.contains("CHARACTER - Oliver:"), 
+                         "Page \(index + 1) should include Oliver's character definition")
+            XCTAssertTrue(prompt.contains("CHARACTER - Buddy:"), 
+                         "Page \(index + 1) should include Buddy's character definition")
+            
+            // Verify quality doesn't degrade with story size
+            XCTAssertGreaterThan(prompt.count, 1000, 
+                                "Page \(index + 1) prompt should remain comprehensive")
+        }
+        
+        // Verify memory efficiency
+        let totalPromptSize = sequentialPrompts.reduce(0) { $0 + $1.count }
+        XCTAssertLessThan(totalPromptSize, 500000, 
+                         "Total prompt size should be reasonable for memory usage")
+    }
+    
+    // MARK: - Integration Test - Real-World Story Scenario
+    
+    func testRealWorldStoryScenarioWithCompleteVisualConsistency() async throws {
+        // Given - A realistic children's story scenario
+        let storyTitle = "The Day Emma Taught Oliver to Read"
+        let realPages = [
+            Page(content: "Emma found Oliver sitting alone on the park bench, looking sad while other children played around them", pageNumber: 1),
+            Page(content: "When Emma asked what was wrong, Oliver whispered that he couldn't read the signs at the playground and felt left out", pageNumber: 2),
+            Page(content: "Emma had an idea - she ran home and brought back her favorite picture books and her patient golden retriever Buddy", pageNumber: 3),
+            Page(content: "Under the big oak tree, Emma started with simple words, pointing to pictures while Buddy wagged encouragingly", pageNumber: 4),
+            Page(content: "As Oliver sounded out his first complete sentence about Buddy chasing butterflies, his face lit up with joy and confidence", pageNumber: 5)
+        ]
+        
+        let realVisualGuide = VisualGuide(
+            styleGuide: "Warm, inviting watercolor style with soft natural lighting that conveys emotional depth and childhood wonder",
+            characterDefinitions: [
+                "Emma": "A confident 6-year-old girl with shoulder-length brown hair tied with a blue ribbon, warm brown eyes, wearing a comfortable yellow sundress and sandals",
+                "Oliver": "A shy 5-year-old boy with messy blonde hair and thoughtful blue eyes, wearing a green t-shirt and denim shorts, often looking contemplative",
+                "Buddy": "A gentle golden retriever with expressive amber eyes and a red collar, known for his patient and encouraging demeanor around children"
+            ],
+            settingDefinitions: [
+                "Park": "A neighborhood park with mature oak trees providing natural shade, wooden benches, a colorful playground in the background, and soft grass perfect for sitting",
+                "Under the Oak Tree": "A peaceful spot under the largest oak tree with dappled sunlight filtering through leaves, creating a natural reading nook on the soft grass"
+            ]
+        )
+        
+        let realCollectionContext = CollectionVisualContext(
+            collectionId: UUID(),
+            collectionTheme: "Building Confidence Through Friendship",
+            sharedCharacters: ["Emma", "Oliver", "Buddy"],
+            unifiedArtStyle: "Emotionally expressive watercolor children's book illustration",
+            developmentalFocus: "Building Self-Confidence and Literacy Skills",
+            ageGroup: "4-8 years",
+            requiresCharacterConsistency: true,
+            allowsStyleVariation: false,
+            sharedProps: ["Picture books", "Learning materials", "Friendship symbols"]
+        )
+        
+        // When - Execute complete real-world visual consistency flow
+        
+        // Step 1: Generate comprehensive global reference
+        let globalPrompt = promptBuilder.buildEnhancedGlobalReferencePrompt(
+            visualGuide: realVisualGuide,
+            storyStructure: testStoryStructure,
+            storyTitle: storyTitle,
+            collectionContext: realCollectionContext
+        )
+        
+        // Step 2: Generate sequential illustrations with emotional progression
+        var storyPrompts: [String] = []
+        var previousBase64: String? = nil
+        let globalReferenceBase64 = "comprehensive-character-reference"
+        
+        for (index, page) in realPages.enumerated() {
+            let prompt = promptBuilder.buildEnhancedSequentialIllustrationPrompt(
+                page: page,
+                pageIndex: index,
+                storyStructure: testStoryStructure,
+                visualGuide: realVisualGuide,
+                globalReferenceImageBase64: globalReferenceBase64,
+                previousIllustrationBase64: previousBase64,
+                collectionContext: realCollectionContext
+            )
+            storyPrompts.append(prompt)
+            previousBase64 = "emotional-progression-page\(index + 1)"
+        }
+        
+        // Then - Verify real-world story visual consistency quality
+        
+        // Verify global reference comprehensiveness
+        XCTAssertTrue(globalPrompt.contains("The Day Emma Taught Oliver to Read"), 
+                     "Global prompt should include story title")
+        XCTAssertTrue(globalPrompt.contains("CHARACTER LINEUP"), 
+                     "Global prompt should include character lineup for reference")
+        XCTAssertTrue(globalPrompt.contains("KEY EXPRESSIONS"), 
+                     "Global prompt should include emotional expressions for character consistency")
+        XCTAssertTrue(globalPrompt.contains("Building Confidence Through Friendship"), 
+                     "Global prompt should include collection theme")
+        XCTAssertGreaterThan(globalPrompt.count, 2500, 
+                            "Real-world global prompt should be very comprehensive")
+        
+        // Verify emotional progression through sequential prompts
+        XCTAssertEqual(storyPrompts.count, 5, "Should generate prompts for all story pages")
+        
+        // Page 1: Sadness and isolation
+        XCTAssertTrue(storyPrompts[0].contains("sitting alone on the park bench, looking sad"), 
+                     "Page 1 should capture Oliver's initial sadness")
+        XCTAssertTrue(storyPrompts[0].contains("GLOBAL REFERENCE USAGE:"), 
+                     "Page 1 should reference character sheet")
+        
+        // Page 2: Vulnerability and trust
+        XCTAssertTrue(storyPrompts[1].contains("whispered that he couldn't read"), 
+                     "Page 2 should capture emotional vulnerability")
+        XCTAssertTrue(storyPrompts[1].contains("PREVIOUS ILLUSTRATION CONTEXT:"), 
+                     "Page 2 should reference previous emotional state")
+        
+        // Page 3: Hope and friendship
+        XCTAssertTrue(storyPrompts[2].contains("brought back her favorite picture books"), 
+                     "Page 3 should show friendship in action")
+        XCTAssertTrue(storyPrompts[2].contains("patient golden retriever Buddy"), 
+                     "Page 3 should include Buddy's supportive character")
+        
+        // Page 4: Learning and encouragement
+        XCTAssertTrue(storyPrompts[3].contains("pointing to pictures while Buddy wagged encouragingly"), 
+                     "Page 4 should show the teaching moment")
+        XCTAssertTrue(storyPrompts[3].contains("Under the big oak tree"), 
+                     "Page 4 should establish the learning environment")
+        
+        // Page 5: Joy and confidence transformation
+        XCTAssertTrue(storyPrompts[4].contains("face lit up with joy and confidence"), 
+                     "Page 5 should capture the emotional transformation")
+        XCTAssertTrue(storyPrompts[4].contains("sounded out his first complete sentence"), 
+                     "Page 5 should show the achievement moment")
+        
+        // Verify character consistency across emotional journey
+        for (index, prompt) in storyPrompts.enumerated() {
+            // All prompts should maintain character definitions
+            XCTAssertTrue(prompt.contains("CHARACTER - Emma: A confident 6-year-old girl"), 
+                         "Page \(index + 1) should maintain Emma's character consistency")
+            XCTAssertTrue(prompt.contains("CHARACTER - Oliver: A shy 5-year-old boy"), 
+                         "Page \(index + 1) should maintain Oliver's character consistency")
+            XCTAssertTrue(prompt.contains("CHARACTER - Buddy: A gentle golden retriever"), 
+                         "Page \(index + 1) should maintain Buddy's character consistency")
+            
+            // All prompts should include visual consistency requirements
+            XCTAssertTrue(prompt.contains("Match character faces, proportions, and clothing EXACTLY"), 
+                         "Page \(index + 1) should enforce character consistency")
+            XCTAssertTrue(prompt.contains("Use the same art style and color palette"), 
+                         "Page \(index + 1) should maintain artistic consistency")
+            
+            // All prompts should support the collection's developmental focus
+            XCTAssertTrue(prompt.contains("Building Self-Confidence and Literacy Skills"), 
+                         "Page \(index + 1) should support developmental goals")
+            
+            // Quality and comprehensiveness
+            XCTAssertGreaterThan(prompt.count, 1200, 
+                                "Page \(index + 1) should be detailed enough for quality illustration")
+        }
+        
+        // Verify setting consistency
+        let parkPages = [0, 1] // Pages that take place in the park
+        let oakTreePages = [2, 3, 4] // Pages under the oak tree
+        
+        for pageIndex in parkPages {
+            XCTAssertTrue(storyPrompts[pageIndex].contains("SETTING - Park:"), 
+                         "Park pages should reference park setting definition")
+        }
+        
+        for pageIndex in oakTreePages {
+            XCTAssertTrue(storyPrompts[pageIndex].contains("SETTING - Under the Oak Tree:"), 
+                         "Oak tree pages should reference oak tree setting definition")
+        }
+        
+        // Verify text-free illustration requirements maintained throughout
+        for prompt in storyPrompts {
+            XCTAssertTrue(prompt.contains("🚫 NO TEXT in illustration"), 
+                         "All prompts should maintain text-free requirements")
+            XCTAssertTrue(prompt.contains("✅ Focus on accurate character representation"), 
+                         "All prompts should emphasize visual storytelling")
+        }
+    }
+}

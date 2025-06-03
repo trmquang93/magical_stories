@@ -152,10 +152,13 @@ class IllustrationCoordinator: ObservableObject {
                         updatedTask.updateStatus(.ready)
                         _ = try self.taskRepository.updateTaskStatus(task.id, status: .ready)
                         
+                        // Save the illustration path to the task
+                        _ = try self.taskRepository.updateTaskIllustrationPath(task.id, illustrationPath: relativePath)
+                        
                         // Update the page if possible
                         self.updatePageWithIllustration(pageId: task.pageId, illustrationPath: relativePath)
                         
-                        self.logger.debug("Successfully generated illustration for task: \(task.id.uuidString)")
+                        self.logger.debug("Successfully generated illustration for task: \(task.id.uuidString), path: \(relativePath)")
                     } else {
                         // Failed to generate
                         updatedTask.updateStatus(.failed)
@@ -227,9 +230,17 @@ class IllustrationCoordinator: ObservableObject {
     /// - Parameter storyId: The story ID
     /// - Returns: Path to global reference image if available
     private func getGlobalReferenceImagePath(for storyId: UUID) -> String? {
-        // For now, return nil as global reference lookup is temporarily disabled
-        // In the future, this would check for completed global reference tasks
-        logger.debug("Global reference lookup temporarily disabled for story: \(storyId.uuidString)")
+        // Check for completed global reference tasks in the task repository
+        do {
+            if let completedGlobalTask = try taskRepository.getCompletedGlobalReferenceTask(for: storyId) {
+                logger.debug("Found completed global reference task for story: \(storyId.uuidString)")
+                return completedGlobalTask.illustrationPath
+            }
+        } catch {
+            logger.error("Error checking for global reference task: \(error.localizedDescription)")
+        }
+        
+        logger.debug("No global reference image found for story: \(storyId.uuidString)")
         return nil
     }
     

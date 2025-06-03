@@ -276,7 +276,19 @@ struct StoryDetailView: View {
     
     @MainActor
     private func getGlobalReferenceImagePath(for storyId: UUID) -> String? {
-        print("[StoryDetailView] Global reference lookup temporarily disabled for testing")
+        // Check for completed global reference tasks in the task manager
+        let repository = IllustrationTaskRepository(modelContext: modelContext)
+        
+        do {
+            if let completedGlobalTask = try repository.getCompletedGlobalReferenceTask(for: storyId) {
+                print("[StoryDetailView] Found completed global reference task for story: \(storyId.uuidString)")
+                return completedGlobalTask.illustrationPath
+            }
+        } catch {
+            print("[StoryDetailView] Error checking for global reference task: \(error.localizedDescription)")
+        }
+        
+        print("[StoryDetailView] No global reference image found for story: \(storyId.uuidString)")
         return nil
     }
     
@@ -508,6 +520,14 @@ struct StoryDetailView: View {
                         var completedTask = task
                         completedTask.updateStatus(.ready)
                         
+                        // Save the illustration path to the repository
+                        let repository = IllustrationTaskRepository(modelContext: modelContext)
+                        do {
+                            _ = try repository.updateTaskIllustrationPath(task.id, illustrationPath: relativePath)
+                        } catch {
+                            print("[StoryDetailView] Failed to update task illustration path: \(error)")
+                        }
+                        
                         // Update UI immediately on main thread
                         await MainActor.run {
                             updateIllustrationProgress()
@@ -583,7 +603,11 @@ struct StoryDetailView: View {
                             description: globalDescription,
                             previousIllustrationPath: nil
                         )
-                        print("[StoryDetailView] Global reference task saved to repository")
+                        
+                        // Save the illustration path to the repository
+                        _ = try repository.updateTaskIllustrationPath(task.id, illustrationPath: relativePath)
+                        
+                        print("[StoryDetailView] Global reference task saved to repository with illustration path: \(relativePath)")
                     } catch {
                         print("[StoryDetailView] Failed to save global reference task: \(error)")
                     }

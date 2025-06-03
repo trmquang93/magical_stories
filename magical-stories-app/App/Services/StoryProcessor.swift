@@ -44,8 +44,18 @@ class StoryProcessor {
         illustrations: [IllustrationDescription] = [],
         theme: String,
         visualGuide: VisualGuide? = nil,
-        storyStructure: StoryStructure? = nil
+        storyStructure: StoryStructure? = nil,
+        collectionContext: CollectionVisualContext? = nil
     ) async throws -> [Page] {
+        print("[StoryProcessor] Processing story into pages")
+        print("[StoryProcessor] Has visual guide: \(visualGuide != nil)")
+        print("[StoryProcessor] Has story structure: \(storyStructure != nil)")
+        print("[StoryProcessor] Has collection context: \(collectionContext != nil)")
+        if let context = collectionContext {
+            print("[StoryProcessor] Collection theme: \(context.collectionTheme)")
+            print("[StoryProcessor] Collection art style: \(context.unifiedArtStyle)")
+        }
+        
         // First attempt to paginate using the delimiter-based approach
         var pages = paginateStory(content)
 
@@ -94,7 +104,7 @@ class StoryProcessor {
     @MainActor
     func paginateStory(
         _ content: String,
-        delimiter: String = StoryProcessor.defaultPageBreakDelimiter
+        delimiter: String = "---"
     ) -> [Page] {
         let trimmedContent =
             content
@@ -468,7 +478,8 @@ class StoryProcessor {
         _ pages: inout [Page],
         theme: String,
         usePreprocessedDescriptions: Bool = false,
-        visualGuide: VisualGuide? = nil
+        visualGuide: VisualGuide? = nil,
+        collectionContext: CollectionVisualContext? = nil
     ) async {
         AIErrorManager.logError(
             NSError(
@@ -529,7 +540,8 @@ class StoryProcessor {
                     totalPages: pages.count,
                     previousIllustrationPath: previousIllustrationPath,
                     visualGuide: visualGuide,
-                    globalReferenceImagePath: nil  // Global reference not used during initial story creation
+                    globalReferenceImagePath: nil,  // Global reference not used during initial story creation
+                    collectionContext: collectionContext
                 )
 
                 if let relativePath = relativePath {

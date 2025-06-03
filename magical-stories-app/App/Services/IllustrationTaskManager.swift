@@ -138,7 +138,7 @@ class IllustrationTaskManager: ObservableObject {
         print("[IllustrationTaskManager] Marked task as completed: \(id.uuidString)")
         
         // Count tasks that may now be unblocked
-        let previouslyBlockedTasks = pendingTasks.filter { task in
+        let _ = pendingTasks.filter { task in
             if let deps = task.dependencies, deps.contains(id) {
                 return !areDependenciesMet(for: task)
             }

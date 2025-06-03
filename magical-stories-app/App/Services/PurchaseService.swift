@@ -9,7 +9,7 @@ class PurchaseService: ObservableObject {
     
     // MARK: - Published Properties
     
-    @Published internal(set) var products: [Product] = []
+    @Published var products: [Product] = []
     @Published private(set) var isLoading = false
     @Published private(set) var purchaseInProgress = false
     @Published var errorMessage: String?
@@ -220,7 +220,7 @@ class PurchaseService: ObservableObject {
         logger.info("Opening subscription management")
         
         do {
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            if let windowScene = UIApplication.shared.connectedUIScenes.first as? UIWindowScene {
                 try await AppStore.showManageSubscriptions(in: windowScene)
             }
         } catch {
@@ -276,6 +276,8 @@ class PurchaseService: ObservableObject {
             return .productNotFound
         case .notEntitled:
             return .notAllowed
+        case .unknown:
+            return .unknown
         @unknown default:
             return .unknown
         }
@@ -505,7 +507,7 @@ extension Product {
 import UIKit
 
 extension UIApplication {
-    var connectedScenes: Set<UIScene> {
+    var connectedUIScenes: Set<UIScene> {
         return UIApplication.shared.connectedScenes
     }
 }

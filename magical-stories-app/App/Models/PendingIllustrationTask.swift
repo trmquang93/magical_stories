@@ -20,6 +20,9 @@ final class PendingIllustrationTask {
     /// Current status of the illustration task
     var statusRawValue: String
     
+    /// Task type for this illustration task
+    var taskTypeRawValue: String
+    
     /// When the task was created
     var createdAt: Date
     
@@ -41,6 +44,9 @@ final class PendingIllustrationTask {
     /// Path to the previous page's illustration, if available
     var previousIllustrationPath: String?
     
+    /// Path to the generated illustration, set when task completes successfully
+    var illustrationPath: String?
+    
     /// Computed property to convert raw priority value to IllustrationPriority enum
     var priority: IllustrationPriority {
         get {
@@ -61,6 +67,16 @@ final class PendingIllustrationTask {
         }
     }
     
+    /// Computed property to convert raw task type value to IllustrationTaskType enum
+    var taskType: IllustrationTaskType {
+        get {
+            return IllustrationTaskType(rawValue: taskTypeRawValue) ?? .pageIllustration
+        }
+        set {
+            taskTypeRawValue = newValue.rawValue
+        }
+    }
+    
     /// Default initializer
     init(
         id: UUID = UUID(),
@@ -68,19 +84,22 @@ final class PendingIllustrationTask {
         storyId: UUID,
         priority: IllustrationPriority,
         status: IllustrationStatus = .pending,
+        taskType: IllustrationTaskType = .pageIllustration,
         createdAt: Date = Date(),
         lastUpdatedAt: Date? = nil,
         attemptCount: Int = 0,
         illustrationDescription: String? = nil,
         pageNumber: Int = 1,
         totalPages: Int = 1,
-        previousIllustrationPath: String? = nil
+        previousIllustrationPath: String? = nil,
+        illustrationPath: String? = nil
     ) {
         self.id = id
         self.pageId = pageId
         self.storyId = storyId
         self.priorityRawValue = priority.rawValue
         self.statusRawValue = status.rawValue
+        self.taskTypeRawValue = taskType.rawValue
         self.createdAt = createdAt
         self.lastUpdatedAt = lastUpdatedAt ?? createdAt
         self.attemptCount = attemptCount
@@ -88,6 +107,7 @@ final class PendingIllustrationTask {
         self.pageNumber = pageNumber
         self.totalPages = totalPages
         self.previousIllustrationPath = previousIllustrationPath
+        self.illustrationPath = illustrationPath
     }
     
     /// Convert a runtime IllustrationTask to a persistent PendingIllustrationTask
@@ -98,6 +118,7 @@ final class PendingIllustrationTask {
             storyId: task.storyId,
             priority: task.priority,
             status: task.status,
+            taskType: task.taskType,
             createdAt: task.createdAt,
             lastUpdatedAt: task.lastUpdatedAt,
             attemptCount: task.attemptCount,
@@ -118,7 +139,9 @@ final class PendingIllustrationTask {
             status: status,
             createdAt: createdAt,
             lastUpdatedAt: lastUpdatedAt,
-            attemptCount: attemptCount
+            attemptCount: attemptCount,
+            taskType: taskType,
+            pageIndex: pageNumber
         )
     }
 }

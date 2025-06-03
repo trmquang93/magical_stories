@@ -248,7 +248,7 @@ class TransactionObserver: ObservableObject {
     private func isTransactionForIntroductoryPeriod(_ transaction: Transaction, subscription: Product.SubscriptionInfo) -> Bool {
         // Method 1: Check if transaction has intro offer identifier
         // Note: StoreKit may provide offer identifiers in the transaction
-        if let offer = transaction.offer {
+        if transaction.offer != nil {
             logger.info("Transaction has offer")
             // If there's an offer, this is likely an intro or promotional transaction
             return true

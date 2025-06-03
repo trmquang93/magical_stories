@@ -72,4 +72,18 @@ protocol IllustrationTaskRepositoryProtocol {
     /// - Returns: The number of tasks restored
     @MainActor
     func restoreTasksToManager(_ manager: IllustrationTaskManager) async throws -> Int
+    
+    /// Get the completed global reference task for a story
+    /// - Parameter storyId: The ID of the story
+    /// - Returns: The completed global reference task if found, nil otherwise
+    @MainActor
+    func getCompletedGlobalReferenceTask(for storyId: UUID) throws -> PendingIllustrationTask?
+    
+    /// Update the illustration path for a completed task
+    /// - Parameters:
+    ///   - id: The ID of the task
+    ///   - illustrationPath: The path to the generated illustration
+    /// - Returns: The updated task if found, nil otherwise
+    @MainActor
+    func updateTaskIllustrationPath(_ id: UUID, illustrationPath: String) throws -> PendingIllustrationTask?
 }

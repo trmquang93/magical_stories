@@ -1,0 +1,782 @@
+import XCTest
+import Foundation
+@testable import magical_stories
+
+/// Tests for task dependency sequencing in the visual consistency system
+class TaskDependencySequencingTests: XCTestCase {
+    
+    // MARK: - Test Properties
+    
+    private var mockRepository: MockIllustrationTaskRepository!
+    private var taskManager: IllustrationTaskManager!
+    
+    // Test data
+    private let testStoryId = UUID()
+    private let testPageIds = [UUID(), UUID(), UUID()]
+    
+    // MARK: - Setup and Teardown
+    
+    override func setUp() {
+        super.setUp()
+        mockRepository = MockIllustrationTaskRepository()
+        taskManager = IllustrationTaskManager()
+        
+        // Reset mocks
+        mockRepository.reset()
+    }
+    
+    override func tearDown() {
+        mockRepository = nil
+        taskManager = nil
+        super.tearDown()
+    }
+    
+    // MARK: - Global Reference Task Priority Tests
+    
+    func testGlobalReferenceTaskHasHighestPriority() {
+        // Given
+        let globalTask = IllustrationTask(
+            id: UUID(),
+            pageId: UUID(), // Global tasks still need a pageId, but it represents the reference itself
+            storyId: testStoryId,
+            priority: .critical,
+            status: .pending,
+            taskType: .globalReference,
+            pageIndex: nil // Global reference has no page index
+        )
+        
+        let pageTask = IllustrationTask(
+            id: UUID(),
+            pageId: testPageIds[0],
+            storyId: testStoryId,
+            priority: .medium,
+            status: .pending,
+            taskType: .pageIllustration,
+            pageIndex: 0
+        )
+        
+        // When
+        taskManager.addTask(pageTask)
+        taskManager.addTask(globalTask)
+        
+        // Then
+        let nextTask = taskManager.getNextTask()
+        XCTAssertEqual(nextTask?.type, .globalReference, 
+                      "Global reference task should have highest priority")
+        XCTAssertEqual(nextTask?.id, globalTask.id, 
+                      "Should return the global reference task first")
+    }
+    
+    func testGlobalReferenceTaskCompletionUnblocksPageTasks() {
+        // Given
+        let globalTaskId = UUID()
+        let globalTask = IllustrationTask(
+            id: globalTaskId,
+            storyId: testStoryId,
+            pageId: nil,
+            type: .globalReference,
+            status: .pending,
+            priority: .high,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let pageTask1 = IllustrationTask(
+            id: UUID(),
+            storyId: testStoryId,
+            pageId: testPageIds[0],
+            type: .pageIllustration,
+            status: .pending,
+            priority: .medium,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let pageTask2 = IllustrationTask(
+            id: UUID(),
+            storyId: testStoryId,
+            pageId: testPageIds[1],
+            type: .pageIllustration,
+            status: .pending,
+            priority: .medium,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        // When - Add tasks to manager
+        taskManager.addTask(globalTask)
+        taskManager.addTask(pageTask1)
+        taskManager.addTask(pageTask2)
+        
+        // Verify global task is first
+        let firstTask = taskManager.getNextTask()
+        XCTAssertEqual(firstTask?.type, .globalReference, 
+                      "Global reference should be processed first")
+        
+        // Complete global task
+        taskManager.updateTaskStatus(globalTaskId, status: .completed)
+        
+        // Then - Page tasks should now be available
+        let nextTask = taskManager.getNextTask()
+        XCTAssertEqual(nextTask?.type, .pageIllustration, 
+                      "Page illustrations should be available after global reference completion")
+    }
+    
+    // MARK: - Sequential Page Task Ordering Tests
+    
+    func testPageTasksAreOrderedSequentially() {
+        // Given
+        let globalTask = IllustrationTask(
+            id: UUID(),
+            storyId: testStoryId,
+            pageId: nil,
+            type: .globalReference,
+            status: .completed, // Already completed
+            priority: .high,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        // Create page tasks in non-sequential order
+        let pageTask3 = IllustrationTask(
+            id: UUID(),
+            storyId: testStoryId,
+            pageId: testPageIds[2],
+            type: .pageIllustration,
+            status: .pending,
+            priority: .medium,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let pageTask1 = IllustrationTask(
+            id: UUID(),
+            storyId: testStoryId,
+            pageId: testPageIds[0],
+            type: .pageIllustration,
+            status: .pending,
+            priority: .medium,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let pageTask2 = IllustrationTask(
+            id: UUID(),
+            storyId: testStoryId,
+            pageId: testPageIds[1],
+            type: .pageIllustration,
+            status: .pending,
+            priority: .medium,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        // When - Add tasks in random order
+        taskManager.addTask(globalTask)
+        taskManager.addTask(pageTask3)
+        taskManager.addTask(pageTask1)
+        taskManager.addTask(pageTask2)
+        
+        // Then - Tasks should be retrieved in sequential order
+        let task1 = taskManager.getNextTask()
+        let task2 = taskManager.getNextTask()
+        let task3 = taskManager.getNextTask()
+        
+        XCTAssertEqual(task1?.pageId, testPageIds[0], 
+                      "First page task should be retrieved first")
+        XCTAssertEqual(task2?.pageId, testPageIds[1], 
+                      "Second page task should be retrieved second")
+        XCTAssertEqual(task3?.pageId, testPageIds[2], 
+                      "Third page task should be retrieved third")
+    }
+    
+    func testPageTaskDependencyOnPreviousPage() {
+        // Given
+        let globalTask = IllustrationTask(
+            id: UUID(),
+            storyId: testStoryId,
+            pageId: nil,
+            type: .globalReference,
+            status: .completed,
+            priority: .high,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let pageTask1Id = UUID()
+        let pageTask1 = IllustrationTask(
+            id: pageTask1Id,
+            storyId: testStoryId,
+            pageId: testPageIds[0],
+            type: .pageIllustration,
+            status: .pending,
+            priority: .medium,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let pageTask2 = IllustrationTask(
+            id: UUID(),
+            storyId: testStoryId,
+            pageId: testPageIds[1],
+            type: .pageIllustration,
+            status: .pending,
+            priority: .medium,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        // When
+        taskManager.addTask(globalTask)
+        taskManager.addTask(pageTask1)
+        taskManager.addTask(pageTask2)
+        
+        // Process first page task
+        let firstTask = taskManager.getNextTask()
+        XCTAssertEqual(firstTask?.id, pageTask1Id, 
+                      "Should get first page task")
+        
+        // Mark first page as in progress
+        taskManager.updateTaskStatus(pageTask1Id, status: .inProgress)
+        
+        // Try to get next task
+        let nextTask = taskManager.getNextTask()
+        XCTAssertNil(nextTask, 
+                    "Should not get second page task while first is in progress")
+        
+        // Complete first page task
+        taskManager.updateTaskStatus(pageTask1Id, status: .completed)
+        
+        // Then - Second page task should become available
+        let secondTask = taskManager.getNextTask()
+        XCTAssertEqual(secondTask?.pageId, testPageIds[1], 
+                      "Second page task should be available after first is completed")
+    }
+    
+    // MARK: - Repository Task Dependency Storage Tests
+    
+    func testSaveTasksWithProperSequencing() throws {
+        // Given
+        let globalTask = IllustrationTask(
+            id: UUID(),
+            storyId: testStoryId,
+            pageId: nil,
+            type: .globalReference,
+            status: .pending,
+            priority: .high,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let pageTask1 = IllustrationTask(
+            id: UUID(),
+            storyId: testStoryId,
+            pageId: testPageIds[0],
+            type: .pageIllustration,
+            status: .pending,
+            priority: .medium,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let pageTask2 = IllustrationTask(
+            id: UUID(),
+            storyId: testStoryId,
+            pageId: testPageIds[1],
+            type: .pageIllustration,
+            status: .pending,
+            priority: .medium,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        // When - Save tasks with proper page numbering
+        let savedGlobalTask = try mockRepository.saveTask(
+            globalTask,
+            pageNumber: 0, // Global reference is page 0
+            totalPages: 3,
+            description: "Global character reference",
+            previousIllustrationPath: nil
+        )
+        
+        let savedPageTask1 = try mockRepository.saveTask(
+            pageTask1,
+            pageNumber: 1,
+            totalPages: 3,
+            description: "Page 1 illustration",
+            previousIllustrationPath: nil
+        )
+        
+        let savedPageTask2 = try mockRepository.saveTask(
+            pageTask2,
+            pageNumber: 2,
+            totalPages: 3,
+            description: "Page 2 illustration",
+            previousIllustrationPath: "page1-illustration-path"
+        )
+        
+        // Then - Verify proper sequencing in storage
+        XCTAssertEqual(savedGlobalTask.pageNumber, 0, 
+                      "Global reference should be stored as page 0")
+        XCTAssertNil(savedGlobalTask.previousIllustrationPath, 
+                    "Global reference should not have previous illustration")
+        
+        XCTAssertEqual(savedPageTask1.pageNumber, 1, 
+                      "First page task should be stored as page 1")
+        XCTAssertNil(savedPageTask1.previousIllustrationPath, 
+                    "First page should not have previous illustration (only global reference)")
+        
+        XCTAssertEqual(savedPageTask2.pageNumber, 2, 
+                      "Second page task should be stored as page 2")
+        XCTAssertEqual(savedPageTask2.previousIllustrationPath, "page1-illustration-path", 
+                      "Second page should reference first page illustration")
+        
+        // Verify all tasks are tracked
+        XCTAssertEqual(mockRepository.savedTasks.count, 3, 
+                      "Repository should track all saved tasks")
+    }
+    
+    func testRetrieveTasksInDependencyOrder() throws {
+        // Given - Create tasks with dependencies
+        let tasks = [
+            PendingIllustrationTask(
+                id: UUID(),
+                storyId: testStoryId,
+                pageId: nil,
+                type: .globalReference,
+                status: .pending,
+                priority: .high,
+                maxAttempts: 3,
+                attemptCount: 0,
+                createdAt: Date(),
+                lastUpdatedAt: Date(),
+                pageNumber: 0,
+                totalPages: 3,
+                illustrationDescription: "Global reference",
+                previousIllustrationPath: nil
+            ),
+            PendingIllustrationTask(
+                id: UUID(),
+                storyId: testStoryId,
+                pageId: testPageIds[0],
+                type: .pageIllustration,
+                status: .pending,
+                priority: .medium,
+                maxAttempts: 3,
+                attemptCount: 0,
+                createdAt: Date(),
+                lastUpdatedAt: Date(),
+                pageNumber: 1,
+                totalPages: 3,
+                illustrationDescription: "Page 1",
+                previousIllustrationPath: nil
+            ),
+            PendingIllustrationTask(
+                id: UUID(),
+                storyId: testStoryId,
+                pageId: testPageIds[1],
+                type: .pageIllustration,
+                status: .pending,
+                priority: .medium,
+                maxAttempts: 3,
+                attemptCount: 0,
+                createdAt: Date(),
+                lastUpdatedAt: Date(),
+                pageNumber: 2,
+                totalPages: 3,
+                illustrationDescription: "Page 2",
+                previousIllustrationPath: "page1-path"
+            )
+        ]
+        
+        mockRepository.tasksToReturn = tasks
+        
+        // When - Retrieve tasks for story
+        let retrievedTasks = try mockRepository.getTasksForStory(testStoryId)
+        
+        // Then - Verify dependency order can be established
+        XCTAssertEqual(retrievedTasks.count, 3, 
+                      "Should retrieve all tasks for story")
+        
+        // Find global reference task
+        let globalTask = retrievedTasks.first { $0.type == .globalReference }
+        XCTAssertNotNil(globalTask, "Should find global reference task")
+        XCTAssertEqual(globalTask?.pageNumber, 0, "Global reference should be page 0")
+        
+        // Find page tasks and verify ordering
+        let pageTasks = retrievedTasks.filter { $0.type == .pageIllustration }
+            .sorted { $0.pageNumber < $1.pageNumber }
+        
+        XCTAssertEqual(pageTasks.count, 2, "Should have 2 page tasks")
+        XCTAssertEqual(pageTasks[0].pageNumber, 1, "First page task should be page 1")
+        XCTAssertEqual(pageTasks[1].pageNumber, 2, "Second page task should be page 2")
+        XCTAssertEqual(pageTasks[1].previousIllustrationPath, "page1-path", 
+                      "Second page should reference first page")
+    }
+    
+    // MARK: - Task Manager Dependency Logic Tests
+    
+    func testTaskManagerRespectsDependencies() {
+        // Given
+        let globalTaskId = UUID()
+        let pageTask1Id = UUID()
+        let pageTask2Id = UUID()
+        
+        let globalTask = IllustrationTask(
+            id: globalTaskId,
+            storyId: testStoryId,
+            pageId: nil,
+            type: .globalReference,
+            status: .pending,
+            priority: .high,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let pageTask1 = IllustrationTask(
+            id: pageTask1Id,
+            storyId: testStoryId,
+            pageId: testPageIds[0],
+            type: .pageIllustration,
+            status: .pending,
+            priority: .medium,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let pageTask2 = IllustrationTask(
+            id: pageTask2Id,
+            storyId: testStoryId,
+            pageId: testPageIds[1],
+            type: .pageIllustration,
+            status: .pending,
+            priority: .medium,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        // When - Add all tasks
+        taskManager.addTask(pageTask2) // Add out of order
+        taskManager.addTask(globalTask)
+        taskManager.addTask(pageTask1)
+        
+        // Then - Verify dependency-based processing
+        
+        // Step 1: Global reference should be first
+        let task1 = taskManager.getNextTask()
+        XCTAssertEqual(task1?.id, globalTaskId, 
+                      "Global reference should be processed first")
+        
+        // Step 2: No other tasks available while global is in progress
+        taskManager.updateTaskStatus(globalTaskId, status: .inProgress)
+        let noTask = taskManager.getNextTask()
+        XCTAssertNil(noTask, "No tasks should be available while global is in progress")
+        
+        // Step 3: Complete global, first page becomes available
+        taskManager.updateTaskStatus(globalTaskId, status: .completed)
+        let task2 = taskManager.getNextTask()
+        XCTAssertEqual(task2?.id, pageTask1Id, 
+                      "First page task should become available after global completion")
+        
+        // Step 4: No second page while first is in progress
+        taskManager.updateTaskStatus(pageTask1Id, status: .inProgress)
+        let noTask2 = taskManager.getNextTask()
+        XCTAssertNil(noTask2, "Second page should not be available while first is in progress")
+        
+        // Step 5: Complete first page, second page becomes available
+        taskManager.updateTaskStatus(pageTask1Id, status: .completed)
+        let task3 = taskManager.getNextTask()
+        XCTAssertEqual(task3?.id, pageTask2Id, 
+                      "Second page task should become available after first page completion")
+    }
+    
+    // MARK: - Multiple Story Task Isolation Tests
+    
+    func testTaskDependenciesIsolatedBetweenStories() {
+        // Given - Tasks for two different stories
+        let story1Id = UUID()
+        let story2Id = UUID()
+        
+        let story1GlobalTask = IllustrationTask(
+            id: UUID(),
+            storyId: story1Id,
+            pageId: nil,
+            type: .globalReference,
+            status: .pending,
+            priority: .high,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let story1PageTask = IllustrationTask(
+            id: UUID(),
+            storyId: story1Id,
+            pageId: UUID(),
+            type: .pageIllustration,
+            status: .pending,
+            priority: .medium,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let story2GlobalTask = IllustrationTask(
+            id: UUID(),
+            storyId: story2Id,
+            pageId: nil,
+            type: .globalReference,
+            status: .completed, // Already completed
+            priority: .high,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let story2PageTask = IllustrationTask(
+            id: UUID(),
+            storyId: story2Id,
+            pageId: UUID(),
+            type: .pageIllustration,
+            status: .pending,
+            priority: .medium,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        // When - Add tasks for both stories
+        taskManager.addTask(story1GlobalTask)
+        taskManager.addTask(story1PageTask)
+        taskManager.addTask(story2GlobalTask)
+        taskManager.addTask(story2PageTask)
+        
+        // Then - Tasks should be processed independently
+        
+        // Should get story1 global first (highest priority pending)
+        let firstTask = taskManager.getNextTask()
+        XCTAssertEqual(firstTask?.storyId, story1Id, 
+                      "Should get story1 global task first")
+        XCTAssertEqual(firstTask?.type, .globalReference, 
+                      "Should be global reference task")
+        
+        // Should get story2 page task next (its global is already complete)
+        let secondTask = taskManager.getNextTask()
+        XCTAssertEqual(secondTask?.storyId, story2Id, 
+                      "Should get story2 page task (global already complete)")
+        XCTAssertEqual(secondTask?.type, .pageIllustration, 
+                      "Should be page illustration task")
+        
+        // Story1 page task should not be available (global still pending)
+        let thirdTask = taskManager.getNextTask()
+        XCTAssertNil(thirdTask, 
+                    "Story1 page task should not be available while global is pending")
+    }
+    
+    // MARK: - Error Handling in Task Dependencies
+    
+    func testTaskDependencyWithFailedGlobalReference() {
+        // Given
+        let globalTaskId = UUID()
+        let pageTaskId = UUID()
+        
+        let globalTask = IllustrationTask(
+            id: globalTaskId,
+            storyId: testStoryId,
+            pageId: nil,
+            type: .globalReference,
+            status: .pending,
+            priority: .high,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let pageTask = IllustrationTask(
+            id: pageTaskId,
+            storyId: testStoryId,
+            pageId: testPageIds[0],
+            type: .pageIllustration,
+            status: .pending,
+            priority: .medium,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        // When
+        taskManager.addTask(globalTask)
+        taskManager.addTask(pageTask)
+        
+        // Process global task and mark as failed
+        let task = taskManager.getNextTask()
+        XCTAssertEqual(task?.id, globalTaskId, "Should get global task first")
+        
+        taskManager.updateTaskStatus(globalTaskId, status: .failed)
+        
+        // Then - Page task should still not be available (failed dependency)
+        let nextTask = taskManager.getNextTask()
+        XCTAssertNil(nextTask, 
+                    "Page task should not be available when global reference failed")
+        
+        // But if we retry and complete global task, page task should become available
+        taskManager.updateTaskStatus(globalTaskId, status: .completed)
+        let finalTask = taskManager.getNextTask()
+        XCTAssertEqual(finalTask?.id, pageTaskId, 
+                      "Page task should become available after global task completion")
+    }
+    
+    // MARK: - Integration Test - End-to-End Dependency Flow
+    
+    func testEndToEndTaskDependencyFlow() throws {
+        // Given - A complete story with multiple pages and dependencies
+        let storyId = UUID()
+        let pageIds = [UUID(), UUID(), UUID(), UUID()]
+        
+        // Create all tasks
+        let globalTask = IllustrationTask(
+            id: UUID(),
+            storyId: storyId,
+            pageId: nil,
+            type: .globalReference,
+            status: .pending,
+            priority: .high,
+            maxAttempts: 3,
+            createdAt: Date(),
+            lastUpdatedAt: Date(),
+            attemptCount: 0
+        )
+        
+        let pageTasks = pageIds.enumerated().map { index, pageId in
+            IllustrationTask(
+                id: UUID(),
+                storyId: storyId,
+                pageId: pageId,
+                type: .pageIllustration,
+                status: .pending,
+                priority: .medium,
+                maxAttempts: 3,
+                createdAt: Date(),
+                lastUpdatedAt: Date(),
+                attemptCount: 0
+            )
+        }
+        
+        // When - Save all tasks with proper dependencies
+        let savedGlobalTask = try mockRepository.saveTask(
+            globalTask,
+            pageNumber: 0,
+            totalPages: pageIds.count + 1,
+            description: "Global character reference",
+            previousIllustrationPath: nil
+        )
+        
+        var savedPageTasks: [PendingIllustrationTask] = []
+        for (index, pageTask) in pageTasks.enumerated() {
+            let previousPath = index > 0 ? "page\(index)-illustration" : nil
+            let savedTask = try mockRepository.saveTask(
+                pageTask,
+                pageNumber: index + 1,
+                totalPages: pageIds.count + 1,
+                description: "Page \(index + 1) illustration",
+                previousIllustrationPath: previousPath
+            )
+            savedPageTasks.append(savedTask)
+        }
+        
+        // Add tasks to manager
+        taskManager.addTask(globalTask)
+        for pageTask in pageTasks {
+            taskManager.addTask(pageTask)
+        }
+        
+        // Then - Verify complete dependency flow
+        
+        // Step 1: Global reference processes first
+        let processedGlobal = taskManager.getNextTask()
+        XCTAssertEqual(processedGlobal?.type, .globalReference, 
+                      "Global reference should process first")
+        taskManager.updateTaskStatus(globalTask.id, status: .completed)
+        
+        // Step 2: Pages process in sequence
+        for (index, expectedPageTask) in pageTasks.enumerated() {
+            let processedPage = taskManager.getNextTask()
+            XCTAssertEqual(processedPage?.id, expectedPageTask.id, 
+                          "Page \(index + 1) should process in order")
+            
+            // Verify no other tasks available while current page is in progress
+            taskManager.updateTaskStatus(expectedPageTask.id, status: .inProgress)
+            let blockedTask = taskManager.getNextTask()
+            XCTAssertNil(blockedTask, 
+                        "No other tasks should be available while page \(index + 1) is in progress")
+            
+            // Complete current page to unblock next
+            taskManager.updateTaskStatus(expectedPageTask.id, status: .completed)
+        }
+        
+        // Step 3: All tasks completed, no more tasks available
+        let finalTask = taskManager.getNextTask()
+        XCTAssertNil(finalTask, "No more tasks should be available after all are completed")
+        
+        // Verify repository tracking
+        XCTAssertEqual(mockRepository.savedTasks.count, pageIds.count + 1, 
+                      "Repository should track all tasks including global reference")
+        
+        // Verify proper dependency chain in storage
+        XCTAssertEqual(savedGlobalTask.pageNumber, 0, 
+                      "Global reference should be page 0")
+        XCTAssertNil(savedGlobalTask.previousIllustrationPath, 
+                    "Global reference should have no previous illustration")
+        
+        for (index, savedTask) in savedPageTasks.enumerated() {
+            XCTAssertEqual(savedTask.pageNumber, index + 1, 
+                          "Page task \(index + 1) should have correct page number")
+            
+            if index > 0 {
+                XCTAssertNotNil(savedTask.previousIllustrationPath, 
+                               "Page task \(index + 1) should reference previous illustration")
+            } else {
+                XCTAssertNil(savedTask.previousIllustrationPath, 
+                            "First page task should not reference previous illustration")
+            }
+        }
+    }
+}

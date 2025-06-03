@@ -179,5 +179,15 @@ private enum PreviewMocks {
         func restoreTasksToManager(_ manager: IllustrationTaskManager) async throws -> Int {
             return 0
         }
+        
+        @MainActor
+        func getCompletedGlobalReferenceTask(for storyId: UUID) throws -> PendingIllustrationTask? {
+            return nil
+        }
+        
+        @MainActor
+        func updateTaskIllustrationPath(_ id: UUID, illustrationPath: String) throws -> PendingIllustrationTask? {
+            return nil
+        }
     }
 }
