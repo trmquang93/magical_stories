@@ -233,7 +233,7 @@ public class ImagenStrategy: AIGenerationStrategy {
         
         let requestBody = ImagenRequestBody(
             instances: [ImagenInstance(prompt: prompt)],
-            parameters: ImagenParameters(sampleCount: 1, width: 1024, height: 1792)
+            parameters: ImagenParameters(sampleCount: 1, width: 1792, height: 1024)
         )
         
         var request = URLRequest(url: url)

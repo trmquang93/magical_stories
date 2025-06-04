@@ -91,230 +91,6 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
         self.urlSession = urlSession
     }
 
-    /// Generates an illustration URL for the given page text and theme using the Google AI SDK.
-    /// This method remains unchanged for now, but might need updating or deprecation later
-    /// depending on how illustration generation is triggered.
-    public func generateIllustration(for pageText: String, theme: String) async throws -> String? {
-        // ... existing code for the first generateIllustration method ...
-        // NOTE: This method currently uses the old Imagen API structure.
-        // Consider refactoring or removing if the contextual method becomes standard.
-        let combinedPrompt = """
-            ⛔️ ABSOLUTE TEXT PROHIBITION - ZERO TOLERANCE POLICY ⛔️
-            🚫🚫🚫 NO TEXT ALLOWED UNDER ANY CIRCUMSTANCES 🚫🚫🚫
-            ‼️‼️ CRITICAL SYSTEM RULE: TEXT-FREE ILLUSTRATION ONLY ‼️‼️
-            
-            🛑 TEXT DETECTION ACTIVE 🛑
-            ANY visible text, letters, numbers, or symbols will result in:
-            • IMMEDIATE REJECTION of the illustration
-            • AUTOMATIC REGENERATION request
-            • FAILED QUALITY CONTROL assessment
-            
-            Generate a PURE VISUAL illustration for a children's story page:
-            
-            Theme: \(theme)
-            Scene Description: \(pageText)
-            
-            Style: Whimsical, colorful, suitable for young children
-            
-            MANDATORY VISUAL-ONLY REQUIREMENTS:
-            - Create pure visual storytelling without ANY textual elements
-            - Show scenes through imagery, expressions, and actions only
-            - Use colors, lighting, and composition to convey mood
-            - Characters must communicate through body language and facial expressions
-            - Tell the story through VISUAL ELEMENTS ONLY
-            
-            🚨 STRICTLY FORBIDDEN - WILL CAUSE REJECTION 🚨
-            ❌ NO text in ANY language (English, symbols, foreign scripts)
-            ❌ NO words, letters, numbers, or alphanumeric characters
-            ❌ NO captions, labels, titles, or descriptions
-            ❌ NO speech bubbles, dialogue boxes, or conversation text
-            ❌ NO written signs, posters, banners, or notices
-            ❌ NO book pages, newspapers, or readable materials
-            ❌ NO story text overlay or embedded narrative text
-            ❌ NO license plates, name tags, or identification text
-            ❌ NO mathematical symbols, equations, or formulas
-            ❌ NO emoji text, emoticons, or text-based expressions
-            
-            ✅ APPROVED VISUAL STORYTELLING ELEMENTS:
-            ✅ Character facial expressions to convey emotions
-            ✅ Body language and gestures to show actions
-            ✅ Environmental details to establish setting
-            ✅ Color and lighting to create mood and atmosphere
-            ✅ Composition and framing to guide viewer attention
-            ✅ Visual symbols (non-text) like hearts, stars, or arrows
-            
-            🔍 QUALITY ASSURANCE CHECK:
-            Before finalizing, scan EVERY pixel for text elements
-            The app handles ALL text display separately below the image
-            Your illustration must be 100% text-free for approval
-            
-            ⚠️ FINAL WARNING ⚠️
-            TEXT = AUTOMATIC REJECTION = WASTED GENERATION
-            Create pure visual art that tells the story through visuals alone!
-            """
-
-        debugPrint("Generating illustration with prompt: \(combinedPrompt)")
-
-        var lastError: Error?
-
-        // Using the old Imagen endpoint/request structure for this specific method for now.
-        let imagenModelName = "imagen-3.0-generate-002:predict"  // Keep original model for this method
-        let imagenEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/"  // Keep original endpoint
-
-        for attempt in 1...5 {
-            do {
-                print(
-                    "--- IllustrationService (Legacy): Attempt \(attempt) to generate illustration ---"
-                )
-
-                // 1. Construct URL
-                let urlString = "\(imagenEndpoint)\(imagenModelName)?key=\(apiKey)"
-                guard let url = URL(string: urlString) else {
-                    throw IllustrationError.invalidURL
-                }
-
-                // 2. Prepare Request Body (Imagen structure)
-                let requestBody = ImagenRequestBody(
-                    instances: [ImagenInstance(prompt: combinedPrompt)],
-                    // Specify exact dimensions instead of aspect ratio
-                    parameters: ImagenParameters(sampleCount: 1, width: 1024, height: 1792)
-                )
-
-                // 3. Prepare URLRequest
-                var request = URLRequest(url: url)
-                request.httpMethod = "POST"
-                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-                // Add explicit do-catch for encoding
-                do {
-                    request.httpBody = try JSONEncoder().encode(requestBody)
-                    // DEBUG: Check if httpBody is set before network call
-                    print(
-                        "--- IllustrationService (Legacy): DEBUG - Request body size after encoding: \(request.httpBody?.count ?? -1) bytes ---"
-                    )
-                } catch {
-                    print(
-                        "--- IllustrationService (Legacy): ERROR - Failed to encode request body: \(error.localizedDescription) ---"
-                    )
-                    // Propagate encoding error as an invalidResponse or a new specific error type
-                    throw IllustrationError.invalidResponse(
-                        "Failed to encode request body: \(error.localizedDescription)")
-                }
-
-                // 4. Perform Network Request
-                let (data, response) = try await self.urlSession.data(for: request)  // Use injected session
-
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    throw IllustrationError.invalidResponse("Did not receive HTTP response.")
-                }
-
-                print(
-                    "--- IllustrationService (Legacy): Received HTTP status code: \(httpResponse.statusCode) ---"
-                )
-
-                guard (200...299).contains(httpResponse.statusCode) else {
-                    let errorDetail = String(data: data, encoding: .utf8) ?? "No details available."
-                    print(
-                        "--- IllustrationService (Legacy): API Error Response Body: \(errorDetail) ---"
-                    )
-                    throw IllustrationError.apiError(
-                        NSError(
-                            domain: "HTTPError", code: httpResponse.statusCode,
-                            userInfo: [
-                                NSLocalizedDescriptionKey:
-                                    "API request failed with status \(httpResponse.statusCode). Detail: \(errorDetail)"
-                            ])
-                    )
-                }
-
-                // 5. Decode Successful Response (Imagen structure)
-                let predictionResponse = try JSONDecoder().decode(
-                    ImagenPredictionResponse.self, from: data)
-
-                guard let firstPrediction = predictionResponse.predictions.first,
-                    let base64String = firstPrediction.bytesBase64Encoded
-                else {
-                    print(
-                        "--- IllustrationService (Legacy): No image data found in predictions array. Response: \(predictionResponse) ---"
-                    )
-                    throw IllustrationError.noImageDataFound
-                }
-
-                guard let imageData = Data(base64Encoded: base64String) else {
-                    print(
-                        "--- IllustrationService (Legacy): Failed to decode base64 image string. ---"
-                    )
-                    throw IllustrationError.imageProcessingError(
-                        "Failed to decode base64 image data.")
-                }
-
-                let mimeType = firstPrediction.mimeType ?? "image/png"
-                let relativePath = try saveImageDataToPersistentDirectory(
-                    imageData: imageData, mimeType: mimeType)
-                print(
-                    "--- IllustrationService (Legacy): Successfully saved image at relative path: \(relativePath) ---"
-                )
-                return relativePath
-
-            } catch let error as URLError {
-                // Specific handling for network errors
-                lastError = IllustrationError.networkError(error)
-                print(
-                    "--- IllustrationService (Legacy): Attempt \(attempt) failed with network error: \(error.localizedDescription) ---"
-                )
-                // Optional: Decide if retrying makes sense for network errors
-                // if attempt < 5 { try? await Task.sleep(nanoseconds: 1_000_000_000) }
-            } catch let error as DecodingError {
-                // Specific handling for JSON decoding errors after successful network request
-                lastError = IllustrationError.invalidResponse(
-                    "Failed to decode API response: \(error.localizedDescription)")
-                print(
-                    "--- IllustrationService (Legacy): Attempt \(attempt) failed with decoding error: \(error.localizedDescription) ---"
-                )
-                // Probably don't retry on decoding errors
-                break  // Exit retry loop for decoding errors
-            } catch let error as IllustrationError {
-                // Catch errors already wrapped by internal logic (e.g., apiError, noImageDataFound)
-                lastError = error
-                print(
-                    "--- IllustrationService (Legacy): Attempt \(attempt) failed with IllustrationError: \(error.localizedDescription) ---"
-                )
-                // Decide on retry logic based on the specific IllustrationError type if needed
-            } catch {
-                // Catch any other unexpected errors during the process
-                lastError = error  // Store the generic error
-                print(
-                    "--- IllustrationService (Legacy): Attempt \(attempt) failed with unexpected error: \(error.localizedDescription) ---"
-                )
-                // Optional: Retry for generic errors or break
-                // if attempt < 5 { try? await Task.sleep(nanoseconds: 1_000_000_000) }
-            }
-
-            // Common retry delay logic (if retrying is enabled for the caught error type)
-            // This example assumes we retry for network and generic errors, but not decoding errors.
-            if !(lastError is IllustrationError
-                && (lastError as! IllustrationError).isDecodingError) && attempt < 5
-            {
-                try? await Task.sleep(nanoseconds: UInt64.random(in: 1_000_000_000...2_000_000_000))  // Exponential backoff might be better
-            }
-        }
-
-        // After loop, check the last error and handle/log
-        if let finalError = lastError {
-            AIErrorManager.logError(
-                finalError, source: "IllustrationService (Legacy)",
-                additionalInfo: "All retries failed for pageText: \(pageText)")
-            // Re-throw the last error encountered after all retries
-            throw finalError
-        }
-
-        // Should only be reached if successful within the loop
-        // The original return nil is now effectively unreachable if an error occurred
-        print(
-            "--- IllustrationService (Legacy): Warning - Reached end of function unexpectedly after retries without success or throwing an error. ---"
-        )
-        return nil  // Should ideally not happen if error handling is correct
-    }
 
     /// Generates an illustration using a context-rich description and the previous page's illustration.
     /// - Parameters:
@@ -400,8 +176,9 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
                 // 2. Prepare Request Body (Gemini generateContent structure)
                 var parts: [GenerateContentRequest.Part] = []
 
-                // Add the text part first
-                parts.append(.text(enhancedPrompt))
+                // Add the text part with explicit dimension requirements
+                let dimensionPrompt = enhancedPrompt + "\n\nIMAGE SPECIFICATIONS:\n- Generate image in 16:9 landscape aspect ratio\n- Dimensions should be wider than tall (landscape orientation)\n- Compose the scene for horizontal/landscape viewing"
+                parts.append(.text(dimensionPrompt))
                 
                 // Add global reference image as separate part if available (for page illustrations)
                 if pageNumber > 0, let globalPath = globalReferenceImagePath {
@@ -780,12 +557,19 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
             try context.save()
         }
 
-        // Construct the prompt from the page
-        let imagePrompt = page.imagePrompt ?? createDefaultPrompt(from: page.content)
+        // Use the page content directly as the illustration description
+        let illustrationDescription = page.imagePrompt ?? createDefaultPrompt(from: page.content)
 
         do {
-            // Call our existing method to generate the illustration
-            if let relativePath = try await generateIllustrationWithPrompt(imagePrompt) {
+            // Call the main generation method with proper parameters
+            if let relativePath = try await generateIllustration(
+                for: illustrationDescription,
+                pageNumber: page.pageNumber,
+                totalPages: 1, // Default to 1 if not available in context
+                previousIllustrationPath: nil,
+                visualGuide: nil, // Could be enhanced to use a default visual guide
+                globalReferenceImagePath: nil
+            ) {
                 // Update the page with the result path and set status to ready
                 try await MainActor.run {
                     page.illustrationPath = relativePath
@@ -835,214 +619,6 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
         }
     }
 
-    /// Internal method to generate an illustration using a prompt
-    /// This refactors the existing code to be more reusable
-    private func generateIllustrationWithPrompt(_ prompt: String) async throws -> String? {
-        let combinedPrompt = """
-            ⛔️ ABSOLUTE TEXT PROHIBITION - ZERO TOLERANCE POLICY ⛔️
-            🚫🚫🚫 NO TEXT ALLOWED UNDER ANY CIRCUMSTANCES 🚫🚫🚫
-            ‼️‼️ CRITICAL SYSTEM RULE: TEXT-FREE ILLUSTRATION ONLY ‼️‼️
-            
-            🛑 TEXT DETECTION ACTIVE 🛑
-            ANY visible text, letters, numbers, or symbols will result in:
-            • IMMEDIATE REJECTION of the illustration
-            • AUTOMATIC REGENERATION request
-            • FAILED QUALITY CONTROL assessment
-            
-            Generate a PURE VISUAL illustration for a children's story page:
-            
-            Scene Description: \(prompt)
-            
-            Style: Whimsical, colorful, suitable for young children
-            
-            MANDATORY VISUAL-ONLY REQUIREMENTS:
-            - Create pure visual storytelling without ANY textual elements
-            - Show scenes through imagery, expressions, and actions only
-            - Use colors, lighting, and composition to convey mood
-            - Characters must communicate through body language and facial expressions
-            - Tell the story through VISUAL ELEMENTS ONLY
-            
-            🚨 STRICTLY FORBIDDEN - WILL CAUSE REJECTION 🚨
-            ❌ NO text in ANY language (English, symbols, foreign scripts)
-            ❌ NO words, letters, numbers, or alphanumeric characters
-            ❌ NO captions, labels, titles, or descriptions
-            ❌ NO speech bubbles, dialogue boxes, or conversation text
-            ❌ NO written signs, posters, banners, or notices
-            ❌ NO book pages, newspapers, or readable materials
-            ❌ NO story text overlay or embedded narrative text
-            ❌ NO license plates, name tags, or identification text
-            ❌ NO mathematical symbols, equations, or formulas
-            ❌ NO emoji text, emoticons, or text-based expressions
-            
-            ✅ APPROVED VISUAL STORYTELLING ELEMENTS:
-            ✅ Character facial expressions to convey emotions
-            ✅ Body language and gestures to show actions
-            ✅ Environmental details to establish setting
-            ✅ Color and lighting to create mood and atmosphere
-            ✅ Composition and framing to guide viewer attention
-            ✅ Visual symbols (non-text) like hearts, stars, or arrows
-            
-            🔍 QUALITY ASSURANCE CHECK:
-            Before finalizing, scan EVERY pixel for text elements
-            The app handles ALL text display separately below the image
-            Your illustration must be 100% text-free for approval
-            
-            ⚠️ FINAL WARNING ⚠️
-            TEXT = AUTOMATIC REJECTION = WASTED GENERATION
-            Create pure visual art that tells the story through visuals alone!
-            """
-
-        var lastError: Error?
-
-        // Use the Imagen 3.0 endpoint
-        let imagenModelName = "imagen-3.0-generate-002:predict"
-        let imagenEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/"
-
-        for attempt in 1...5 {
-            do {
-                print(
-                    "--- IllustrationService: Attempt \(attempt) to generate illustration ---"
-                )
-
-                // 1. Construct URL
-                let urlString = "\(imagenEndpoint)\(imagenModelName)?key=\(apiKey)"
-                guard let url = URL(string: urlString) else {
-                    throw IllustrationError.invalidURL
-                }
-
-                // 2. Prepare Request Body (Imagen structure)
-                let requestBody = ImagenRequestBody(
-                    instances: [ImagenInstance(prompt: combinedPrompt)],
-                    // Specify exact dimensions instead of aspect ratio
-                    parameters: ImagenParameters(sampleCount: 1, width: 1024, height: 1792)
-                )
-
-                // 3. Prepare URLRequest
-                var request = URLRequest(url: url)
-                request.httpMethod = "POST"
-                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-                do {
-                    request.httpBody = try JSONEncoder().encode(requestBody)
-                    print(
-                        "--- IllustrationService: DEBUG - Request body size after encoding: \(request.httpBody?.count ?? -1) bytes ---"
-                    )
-                } catch {
-                    print(
-                        "--- IllustrationService: ERROR - Failed to encode request body: \(error.localizedDescription) ---"
-                    )
-                    throw IllustrationError.invalidResponse(
-                        "Failed to encode request body: \(error.localizedDescription)")
-                }
-
-                // 4. Perform Network Request
-                let (data, response) = try await self.urlSession.data(for: request)
-
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    throw IllustrationError.invalidResponse("Did not receive HTTP response.")
-                }
-
-                print(
-                    "--- IllustrationService: Received HTTP status code: \(httpResponse.statusCode) ---"
-                )
-
-                guard (200...299).contains(httpResponse.statusCode) else {
-                    let errorDetail = String(data: data, encoding: .utf8) ?? "No details available."
-                    print(
-                        "--- IllustrationService: API Error Response Body: \(errorDetail) ---"
-                    )
-                    throw IllustrationError.apiError(
-                        NSError(
-                            domain: "HTTPError", code: httpResponse.statusCode,
-                            userInfo: [
-                                NSLocalizedDescriptionKey:
-                                    "API request failed with status \(httpResponse.statusCode). Detail: \(errorDetail)"
-                            ])
-                    )
-                }
-
-                // 5. Decode Successful Response (Imagen structure)
-                let predictionResponse = try JSONDecoder().decode(
-                    ImagenPredictionResponse.self, from: data)
-
-                guard let firstPrediction = predictionResponse.predictions.first,
-                    let base64String = firstPrediction.bytesBase64Encoded
-                else {
-                    print(
-                        "--- IllustrationService: No image data found in predictions array. Response: \(predictionResponse) ---"
-                    )
-                    throw IllustrationError.noImageDataFound
-                }
-
-                guard let imageData = Data(base64Encoded: base64String) else {
-                    print(
-                        "--- IllustrationService: Failed to decode base64 image string. ---"
-                    )
-                    throw IllustrationError.imageProcessingError(
-                        "Failed to decode base64 image data.")
-                }
-
-                let mimeType = firstPrediction.mimeType ?? "image/png"
-                let relativePath = try saveImageDataToPersistentDirectory(
-                    imageData: imageData, mimeType: mimeType)
-                print(
-                    "--- IllustrationService: Successfully saved image at relative path: \(relativePath) ---"
-                )
-                return relativePath
-
-            } catch let error as URLError {
-                // Specific handling for network errors
-                lastError = IllustrationError.networkError(error)
-                print(
-                    "--- IllustrationService: Attempt \(attempt) failed with network error: \(error.localizedDescription) ---"
-                )
-            } catch let error as DecodingError {
-                // Specific handling for JSON decoding errors after successful network request
-                lastError = IllustrationError.invalidResponse(
-                    "Failed to decode API response: \(error.localizedDescription)")
-                print(
-                    "--- IllustrationService: Attempt \(attempt) failed with decoding error: \(error.localizedDescription) ---"
-                )
-                // Probably don't retry on decoding errors
-                break  // Exit retry loop for decoding errors
-            } catch let error as IllustrationError {
-                // Catch errors already wrapped by internal logic (e.g., apiError, noImageDataFound)
-                lastError = error
-                print(
-                    "--- IllustrationService: Attempt \(attempt) failed with IllustrationError: \(error.localizedDescription) ---"
-                )
-                // Decide on retry logic based on the specific IllustrationError type if needed
-            } catch {
-                // Catch any other unexpected errors during the process
-                lastError = error  // Store the generic error
-                print(
-                    "--- IllustrationService: Attempt \(attempt) failed with unexpected error: \(error.localizedDescription) ---"
-                )
-            }
-
-            // Common retry delay logic (if retrying is enabled for the caught error type)
-            if !(lastError is IllustrationError
-                && (lastError as! IllustrationError).isDecodingError) && attempt < 5
-            {
-                try? await Task.sleep(nanoseconds: UInt64.random(in: 1_000_000_000...2_000_000_000))
-            }
-        }
-
-        // After loop, check the last error and handle/log
-        if let finalError = lastError {
-            AIErrorManager.logError(
-                finalError, source: "IllustrationService",
-                additionalInfo: "All retries failed for prompt: \(prompt)")
-            // Re-throw the last error encountered after all retries
-            throw finalError
-        }
-
-        // Should only be reached if all attempts fail without throwing an error (unlikely)
-        print(
-            "--- IllustrationService: Warning - Reached end of function unexpectedly after retries without success or throwing an error. ---"
-        )
-        return nil
-    }
 
     /// Creates a default prompt from the page content if none is provided
     private func createDefaultPrompt(from content: String) -> String {
@@ -1091,7 +667,7 @@ public class IllustrationService: IllustrationServiceProtocol, ObservableObject 
 
 // Internal protocol and extension definitions removed.
 
-// MARK: - Internal Helper Structs for REST API (Made internal for testing)
+// MARK: - Imagen API Structs (Still used by AIGenerationStrategy)
 
 struct ImagenRequestBody: Codable {
     let instances: [ImagenInstance]
@@ -1104,18 +680,14 @@ struct ImagenInstance: Codable {
 
 struct ImagenParameters: Codable {
     let sampleCount: Int
-    let aspectRatio: String?  // Keep optional for flexibility, though we'll prioritize width/height
-    let width: Int?  // Desired output width in pixels
-    let height: Int?  // Desired output height in pixels
+    let width: Int?
+    let height: Int?
 
-    // Provide a convenience initializer if needed, though default memberwise should work
-    init(sampleCount: Int, aspectRatio: String? = nil, width: Int? = nil, height: Int? = nil) {
+    init(sampleCount: Int, width: Int? = nil, height: Int? = nil) {
         self.sampleCount = sampleCount
-        self.aspectRatio = aspectRatio  // Store it even if not used in primary call
         self.width = width
         self.height = height
     }
-    // Note: Removed the comment about adding other parameters as we are adding width/height now.
 }
 
 struct ImagenPredictionResponse: Codable {
@@ -1123,10 +695,8 @@ struct ImagenPredictionResponse: Codable {
 }
 
 struct ImagenPrediction: Codable {
-    // Assuming the key for base64 image data is 'bytesBase64Encoded' based on common Google API patterns
     let bytesBase64Encoded: String?
-    let mimeType: String?  // Include if the API provides it
-    // Include other potential fields like safetyAttributes if needed
+    let mimeType: String?
 }
 
 // MARK: - Internal Helper Structs for Gemini generateContent REST API (Made internal for testing)
@@ -1194,13 +764,9 @@ struct GenerateContentRequest: Codable {
         // Specifies the desired modality for the response.
         let responseModalities: [String]?
 
-        // Add other generation config parameters if needed (e.g., temperature, topP, maxOutputTokens)
-        // Ensure they match the API documentation for the chosen model.
-
-        // Custom initializer if needed for default values or specific logic
+        // Custom initializer
         init(responseModalities: [String]?) {
             self.responseModalities = responseModalities
-            // Initialize other parameters here if added
         }
     }
 }

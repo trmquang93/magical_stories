@@ -33,14 +33,6 @@ protocol CollectionServiceProtocol {
 
 /// Protocol defining the requirements for Illustration services.
 protocol IllustrationServiceProtocol {
-    /// Generates an illustration URL for the given page text and theme.
-    /// - Parameters:
-    ///   - pageText: The text content of the story page.
-    ///   - theme: The overall theme of the story.
-    /// - Returns: A relative path string pointing to the generated illustration, or `nil` if generation fails gracefully.
-    /// - Throws: `IllustrationError` for configuration, network, or API issues.
-    func generateIllustration(for pageText: String, theme: String) async throws -> String?
-
     /// Generates an illustration using a context-rich description and optionally the previous page's illustration.
     /// - Parameters:
     ///   - illustrationDescription: The detailed, preprocessed description for the illustration.
