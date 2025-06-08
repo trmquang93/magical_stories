@@ -28,7 +28,8 @@ class AccessCodeValidator: ObservableObject {
     /// - Returns: AccessCodeValidationResult indicating success or failure
     @MainActor
     func validateAccessCode(_ codeString: String) async -> AccessCodeValidationResult {
-        logger.info("Validating access code: \(codeString.prefix(4))...")
+        logger.info("🔍 Starting access code validation...")
+        logger.info("📝 Original input: '\(codeString)'")
         
         isValidating = true
         validationError = nil
@@ -39,42 +40,74 @@ class AccessCodeValidator: ObservableObject {
         
         // Clean the input code
         let cleanedCode = cleanAccessCode(codeString)
+        logger.info("🧹 Cleaned code: '\(cleanedCode)' (length: \(cleanedCode.count))")
         
         // Step 1: Format validation
+        logger.info("✅ Step 1: Checking format validation...")
         guard AccessCodeFormat.isValidFormat(cleanedCode) else {
             let error = AccessCodeValidationError.invalidFormat
             validationError = error
-            logger.warning("Access code format validation failed: \(cleanedCode)")
+            logger.error("❌ Step 1 FAILED: Invalid format for code '\(cleanedCode)'")
+            logger.error("   Expected: 12 characters with valid prefix")
+            logger.error("   Received: \(cleanedCode.count) characters")
             return .invalid(error)
         }
+        logger.info("✅ Step 1 PASSED: Format validation successful")
         
         // Step 2: Checksum validation
+        logger.info("✅ Step 2: Checking checksum validation...")
+        let expectedChecksum = AccessCodeFormat.calculateChecksum(for: String(cleanedCode.prefix(10)))
+        let actualChecksum = String(cleanedCode.suffix(2))
+        logger.info("   Expected checksum: '\(expectedChecksum)'")
+        logger.info("   Actual checksum: '\(actualChecksum)'")
+        
         guard AccessCodeFormat.validateChecksum(cleanedCode) else {
             let error = AccessCodeValidationError.checksumMismatch
             validationError = error
-            logger.warning("Access code checksum validation failed: \(cleanedCode)")
+            logger.error("❌ Step 2 FAILED: Checksum mismatch for code '\(cleanedCode)'")
+            logger.error("   This code may be invalid or corrupted")
             return .invalid(error)
         }
+        logger.info("✅ Step 2 PASSED: Checksum validation successful")
         
         // Step 3: Extract type and validate
+        logger.info("✅ Step 3: Extracting code type...")
+        let prefix = String(cleanedCode.prefix(2))
+        logger.info("   Code prefix: '\(prefix)'")
+        
         guard let codeType = AccessCodeFormat.extractType(from: cleanedCode) else {
             let error = AccessCodeValidationError.invalidFormat
             validationError = error
-            logger.warning("Could not extract access code type: \(cleanedCode)")
+            logger.error("❌ Step 3 FAILED: Unknown code type for prefix '\(prefix)'")
+            logger.error("   Valid prefixes: RV (reviewer), PR (press), DM (demo), UN (unlimited), SA (special)")
             return .invalid(error)
         }
+        logger.info("✅ Step 3 PASSED: Code type identified as '\(codeType.displayName)' (\(prefix))")
         
         // Step 4: Create access code object and validate properties
+        logger.info("✅ Step 4: Creating access code object...")
         let accessCode = createAccessCodeFromString(cleanedCode, type: codeType)
+        logger.info("   Code: '\(accessCode.code)'")
+        logger.info("   Type: \(accessCode.type.displayName)")
+        logger.info("   Features: \(accessCode.grantedFeatures.map { $0.rawValue }.joined(separator: ", "))")
+        logger.info("   Expires: \(accessCode.expiresAt?.description ?? "Never")")
+        logger.info("   Usage Limit: \(accessCode.usageLimit?.description ?? "Unlimited")")
         
         // Step 5: Validate access code state
+        logger.info("✅ Step 5: Validating access code state...")
         let validationResult = validateAccessCodeState(accessCode)
         
-        if case .valid = validationResult {
-            logger.info("Access code validation successful: \(codeType.displayName)")
+        if case .valid(let validCode) = validationResult {
+            logger.info("🎉 VALIDATION SUCCESSFUL! Code '\(validCode.code)' is valid")
+            logger.info("   Type: \(validCode.type.displayName)")
+            logger.info("   Features unlocked: \(validCode.grantedFeatures.map { $0.rawValue }.joined(separator: ", "))")
+            logger.info("   Expires: \(validCode.expiresAt?.description ?? "Never")")
+            logger.info("   Usage remaining: \(validCode.usageLimit.map { max(0, $0 - validCode.usageCount) }?.description ?? "Unlimited")")
         } else if case .invalid(let error) = validationResult {
             validationError = error
-            logger.warning("Access code validation failed: \(error.localizedDescription)")
+            logger.error("❌ VALIDATION FAILED: \(error.localizedDescription)")
+            logger.error("   Code: '\(cleanedCode)'")
+            logger.error("   Error details: \(error)")
         }
         
         return validationResult
@@ -169,22 +202,43 @@ class AccessCodeValidator: ObservableObject {
     /// - Parameter accessCode: The access code to validate
     /// - Returns: Validation result
     private func validateAccessCodeState(_ accessCode: AccessCode) -> AccessCodeValidationResult {
+        logger.info("     🔍 Checking access code state...")
+        
         // Check if code is active
+        logger.info("     ↳ Checking if code is active: \(accessCode.isActive)")
         guard accessCode.isActive else {
+            logger.error("     ❌ Code is inactive")
             return .invalid(.codeInactive)
         }
         
         // Check expiration
-        if let expiresAt = accessCode.expiresAt, expiresAt <= Date() {
-            return .invalid(.codeExpired(expirationDate: expiresAt))
+        if let expiresAt = accessCode.expiresAt {
+            let now = Date()
+            logger.info("     ↳ Checking expiration: \(expiresAt) vs \(now)")
+            if expiresAt <= now {
+                logger.error("     ❌ Code has expired: \(expiresAt)")
+                return .invalid(.codeExpired(expirationDate: expiresAt))
+            }
+            logger.info("     ✅ Code is not expired (expires in \(expiresAt.timeIntervalSince(now).formatted()) seconds)")
+        } else {
+            logger.info("     ✅ Code has no expiration date")
         }
         
         // Check usage limit
-        if let usageLimit = accessCode.usageLimit, accessCode.usageCount >= usageLimit {
-            return .invalid(.usageLimitReached(limit: usageLimit))
+        if let usageLimit = accessCode.usageLimit {
+            logger.info("     ↳ Checking usage: \(accessCode.usageCount)/\(usageLimit)")
+            if accessCode.usageCount >= usageLimit {
+                logger.error("     ❌ Usage limit reached: \(accessCode.usageCount)/\(usageLimit)")
+                return .invalid(.usageLimitReached(limit: usageLimit))
+            }
+            let remaining = usageLimit - accessCode.usageCount
+            logger.info("     ✅ Usage within limit: \(remaining) uses remaining")
+        } else {
+            logger.info("     ✅ Code has unlimited usage")
         }
         
         // All validations passed
+        logger.info("     🎉 All state validations passed!")
         return .valid(accessCode)
     }
 }

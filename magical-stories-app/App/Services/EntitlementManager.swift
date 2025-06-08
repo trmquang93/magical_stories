@@ -666,28 +666,38 @@ class EntitlementManager: ObservableObject {
     /// - Throws: AccessCodeValidationError if validation fails
     @MainActor
     func validateAndStoreAccessCode(_ codeString: String) async throws -> Bool {
+        logger.info("🚀 ENTITLEMENT MANAGER: Starting promo code validation...")
+        logger.info("   User entered: '\(codeString)'")
+        
         guard let validator = accessCodeValidator,
               let storage = accessCodeStorage else {
-            logger.error("Access code services not available")
+            logger.error("❌ Access code services not available")
             throw AccessCodeValidationError.unknown("Access code services not available")
         }
         
-        logger.info("Validating access code: \(codeString.prefix(4))...")
+        logger.info("✅ Services available, starting validation...")
         
         let validationResult = await validator.validateAccessCode(codeString)
         
         switch validationResult {
         case .valid(let accessCode):
+            logger.info("🎯 VALIDATION SUCCESSFUL! Proceeding to store...")
             try await storage.storeAccessCode(accessCode)
+            
+            logger.info("📱 Refreshing entitlement status...")
             await refreshAccessCodeStatus()
             
-            logger.info("Access code validated and stored successfully")
-            logger.info("New access code features: \(accessCode.grantedFeatures.map { $0.rawValue })")
+            logger.info("🎉 SUCCESS! Access code validated and stored")
+            logger.info("   Features unlocked: \(accessCode.grantedFeatures.map { $0.rawValue }.joined(separator: ", "))")
+            logger.info("   Type: \(accessCode.type.displayName)")
+            logger.info("   Expires: \(accessCode.expiresAt?.description ?? "Never")")
             
             return true
             
         case .invalid(let error):
-            logger.warning("Access code validation failed: \(error.localizedDescription)")
+            logger.error("❌ VALIDATION FAILED: \(error.localizedDescription)")
+            logger.error("   Code: '\(codeString)'")
+            logger.error("   Error type: \(error)")
             throw error
         }
     }

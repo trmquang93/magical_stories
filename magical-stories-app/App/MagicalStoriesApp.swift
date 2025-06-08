@@ -17,6 +17,8 @@ struct MagicalStoriesApp: App {
     @StateObject private var entitlementManager: EntitlementManager
     @StateObject private var usageTracker: UsageTracker
     @StateObject private var transactionObserver: TransactionObserver
+    @StateObject private var accessCodeValidator: AccessCodeValidator
+    @StateObject private var accessCodeStorage: AccessCodeStorage
     private let container: ModelContainer
 
     // Initialization to handle dependencies between services
@@ -85,10 +87,16 @@ struct MagicalStoriesApp: App {
         let usageTracker = UsageTracker(usageAnalyticsService: usageAnalyticsService)
         let transactionObserver = TransactionObserver()
         
+        // Initialize access code services
+        let accessCodeValidator = AccessCodeValidator()
+        let accessCodeStorage = AccessCodeStorage()
+        
         // Set up dependencies between subscription services
         purchaseService.setEntitlementManager(entitlementManager)
         entitlementManager.setUsageTracker(usageTracker)
         entitlementManager.setUsageAnalyticsService(usageAnalyticsService)
+        entitlementManager.setAccessCodeValidator(accessCodeValidator)
+        entitlementManager.setAccessCodeStorage(accessCodeStorage)
         story.setEntitlementManager(entitlementManager)
         
         // Set up transaction observer dependencies
@@ -109,6 +117,8 @@ struct MagicalStoriesApp: App {
         _entitlementManager = StateObject(wrappedValue: entitlementManager)
         _usageTracker = StateObject(wrappedValue: usageTracker)
         _transactionObserver = StateObject(wrappedValue: transactionObserver)
+        _accessCodeValidator = StateObject(wrappedValue: accessCodeValidator)
+        _accessCodeStorage = StateObject(wrappedValue: accessCodeStorage)
 
         // Store container for environment injection
         self.container = container
@@ -129,6 +139,8 @@ struct MagicalStoriesApp: App {
                 .environmentObject(entitlementManager)
                 .environmentObject(usageTracker)
                 .environmentObject(transactionObserver) // Inject transaction observer
+                .environmentObject(accessCodeValidator) // Inject access code services
+                .environmentObject(accessCodeStorage)
                 .modelContainer(container)
                 .onAppear {
                     // Process current entitlements when app appears

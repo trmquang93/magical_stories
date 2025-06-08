@@ -37,7 +37,10 @@ class AccessCodeStorage: ObservableObject {
     /// - Throws: Storage errors if saving fails
     @MainActor
     func storeAccessCode(_ accessCode: AccessCode) async throws {
-        logger.info("Storing new access code: \(accessCode.type.displayName)")
+        logger.info("💾 STORAGE: Starting to store access code...")
+        logger.info("   Code: '\(accessCode.code)'")
+        logger.info("   Type: \(accessCode.type.displayName)")
+        logger.info("   Features: \(accessCode.grantedFeatures.map(\.rawValue).joined(separator: ", "))")
         
         isLoading = true
         defer { isLoading = false }
@@ -45,24 +48,32 @@ class AccessCodeStorage: ObservableObject {
         // Check if code already exists
         if let existingIndex = activeAccessCodes.firstIndex(where: { $0.accessCode.code == accessCode.code }) {
             // Update existing code
+            logger.info("🔄 Code already exists at index \(existingIndex), updating...")
+            let previousActivationDate = activeAccessCodes[existingIndex].activatedAt
             activeAccessCodes[existingIndex] = StoredAccessCode(
                 accessCode: accessCode,
-                activatedAt: activeAccessCodes[existingIndex].activatedAt,
+                activatedAt: previousActivationDate,
                 lastUsedAt: Date()
             )
-            logger.info("Updated existing access code")
+            logger.info("✅ Successfully updated existing access code")
         } else {
             // Add new code
+            logger.info("🆕 Adding new code to storage...")
             let storedCode = StoredAccessCode(accessCode: accessCode, activatedAt: Date())
             activeAccessCodes.append(storedCode)
-            logger.info("Added new access code")
+            logger.info("✅ Successfully added new access code (total: \(self.activeAccessCodes.count))")
         }
         
         // Save to persistent storage
+        logger.info("💾 Saving to UserDefaults...")
         try await saveAccessCodes()
+        logger.info("✅ Successfully saved to persistent storage")
         
         // Cleanup expired codes
+        logger.info("🧹 Running cleanup for expired codes...")
         await cleanupExpiredCodes()
+        
+        logger.info("🎉 STORAGE COMPLETE: Access code stored and activated!")
     }
     
     /// Retrieves all active access codes
