@@ -119,6 +119,11 @@ struct PromoCodeFeatureFlags {
     static let enableUsageTracking: Bool = false
     static let enableAnalytics: Bool = false
     
+    // MARK: - Firebase Features (Phase 2)
+    static let enableFirebaseIntegration: Bool = false
+    static let enableFirebaseAnalytics: Bool = false
+    static let enableFirebaseOfflineSupport: Bool = false
+    
     // MARK: - UI Features
     static let enableAsyncUI: Bool = false
     static let enableBackendStatusIndicator: Bool = false

@@ -50,11 +50,18 @@ class PromoCodeServiceFactory: ObservableObject {
             }
             
         case .firebase:
-            // TODO: Implement in Phase 2
-            if EnvironmentConfig.shouldLog {
-                print("PromoCodeServiceFactory: Firebase not yet implemented, falling back to offline")
+            // Phase 2: Firebase implementation
+            if PromoCodeFeatureFlags.enableFirebaseIntegration {
+                service = FirebasePromoCodeService()
+                if EnvironmentConfig.shouldLog {
+                    print("PromoCodeServiceFactory: Created FirebasePromoCodeService")
+                }
+            } else {
+                if EnvironmentConfig.shouldLog {
+                    print("PromoCodeServiceFactory: Firebase feature flag disabled, falling back to offline")
+                }
+                service = OfflinePromoCodeService()
             }
-            service = OfflinePromoCodeService()
             
         case .customAPI:
             // TODO: Implement in Phase 3
@@ -92,11 +99,18 @@ class PromoCodeServiceFactory: ObservableObject {
             }
             
         case .firebase:
-            // TODO: Implement in Phase 2
-            if EnvironmentConfig.shouldLog {
-                print("PromoCodeServiceFactory: Firebase repository not yet implemented, falling back to offline")
+            // Phase 2: Firebase implementation
+            if PromoCodeFeatureFlags.enableFirebaseIntegration {
+                repository = FirebasePromoCodeRepository()
+                if EnvironmentConfig.shouldLog {
+                    print("PromoCodeServiceFactory: Created FirebasePromoCodeRepository")
+                }
+            } else {
+                if EnvironmentConfig.shouldLog {
+                    print("PromoCodeServiceFactory: Firebase feature flag disabled, falling back to offline")
+                }
+                repository = OfflinePromoCodeRepository()
             }
-            repository = OfflinePromoCodeRepository()
             
         case .customAPI:
             // TODO: Implement in Phase 3
