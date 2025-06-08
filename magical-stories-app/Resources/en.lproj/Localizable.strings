@@ -250,6 +250,64 @@
 "paywall.onboarding.message" = "Start your free trial and unlock all premium features";
 "paywall.upgrade.title" = "Upgrade to Premium";
 "paywall.upgrade.message" = "Get unlimited stories and exclusive features";
+
+// MARK: - Promo Codes
+"promoCode.title" = "Promo Code";
+"promoCode.subtitle" = "Redeem special offers";
+"promoCode.entry.title" = "Redeem Promo Code";
+"promoCode.entry.subtitle" = "Enter your promo code to unlock premium features";
+"promoCode.entry.placeholder" = "Enter code";
+"promoCode.entry.help.title" = "Need help?";
+"promoCode.entry.help.format" = "Promo codes are 12 characters long";
+"promoCode.entry.help.pattern" = "Format: XX-XXXX-XXXX-XX";
+"promoCode.entry.help.support" = "Contact support if you need assistance";
+"promoCode.button.redeem" = "Redeem Code";
+"promoCode.button.validating" = "Validating...";
+"promoCode.button.addAnother" = "Add Another Code";
+"promoCode.haveCode" = "Have a promo code?";
+"promoCode.description" = "Unlock premium features with your promo code";
+"promoCode.success.title" = "Code Redeemed Successfully!";
+"promoCode.success.message" = "You now have access to: %@";
+"promoCode.active.title" = "Active Promo Codes";
+"promoCode.remove.title" = "Remove Promo Code";
+"promoCode.remove.message" = "Are you sure you want to remove this promo code? You will lose access to the features it provides.";
+"promoCode.remove.button" = "Remove";
+"promoCode.status.active" = "Active";
+"promoCode.status.expired" = "Expired";
+"promoCode.status.usageLimitReached" = "Usage Limit Reached";
+"promoCode.timeRemaining.days" = "%d days left";
+"promoCode.timeRemaining.neverExpires" = "Never expires";
+"promoCode.usage.remaining" = "Uses remaining: %d/%d";
+"promoCode.inputHelp.characters" = "%d/%d characters";
+"promoCode.inputHelp.ready" = "Ready to validate";
+"promoCode.inputHelp.tooLong" = "Too long (%d/%d characters)";
+
+// MARK: - Access Code Types
+"accessCode.type.reviewer" = "Reviewer Access";
+"accessCode.type.press" = "Press Access";
+"accessCode.type.demo" = "Demo Access";
+"accessCode.type.unlimited" = "Unlimited Access";
+"accessCode.type.specialAccess" = "Special Access";
+
+// MARK: - Access Code Errors
+"accessCode.error.invalidFormat" = "Access code format is invalid";
+"accessCode.error.codeNotFound" = "Access code not found or invalid";
+"accessCode.error.codeExpired" = "Access code expired on %@";
+"accessCode.error.usageLimitReached" = "Access code usage limit reached (%d uses)";
+"accessCode.error.codeInactive" = "Access code is not active";
+"accessCode.error.checksumMismatch" = "Access code checksum validation failed";
+"accessCode.error.networkError" = "Network error: %@";
+"accessCode.error.unknown" = "Unknown error: %@";
+
+// MARK: - Access Code Recovery Suggestions
+"accessCode.recovery.invalidFormat" = "Please check the access code format and try again";
+"accessCode.recovery.codeNotFound" = "Please verify the access code is correct";
+"accessCode.recovery.codeExpired" = "Please contact support for a new access code";
+"accessCode.recovery.usageLimitReached" = "This access code has reached its usage limit";
+"accessCode.recovery.codeInactive" = "This access code is no longer active";
+"accessCode.recovery.checksumMismatch" = "Please re-enter the access code carefully";
+"accessCode.recovery.networkError" = "Please check your internet connection and try again";
+"accessCode.recovery.unknown" = "Please try again or contact support";
 "subscription.status.free" = "Free Plan";
 "subscription.status.monthlyExpires" = "Premium Monthly (expires %@)";
 "subscription.status.yearlyExpires" = "Premium Yearly (expires %@)";

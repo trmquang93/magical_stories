@@ -36,6 +36,8 @@ struct SettingsView: View {
                     
                     SubscriptionCard()
                     
+                    PromoCodeCard()
+                    
                     ParentalControlsCard(
                         contentFiltering: $contentFiltering,
                         screenTimeEnabled: $screenTimeEnabled,
@@ -124,6 +126,7 @@ private func createPreviewModelContainer() -> ModelContainer {
 private func createPreviewView(container: ModelContainer) -> some View {
     let settingsService = createSettingsService(container: container)
     let appRouter = AppRouter() // For preview
+    let entitlementManager = EntitlementManager() // For preview
 
     // NavigationStack for preview purposes
     return NavigationStack {
@@ -131,6 +134,7 @@ private func createPreviewView(container: ModelContainer) -> some View {
             .modelContainer(container)
             .environmentObject(settingsService)
             .environmentObject(appRouter) // Provide AppRouter for preview
+            .environmentObject(entitlementManager) // Provide EntitlementManager for preview
     }
 }
 
