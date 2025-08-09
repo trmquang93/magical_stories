@@ -1,0 +1,186 @@
+# Xcode
+#
+## User settings
+xcuserdata/
+*.xcuserstate
+
+## App packaging
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+Package.resolved
+
+# CocoaPods
+Pods/
+*.xcworkspace
+
+# Environment & Configuration
+*.xcconfig
+!Config.example.xcconfig
+
+# API Keys & Secrets
+Config.xcconfig
+Config.dev.plist
+GoogleService-Info.plist
+*.env
+
+# Firebase Service Account Keys
+legal-pages/firebase-service-account.json
+**/firebase-service-account.json
+
+# Build generated
+build/
+DerivedData/
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+
+# Obj-C/Swift specific
+*.hmap
+
+# App packaging
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift Package Manager
+.build/
+Packages/
+Package.pins
+.swiftpm/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+fastlane/.env
+fastlane/AuthKey_*.p8
+
+# Code Injection
+injected_container.swift
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Test results
+test_output/
+reports/
+coverage/
+test-reports/
+
+# SwiftLint
+.swiftlint.yml
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~.nib
+
+# Documentation
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# Cache directories
+.cache/
+*.xcarchive
+build.log
+build-logs
+
+# Crash logs
+crash.log
+syslog
+
+# User-specific files
+*.xcuserstate
+project.xcworkspace/
+xcuserdata/
+DerivedData/
+.idea/
+
+# App Store Connect API Key
+*.p8
+AuthKey_*.p8
+
+# Certificates & Provisioning Profiles
+*.cer
+*.certSigningRequest
+*.p12
+*.mobileprovision
+*.provisionprofile
+
+# Generated files
+*.generated.swift
+
+# App binary
+*.app
+
+# Test coverage reports
+*.coverage
+*.gcda
+*.gcno
+
+# Backup files
+*~.xib
+*~.storyboard
+
+# Network configuration
+*.networkConfig
+TestResults.xcresult
+.DS_Store
+TestResults.xml
+magical-stories/App/Configuration.swift
+magical-stories/Config.plist
+*.xcresult
+TestResults*
+boomerang-tasks.md
+test_results.log
+crash_logs
+
+**/.claude/settings.local.json
+.test_status
+
+
+# Firebase debug and cache files
+firebase-debug.log
+legal-pages/.firebase/
+**/.firebase/
+
+# Marketing analytics generated files
+marketing-plan/scripts/*.json
+marketing-plan/scripts/automated_data/
+marketing-plan/scripts/dashboard_outputs/
+marketing-plan/scripts/logs/
+marketing-plan/scripts/*.png
+
+# Python cache and temporary files
+marketing-plan/scripts/__pycache__/
+marketing-plan/scripts/*.pyc
+marketing-plan/scripts/*.pyo

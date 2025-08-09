@@ -1,0 +1,457 @@
+{
+  "version": "1.0",
+  "description": "Pre-made story illustrations extracted from JSON",
+  "extraction_date": "2025-01-07",
+  "images": [
+    {
+      "filename": "F91E26FD-DF04-4388-8E4C-CAA4942808B9_1.png",
+      "story_id": "F91E26FD-DF04-4388-8E4C-CAA4942808B9",
+      "story_title": "Luna and the Moonbeam Cat",
+      "page_number": 1,
+      "page_id": "927F76B2-CC6B-4FFA-A57A-80357986709A",
+      "file_size": 753122,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "F91E26FD-DF04-4388-8E4C-CAA4942808B9_2.png",
+      "story_id": "F91E26FD-DF04-4388-8E4C-CAA4942808B9",
+      "story_title": "Luna and the Moonbeam Cat",
+      "page_number": 2,
+      "page_id": "EDF750C1-A13D-4CB1-9D91-CE984F3A6819",
+      "file_size": 776816,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "F91E26FD-DF04-4388-8E4C-CAA4942808B9_3.png",
+      "story_id": "F91E26FD-DF04-4388-8E4C-CAA4942808B9",
+      "story_title": "Luna and the Moonbeam Cat",
+      "page_number": 3,
+      "page_id": "711D1ECF-2DAB-477A-93F1-2F6609F234EB",
+      "file_size": 708502,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "F91E26FD-DF04-4388-8E4C-CAA4942808B9_4.png",
+      "story_id": "F91E26FD-DF04-4388-8E4C-CAA4942808B9",
+      "story_title": "Luna and the Moonbeam Cat",
+      "page_number": 4,
+      "page_id": "85548020-94D7-4C68-850E-6DE0BE7A8230",
+      "file_size": 794202,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "F91E26FD-DF04-4388-8E4C-CAA4942808B9_5.png",
+      "story_id": "F91E26FD-DF04-4388-8E4C-CAA4942808B9",
+      "story_title": "Luna and the Moonbeam Cat",
+      "page_number": 5,
+      "page_id": "18A1190A-F366-4E9A-843C-065D58FD9AE4",
+      "file_size": 712058,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "F91E26FD-DF04-4388-8E4C-CAA4942808B9_1.png",
+      "story_id": "F91E26FD-DF04-4388-8E4C-CAA4942808B9",
+      "story_title": "Luna and the Moonbeam Cat",
+      "page_number": 1,
+      "page_id": "927F76B2-CC6B-4FFA-A57A-80357986709A",
+      "file_size": 753122,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "F91E26FD-DF04-4388-8E4C-CAA4942808B9_2.png",
+      "story_id": "F91E26FD-DF04-4388-8E4C-CAA4942808B9",
+      "story_title": "Luna and the Moonbeam Cat",
+      "page_number": 2,
+      "page_id": "EDF750C1-A13D-4CB1-9D91-CE984F3A6819",
+      "file_size": 776816,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "F91E26FD-DF04-4388-8E4C-CAA4942808B9_3.png",
+      "story_id": "F91E26FD-DF04-4388-8E4C-CAA4942808B9",
+      "story_title": "Luna and the Moonbeam Cat",
+      "page_number": 3,
+      "page_id": "711D1ECF-2DAB-477A-93F1-2F6609F234EB",
+      "file_size": 708502,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "F91E26FD-DF04-4388-8E4C-CAA4942808B9_4.png",
+      "story_id": "F91E26FD-DF04-4388-8E4C-CAA4942808B9",
+      "story_title": "Luna and the Moonbeam Cat",
+      "page_number": 4,
+      "page_id": "85548020-94D7-4C68-850E-6DE0BE7A8230",
+      "file_size": 794202,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "F91E26FD-DF04-4388-8E4C-CAA4942808B9_5.png",
+      "story_id": "F91E26FD-DF04-4388-8E4C-CAA4942808B9",
+      "story_title": "Luna and the Moonbeam Cat",
+      "page_number": 5,
+      "page_id": "18A1190A-F366-4E9A-843C-065D58FD9AE4",
+      "file_size": 712058,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "EC2E1585-7DDD-456C-987C-B090AAF5A77C_1.png",
+      "story_id": "EC2E1585-7DDD-456C-987C-B090AAF5A77C",
+      "story_title": "Max and the Missing Screw's Spark",
+      "page_number": 1,
+      "page_id": "85712EB5-F504-4476-B1BC-2AB018998866",
+      "file_size": 672601,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "EC2E1585-7DDD-456C-987C-B090AAF5A77C_2.png",
+      "story_id": "EC2E1585-7DDD-456C-987C-B090AAF5A77C",
+      "story_title": "Max and the Missing Screw's Spark",
+      "page_number": 2,
+      "page_id": "A701FE9A-5970-4480-955D-1B5141F11B49",
+      "file_size": 635167,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "EC2E1585-7DDD-456C-987C-B090AAF5A77C_3.png",
+      "story_id": "EC2E1585-7DDD-456C-987C-B090AAF5A77C",
+      "story_title": "Max and the Missing Screw's Spark",
+      "page_number": 3,
+      "page_id": "EA73421D-3EC8-4ACD-A9A3-A87A6711699A",
+      "file_size": 631371,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "EC2E1585-7DDD-456C-987C-B090AAF5A77C_4.png",
+      "story_id": "EC2E1585-7DDD-456C-987C-B090AAF5A77C",
+      "story_title": "Max and the Missing Screw's Spark",
+      "page_number": 4,
+      "page_id": "736B3659-B1F2-4BA9-9E7B-04EE7CA416BF",
+      "file_size": 728905,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "EC2E1585-7DDD-456C-987C-B090AAF5A77C_5.png",
+      "story_id": "EC2E1585-7DDD-456C-987C-B090AAF5A77C",
+      "story_title": "Max and the Missing Screw's Spark",
+      "page_number": 5,
+      "page_id": "33EAD2C3-804B-4AC6-BC8B-0FDD81EBD115",
+      "file_size": 727561,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "EC2E1585-7DDD-456C-987C-B090AAF5A77C_1.png",
+      "story_id": "EC2E1585-7DDD-456C-987C-B090AAF5A77C",
+      "story_title": "Max and the Missing Screw's Spark",
+      "page_number": 1,
+      "page_id": "85712EB5-F504-4476-B1BC-2AB018998866",
+      "file_size": 672601,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "EC2E1585-7DDD-456C-987C-B090AAF5A77C_2.png",
+      "story_id": "EC2E1585-7DDD-456C-987C-B090AAF5A77C",
+      "story_title": "Max and the Missing Screw's Spark",
+      "page_number": 2,
+      "page_id": "A701FE9A-5970-4480-955D-1B5141F11B49",
+      "file_size": 635167,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "EC2E1585-7DDD-456C-987C-B090AAF5A77C_3.png",
+      "story_id": "EC2E1585-7DDD-456C-987C-B090AAF5A77C",
+      "story_title": "Max and the Missing Screw's Spark",
+      "page_number": 3,
+      "page_id": "EA73421D-3EC8-4ACD-A9A3-A87A6711699A",
+      "file_size": 631371,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "EC2E1585-7DDD-456C-987C-B090AAF5A77C_4.png",
+      "story_id": "EC2E1585-7DDD-456C-987C-B090AAF5A77C",
+      "story_title": "Max and the Missing Screw's Spark",
+      "page_number": 4,
+      "page_id": "736B3659-B1F2-4BA9-9E7B-04EE7CA416BF",
+      "file_size": 728905,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "EC2E1585-7DDD-456C-987C-B090AAF5A77C_5.png",
+      "story_id": "EC2E1585-7DDD-456C-987C-B090AAF5A77C",
+      "story_title": "Max and the Missing Screw's Spark",
+      "page_number": 5,
+      "page_id": "33EAD2C3-804B-4AC6-BC8B-0FDD81EBD115",
+      "file_size": 727561,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "3B7806F6-4878-4249-ACBB-4E45FB16858C_1.png",
+      "story_id": "3B7806F6-4878-4249-ACBB-4E45FB16858C",
+      "story_title": "Zoe and the Shiny Shell Friend",
+      "page_number": 1,
+      "page_id": "EB201FB6-5350-4C9C-AC5B-FCEA013DB5D3",
+      "file_size": 555307,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "3B7806F6-4878-4249-ACBB-4E45FB16858C_2.png",
+      "story_id": "3B7806F6-4878-4249-ACBB-4E45FB16858C",
+      "story_title": "Zoe and the Shiny Shell Friend",
+      "page_number": 2,
+      "page_id": "C05C210B-F382-4A68-AC15-BD3F97150055",
+      "file_size": 567834,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "3B7806F6-4878-4249-ACBB-4E45FB16858C_3.png",
+      "story_id": "3B7806F6-4878-4249-ACBB-4E45FB16858C",
+      "story_title": "Zoe and the Shiny Shell Friend",
+      "page_number": 3,
+      "page_id": "2600595D-ECE6-4835-BF27-DA6206BF2BA6",
+      "file_size": 720281,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "3B7806F6-4878-4249-ACBB-4E45FB16858C_4.png",
+      "story_id": "3B7806F6-4878-4249-ACBB-4E45FB16858C",
+      "story_title": "Zoe and the Shiny Shell Friend",
+      "page_number": 4,
+      "page_id": "3194801E-A538-463A-841D-9AD623076BB2",
+      "file_size": 708539,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "3B7806F6-4878-4249-ACBB-4E45FB16858C_1.png",
+      "story_id": "3B7806F6-4878-4249-ACBB-4E45FB16858C",
+      "story_title": "Zoe and the Shiny Shell Friend",
+      "page_number": 1,
+      "page_id": "EB201FB6-5350-4C9C-AC5B-FCEA013DB5D3",
+      "file_size": 555307,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "3B7806F6-4878-4249-ACBB-4E45FB16858C_2.png",
+      "story_id": "3B7806F6-4878-4249-ACBB-4E45FB16858C",
+      "story_title": "Zoe and the Shiny Shell Friend",
+      "page_number": 2,
+      "page_id": "C05C210B-F382-4A68-AC15-BD3F97150055",
+      "file_size": 567834,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "3B7806F6-4878-4249-ACBB-4E45FB16858C_3.png",
+      "story_id": "3B7806F6-4878-4249-ACBB-4E45FB16858C",
+      "story_title": "Zoe and the Shiny Shell Friend",
+      "page_number": 3,
+      "page_id": "2600595D-ECE6-4835-BF27-DA6206BF2BA6",
+      "file_size": 720281,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "3B7806F6-4878-4249-ACBB-4E45FB16858C_4.png",
+      "story_id": "3B7806F6-4878-4249-ACBB-4E45FB16858C",
+      "story_title": "Zoe and the Shiny Shell Friend",
+      "page_number": 4,
+      "page_id": "3194801E-A538-463A-841D-9AD623076BB2",
+      "file_size": 708539,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29_1.png",
+      "story_id": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29",
+      "story_title": "Kai and the Patient Sprout",
+      "page_number": 1,
+      "page_id": "72E7941D-CDC4-45DE-8D27-0E30F3F9C565",
+      "file_size": 744017,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29_2.png",
+      "story_id": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29",
+      "story_title": "Kai and the Patient Sprout",
+      "page_number": 2,
+      "page_id": "B6577ECF-7AF8-4AC8-97E7-7C8B7B4C2731",
+      "file_size": 670248,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29_3.png",
+      "story_id": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29",
+      "story_title": "Kai and the Patient Sprout",
+      "page_number": 3,
+      "page_id": "DD775EF6-9CEE-4D87-9596-E25ADC1B74BF",
+      "file_size": 1002257,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29_4.png",
+      "story_id": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29",
+      "story_title": "Kai and the Patient Sprout",
+      "page_number": 4,
+      "page_id": "EF90C1EF-9AA6-4758-94FD-ADB3722E0B05",
+      "file_size": 768057,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29_5.png",
+      "story_id": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29",
+      "story_title": "Kai and the Patient Sprout",
+      "page_number": 5,
+      "page_id": "7BB55780-32EB-41CA-9DB6-97D81FA5D47D",
+      "file_size": 686785,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29_6.png",
+      "story_id": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29",
+      "story_title": "Kai and the Patient Sprout",
+      "page_number": 6,
+      "page_id": "E4F19DC6-4988-4053-BC9E-A4EB7F256DA9",
+      "file_size": 652898,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29_1.png",
+      "story_id": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29",
+      "story_title": "Kai and the Patient Sprout",
+      "page_number": 1,
+      "page_id": "72E7941D-CDC4-45DE-8D27-0E30F3F9C565",
+      "file_size": 744017,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29_2.png",
+      "story_id": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29",
+      "story_title": "Kai and the Patient Sprout",
+      "page_number": 2,
+      "page_id": "B6577ECF-7AF8-4AC8-97E7-7C8B7B4C2731",
+      "file_size": 670248,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29_3.png",
+      "story_id": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29",
+      "story_title": "Kai and the Patient Sprout",
+      "page_number": 3,
+      "page_id": "DD775EF6-9CEE-4D87-9596-E25ADC1B74BF",
+      "file_size": 1002257,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29_4.png",
+      "story_id": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29",
+      "story_title": "Kai and the Patient Sprout",
+      "page_number": 4,
+      "page_id": "EF90C1EF-9AA6-4758-94FD-ADB3722E0B05",
+      "file_size": 768057,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29_5.png",
+      "story_id": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29",
+      "story_title": "Kai and the Patient Sprout",
+      "page_number": 5,
+      "page_id": "7BB55780-32EB-41CA-9DB6-97D81FA5D47D",
+      "file_size": 686785,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29_6.png",
+      "story_id": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29",
+      "story_title": "Kai and the Patient Sprout",
+      "page_number": 6,
+      "page_id": "E4F19DC6-4988-4053-BC9E-A4EB7F256DA9",
+      "file_size": 652898,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "D26863AB-4556-446B-AA99-4E9742B6A674_1.png",
+      "story_id": "D26863AB-4556-446B-AA99-4E9742B6A674",
+      "story_title": "Mia and the Singing Colors",
+      "page_number": 1,
+      "page_id": "D2917387-6747-4CA2-9EDF-16FDAAA11C2A",
+      "file_size": 797076,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "D26863AB-4556-446B-AA99-4E9742B6A674_2.png",
+      "story_id": "D26863AB-4556-446B-AA99-4E9742B6A674",
+      "story_title": "Mia and the Singing Colors",
+      "page_number": 2,
+      "page_id": "C6679947-6BFE-43AF-8A2B-19AAB86FC1A5",
+      "file_size": 659922,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "D26863AB-4556-446B-AA99-4E9742B6A674_3.png",
+      "story_id": "D26863AB-4556-446B-AA99-4E9742B6A674",
+      "story_title": "Mia and the Singing Colors",
+      "page_number": 3,
+      "page_id": "DA23AE6C-FA50-49D9-8AA7-A685760AA907",
+      "file_size": 802117,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "D26863AB-4556-446B-AA99-4E9742B6A674_4.png",
+      "story_id": "D26863AB-4556-446B-AA99-4E9742B6A674",
+      "story_title": "Mia and the Singing Colors",
+      "page_number": 4,
+      "page_id": "CF382D29-C876-431B-A2DE-157A3C922E2C",
+      "file_size": 671313,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "D26863AB-4556-446B-AA99-4E9742B6A674_5.png",
+      "story_id": "D26863AB-4556-446B-AA99-4E9742B6A674",
+      "story_title": "Mia and the Singing Colors",
+      "page_number": 5,
+      "page_id": "6123F469-3533-4076-9D1B-3EB889AAB670",
+      "file_size": 763439,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "D26863AB-4556-446B-AA99-4E9742B6A674_1.png",
+      "story_id": "D26863AB-4556-446B-AA99-4E9742B6A674",
+      "story_title": "Mia and the Singing Colors",
+      "page_number": 1,
+      "page_id": "D2917387-6747-4CA2-9EDF-16FDAAA11C2A",
+      "file_size": 797076,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "D26863AB-4556-446B-AA99-4E9742B6A674_2.png",
+      "story_id": "D26863AB-4556-446B-AA99-4E9742B6A674",
+      "story_title": "Mia and the Singing Colors",
+      "page_number": 2,
+      "page_id": "C6679947-6BFE-43AF-8A2B-19AAB86FC1A5",
+      "file_size": 659922,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "D26863AB-4556-446B-AA99-4E9742B6A674_3.png",
+      "story_id": "D26863AB-4556-446B-AA99-4E9742B6A674",
+      "story_title": "Mia and the Singing Colors",
+      "page_number": 3,
+      "page_id": "DA23AE6C-FA50-49D9-8AA7-A685760AA907",
+      "file_size": 802117,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "D26863AB-4556-446B-AA99-4E9742B6A674_4.png",
+      "story_id": "D26863AB-4556-446B-AA99-4E9742B6A674",
+      "story_title": "Mia and the Singing Colors",
+      "page_number": 4,
+      "page_id": "CF382D29-C876-431B-A2DE-157A3C922E2C",
+      "file_size": 671313,
+      "mime_type": "image/png"
+    },
+    {
+      "filename": "D26863AB-4556-446B-AA99-4E9742B6A674_5.png",
+      "story_id": "D26863AB-4556-446B-AA99-4E9742B6A674",
+      "story_title": "Mia and the Singing Colors",
+      "page_number": 5,
+      "page_id": "6123F469-3533-4076-9D1B-3EB889AAB670",
+      "file_size": 763439,
+      "mime_type": "image/png"
+    }
+  ]
+}

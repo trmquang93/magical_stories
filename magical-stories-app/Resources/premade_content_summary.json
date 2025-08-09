@@ -1,0 +1,81 @@
+{
+    "collections": [
+        {
+            "id": "F8F54EA9-1CDE-4428-8BB4-4A67812552E9",
+            "storyCount": 3,
+            "category": "Emotional Intelligence",
+            "title": "Emotional Heroes Journey"
+        },
+        {
+            "storyCount": 1,
+            "title": "Creative Adventures",
+            "category": "Creativity & Problem Solving",
+            "id": "098A8670-4440-4DD0-86AD-46FA8B78D0A7"
+        },
+        {
+            "id": "FF1DBBD5-F7FC-4326-B6DF-6ACB6FF49C01",
+            "category": "Nature & Environment",
+            "storyCount": 1,
+            "title": "Nature Explorers"
+        }
+    ],
+    "stories": [
+        {
+            "illustrationsGenerated": 10,
+            "generatedAt": 773036348.003297,
+            "title": "Luna and the Moonbeam Cat",
+            "id": "F91E26FD-DF04-4388-8E4C-CAA4942808B9",
+            "developmentalFocus": [
+                "Emotional Intelligence",
+                "Problem Solving"
+            ],
+            "pageCount": 10
+        },
+        {
+            "title": "Max and the Missing Screw's Spark",
+            "developmentalFocus": [
+                "Creativity & Imagination",
+                "Problem Solving"
+            ],
+            "illustrationsGenerated": 10,
+            "id": "EC2E1585-7DDD-456C-987C-B090AAF5A77C",
+            "pageCount": 10,
+            "generatedAt": 773036348.003305
+        },
+        {
+            "illustrationsGenerated": 8,
+            "title": "Zoe and the Shiny Shell Friend",
+            "developmentalFocus": [
+                "Social Skills",
+                "Kindness & Empathy"
+            ],
+            "generatedAt": 773036348.003313,
+            "id": "3B7806F6-4878-4249-ACBB-4E45FB16858C",
+            "pageCount": 8
+        },
+        {
+            "illustrationsGenerated": 12,
+            "developmentalFocus": [
+                "Resilience & Grit",
+                "Kindness & Empathy"
+            ],
+            "generatedAt": 773036348.003322,
+            "id": "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29",
+            "title": "Kai and the Patient Sprout",
+            "pageCount": 12
+        },
+        {
+            "id": "D26863AB-4556-446B-AA99-4E9742B6A674",
+            "title": "Mia and the Singing Colors",
+            "generatedAt": 773036348.00333,
+            "developmentalFocus": [
+                "Creativity & Imagination",
+                "Social Skills"
+            ],
+            "illustrationsGenerated": 10,
+            "pageCount": 10
+        }
+    ],
+    "exportedAt": 773036348.003342,
+    "totalIllustrations": 50
+}

@@ -1,0 +1,52 @@
+# App Store screenshot configuration for Magical Stories
+
+# Devices for App Store screenshots (essential sizes)
+# Use exact device name as recognized by fastlane
+devices([
+  "iPhone 16 Pro Max"  # 6.9" display (required for App Store)
+])
+
+# Languages to generate screenshots for
+languages([
+  "en-US"
+])
+
+# The name of the scheme which contains the UI Tests
+scheme("magical-stories")
+
+# Specify the test target explicitly
+test_target_name("magical_storiesUITests")
+
+# Where should the resulting screenshots be stored?
+output_directory("./fastlane/screenshots")
+
+# Clear all previously generated screenshots before creating new ones
+clear_previous_screenshots(true)
+
+# Set the status bar to 9:41 AM, and show full battery and reception
+override_status_bar(true)
+
+# Disable concurrent simulators for reliability
+concurrent_simulators(false)
+
+# Let fastlane auto-detect the iOS version
+# ios_version("18.3.1")
+
+# Show simulator windows during screenshot generation
+headless(false)
+
+# Launch arguments for premium screenshot data
+launch_arguments([
+  "-UI_TESTING",
+  "-CREATE_SCREENSHOT_DATA", 
+  "-SKIP_ONBOARDING"
+])
+
+# Ensure tests are built before running
+test_without_building(false)
+
+# Run only the screenshot tests - comment out to test all UI tests first
+# only_testing(["magical_storiesUITests/ScreenshotTests/testAppStoreScreenshots"])
+
+# For more information about all available options run
+# fastlane action snapshot

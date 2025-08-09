@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal - Magical Stories</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        /* Navigation Bar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0;
+        }
+        
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #6366f1;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-links a {
+            color: #333;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            background: #6366f1;
+            color: white;
+        }
+        
+        .nav-links a.active {
+            background: #6366f1;
+            color: white;
+        }
+        
+        @media (max-width: 600px) {
+            .navbar {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .nav-links {
+                gap: 10px;
+            }
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        
+        .page-wrapper {
+            margin: 20px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #6366f1;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.2rem;
+        }
+        .legal-links {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 40px 0;
+        }
+        .legal-link {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            text-decoration: none;
+            padding: 30px 20px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+        .legal-link:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+            text-decoration: none;
+            color: white;
+        }
+        .legal-link h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.3rem;
+        }
+        .legal-link p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        .app-info {
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 40px 0;
+            border-left: 5px solid #6366f1;
+        }
+        .contact-info {
+            background: #f1f5f9;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 40px;
+        }
+        .icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 600px) {
+            .legal-links {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <nav class="navbar">
+            <a href="index.html" class="nav-brand">📚 Magical Stories</a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="terms-of-use.html">Terms</a></li>
+                <li><a href="privacy-policy.html">Privacy</a></li>
+            </ul>
+        </nav>
+        
+        <div class="container">
+        <div class="logo">📚✨</div>
+        <h1>Magical Stories</h1>
+        <p class="subtitle">Legal Information & Policies</p>
+
+        <div class="app-info">
+            <h3>About Our App</h3>
+            <p>Magical Stories is an AI-powered mobile application that creates personalized stories and illustrations for children. We prioritize privacy, safety, and creating magical experiences for families worldwide.</p>
+        </div>
+
+        <div class="legal-links">
+            <a href="terms-of-use.html" class="legal-link">
+                <span class="icon">📋</span>
+                <h3>Terms of Use</h3>
+                <p>Rules and guidelines for using our app and services</p>
+            </a>
+            
+            <a href="privacy-policy.html" class="legal-link">
+                <span class="icon">🔒</span>
+                <h3>Privacy Policy</h3>
+                <p>How we collect, use, and protect your information</p>
+            </a>
+        </div>
+
+        <div class="contact-info">
+            <h3>📧 Contact Us</h3>
+            <p><strong>General Support:</strong> support@magicalstories.app</p>
+            <p><strong>Privacy Questions:</strong> privacy@magicalstories.app</p>
+            <p><strong>Children's Privacy (COPPA):</strong> coppa@magicalstories.app</p>
+            <p style="margin-top: 15px; font-style: italic;">
+                We typically respond to all inquiries within 48 hours.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>Last Updated: January 5, 2025</p>
+            <p>© 2025 Magical Stories. All rights reserved.</p>
+            <p style="margin-top: 10px;">
+                <strong>Download our app:</strong> Available on the App Store for iPhone and iPad
+            </p>
+        </div>
+        </div>
+    </div>
+
+    <!-- Basic Analytics (Privacy-compliant) -->
+    <script>
+        // Simple page view tracking without personal data
+        if (window.location.hostname !== 'localhost') {
+            // Only track on production domain
+            console.log('Legal page viewed:', window.location.pathname);
+        }
+    </script>
+</body>
+</html>

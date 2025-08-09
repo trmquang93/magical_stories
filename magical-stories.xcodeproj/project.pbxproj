@@ -1,0 +1,661 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		4D1E96072E1909E2003EB0FF /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4D1E96062E1909E2003EB0FF /* GoogleService-Info.plist */; };
+		4D1E960B2E190C72003EB0FF /* Magical Stories: AI Tales.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 4D1E960A2E190C72003EB0FF /* Magical Stories: AI Tales.storekit */; };
+		4D33415F2DBA2D4C0067A4FE /* GoogleGenerativeAI in Frameworks */ = {isa = PBXBuildFile; productRef = 4D33415E2DBA2D4C0067A4FE /* GoogleGenerativeAI */; };
+		4D5CA9F22E1155CC006E9868 /* Clarity in Frameworks */ = {isa = PBXBuildFile; productRef = 4D5CA9F12E1155CC006E9868 /* Clarity */; };
+		4D5CA9F52E115602006E9868 /* RswiftLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = 4D5CA9F42E115602006E9868 /* RswiftLibrary */; };
+		4D6D20E12E190560009507BF /* KeyboardAvoider in Frameworks */ = {isa = PBXBuildFile; productRef = 4D6D20E02E190560009507BF /* KeyboardAvoider */; };
+		4D6D20E72E190622009507BF /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 4D6D20E62E190622009507BF /* FirebaseAnalytics */; };
+		4D6D20E92E190622009507BF /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 4D6D20E82E190622009507BF /* FirebaseCrashlytics */; };
+		4DB1D39B2DB48E06001E9287 /* magical-stories.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 4DB1D39A2DB48E06001E9287 /* magical-stories.xctestplan */; };
+		4DBDB0562DB0B7F200252B5A /* InlineSnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB0552DB0B7F200252B5A /* InlineSnapshotTesting */; };
+		4DBDB0582DB0B7F200252B5A /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB0572DB0B7F200252B5A /* SnapshotTesting */; };
+		4DBDB05A2DB0B7F200252B5A /* SnapshotTestingCustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDB0592DB0B7F200252B5A /* SnapshotTestingCustomDump */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		4DDF1B5A2D98B918005D882A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4DDF1B3F2D98B910005D882A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4DDF1B462D98B911005D882A;
+			remoteInfo = "magical-stories";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		4D1E96062E1909E2003EB0FF /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		4D1E960A2E190C72003EB0FF /* Magical Stories: AI Tales.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Magical Stories: AI Tales.storekit"; sourceTree = "<group>"; };
+		4DB1D39A2DB48E06001E9287 /* magical-stories.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = "magical-stories.xctestplan"; sourceTree = "<group>"; };
+		4DDF1B472D98B911005D882A /* magical-stories.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "magical-stories.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4DDF1B592D98B918005D882A /* magical-storiesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "magical-storiesTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		4D5D563E2DA2D7DE001709F0 /* magical-stories-app */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "magical-stories-app";
+			sourceTree = "<group>";
+		};
+		4DDF1B5C2D98B918005D882A /* magical-storiesTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "magical-storiesTests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4DDF1B442D98B911005D882A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4D5CA9F22E1155CC006E9868 /* Clarity in Frameworks */,
+				4D5CA9F52E115602006E9868 /* RswiftLibrary in Frameworks */,
+				4D6D20E72E190622009507BF /* FirebaseAnalytics in Frameworks */,
+				4D6D20E92E190622009507BF /* FirebaseCrashlytics in Frameworks */,
+				4D6D20E12E190560009507BF /* KeyboardAvoider in Frameworks */,
+				4D33415F2DBA2D4C0067A4FE /* GoogleGenerativeAI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4DDF1B562D98B918005D882A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4DBDB05A2DB0B7F200252B5A /* SnapshotTestingCustomDump in Frameworks */,
+				4DBDB0562DB0B7F200252B5A /* InlineSnapshotTesting in Frameworks */,
+				4DBDB0582DB0B7F200252B5A /* SnapshotTesting in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		4D9B9F092DBF209700A5C0F7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		4DDF1B3E2D98B910005D882A = {
+			isa = PBXGroup;
+			children = (
+				4D1E960A2E190C72003EB0FF /* Magical Stories: AI Tales.storekit */,
+				4DB1D39A2DB48E06001E9287 /* magical-stories.xctestplan */,
+				4D1E96062E1909E2003EB0FF /* GoogleService-Info.plist */,
+				4D5D563E2DA2D7DE001709F0 /* magical-stories-app */,
+				4DDF1B5C2D98B918005D882A /* magical-storiesTests */,
+				4D9B9F092DBF209700A5C0F7 /* Frameworks */,
+				4DDF1B482D98B911005D882A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		4DDF1B482D98B911005D882A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4DDF1B472D98B911005D882A /* magical-stories.app */,
+				4DDF1B592D98B918005D882A /* magical-storiesTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4DDF1B462D98B911005D882A /* magical-stories */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4DDF1B6D2D98B918005D882A /* Build configuration list for PBXNativeTarget "magical-stories" */;
+			buildPhases = (
+				4DDF1B432D98B911005D882A /* Sources */,
+				4DDF1B442D98B911005D882A /* Frameworks */,
+				4DDF1B452D98B911005D882A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4D5CA9F72E11562A006E9868 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4D5D563E2DA2D7DE001709F0 /* magical-stories-app */,
+			);
+			name = "magical-stories";
+			packageProductDependencies = (
+				4D33415E2DBA2D4C0067A4FE /* GoogleGenerativeAI */,
+				4D5CA9F12E1155CC006E9868 /* Clarity */,
+				4D5CA9F42E115602006E9868 /* RswiftLibrary */,
+				4D6D20E02E190560009507BF /* KeyboardAvoider */,
+				4D6D20E62E190622009507BF /* FirebaseAnalytics */,
+				4D6D20E82E190622009507BF /* FirebaseCrashlytics */,
+			);
+			productName = "magical-stories";
+			productReference = 4DDF1B472D98B911005D882A /* magical-stories.app */;
+			productType = "com.apple.product-type.application";
+		};
+		4DDF1B582D98B918005D882A /* magical-storiesTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4DDF1B702D98B918005D882A /* Build configuration list for PBXNativeTarget "magical-storiesTests" */;
+			buildPhases = (
+				4DDF1B552D98B918005D882A /* Sources */,
+				4DDF1B562D98B918005D882A /* Frameworks */,
+				4DDF1B572D98B918005D882A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4DDF1B5B2D98B918005D882A /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4DDF1B5C2D98B918005D882A /* magical-storiesTests */,
+			);
+			name = "magical-storiesTests";
+			packageProductDependencies = (
+				4DBDB0552DB0B7F200252B5A /* InlineSnapshotTesting */,
+				4DBDB0572DB0B7F200252B5A /* SnapshotTesting */,
+				4DBDB0592DB0B7F200252B5A /* SnapshotTestingCustomDump */,
+			);
+			productName = "magical-storiesTests";
+			productReference = 4DDF1B592D98B918005D882A /* magical-storiesTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4DDF1B3F2D98B910005D882A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					4DDF1B462D98B911005D882A = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					4DDF1B582D98B918005D882A = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 4DDF1B462D98B911005D882A;
+					};
+				};
+			};
+			buildConfigurationList = 4DDF1B422D98B910005D882A /* Build configuration list for PBXProject "magical-stories" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				vi,
+				es,
+				fr,
+				de,
+				it,
+				pt,
+				ja,
+				ko,
+				"zh-Hans",
+			);
+			mainGroup = 4DDF1B3E2D98B910005D882A;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				4DBDB04E2DB0B7E100252B5A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
+				4D33415D2DBA2D4C0067A4FE /* XCRemoteSwiftPackageReference "generative-ai-swift" */,
+				4D5CA9F02E1155CC006E9868 /* XCRemoteSwiftPackageReference "clarity-apps" */,
+				4D5CA9F32E115602006E9868 /* XCRemoteSwiftPackageReference "R" */,
+				4D6D20DF2E190560009507BF /* XCRemoteSwiftPackageReference "KeyboardAvoider" */,
+				4D6D20E52E190622009507BF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 4DDF1B482D98B911005D882A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4DDF1B462D98B911005D882A /* magical-stories */,
+				4DDF1B582D98B918005D882A /* magical-storiesTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4DDF1B452D98B911005D882A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4DB1D39B2DB48E06001E9287 /* magical-stories.xctestplan in Resources */,
+				4D1E960B2E190C72003EB0FF /* Magical Stories: AI Tales.storekit in Resources */,
+				4D1E96072E1909E2003EB0FF /* GoogleService-Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4DDF1B572D98B918005D882A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4DDF1B432D98B911005D882A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4DDF1B552D98B918005D882A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4D5CA9F72E11562A006E9868 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = 4D5CA9F62E11562A006E9868 /* RswiftGenerateInternalResources */;
+		};
+		4DDF1B5B2D98B918005D882A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4DDF1B462D98B911005D882A /* magical-stories */;
+			targetProxy = 4DDF1B5A2D98B918005D882A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		4DDF1B6B2D98B918005D882A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		4DDF1B6C2D98B918005D882A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		4DDF1B6E2D98B918005D882A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 13;
+				DEVELOPMENT_ASSET_PATHS = "\"magical-stories-app/Preview Content\"";
+				DEVELOPMENT_TEAM = WVYA86B7LC;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = WVYA86B7LC;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Story Magic";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.2.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.qtm.magicalstories;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_DISABLE_OUTWARD_ACTOR_INFERENCE = YES;
+				SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY = YES;
+				SWIFT_UPCOMING_FEATURE_STRICT_CONCURRENCY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4DDF1B6F2D98B918005D882A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 13;
+				DEVELOPMENT_ASSET_PATHS = "\"magical-stories-app/Preview Content\"";
+				DEVELOPMENT_TEAM = WVYA86B7LC;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = WVYA86B7LC;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Story Magic";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.2.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.qtm.magicalstories;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_DISABLE_OUTWARD_ACTOR_INFERENCE = YES;
+				SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY = YES;
+				SWIFT_UPCOMING_FEATURE_STRICT_CONCURRENCY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		4DDF1B712D98B918005D882A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 13;
+				DEVELOPMENT_TEAM = WVYA86B7LC;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = WVYA86B7LC;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.2.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quangtran.magicalstoriesTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_DISABLE_OUTWARD_ACTOR_INFERENCE = YES;
+				SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY = YES;
+				SWIFT_UPCOMING_FEATURE_STRICT_CONCURRENCY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/magical-stories.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/magical-stories";
+			};
+			name = Debug;
+		};
+		4DDF1B722D98B918005D882A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 13;
+				DEVELOPMENT_TEAM = WVYA86B7LC;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.2.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quangtran.magicalstoriesTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_DISABLE_OUTWARD_ACTOR_INFERENCE = YES;
+				SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY = YES;
+				SWIFT_UPCOMING_FEATURE_STRICT_CONCURRENCY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/magical-stories.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/magical-stories";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4DDF1B422D98B910005D882A /* Build configuration list for PBXProject "magical-stories" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4DDF1B6B2D98B918005D882A /* Debug */,
+				4DDF1B6C2D98B918005D882A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4DDF1B6D2D98B918005D882A /* Build configuration list for PBXNativeTarget "magical-stories" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4DDF1B6E2D98B918005D882A /* Debug */,
+				4DDF1B6F2D98B918005D882A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4DDF1B702D98B918005D882A /* Build configuration list for PBXNativeTarget "magical-storiesTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4DDF1B712D98B918005D882A /* Debug */,
+				4DDF1B722D98B918005D882A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		4D33415D2DBA2D4C0067A4FE /* XCRemoteSwiftPackageReference "generative-ai-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/generative-ai-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.5.6;
+			};
+		};
+		4D5CA9F02E1155CC006E9868 /* XCRemoteSwiftPackageReference "clarity-apps" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/microsoft/clarity-apps";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.8;
+			};
+		};
+		4D5CA9F32E115602006E9868 /* XCRemoteSwiftPackageReference "R" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mac-cain13/R.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
+		4D6D20DF2E190560009507BF /* XCRemoteSwiftPackageReference "KeyboardAvoider" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/michaelhenry/KeyboardAvoider.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.3;
+			};
+		};
+		4D6D20E52E190622009507BF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.15.0;
+			};
+		};
+		4DBDB04E2DB0B7E100252B5A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.18.3;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4D33415E2DBA2D4C0067A4FE /* GoogleGenerativeAI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4D33415D2DBA2D4C0067A4FE /* XCRemoteSwiftPackageReference "generative-ai-swift" */;
+			productName = GoogleGenerativeAI;
+		};
+		4D5CA9F12E1155CC006E9868 /* Clarity */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4D5CA9F02E1155CC006E9868 /* XCRemoteSwiftPackageReference "clarity-apps" */;
+			productName = Clarity;
+		};
+		4D5CA9F42E115602006E9868 /* RswiftLibrary */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4D5CA9F32E115602006E9868 /* XCRemoteSwiftPackageReference "R" */;
+			productName = RswiftLibrary;
+		};
+		4D5CA9F62E11562A006E9868 /* RswiftGenerateInternalResources */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4D5CA9F32E115602006E9868 /* XCRemoteSwiftPackageReference "R" */;
+			productName = "plugin:RswiftGenerateInternalResources";
+		};
+		4D6D20E02E190560009507BF /* KeyboardAvoider */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4D6D20DF2E190560009507BF /* XCRemoteSwiftPackageReference "KeyboardAvoider" */;
+			productName = KeyboardAvoider;
+		};
+		4D6D20E62E190622009507BF /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4D6D20E52E190622009507BF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		4D6D20E82E190622009507BF /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4D6D20E52E190622009507BF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
+		4DBDB0552DB0B7F200252B5A /* InlineSnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4DBDB04E2DB0B7E100252B5A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = InlineSnapshotTesting;
+		};
+		4DBDB0572DB0B7F200252B5A /* SnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4DBDB04E2DB0B7E100252B5A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTesting;
+		};
+		4DBDB0592DB0B7F200252B5A /* SnapshotTestingCustomDump */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4DBDB04E2DB0B7E100252B5A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTestingCustomDump;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 4DDF1B3F2D98B910005D882A /* Project object */;
+}

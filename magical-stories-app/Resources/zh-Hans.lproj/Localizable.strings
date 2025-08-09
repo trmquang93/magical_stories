@@ -1,0 +1,541 @@
+/* 
+   Localizable.strings
+   Magical Stories
+   
+   Chinese (Simplified) localization for R.swift
+   Auto-translated with Gemini CLI - Review and refine as needed
+*/
+
+// MARK: - Navigation & Tabs
+"navigation.home" = "首页";
+"navigation.library" = "故事库";
+"navigation.collections" = "合集";
+"navigation.settings" = "设置";
+"navigation.back" = "返回";
+"navigation.close" = "关闭";
+"navigation.done" = "完成";
+"navigation.cancel" = "取消";
+"navigation.save" = "保存";
+"navigation.edit" = "编辑";
+"navigation.delete" = "删除";
+
+// MARK: - General Actions
+"action.create" = "创建";
+"action.retry" = "重试";
+"action.tryAgain" = "再试一次";
+"action.share" = "分享";
+"action.copy" = "复制";
+"action.paste" = "粘贴";
+"action.cut" = "剪切";
+"action.undo" = "撤销";
+"action.redo" = "重做";
+"action.select" = "选择";
+"action.selectAll" = "全选";
+"action.clear" = "清除";
+"action.reset" = "重置";
+"action.refresh" = "刷新";
+"action.reload" = "重新加载";
+"action.continue" = "继续";
+"action.skip" = "跳过";
+"action.next" = "下一步";
+"action.previous" = "上一步";
+"action.start" = "开始";
+"action.stop" = "停止";
+
+// MARK: - Home Screen
+"home.welcomeBack" = "Welcome back！";
+"home.welcomeBackWithName" = "Welcome back, %@！";
+"home.subtitle" = "What magical story will you create today？";
+"home.createStory.title" = "创作新故事";
+"home.createStory.subtitle" = "定制睡前冒险故事";
+"home.createStory.button" = "开始";
+"home.collections.title" = "成长之路合集";
+"home.createCollection.title" = "创建成长合集";
+"home.createCollection.subtitle" = "用主题故事集引导孩子成长";
+"home.createCollection.button" = "创建合集";
+"home.library.title" = "我的故事库";
+"home.library.viewAll" = "查看所有故事";
+"home.tip" = "Tip: Reading together builds magical memories！";
+
+// MARK: - Story Form
+"storyForm.title" = "创作故事";
+"storyForm.header" = "Magical Stories 故事创作器";
+"storyForm.loading.title" = "正在创作您的魔法故事...";
+"storyForm.loading.subtitle" = "正在为 %@ 编织奇妙与惊喜...";
+"storyForm.error.title" = "故事创作错误";
+"storyForm.error.message" = "我们无法创作您的故事：%@\n\n请稍后再试。";
+"storyForm.create.header" = "创造魔法";
+"storyForm.create.subtitle" = "定制您的魔法故事";
+"storyForm.childName.label" = "孩子姓名";
+"storyForm.childName.placeholder" = "输入孩子姓名";
+"storyForm.character.label" = "最喜欢的角色";
+"storyForm.character.placeholder" = "输入一个角色（龙、公主...）";
+"storyForm.ageRange.label" = "年龄范围";
+"storyForm.theme.label" = "故事主题";
+"storyForm.length.label" = "故事长度";
+"storyForm.length.short" = "短篇";
+"storyForm.length.medium" = "中篇";
+"storyForm.length.long" = "长篇";
+"storyForm.language.label" = "故事语言";
+"storyForm.generating" = "正在创造魔法...";
+"storyForm.generate.button" = "生成魔法故事";
+
+// MARK: - Character Options
+"character.dragon" = "龙";
+"character.princess" = "公主";
+"character.knight" = "骑士";
+"character.wizard" = "巫师";
+"character.fairy" = "仙女";
+"character.unicorn" = "独角兽";
+"character.pirate" = "海盗";
+"character.astronaut" = "宇航员";
+"character.detective" = "侦探";
+"character.superhero" = "超级英雄";
+"character.animal" = "动物朋友";
+"character.robot" = "机器人";
+
+// MARK: - Story Themes
+"theme.adventure" = "冒险";
+"theme.friendship" = "友谊";
+"theme.learning" = "学习";
+"theme.courage" = "勇气";
+"theme.kindness" = "善良";
+"theme.mystery" = "神秘";
+"theme.magic" = "魔法";
+"theme.family" = "家庭";
+"theme.nature" = "自然";
+"theme.space" = "太空";
+"theme.ocean" = "海洋";
+"theme.fantasy" = "奇幻";
+
+// MARK: - Age Groups
+"ageGroup.preschool" = "3-5岁";
+"ageGroup.earlyReader" = "6-8岁";
+"ageGroup.middleGrade" = "9-12岁";
+
+// MARK: - Library Screen
+"library.title" = "故事库";
+"library.sortBy" = "排序方式：";
+"library.sort.newest" = "最新";
+"library.sort.oldest" = "最旧";
+"library.sort.alphabetical" = "A到Z";
+"library.sort.mostRead" = "阅读最多";
+"library.search.placeholder" = "搜索故事...";
+"library.empty.title" = "您的故事库是空的";
+"library.empty.message" = "在“首页”标签页创作您的第一个魔法故事";
+"library.noResults.title" = "未找到故事";
+"library.noResults.message" = "请尝试调整搜索或筛选条件";
+"library.category.fantasy" = "奇幻";
+"library.category.animals" = "动物";
+"library.category.bedtime" = "睡前";
+"library.category.adventure" = "冒险";
+
+// MARK: - Story Detail & Reading
+"storyDetail.title" = "故事详情";
+"storyDetail.readingTime" = "阅读时间：%@ 分钟";
+"storyDetail.pages" = "%d 页";
+"storyDetail.created" = "创作于 %@";
+"storyDetail.lastRead" = "上次阅读于 %@";
+"storyDetail.read" = "阅读故事";
+"storyDetail.share" = "分享故事";
+"storyDetail.delete" = "删除故事";
+"storyDetail.edit" = "编辑故事";
+"storyReading.page" = "第 %d 页，共 %d 页";
+"storyReading.nextPage" = "下一页";
+"storyReading.previousPage" = "上一页";
+"storyReading.readAloud" = "朗读";
+"storyReading.pauseReading" = "暂停朗读";
+"storyReading.bookmarkPage" = "收藏此页";
+"storyReading.fontSize" = "字体大小";
+"storyReading.nightMode" = "夜间模式";
+"storyReading.fullscreen" = "全屏";
+"storyReading.exitFullscreen" = "退出全屏";
+"storyReading.completed" = "Story Completed！";
+"storyReading.congratulations" = "Congratulations on finishing the story！";
+"storyReading.readAnother" = "阅读另一个故事";
+"storyReading.backToLibrary" = "返回故事库";
+
+// MARK: - Collections
+"collections.title" = "合集";
+"collections.progress" = "已完成 %d/%d 个故事";
+"collections.unlock" = "解锁合集";
+"collections.locked" = "高级合集";
+"collections.complete" = "Collection Complete！";
+"collections.inProgress" = "进行中";
+"collections.notStarted" = "未开始";
+"collectionForm.title" = "创建成长合集";
+"collectionForm.header" = "成长合集";
+"collectionForm.subtitle" = "个性化成长故事";
+"collectionForm.ageGroup.label" = "年龄组";
+"collectionForm.childName.label" = "孩子姓名（可选）";
+"collectionForm.childName.placeholder" = "输入孩子姓名";
+"collectionForm.characters.label" = "角色（可选）";
+"collectionForm.characters.placeholder" = "龙、独角兽、巫师...";
+"collectionForm.characters.hint" = "多个角色请用逗号分隔";
+"collectionForm.interests.label" = "孩子兴趣（必填）";
+"collectionForm.interests.placeholder" = "太空、恐龙、芭蕾...";
+"collectionForm.createButton" = "创建合集";
+"collectionForm.error.title" = "创建合集错误";
+"collectionForm.error.unknown" = "发生未知错误。";
+"collectionForm.error.interests" = "请输入孩子的兴趣。";
+"collectionForm.error.generation" = "生成合集失败：%@";
+
+// MARK: - Growth Categories
+"growthCategory.emotionalIntelligence" = "情商";
+"growthCategory.cognitiveDevelopment" = "认知发展";
+"growthCategory.socialSkills" = "社交技能";
+"growthCategory.creativity" = "创造力与想象力";
+"growthCategory.problemSolving" = "解决问题";
+"growthCategory.resilience" = "韧性与毅力";
+"growthCategory.kindness" = "善良与同理心";
+"growthCategory.curiosity" = "好奇心与探索";
+"growthCategory.cooperation" = "分享与合作";
+"growthCategory.coping" = "韧性与应对";
+
+// MARK: - Settings
+"settings.title" = "设置";
+"settings.profile.title" = "个人资料";
+"settings.profile.subtitle" = "管理您的账户";
+"settings.subscription.title" = "订阅";
+"settings.subscription.subtitle" = "管理您的套餐";
+"settings.about.title" = "关于";
+"settings.about.subtitle" = "应用信息";
+"settings.parentalControls.title" = "家长控制";
+"settings.parentalControls.subtitle" = "内容筛选与安全";
+"settings.privacy.title" = "隐私";
+"settings.privacy.subtitle" = "数据与隐私设置";
+"settings.support.title" = "支持";
+"settings.support.subtitle" = "帮助与反馈";
+"settings.termsOfService" = "服务条款";
+"settings.privacyPolicy" = "隐私政策";
+"settings.version" = "版本 %@";
+"settings.build" = "构建版本 %@";
+"settings.copyright" = "© 2024 Magical Stories";
+"settings.madeWith" = "为家庭用心制作 ❤️";
+"settings.contact" = "联系我们";
+"settings.feedback" = "发送反馈";
+"settings.rateApp" = "评价应用";
+"settings.shareApp" = "分享应用";
+"settings.restorePurchases" = "恢复购买";
+"settings.signOut" = "退出登录";
+"settings.deleteAccount" = "删除账户";
+"settings.notifications" = "通知";
+"settings.language" = "语言";
+"settings.accessibility" = "辅助功能";
+"settings.dataUsage" = "数据使用";
+"settings.offlineMode" = "离线模式";
+
+// MARK: - Subscription & Paywall
+"paywall.title" = "选择您的套餐";
+"paywall.subtitle" = "解锁无限魔法故事";
+"paywall.loading" = "正在加载订阅选项...";
+"paywall.error.loading" = "无法加载订阅选项";
+"paywall.feature.unlimitedStories" = "无限故事创作";
+"paywall.feature.growthCollections" = "成长之路合集";
+"paywall.feature.illustrations" = "高级插画功能";
+"paywall.feature.profiles" = "多个儿童档案";
+"paywall.feature.analytics" = "家长控制与分析";
+"paywall.feature.priority" = "优先生成速度";
+"paywall.feature.trial" = "7天免费试用";
+"paywall.trust.secure" = "安全支付";
+"paywall.trust.cancel" = "随时取消";
+"paywall.trust.noFees" = "无隐藏费用";
+"paywall.restore" = "恢复购买";
+"paywall.terms" = "服务条款";
+"paywall.privacy" = "隐私政策";
+"paywall.selectPlan" = "选择方案";
+"paywall.startTrial" = "开始%@";
+"paywall.subscribeFor" = "订阅%@";
+"paywall.usageLimit.title" = "您已达到每月上限";
+"paywall.usageLimit.message" = "升级到高级版以获得无限故事创作";
+"paywall.feature.title" = "高级功能";
+"paywall.feature.message" = "此功能需要高级订阅";
+"paywall.onboarding.title" = "欢迎来到 Magical Stories 高级版";
+"paywall.onboarding.message" = "开始免费试用，解锁所有高级功能";
+"paywall.upgrade.title" = "升级到高级版";
+"paywall.upgrade.message" = "获得无限故事和独家功能";
+
+// MARK: - Promo Codes
+"promoCode.title" = "促销代码";
+"promoCode.subtitle" = "兑换特别优惠";
+"promoCode.entry.title" = "兑换促销代码";
+"promoCode.entry.subtitle" = "输入您的促销代码以解锁高级功能";
+"promoCode.entry.placeholder" = "输入代码";
+"promoCode.entry.help.title" = "Need help？";
+"promoCode.entry.help.format" = "促销代码为12个字符";
+"promoCode.entry.help.pattern" = "格式：XX-XXXX-XXXX-XX";
+"promoCode.entry.help.support" = "如需帮助，请联系客服";
+"promoCode.button.redeem" = "兑换代码";
+"promoCode.button.validating" = "正在验证...";
+"promoCode.button.addAnother" = "添加其他代码";
+"promoCode.haveCode" = "Have a promo code？";
+"promoCode.description" = "使用您的促销代码解锁高级功能";
+"promoCode.success.title" = "Code Redeemed Successfully！";
+"promoCode.success.message" = "您现在可以访问：%@";
+"promoCode.active.title" = "有效促销代码";
+"promoCode.remove.title" = "移除促销代码";
+"promoCode.remove.message" = "Are you sure you want to remove this promo code？ You will lose access to the features it provides.";
+"promoCode.remove.button" = "移除";
+"promoCode.status.active" = "有效";
+"promoCode.status.expired" = "已过期";
+"promoCode.status.usageLimitReached" = "使用次数已达上限";
+"promoCode.timeRemaining.days" = "剩余 %d 天";
+"promoCode.timeRemaining.neverExpires" = "永不失效";
+"promoCode.usage.remaining" = "剩余使用次数：%d/%d";
+"promoCode.inputHelp.characters" = "%d/%d 字符";
+"promoCode.inputHelp.ready" = "准备验证";
+"promoCode.inputHelp.tooLong" = "过长（%d/%d 字符）";
+
+// MARK: - Access Code Types
+"accessCode.type.reviewer" = "审阅者访问";
+"accessCode.type.press" = "媒体访问";
+"accessCode.type.demo" = "演示访问";
+"accessCode.type.unlimited" = "无限访问";
+"accessCode.type.specialAccess" = "特殊访问";
+
+// MARK: - Access Code Errors
+"accessCode.error.invalidFormat" = "访问代码格式无效";
+"accessCode.error.codeNotFound" = "访问代码未找到或无效";
+"accessCode.error.codeExpired" = "访问代码已于 %@ 过期";
+"accessCode.error.usageLimitReached" = "访问代码使用次数已达上限（已使用 %d 次）";
+"accessCode.error.codeInactive" = "访问代码未激活";
+"accessCode.error.checksumMismatch" = "访问代码校验和验证失败";
+"accessCode.error.networkError" = "网络错误：%@";
+"accessCode.error.unknown" = "未知错误：%@";
+
+// MARK: - Access Code Recovery Suggestions
+"accessCode.recovery.invalidFormat" = "请检查访问代码格式并重试";
+"accessCode.recovery.codeNotFound" = "请验证访问代码是否正确";
+"accessCode.recovery.codeExpired" = "请联系客服获取新的访问代码";
+"accessCode.recovery.usageLimitReached" = "此访问代码已达到使用上限";
+"accessCode.recovery.codeInactive" = "此访问代码已失效";
+"accessCode.recovery.checksumMismatch" = "请仔细重新输入访问代码";
+"accessCode.recovery.networkError" = "请检查您的网络连接并重试";
+"accessCode.recovery.unknown" = "请重试或联系客服";
+"subscription.status.free" = "免费套餐";
+"subscription.status.monthlyExpires" = "高级月度版（%@ 到期）";
+"subscription.status.yearlyExpires" = "高级年度版（%@ 到期）";
+"subscription.status.expired" = "已过期（活跃至 %@）";
+"subscription.status.pending" = "购买待处理";
+"subscription.renewal" = "续订于 %@";
+"subscription.expiresOn" = "到期于 %@";
+"subscription.product.monthly" = "高级月度版";
+"subscription.product.yearly" = "高级年度版";
+
+// MARK: - Usage Limits
+"usage.storiesCount" = "本月故事：%d/%d";
+"usage.unlimited" = "无限故事";
+"usage.limitReached.title" = "You've used all your free stories this month！";
+"usage.limitReached.message" = "升级到高级版，享受无限魔法冒险和独家功能";
+"usage.limitReached.header" = "使用次数已达上限";
+"usage.upgrade.button" = "升级到高级版";
+"usage.maybeLater" = "稍后";
+"usage.reset.tomorrow" = "您的故事上限将于明天重置";
+"usage.reset.oneDay" = "您的故事上限将于1天后重置";
+"usage.reset.days" = "您的故事上限将于 %d 天后重置";
+"usage.feature.unlimited.desc" = "随心所欲创作故事";
+"usage.feature.collections.desc" = "成长故事集";
+"usage.feature.profiles.desc" = "非常适合家庭";
+"usage.feature.priority.desc" = "无需等待";
+
+// MARK: - Illustrations
+"illustration.generating" = "正在生成插画...";
+"illustration.error" = "插画生成失败";
+"illustration.retry" = "重试插画";
+"illustration.style.whimsical" = "奇思妙想";
+"illustration.style.realistic" = "写实";
+"illustration.style.cartoon" = "卡通";
+"illustration.style.watercolor" = "水彩";
+"illustration.style.sketchy" = "素描";
+"illustration.placeholder" = "插画即将推出...";
+"illustration.loading" = "正在创作魔法艺术作品...";
+"illustration.complete" = "Illustration ready！";
+"illustration.settings" = "插画设置";
+"illustration.quality" = "质量";
+"illustration.style" = "风格";
+
+// MARK: - Error Handling
+"error.network.title" = "连接错误";
+"error.network.message" = "请检查您的网络连接并重试。";
+"error.ai.title" = "AI 服务错误";
+"error.ai.message" = "我们暂时无法生成内容。请稍后再试。";
+"error.storage.title" = "存储错误";
+"error.storage.message" = "无法保存您的故事。请重试。";
+"error.subscription.title" = "订阅错误";
+"error.subscription.message" = "您的订阅出现问题。请重试。";
+"error.storyGeneration" = "生成故事失败。请重试。";
+"error.invalidParameters" = "提供的参数无效。";
+"error.persistence" = "保存或加载故事失败。";
+"error.productNotFound" = "App Store 中未找到产品";
+"error.purchaseFailed" = "购买失败：%@";
+"error.verificationFailed" = "交易验证失败：%@";
+"error.pending" = "购买待批准";
+"error.unknown" = "发生未知错误";
+"error.cancelled" = "购买已取消";
+"error.notAllowed" = "不允许购买";
+"error.retry" = "重试";
+"error.dismiss" = "忽略";
+"error.contactSupport" = "联系客服";
+
+// MARK: - Loading & Success States
+"loading.creatingStory" = "正在创作您的魔法故事...";
+"loading.generatingIllustration" = "正在生成精美插画...";
+"loading.savingStory" = "正在保存您的故事...";
+"loading.loadingLibrary" = "正在加载您的故事...";
+"loading.processing" = "正在处理...";
+"loading.pleaseWait" = "请稍候...";
+"success.storyCreated" = "Story created successfully！";
+"success.storySaved" = "故事已保存到您的故事库";
+"success.storyShared" = "故事分享成功";
+"success.subscriptionActivated" = "Premium subscription activated！";
+"success.purchaseComplete" = "购买成功";
+"success.restored" = "购买已成功恢复";
+
+// MARK: - Accessibility Labels
+"accessibility.homeTab" = "首页标签页";
+"accessibility.libraryTab" = "故事库标签页";
+"accessibility.collectionsTab" = "合集标签页";
+"accessibility.settingsTab" = "设置标签页";
+"accessibility.storyCard" = "故事：%@";
+"accessibility.collectionCard" = "合集：%@";
+"accessibility.pageProgress" = "第 %d 页，共 %d 页";
+"accessibility.clearCharacter" = "清除最喜欢的角色";
+"accessibility.clearChildName" = "清除孩子姓名";
+"accessibility.clearCharacters" = "清除角色";
+"accessibility.clearInterests" = "清除兴趣";
+"accessibility.viewAllStories" = "查看所有故事";
+"accessibility.playStory" = "播放故事";
+"accessibility.pauseStory" = "暂停故事";
+"accessibility.nextPage" = "下一页";
+"accessibility.previousPage" = "上一页";
+"accessibility.closeStory" = "关闭故事";
+
+// MARK: - Date & Time
+"time.now" = "现在";
+"time.today" = "今天";
+"time.yesterday" = "昨天";
+"time.thisWeek" = "本周";
+"time.lastWeek" = "上周";
+"time.thisMonth" = "本月";
+"time.lastMonth" = "上月";
+"time.minutesAgo" = "%d 分钟前";
+
+// MARK: - Validation Messages
+"validation.required" = "此字段为必填项";
+"validation.tooShort" = "至少需要 %d 个字符";
+"validation.tooLong" = "不能超过 %d 个字符";
+"validation.invalidEmail" = "请输入有效的电子邮件地址";
+"validation.invalidName" = "请输入有效的姓名";
+"validation.noSpecialCharacters" = "不允许使用特殊字符";
+"validation.numbersOnly" = "仅限数字";
+"validation.lettersOnly" = "仅限字母";
+"validation.alphanumeric" = "仅限字母和数字";
+
+// MARK: - Confirmation Dialogs
+"confirm.deleteStory.title" = "删除故事";
+"confirm.deleteStory.message" = "Are you sure you want to delete this story？ This action cannot be undone.";
+"confirm.deleteCollection.title" = "删除合集";
+"confirm.deleteCollection.message" = "Are you sure you want to delete this collection？ All stories in this collection will also be deleted.";
+"confirm.signOut.title" = "退出登录";
+"confirm.signOut.message" = "Are you sure you want to sign out？";
+"confirm.deleteAccount.title" = "删除账户";
+"confirm.deleteAccount.message" = "Are you sure you want to permanently delete your account？ This action cannot be undone.";
+
+// MARK: - Premium Feature Gates
+"premium.required" = "需要高级订阅";
+"premium.upgradeToAccess" = "升级到高级版以访问此功能";
+"premium.trialAvailable" = "开始免费试用";
+"premium.learnMore" = "了解更多高级版信息";
+"premium.features" = "高级功能";
+"premium.benefits" = "高级版权益";
+
+// MARK: - Search & Filters
+"search.placeholder" = "搜索...";
+"search.noResults" = "未找到结果";
+"search.clearSearch" = "清除搜索";
+"search.recentSearches" = "最近搜索";
+"filter.all" = "全部";
+"filter.favorites" = "收藏";
+"filter.recent" = "最近";
+"filter.unread" = "未读";
+"filter.completed" = "已完成";
+"filter.inProgress" = "进行中";
+
+// MARK: - Sharing
+"share.story" = "Check out this magical story！";
+"share.app" = "Create magical stories with this amazing app！";
+"share.collection" = "发现此成长合集";
+"share.via" = "分享方式";
+
+// MARK: - Notifications
+"notification.storyReady" = "Your story is ready！";
+"notification.newStoryAvailable" = "有一个新故事在等您";
+"notification.reminderToRead" = "Time for a magical story！";
+"notification.collectionComplete" = "Collection completed！";
+"notification.subscriptionExpiring" = "您的订阅即将到期";
+"notification.subscriptionRenewed" = "订阅续订成功";
+
+// MARK: - App Metadata
+"app.name" = "Magical Stories";
+"app.tagline" = "AI 驱动的儿童个性化故事";
+"app.description" = "创作与孩子一同成长的魔法个性化故事";
+"app.keywords" = "故事, 儿童, AI, 教育, 睡前";
+"app.category" = "教育与娱乐";
+"app.developer" = "Magical Stories 团队";
+
+// MARK: - Subscription Savings
+"subscription.savings.percentage" = "每月节省 %d%%";
+"subscription.savings.fallback" = "每月节省 16%";
+
+// MARK: - Premium Features
+"premium.feature.unlimitedStories.title" = "无限故事";
+"premium.feature.unlimitedStories.description" = "尽情发挥想象，创作无限神奇故事";
+"premium.feature.unlimitedStories.unlock" = "创作无限神奇故事";
+"premium.feature.growthCollections.title" = "成长路径故事集";
+"premium.feature.growthCollections.description" = "获取由儿童发展专家设计的成长故事集";
+"premium.feature.growthCollections.unlock" = "获取成长故事集";
+"premium.feature.profiles.title" = "多儿童档案";
+"premium.feature.profiles.description" = "为您的所有孩子创建个性化档案";
+"premium.feature.profiles.unlock" = "为您的所有孩子添加档案";
+"premium.feature.illustrations.title" = "高级插画";
+"premium.feature.illustrations.description" = "获得优质视觉一致性和增强的插画质量";
+"premium.feature.illustrations.unlock" = "获得优质视觉一致性";
+"premium.feature.priority.title" = "优先生成";
+"premium.feature.priority.description" = "更快生成故事，无需等待";
+"premium.feature.priority.unlock" = "优先生成，无需等待";
+"premium.feature.offline.title" = "离线阅读";
+"premium.feature.offline.description" = "无需网络连接即可阅读您喜爱故事";
+"premium.feature.offline.unlock" = "离线阅读故事";
+"premium.feature.analytics.title" = "家长分析";
+"premium.feature.analytics.description" = "追踪孩子的阅读进度和发展里程碑";
+"premium.feature.analytics.unlock" = "追踪孩子的阅读进度";
+"premium.feature.themes.title" = "自定义主题";
+"premium.feature.themes.description" = "根据孩子的兴趣创建自定义故事主题";
+"premium.feature.themes.unlock" = "创建自定义故事主题";
+
+// MARK: - Free Tier Features
+"freeTier.feature.basicGeneration.title" = "基本故事生成";
+"freeTier.feature.basicGeneration.description" = "每月生成 %d 个故事";
+"freeTier.feature.library.title" = "故事库";
+"freeTier.feature.library.description" = "访问您的个人故事库";
+"freeTier.feature.reading.title" = "基本阅读";
+"freeTier.feature.reading.description" = "阅读具有标准功能的故事";
+"freeTier.feature.profile.title" = "单儿童档案";
+"freeTier.feature.profile.description" = "一个具有基本自定义功能的儿童档案";
+"freeTier.feature.settings.title" = "基本设置";
+"freeTier.feature.settings.description" = "基本家长控制和应用设置";
+
+// MARK: - Error Recovery Suggestions
+"error.recovery.productNotFound" = "请检查您的网络连接并重试";
+"error.recovery.purchaseFailed" = "请验证您的付款方式并重试";
+"error.recovery.verificationFailed" = "如果问题仍然存在，请联系客服";
+"error.recovery.pending" = "您的购买正在处理中，请稍候";
+"error.recovery.unknown" = "请重试或联系客服";
+"error.recovery.cancelled" = "您可以随时完成购买";
+"error.recovery.notAllowed" = "请检查您的设备限制或付款设置";
+
+// MARK: - Paywall Promotions
+"paywall.homePromotion.title" = "解锁更多魔法";
+"paywall.homePromotion.message" = "使用高级版创作无限故事";
+"paywall.libraryPromotion.title" = "扩展您的故事库";
+"paywall.libraryPromotion.message" = "通过无限故事生成，建立更大的故事库";

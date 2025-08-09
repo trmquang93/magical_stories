@@ -1,0 +1,43 @@
+[
+    {
+        "createdAt": 773036317.542386,
+        "category": "Emotional Intelligence",
+        "updatedAt": 773036317.542386,
+        "id": "F8F54EA9-1CDE-4428-8BB4-4A67812552E9",
+        "ageGroup": "Ages 4-7",
+        "storyIds": [
+            "F91E26FD-DF04-4388-8E4C-CAA4942808B9",
+            "3B7806F6-4878-4249-ACBB-4E45FB16858C",
+            "D26863AB-4556-446B-AA99-4E9742B6A674"
+        ],
+        "title": "Emotional Heroes Journey",
+        "descriptionText": "Stories that help children understand feelings, show empathy, and build strong friendships. These adventures teach emotional intelligence through caring characters and meaningful connections.",
+        "completionProgress": 0
+    },
+    {
+        "title": "Creative Adventures",
+        "id": "098A8670-4440-4DD0-86AD-46FA8B78D0A7",
+        "updatedAt": 773036317.548096,
+        "ageGroup": "Ages 5-7",
+        "category": "Creativity & Problem Solving",
+        "storyIds": [
+            "EC2E1585-7DDD-456C-987C-B090AAF5A77C"
+        ],
+        "createdAt": 773036317.548096,
+        "completionProgress": 0,
+        "descriptionText": "Adventures that inspire creativity, innovation, and clever problem-solving. These stories show children how to think outside the box and find unique solutions."
+    },
+    {
+        "completionProgress": 0,
+        "ageGroup": "Ages 4-8",
+        "updatedAt": 773036317.548122,
+        "descriptionText": "Discover the wonders of nature through exciting adventures. These stories foster environmental awareness, patience, and respect for the natural world around us.",
+        "title": "Nature Explorers",
+        "category": "Nature & Environment",
+        "createdAt": 773036317.548122,
+        "storyIds": [
+            "ADF86C23-3E0A-40F3-8D1F-F6A001B1FA29"
+        ],
+        "id": "FF1DBBD5-F7FC-4326-B6DF-6ACB6FF49C01"
+    }
+]

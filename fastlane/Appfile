@@ -1,0 +1,14 @@
+# The bundle identifier of your app
+app_identifier(ENV["BUNDLE_IDENTIFIER"])
+
+# Your Apple ID email
+apple_id(ENV["APPLE_ID"])
+
+# Team ID for development
+team_id(ENV["TEAM_ID"])
+
+# iTunes Connect Team ID (if different from development team)
+itc_team_id(ENV["ITC_TEAM_ID"])
+
+# For more information about the Appfile, see:
+#     https://docs.fastlane.tools/advanced/Appfile/

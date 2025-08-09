@@ -1,0 +1,541 @@
+/* 
+   Localizable.strings
+   Magical Stories
+   
+   Spanish localization for R.swift
+   Auto-translated with Gemini CLI - Review and refine as needed
+*/
+
+// MARK: - Navigation & Tabs
+"navigation.home" = "Inicio";
+"navigation.library" = "Biblioteca";
+"navigation.collections" = "Colecciones";
+"navigation.settings" = "Ajustes";
+"navigation.back" = "Atrás";
+"navigation.close" = "Cerrar";
+"navigation.done" = "Listo";
+"navigation.cancel" = "Cancelar";
+"navigation.save" = "Guardar";
+"navigation.edit" = "Editar";
+"navigation.delete" = "Eliminar";
+
+// MARK: - General Actions
+"action.create" = "Crear";
+"action.retry" = "Reintentar";
+"action.tryAgain" = "Intentar de Nuevo";
+"action.share" = "Compartir";
+"action.copy" = "Copiar";
+"action.paste" = "Pegar";
+"action.cut" = "Cortar";
+"action.undo" = "Deshacer";
+"action.redo" = "Rehacer";
+"action.select" = "Seleccionar";
+"action.selectAll" = "Seleccionar Todo";
+"action.clear" = "Borrar";
+"action.reset" = "Restablecer";
+"action.refresh" = "Actualizar";
+"action.reload" = "Recargar";
+"action.continue" = "Continuar";
+"action.skip" = "Omitir";
+"action.next" = "Siguiente";
+"action.previous" = "Anterior";
+"action.start" = "Empezar";
+"action.stop" = "Detener";
+
+// MARK: - Home Screen
+"home.welcomeBack" = "¡Bienvenido de nuevo!";
+"home.welcomeBackWithName" = "¡Bienvenido de nuevo, %@!";
+"home.subtitle" = "¿Qué historia mágica crearás hoy?";
+"home.createStory.title" = "Crear una Nueva Historia";
+"home.createStory.subtitle" = "Personaliza una aventura para la hora de dormir";
+"home.createStory.button" = "Empezar";
+"home.collections.title" = "Colecciones de Crecimiento";
+"home.createCollection.title" = "Crear una Colección de Crecimiento";
+"home.createCollection.subtitle" = "Guía el crecimiento de tu hijo con conjuntos de historias temáticas";
+"home.createCollection.button" = "Crear Colección";
+"home.library.title" = "Tu Biblioteca de Historias";
+"home.library.viewAll" = "Ver Todas las Historias";
+"home.tip" = "Consejo: ¡Leer juntos crea recuerdos mágicos!";
+
+// MARK: - Story Form
+"storyForm.title" = "Crear Historia";
+"storyForm.header" = "Creador de Historias Mágicas";
+"storyForm.loading.title" = "Creando tu historia mágica...";
+"storyForm.loading.subtitle" = "Tejiendo encanto y asombro solo para %@...";
+"storyForm.error.title" = "Error al Crear Historia";
+"storyForm.error.message" = "No pudimos crear tu historia: %@\n\nPor favor, inténtalo de nuevo más tarde.";
+"storyForm.create.header" = "Crear Magia";
+"storyForm.create.subtitle" = "Personaliza tu historia mágica";
+"storyForm.childName.label" = "Nombre del Niño/a";
+"storyForm.childName.placeholder" = "Introduce el nombre del niño/a";
+"storyForm.character.label" = "Personaje Favorito";
+"storyForm.character.placeholder" = "Introduce un personaje (dragón, princesa...)";
+"storyForm.ageRange.label" = "Rango de Edad";
+"storyForm.theme.label" = "Tema de la Historia";
+"storyForm.length.label" = "Longitud de la Historia";
+"storyForm.length.short" = "Corta";
+"storyForm.length.medium" = "Media";
+"storyForm.length.long" = "Larga";
+"storyForm.language.label" = "Idioma de la Historia";
+"storyForm.generating" = "Creando Magia...";
+"storyForm.generate.button" = "Generar Historia Mágica";
+
+// MARK: - Character Options
+"character.dragon" = "Dragón";
+"character.princess" = "Princesa";
+"character.knight" = "Caballero";
+"character.wizard" = "Mago";
+"character.fairy" = "Hada";
+"character.unicorn" = "Unicornio";
+"character.pirate" = "Pirata";
+"character.astronaut" = "Astronauta";
+"character.detective" = "Detective";
+"character.superhero" = "Superhéroe";
+"character.animal" = "Amigo Animal";
+"character.robot" = "Robot";
+
+// MARK: - Story Themes
+"theme.adventure" = "Aventura";
+"theme.friendship" = "Amistad";
+"theme.learning" = "Aprendizaje";
+"theme.courage" = "Coraje";
+"theme.kindness" = "Amabilidad";
+"theme.mystery" = "Misterio";
+"theme.magic" = "Magia";
+"theme.family" = "Familia";
+"theme.nature" = "Naturaleza";
+"theme.space" = "Espacio";
+"theme.ocean" = "Océano";
+"theme.fantasy" = "Fantasía";
+
+// MARK: - Age Groups
+"ageGroup.preschool" = "3-5 años";
+"ageGroup.earlyReader" = "6-8 años";
+"ageGroup.middleGrade" = "9-12 años";
+
+// MARK: - Library Screen
+"library.title" = "Biblioteca";
+"library.sortBy" = "Ordenar por:";
+"library.sort.newest" = "Más Reciente";
+"library.sort.oldest" = "Más Antiguo";
+"library.sort.alphabetical" = "A-Z";
+"library.sort.mostRead" = "Más Leído";
+"library.search.placeholder" = "Buscar historias...";
+"library.empty.title" = "Tu biblioteca está vacía";
+"library.empty.message" = "Crea tu primera historia mágica en la pestaña de Inicio";
+"library.noResults.title" = "No se encontraron historias";
+"library.noResults.message" = "Intenta ajustar tu búsqueda o filtros";
+"library.category.fantasy" = "Fantasía";
+"library.category.animals" = "Animales";
+"library.category.bedtime" = "Hora de Dormir";
+"library.category.adventure" = "Aventura";
+
+// MARK: - Story Detail & Reading
+"storyDetail.title" = "Detalles de la Historia";
+"storyDetail.readingTime" = "Tiempo de lectura: %@ min";
+"storyDetail.pages" = "%d páginas";
+"storyDetail.created" = "Creada el %@";
+"storyDetail.lastRead" = "Última lectura el %@";
+"storyDetail.read" = "Leer Historia";
+"storyDetail.share" = "Compartir Historia";
+"storyDetail.delete" = "Eliminar Historia";
+"storyDetail.edit" = "Editar Historia";
+"storyReading.page" = "Página %d de %d";
+"storyReading.nextPage" = "Página Siguiente";
+"storyReading.previousPage" = "Página Anterior";
+"storyReading.readAloud" = "Leer en Voz Alta";
+"storyReading.pauseReading" = "Pausar Lectura";
+"storyReading.bookmarkPage" = "Marcar esta Página";
+"storyReading.fontSize" = "Tamaño de Fuente";
+"storyReading.nightMode" = "Modo Noche";
+"storyReading.fullscreen" = "Pantalla Completa";
+"storyReading.exitFullscreen" = "Salir de Pantalla Completa";
+"storyReading.completed" = "¡Historia Completada!";
+"storyReading.congratulations" = "¡Felicidades por terminar la historia!";
+"storyReading.readAnother" = "Leer Otra Historia";
+"storyReading.backToLibrary" = "Volver a la Biblioteca";
+
+// MARK: - Collections
+"collections.title" = "Colecciones";
+"collections.progress" = "%d de %d historias completadas";
+"collections.unlock" = "Desbloquear Colección";
+"collections.locked" = "Colección Premium";
+"collections.complete" = "¡Colección Completa!";
+"collections.inProgress" = "En Progreso";
+"collections.notStarted" = "No Iniciada";
+"collectionForm.title" = "Crear Colección de Crecimiento";
+"collectionForm.header" = "Colecciones de Crecimiento";
+"collectionForm.subtitle" = "Historias personalizadas para el desarrollo";
+"collectionForm.ageGroup.label" = "Grupo de Edad";
+"collectionForm.childName.label" = "Nombre del Niño/a (Opcional)";
+"collectionForm.childName.placeholder" = "Introduce el nombre del niño/a";
+"collectionForm.characters.label" = "Personajes (Opcional)";
+"collectionForm.characters.placeholder" = "Dragón, unicornio, mago...";
+"collectionForm.characters.hint" = "Separa varios personajes con comas";
+"collectionForm.interests.label" = "Intereses del Niño/a (Obligatorio)";
+"collectionForm.interests.placeholder" = "Espacio, dinosaurios, ballet...";
+"collectionForm.createButton" = "Crear Colección";
+"collectionForm.error.title" = "Error al Crear Colección";
+"collectionForm.error.unknown" = "Ocurrió un error desconocido.";
+"collectionForm.error.interests" = "Por favor, introduce los intereses del niño/a.";
+"collectionForm.error.generation" = "No se pudo generar la colección: %@";
+
+// MARK: - Growth Categories
+"growthCategory.emotionalIntelligence" = "Inteligencia Emocional";
+"growthCategory.cognitiveDevelopment" = "Desarrollo Cognitivo";
+"growthCategory.socialSkills" = "Habilidades Sociales";
+"growthCategory.creativity" = "Creatividad e Imaginación";
+"growthCategory.problemSolving" = "Resolución de Problemas";
+"growthCategory.resilience" = "Resiliencia y Determinación";
+"growthCategory.kindness" = "Amabilidad y Empatía";
+"growthCategory.curiosity" = "Curiosidad y Exploración";
+"growthCategory.cooperation" = "Compartir y Cooperación";
+"growthCategory.coping" = "Resiliencia y Afrontamiento";
+
+// MARK: - Settings
+"settings.title" = "Ajustes";
+"settings.profile.title" = "Perfil";
+"settings.profile.subtitle" = "Gestionar tu cuenta";
+"settings.subscription.title" = "Suscripción";
+"settings.subscription.subtitle" = "Gestionar tu plan";
+"settings.about.title" = "Acerca de";
+"settings.about.subtitle" = "Información de la aplicación";
+"settings.parentalControls.title" = "Controles Parentales";
+"settings.parentalControls.subtitle" = "Filtros de contenido y seguridad";
+"settings.privacy.title" = "Privacidad";
+"settings.privacy.subtitle" = "Ajustes de datos y privacidad";
+"settings.support.title" = "Soporte";
+"settings.support.subtitle" = "Ayuda y comentarios";
+"settings.termsOfService" = "Términos de Servicio";
+"settings.privacyPolicy" = "Política de Privacidad";
+"settings.version" = "Versión %@";
+"settings.build" = "Compilación %@";
+"settings.copyright" = "© 2024 Magical Stories";
+"settings.madeWith" = "Hecho con ❤️ para familias";
+"settings.contact" = "Contáctanos";
+"settings.feedback" = "Enviar Comentarios";
+"settings.rateApp" = "Calificar App";
+"settings.shareApp" = "Compartir App";
+"settings.restorePurchases" = "Restaurar Compras";
+"settings.signOut" = "Cerrar Sesión";
+"settings.deleteAccount" = "Eliminar Cuenta";
+"settings.notifications" = "Notificaciones";
+"settings.language" = "Idioma";
+"settings.accessibility" = "Accesibilidad";
+"settings.dataUsage" = "Uso de Datos";
+"settings.offlineMode" = "Modo Sin Conexión";
+
+// MARK: - Subscription & Paywall
+"paywall.title" = "Elige tu Plan";
+"paywall.subtitle" = "Desbloquea historias mágicas ilimitadas";
+"paywall.loading" = "Cargando opciones de suscripción...";
+"paywall.error.loading" = "No se pudieron cargar las opciones de suscripción";
+"paywall.feature.unlimitedStories" = "Generación ilimitada de historias";
+"paywall.feature.growthCollections" = "Colecciones de Crecimiento";
+"paywall.feature.illustrations" = "Funciones avanzadas de ilustración";
+"paywall.feature.profiles" = "Múltiples perfiles infantiles";
+"paywall.feature.analytics" = "Controles parentales y análisis";
+"paywall.feature.priority" = "Velocidad de generación prioritaria";
+"paywall.feature.trial" = "Prueba gratuita de 7 días";
+"paywall.trust.secure" = "Pago Seguro";
+"paywall.trust.cancel" = "Cancela Cuando Quieras";
+"paywall.trust.noFees" = "Sin Cargos Ocultos";
+"paywall.restore" = "Restaurar Compras";
+"paywall.terms" = "Términos de Servicio";
+"paywall.privacy" = "Política de Privacidad";
+"paywall.selectPlan" = "Seleccionar un plan";
+"paywall.startTrial" = "Iniciar %@";
+"paywall.subscribeFor" = "Suscribirse por %@";
+"paywall.usageLimit.title" = "Has alcanzado tu límite mensual";
+"paywall.usageLimit.message" = "Actualiza a Premium para generación ilimitada de historias";
+"paywall.feature.title" = "Función Premium";
+"paywall.feature.message" = "Esta función está disponible con la suscripción Premium";
+"paywall.onboarding.title" = "Bienvenido a Magical Stories Premium";
+"paywall.onboarding.message" = "Inicia tu prueba gratuita y desbloquea todas las funciones premium";
+"paywall.upgrade.title" = "Actualiza a Premium";
+"paywall.upgrade.message" = "Obtén historias ilimitadas y funciones exclusivas";
+
+// MARK: - Promo Codes
+"promoCode.title" = "Código Promocional";
+"promoCode.subtitle" = "Canjear ofertas especiales";
+"promoCode.entry.title" = "Canjear Código Promocional";
+"promoCode.entry.subtitle" = "Introduce tu código promocional para desbloquear funciones premium";
+"promoCode.entry.placeholder" = "Introduce el código";
+"promoCode.entry.help.title" = "¿Necesitas ayuda?";
+"promoCode.entry.help.format" = "Los códigos promocionales tienen 12 caracteres";
+"promoCode.entry.help.pattern" = "Formato: XX-XXXX-XXXX-XX";
+"promoCode.entry.help.support" = "Contacta con soporte si necesitas ayuda";
+"promoCode.button.redeem" = "Canjear Código";
+"promoCode.button.validating" = "Validando...";
+"promoCode.button.addAnother" = "Añadir Otro Código";
+"promoCode.haveCode" = "¿Tienes un código promocional?";
+"promoCode.description" = "Desbloquea funciones premium con tu código promocional";
+"promoCode.success.title" = "¡Código Canjeado con Éxito!";
+"promoCode.success.message" = "Ahora tienes acceso a: %@";
+"promoCode.active.title" = "Códigos Promocionales Activos";
+"promoCode.remove.title" = "Eliminar Código Promocional";
+"promoCode.remove.message" = "¿Estás seguro de que quieres eliminar este código promocional? Perderás el acceso a las funciones que proporciona.";
+"promoCode.remove.button" = "Eliminar";
+"promoCode.status.active" = "Activo";
+"promoCode.status.expired" = "Caducado";
+"promoCode.status.usageLimitReached" = "Límite de Uso Alcanzado";
+"promoCode.timeRemaining.days" = "%d días restantes";
+"promoCode.timeRemaining.neverExpires" = "Nunca caduca";
+"promoCode.usage.remaining" = "Usos restantes: %d/%d";
+"promoCode.inputHelp.characters" = "%d/%d caracteres";
+"promoCode.inputHelp.ready" = "Listo para validar";
+"promoCode.inputHelp.tooLong" = "Demasiado largo (%d/%d caracteres)";
+
+// MARK: - Access Code Types
+"accessCode.type.reviewer" = "Acceso de Revisor";
+"accessCode.type.press" = "Acceso de Prensa";
+"accessCode.type.demo" = "Acceso de Demostración";
+"accessCode.type.unlimited" = "Acceso Ilimitado";
+"accessCode.type.specialAccess" = "Acceso Especial";
+
+// MARK: - Access Code Errors
+"accessCode.error.invalidFormat" = "El formato del código de acceso no es válido";
+"accessCode.error.codeNotFound" = "Código de acceso no encontrado o inválido";
+"accessCode.error.codeExpired" = "Código de acceso caducado el %@";
+"accessCode.error.usageLimitReached" = "Límite de uso del código de acceso alcanzado (%d usos)";
+"accessCode.error.codeInactive" = "El código de acceso no está activo";
+"accessCode.error.checksumMismatch" = "Error de validación de la suma de verificación del código de acceso";
+"accessCode.error.networkError" = "Error de red: %@";
+"accessCode.error.unknown" = "Error desconocido: %@";
+
+// MARK: - Access Code Recovery Suggestions
+"accessCode.recovery.invalidFormat" = "Por favor, verifica el formato del código de acceso e inténtalo de nuevo";
+"accessCode.recovery.codeNotFound" = "Por favor, verifica que el código de acceso sea correcto";
+"accessCode.recovery.codeExpired" = "Por favor, contacta con soporte para un nuevo código de acceso";
+"accessCode.recovery.usageLimitReached" = "Este código de acceso ha alcanzado su límite de uso";
+"accessCode.recovery.codeInactive" = "Este código de acceso ya no está activo";
+"accessCode.recovery.checksumMismatch" = "Por favor, vuelve a introducir el código de acceso con cuidado";
+"accessCode.recovery.networkError" = "Por favor, comprueba tu conexión a internet e inténtalo de nuevo";
+"accessCode.recovery.unknown" = "Por favor, inténtalo de nuevo o contacta con soporte";
+"subscription.status.free" = "Plan Gratuito";
+"subscription.status.monthlyExpires" = "Premium Mensual (caduca el %@)";
+"subscription.status.yearlyExpires" = "Premium Anual (caduca el %@)";
+"subscription.status.expired" = "Caducado (estuvo activo hasta el %@)";
+"subscription.status.pending" = "Compra Pendiente";
+"subscription.renewal" = "Se renueva el %@";
+"subscription.expiresOn" = "Caduca el %@";
+"subscription.product.monthly" = "Premium Mensual";
+"subscription.product.yearly" = "Premium Anual";
+
+// MARK: - Usage Limits
+"usage.storiesCount" = "Historias este mes: %d/%d";
+"usage.unlimited" = "Historias Ilimitadas";
+"usage.limitReached.title" = "¡Has usado todas tus historias gratuitas este mes!";
+"usage.limitReached.message" = "Actualiza a Premium para aventuras mágicas ilimitadas y funciones exclusivas";
+"usage.limitReached.header" = "Límite de Uso Alcanzado";
+"usage.upgrade.button" = "Actualizar a Premium";
+"usage.maybeLater" = "Quizás Más Tarde";
+"usage.reset.tomorrow" = "Tu límite de historias se restablece mañana";
+"usage.reset.oneDay" = "Tu límite de historias se restablece en 1 día";
+"usage.reset.days" = "Tu límite de historias se restablece en %d días";
+"usage.feature.unlimited.desc" = "Crea tantas historias como quieras";
+"usage.feature.collections.desc" = "Conjuntos de historias de desarrollo";
+"usage.feature.profiles.desc" = "Perfecto para familias";
+"usage.feature.priority.desc" = "Evita la espera";
+
+// MARK: - Illustrations
+"illustration.generating" = "Generando ilustración...";
+"illustration.error" = "Error al generar la ilustración";
+"illustration.retry" = "Reintentar ilustración";
+"illustration.style.whimsical" = "Caprichoso";
+"illustration.style.realistic" = "Realista";
+"illustration.style.cartoon" = "Dibujos animados";
+"illustration.style.watercolor" = "Acuarela";
+"illustration.style.sketchy" = "Boceto";
+"illustration.placeholder" = "Ilustración próximamente...";
+"illustration.loading" = "Creando obra de arte mágica...";
+"illustration.complete" = "¡Ilustración lista!";
+"illustration.settings" = "Ajustes de Ilustración";
+"illustration.quality" = "Calidad";
+"illustration.style" = "Estilo";
+
+// MARK: - Error Handling
+"error.network.title" = "Error de Conexión";
+"error.network.message" = "Por favor, comprueba tu conexión a internet e inténtalo de nuevo.";
+"error.ai.title" = "Error del Servicio de IA";
+"error.ai.message" = "No pudimos generar contenido en este momento. Por favor, inténtalo de nuevo más tarde.";
+"error.storage.title" = "Error de Almacenamiento";
+"error.storage.message" = "No se pudo guardar tu historia. Por favor, inténtalo de nuevo.";
+"error.subscription.title" = "Error de Suscripción";
+"error.subscription.message" = "Hubo un problema con tu suscripción. Por favor, inténtalo de nuevo.";
+"error.storyGeneration" = "Error al generar la historia. Por favor, inténtalo de nuevo.";
+"error.invalidParameters" = "Los parámetros proporcionados no eran válidos.";
+"error.persistence" = "Error al guardar o cargar la historia.";
+"error.productNotFound" = "Producto no encontrado en la App Store";
+"error.purchaseFailed" = "Error en la compra: %@";
+"error.verificationFailed" = "Error en la verificación de la transacción: %@";
+"error.pending" = "La compra está pendiente de aprobación";
+"error.unknown" = "Ocurrió un error desconocido";
+"error.cancelled" = "La compra fue cancelada";
+"error.notAllowed" = "Compra no permitida";
+"error.retry" = "Reintentar";
+"error.dismiss" = "Descartar";
+"error.contactSupport" = "Contactar con Soporte";
+
+// MARK: - Loading & Success States
+"loading.creatingStory" = "Creando tu historia mágica...";
+"loading.generatingIllustration" = "Generando hermosa obra de arte...";
+"loading.savingStory" = "Guardando tu historia...";
+"loading.loadingLibrary" = "Cargando tus historias...";
+"loading.processing" = "Procesando...";
+"loading.pleaseWait" = "Por favor, espera...";
+"success.storyCreated" = "¡Historia creada con éxito!";
+"success.storySaved" = "Historia guardada en tu biblioteca";
+"success.storyShared" = "Historia compartida con éxito";
+"success.subscriptionActivated" = "¡Suscripción Premium activada!";
+"success.purchaseComplete" = "Compra completada con éxito";
+"success.restored" = "Compras restauradas con éxito";
+
+// MARK: - Accessibility Labels
+"accessibility.homeTab" = "Pestaña Inicio";
+"accessibility.libraryTab" = "Pestaña Biblioteca";
+"accessibility.collectionsTab" = "Pestaña Colecciones";
+"accessibility.settingsTab" = "Pestaña Ajustes";
+"accessibility.storyCard" = "Historia: %@";
+"accessibility.collectionCard" = "Colección: %@";
+"accessibility.pageProgress" = "Página %d de %d";
+"accessibility.clearCharacter" = "Borrar personaje favorito";
+"accessibility.clearChildName" = "Borrar nombre del niño";
+"accessibility.clearCharacters" = "Borrar personajes";
+"accessibility.clearInterests" = "Borrar intereses";
+"accessibility.viewAllStories" = "Ver Todas las Historias";
+"accessibility.playStory" = "Reproducir historia";
+"accessibility.pauseStory" = "Pausar historia";
+"accessibility.nextPage" = "Página siguiente";
+"accessibility.previousPage" = "Página anterior";
+"accessibility.closeStory" = "Cerrar historia";
+
+// MARK: - Date & Time
+"time.now" = "Ahora";
+"time.today" = "Hoy";
+"time.yesterday" = "Ayer";
+"time.thisWeek" = "Esta semana";
+"time.lastWeek" = "La semana pasada";
+"time.thisMonth" = "Este mes";
+"time.lastMonth" = "El mes pasado";
+"time.minutesAgo" = "Hace %d minutos";
+
+// MARK: - Validation Messages
+"validation.required" = "Este campo es obligatorio";
+"validation.tooShort" = "Debe tener al menos %d caracteres";
+"validation.tooLong" = "No debe tener más de %d caracteres";
+"validation.invalidEmail" = "Por favor, introduce una dirección de correo electrónico válida";
+"validation.invalidName" = "Por favor, introduce un nombre válido";
+"validation.noSpecialCharacters" = "No se permiten caracteres especiales";
+"validation.numbersOnly" = "Solo números";
+"validation.lettersOnly" = "Solo letras";
+"validation.alphanumeric" = "Solo letras y números";
+
+// MARK: - Confirmation Dialogs
+"confirm.deleteStory.title" = "Eliminar Historia";
+"confirm.deleteStory.message" = "¿Estás seguro de que quieres eliminar esta historia? Esta acción no se puede deshacer.";
+"confirm.deleteCollection.title" = "Eliminar Colección";
+"confirm.deleteCollection.message" = "¿Estás seguro de que quieres eliminar esta colección? Todas las historias de esta colección también se eliminarán.";
+"confirm.signOut.title" = "Cerrar Sesión";
+"confirm.signOut.message" = "¿Estás seguro de que quieres cerrar sesión?";
+"confirm.deleteAccount.title" = "Eliminar Cuenta";
+"confirm.deleteAccount.message" = "¿Estás seguro de que quieres eliminar tu cuenta permanentemente? Esta acción no se puede deshacer.";
+
+// MARK: - Premium Feature Gates
+"premium.required" = "Se requiere suscripción Premium";
+"premium.upgradeToAccess" = "Actualiza a Premium para acceder a esta función";
+"premium.trialAvailable" = "Inicia tu prueba gratuita";
+"premium.learnMore" = "Más información sobre Premium";
+"premium.features" = "Funciones Premium";
+"premium.benefits" = "Beneficios Premium";
+
+// MARK: - Search & Filters
+"search.placeholder" = "Buscar...";
+"search.noResults" = "No se encontraron resultados";
+"search.clearSearch" = "Borrar búsqueda";
+"search.recentSearches" = "Búsquedas Recientes";
+"filter.all" = "Todo";
+"filter.favorites" = "Favoritos";
+"filter.recent" = "Recientes";
+"filter.unread" = "No leídos";
+"filter.completed" = "Completados";
+"filter.inProgress" = "En progreso";
+
+// MARK: - Sharing
+"share.story" = "¡Mira esta historia mágica!";
+"share.app" = "¡Crea historias mágicas con esta increíble app!";
+"share.collection" = "Descubre esta colección de crecimiento";
+"share.via" = "Compartir vía";
+
+// MARK: - Notifications
+"notification.storyReady" = "¡Tu historia está lista!";
+"notification.newStoryAvailable" = "Una nueva historia te espera";
+"notification.reminderToRead" = "¡Es hora de una historia mágica!";
+"notification.collectionComplete" = "¡Colección completada!";
+"notification.subscriptionExpiring" = "Tu suscripción vence pronto";
+"notification.subscriptionRenewed" = "Suscripción renovada con éxito";
+
+// MARK: - App Metadata
+"app.name" = "Magical Stories";
+"app.tagline" = "Historias personalizadas con IA para niños";
+"app.description" = "Crea historias mágicas y personalizadas que crecen con tu hijo";
+"app.keywords" = "historias, niños, IA, educación, hora de dormir";
+"app.category" = "Educación y Entretenimiento";
+"app.developer" = "Equipo de Magical Stories";
+
+// MARK: - Subscription Savings
+"subscription.savings.percentage" = "Ahorra un %d%% vs. mensual";
+"subscription.savings.fallback" = "Ahorra un 16% vs. mensual";
+
+// MARK: - Premium Features
+"premium.feature.unlimitedStories.title" = "Historias Ilimitadas";
+"premium.feature.unlimitedStories.description" = "Crea tantas historias mágicas como tu imaginación te permita";
+"premium.feature.unlimitedStories.unlock" = "Crea historias mágicas ilimitadas";
+"premium.feature.growthCollections.title" = "Colecciones de Crecimiento";
+"premium.feature.growthCollections.description" = "Accede a colecciones de historias de desarrollo diseñadas por expertos en desarrollo infantil";
+"premium.feature.growthCollections.unlock" = "Accede a colecciones de historias de desarrollo";
+"premium.feature.profiles.title" = "Múltiples Perfiles Infantiles";
+"premium.feature.profiles.description" = "Crea perfiles personalizados para todos tus hijos";
+"premium.feature.profiles.unlock" = "Añade perfiles para todos tus hijos";
+"premium.feature.illustrations.title" = "Ilustraciones Avanzadas";
+"premium.feature.illustrations.description" = "Obtén consistencia visual premium y calidad de ilustración mejorada";
+"premium.feature.illustrations.unlock" = "Obtén consistencia visual premium";
+"premium.feature.priority.title" = "Generación Prioritaria";
+"premium.feature.priority.description" = "Evita la espera con una generación de historias más rápida";
+"premium.feature.priority.unlock" = "Evita la espera con generación prioritaria";
+"premium.feature.offline.title" = "Lectura sin Conexión";
+"premium.feature.offline.description" = "Lee tus historias favoritas sin conexión a internet";
+"premium.feature.offline.unlock" = "Lee historias sin internet";
+"premium.feature.analytics.title" = "Análisis Parentales";
+"premium.feature.analytics.description" = "Sigue el progreso de lectura de tu hijo y sus hitos de desarrollo";
+"premium.feature.analytics.unlock" = "Sigue el progreso de lectura de tu hijo";
+"premium.feature.themes.title" = "Temas Personalizados";
+"premium.feature.themes.description" = "Crea temas de historias personalizados según los intereses de tu hijo";
+"premium.feature.themes.unlock" = "Crea temas de historias personalizados";
+
+// MARK: - Free Tier Features
+"freeTier.feature.basicGeneration.title" = "Generación Básica de Historias";
+"freeTier.feature.basicGeneration.description" = "Genera %d historias al mes";
+"freeTier.feature.library.title" = "Biblioteca de Historias";
+"freeTier.feature.library.description" = "Accede a tu biblioteca personal de historias";
+"freeTier.feature.reading.title" = "Lectura Básica";
+"freeTier.feature.reading.description" = "Lee historias con funciones estándar";
+"freeTier.feature.profile.title" = "Perfil Único Infantil";
+"freeTier.feature.profile.description" = "Un perfil infantil con personalización básica";
+"freeTier.feature.settings.title" = "Ajustes Básicos";
+"freeTier.feature.settings.description" = "Controles parentales esenciales y ajustes de la app";
+
+// MARK: - Error Recovery Suggestions
+"error.recovery.productNotFound" = "Por favor, revisa tu conexión a internet e inténtalo de nuevo";
+"error.recovery.purchaseFailed" = "Por favor, verifica tu método de pago e inténtalo de nuevo";
+"error.recovery.verificationFailed" = "Por favor, contacta con soporte si el problema persiste";
+"error.recovery.pending" = "Tu compra está siendo procesada. Por favor, espera un momento";
+"error.recovery.unknown" = "Por favor, inténtalo de nuevo o contacta con soporte";
+"error.recovery.cancelled" = "Puedes completar tu compra en cualquier momento";
+"error.recovery.notAllowed" = "Por favor, revisa las restricciones de tu dispositivo o la configuración de pago";
+
+// MARK: - Paywall Promotions
+"paywall.homePromotion.title" = "Desbloquea Más Magia";
+"paywall.homePromotion.message" = "Crea historias ilimitadas con Premium";
+"paywall.libraryPromotion.title" = "Expande Tu Biblioteca";
+"paywall.libraryPromotion.message" = "Crea una biblioteca más grande con generación ilimitada de historias";

@@ -1,0 +1,541 @@
+/* 
+   Localizable.strings
+   Magical Stories
+   
+   Japanese localization for R.swift
+   Auto-translated with Gemini CLI - Review and refine as needed
+*/
+
+// MARK: - Navigation & Tabs
+"navigation.home" = "ホーム";
+"navigation.library" = "ライブラリ";
+"navigation.collections" = "コレクション";
+"navigation.settings" = "設定";
+"navigation.back" = "戻る";
+"navigation.close" = "閉じる";
+"navigation.done" = "完了";
+"navigation.cancel" = "キャンセル";
+"navigation.save" = "保存";
+"navigation.edit" = "編集";
+"navigation.delete" = "削除";
+
+// MARK: - General Actions
+"action.create" = "作成";
+"action.retry" = "再試行";
+"action.tryAgain" = "もう一度試す";
+"action.share" = "共有";
+"action.copy" = "コピー";
+"action.paste" = "ペースト";
+"action.cut" = "カット";
+"action.undo" = "取り消す";
+"action.redo" = "やり直す";
+"action.select" = "選択";
+"action.selectAll" = "すべて選択";
+"action.clear" = "消去";
+"action.reset" = "リセット";
+"action.refresh" = "更新";
+"action.reload" = "再読み込み";
+"action.continue" = "続ける";
+"action.skip" = "スキップ";
+"action.next" = "次へ";
+"action.previous" = "前へ";
+"action.start" = "開始";
+"action.stop" = "停止";
+
+// MARK: - Home Screen
+"home.welcomeBack" = "おかえりなさい！";
+"home.welcomeBackWithName" = "おかえりなさい、%@！";
+"home.subtitle" = "今日はどんな魔法の物語を作る？";
+"home.createStory.title" = "新しい物語を作る";
+"home.createStory.subtitle" = "おやすみ前の冒険をパーソナライズ";
+"home.createStory.button" = "始める";
+"home.collections.title" = "成長パスコレクション";
+"home.createCollection.title" = "成長コレクションを作成";
+"home.createCollection.subtitle" = "テーマ別の物語セットでお子様の成長をサポート";
+"home.createCollection.button" = "コレクションを作成";
+"home.library.title" = "あなたの物語ライブラリ";
+"home.library.viewAll" = "すべての物語を見る";
+"home.tip" = "ヒント：一緒に読むと、魔法のような思い出が生まれるよ！";
+
+// MARK: - Story Form
+"storyForm.title" = "物語を作成";
+"storyForm.header" = "魔法の物語クリエイター";
+"storyForm.loading.title" = "魔法の物語を作成中...";
+"storyForm.loading.subtitle" = "%@のために、魔法と不思議を織りなしています...";
+"storyForm.error.title" = "物語作成エラー";
+"storyForm.error.message" = "物語を作成できませんでした：%@\n\n後でもう一度お試しください。";
+"storyForm.create.header" = "魔法を作成";
+"storyForm.create.subtitle" = "魔法の物語をパーソナライズ";
+"storyForm.childName.label" = "お子様の名前";
+"storyForm.childName.placeholder" = "お子様の名前を入力";
+"storyForm.character.label" = "好きなキャラクター";
+"storyForm.character.placeholder" = "キャラクターを入力（ドラゴン、お姫様など）";
+"storyForm.ageRange.label" = "年齢層";
+"storyForm.theme.label" = "物語のテーマ";
+"storyForm.length.label" = "物語の長さ";
+"storyForm.length.short" = "短い";
+"storyForm.length.medium" = "普通";
+"storyForm.length.long" = "長い";
+"storyForm.language.label" = "物語の言語";
+"storyForm.generating" = "魔法を作成中...";
+"storyForm.generate.button" = "魔法の物語を生成";
+
+// MARK: - Character Options
+"character.dragon" = "ドラゴン";
+"character.princess" = "お姫様";
+"character.knight" = "騎士";
+"character.wizard" = "魔法使い";
+"character.fairy" = "妖精";
+"character.unicorn" = "ユニコーン";
+"character.pirate" = "海賊";
+"character.astronaut" = "宇宙飛行士";
+"character.detective" = "探偵";
+"character.superhero" = "スーパーヒーロー";
+"character.animal" = "動物の友達";
+"character.robot" = "ロボット";
+
+// MARK: - Story Themes
+"theme.adventure" = "冒険";
+"theme.friendship" = "友情";
+"theme.learning" = "学び";
+"theme.courage" = "勇気";
+"theme.kindness" = "優しさ";
+"theme.mystery" = "ミステリー";
+"theme.magic" = "魔法";
+"theme.family" = "家族";
+"theme.nature" = "自然";
+"theme.space" = "宇宙";
+"theme.ocean" = "海";
+"theme.fantasy" = "ファンタジー";
+
+// MARK: - Age Groups
+"ageGroup.preschool" = "3〜5歳";
+"ageGroup.earlyReader" = "6〜8歳";
+"ageGroup.middleGrade" = "9〜12歳";
+
+// MARK: - Library Screen
+"library.title" = "ライブラリ";
+"library.sortBy" = "並べ替え：";
+"library.sort.newest" = "新しい順";
+"library.sort.oldest" = "古い順";
+"library.sort.alphabetical" = "あいうえお順";
+"library.sort.mostRead" = "最も読まれた順";
+"library.search.placeholder" = "物語を検索...";
+"library.empty.title" = "ライブラリは空です";
+"library.empty.message" = "ホームタブで最初の魔法の物語を作成してください";
+"library.noResults.title" = "物語が見つかりません";
+"library.noResults.message" = "検索条件またはフィルターを調整してみてください";
+"library.category.fantasy" = "ファンタジー";
+"library.category.animals" = "動物";
+"library.category.bedtime" = "おやすみ";
+"library.category.adventure" = "冒険";
+
+// MARK: - Story Detail & Reading
+"storyDetail.title" = "物語の詳細";
+"storyDetail.readingTime" = "読書時間：%@分";
+"storyDetail.pages" = "%dページ";
+"storyDetail.created" = "作成日：%@";
+"storyDetail.lastRead" = "最終閲覧日：%@";
+"storyDetail.read" = "物語を読む";
+"storyDetail.share" = "物語を共有";
+"storyDetail.delete" = "物語を削除";
+"storyDetail.edit" = "物語を編集";
+"storyReading.page" = "%d/%dページ";
+"storyReading.nextPage" = "次のページ";
+"storyReading.previousPage" = "前のページ";
+"storyReading.readAloud" = "読み上げ";
+"storyReading.pauseReading" = "読み上げを一時停止";
+"storyReading.bookmarkPage" = "このページをブックマーク";
+"storyReading.fontSize" = "フォントサイズ";
+"storyReading.nightMode" = "ナイトモード";
+"storyReading.fullscreen" = "フルスクリーン";
+"storyReading.exitFullscreen" = "フルスクリーンを終了";
+"storyReading.completed" = "物語が完了しました！";
+"storyReading.congratulations" = "物語を読み終えておめでとうございます！";
+"storyReading.readAnother" = "別の物語を読む";
+"storyReading.backToLibrary" = "ライブラリに戻る";
+
+// MARK: - Collections
+"collections.title" = "コレクション";
+"collections.progress" = "%d/%dの物語が完了";
+"collections.unlock" = "コレクションをアンロック";
+"collections.locked" = "プレミアムコレクション";
+"collections.complete" = "コレクション完了！";
+"collections.inProgress" = "進行中";
+"collections.notStarted" = "未開始";
+"collectionForm.title" = "成長コレクションを作成";
+"collectionForm.header" = "成長コレクション";
+"collectionForm.subtitle" = "成長のためのパーソナライズされた物語";
+"collectionForm.ageGroup.label" = "年齢層";
+"collectionForm.childName.label" = "お子様の名前（任意）";
+"collectionForm.childName.placeholder" = "お子様の名前を入力";
+"collectionForm.characters.label" = "キャラクター（任意）";
+"collectionForm.characters.placeholder" = "ドラゴン、ユニコーン、魔法使いなど...";
+"collectionForm.characters.hint" = "複数のキャラクターはコンマで区切ってください";
+"collectionForm.interests.label" = "お子様の興味（必須）";
+"collectionForm.interests.placeholder" = "宇宙、恐竜、バレエなど...";
+"collectionForm.createButton" = "コレクションを作成";
+"collectionForm.error.title" = "コレクション作成エラー";
+"collectionForm.error.unknown" = "不明なエラーが発生しました。";
+"collectionForm.error.interests" = "お子様の興味を入力してください。";
+"collectionForm.error.generation" = "コレクションの生成に失敗しました：%@";
+
+// MARK: - Growth Categories
+"growthCategory.emotionalIntelligence" = "心の知能";
+"growthCategory.cognitiveDevelopment" = "認知発達";
+"growthCategory.socialSkills" = "社会性";
+"growthCategory.creativity" = "創造性と想像力";
+"growthCategory.problemSolving" = "問題解決";
+"growthCategory.resilience" = "回復力と粘り強さ";
+"growthCategory.kindness" = "優しさと共感";
+"growthCategory.curiosity" = "好奇心と探求心";
+"growthCategory.cooperation" = "分かち合いと協力";
+"growthCategory.coping" = "回復力と対処法";
+
+// MARK: - Settings
+"settings.title" = "設定";
+"settings.profile.title" = "プロフィール";
+"settings.profile.subtitle" = "アカウントを管理";
+"settings.subscription.title" = "サブスクリプション";
+"settings.subscription.subtitle" = "プランを管理";
+"settings.about.title" = "このアプリについて";
+"settings.about.subtitle" = "アプリ情報";
+"settings.parentalControls.title" = "保護者による制限";
+"settings.parentalControls.subtitle" = "コンテンツフィルターと安全性";
+"settings.privacy.title" = "プライバシー";
+"settings.privacy.subtitle" = "データとプライバシー設定";
+"settings.support.title" = "サポート";
+"settings.support.subtitle" = "ヘルプとフィードバック";
+"settings.termsOfService" = "利用規約";
+"settings.privacyPolicy" = "プライバシーポリシー";
+"settings.version" = "バージョン %@";
+"settings.build" = "ビルド %@";
+"settings.copyright" = "© 2024 Magical Stories";
+"settings.madeWith" = "家族のために❤️を込めて作られました";
+"settings.contact" = "お問い合わせ";
+"settings.feedback" = "フィードバックを送信";
+"settings.rateApp" = "アプリを評価";
+"settings.shareApp" = "アプリを共有";
+"settings.restorePurchases" = "購入を復元";
+"settings.signOut" = "サインアウト";
+"settings.deleteAccount" = "アカウントを削除";
+"settings.notifications" = "通知";
+"settings.language" = "言語";
+"settings.accessibility" = "アクセシビリティ";
+"settings.dataUsage" = "データ使用量";
+"settings.offlineMode" = "オフラインモード";
+
+// MARK: - Subscription & Paywall
+"paywall.title" = "プランを選択";
+"paywall.subtitle" = "無制限の魔法の物語をアンロック";
+"paywall.loading" = "サブスクリプションオプションを読み込み中...";
+"paywall.error.loading" = "サブスクリプションオプションを読み込めません";
+"paywall.feature.unlimitedStories" = "無制限の物語生成";
+"paywall.feature.growthCollections" = "成長パスコレクション";
+"paywall.feature.illustrations" = "高度なイラスト機能";
+"paywall.feature.profiles" = "複数のお子様プロフィール";
+"paywall.feature.analytics" = "保護者による制限と分析";
+"paywall.feature.priority" = "優先生成速度";
+"paywall.feature.trial" = "7日間無料トライアル";
+"paywall.trust.secure" = "安全な支払い";
+"paywall.trust.cancel" = "いつでもキャンセル可能";
+"paywall.trust.noFees" = "隠れた料金なし";
+"paywall.restore" = "購入を復元";
+"paywall.terms" = "利用規約";
+"paywall.privacy" = "プライバシーポリシー";
+"paywall.selectPlan" = "プランを選択";
+"paywall.startTrial" = "%@を開始";
+"paywall.subscribeFor" = "%@で購読";
+"paywall.usageLimit.title" = "今月の利用制限に達しました";
+"paywall.usageLimit.message" = "無制限の物語生成にはプレミアムにアップグレードしてください";
+"paywall.feature.title" = "プレミアム機能";
+"paywall.feature.message" = "この機能はプレミアムサブスクリプションで利用可能です";
+"paywall.onboarding.title" = "Magical Storiesプレミアムへようこそ";
+"paywall.onboarding.message" = "無料トライアルを開始して、すべてのプレミアム機能をアンロックしましょう";
+"paywall.upgrade.title" = "プレミアムにアップグレード";
+"paywall.upgrade.message" = "無制限の物語と限定機能を手に入れよう";
+
+// MARK: - Promo Codes
+"promoCode.title" = "プロモーションコード";
+"promoCode.subtitle" = "特別オファーを引き換える";
+"promoCode.entry.title" = "プロモーションコードを引き換える";
+"promoCode.entry.subtitle" = "プロモーションコードを入力してプレミアム機能をアンロック";
+"promoCode.entry.placeholder" = "コードを入力";
+"promoCode.entry.help.title" = "ヘルプが必要ですか？";
+"promoCode.entry.help.format" = "プロモーションコードは12文字です";
+"promoCode.entry.help.pattern" = "形式：XX-XXXX-XXXX-XX";
+"promoCode.entry.help.support" = "サポートが必要な場合はお問い合わせください";
+"promoCode.button.redeem" = "コードを引き換える";
+"promoCode.button.validating" = "検証中...";
+"promoCode.button.addAnother" = "別のコードを追加";
+"promoCode.haveCode" = "プロモーションコードをお持ちですか？";
+"promoCode.description" = "プロモーションコードでプレミアム機能をアンロック";
+"promoCode.success.title" = "コードが正常に引き換えられました！";
+"promoCode.success.message" = "これで以下にアクセスできます：%@";
+"promoCode.active.title" = "有効なプロモーションコード";
+"promoCode.remove.title" = "プロモーションコードを削除";
+"promoCode.remove.message" = "このプロモーションコードを削除してもよろしいですか？提供される機能へのアクセスを失います。";
+"promoCode.remove.button" = "削除";
+"promoCode.status.active" = "有効";
+"promoCode.status.expired" = "期限切れ";
+"promoCode.status.usageLimitReached" = "利用制限に達しました";
+"promoCode.timeRemaining.days" = "残り%d日";
+"promoCode.timeRemaining.neverExpires" = "期限なし";
+"promoCode.usage.remaining" = "残り利用回数：%d/%d";
+"promoCode.inputHelp.characters" = "%d/%d文字";
+"promoCode.inputHelp.ready" = "検証準備完了";
+"promoCode.inputHelp.tooLong" = "長すぎます（%d/%d文字）";
+
+// MARK: - Access Code Types
+"accessCode.type.reviewer" = "レビュアーアクセス";
+"accessCode.type.press" = "プレスアクセス";
+"accessCode.type.demo" = "デモアクセス";
+"accessCode.type.unlimited" = "無制限アクセス";
+"accessCode.type.specialAccess" = "特別アクセス";
+
+// MARK: - Access Code Errors
+"accessCode.error.invalidFormat" = "アクセスコードの形式が無効です";
+"accessCode.error.codeNotFound" = "アクセスコードが見つからないか無効です";
+"accessCode.error.codeExpired" = "アクセスコードは%@に期限切れになりました";
+"accessCode.error.usageLimitReached" = "アクセスコードの利用制限に達しました（%d回利用）";
+"accessCode.error.codeInactive" = "アクセスコードは有効ではありません";
+"accessCode.error.checksumMismatch" = "アクセスコードのチェックサム検証に失敗しました";
+"accessCode.error.networkError" = "ネットワークエラー：%@";
+"accessCode.error.unknown" = "不明なエラー：%@";
+
+// MARK: - Access Code Recovery Suggestions
+"accessCode.recovery.invalidFormat" = "アクセスコードの形式を確認してもう一度お試しください";
+"accessCode.recovery.codeNotFound" = "アクセスコードが正しいことを確認してください";
+"accessCode.recovery.codeExpired" = "新しいアクセスコードについてはサポートにお問い合わせください";
+"accessCode.recovery.usageLimitReached" = "このアクセスコードは利用制限に達しました";
+"accessCode.recovery.codeInactive" = "このアクセスコードは有効ではなくなりました";
+"accessCode.recovery.checksumMismatch" = "アクセスコードを慎重にもう一度入力してください";
+"accessCode.recovery.networkError" = "インターネット接続を確認してもう一度お試しください";
+"accessCode.recovery.unknown" = "もう一度お試しいただくか、サポートにお問い合わせください";
+"subscription.status.free" = "無料プラン";
+"subscription.status.monthlyExpires" = "プレミアム月額（%@に期限切れ）";
+"subscription.status.yearlyExpires" = "プレミアム年額（%@に期限切れ）";
+"subscription.status.expired" = "期限切れ（%@まで有効でした）";
+"subscription.status.pending" = "購入保留中";
+"subscription.renewal" = "%@に更新";
+"subscription.expiresOn" = "%@に期限切れ";
+"subscription.product.monthly" = "プレミアム月額";
+"subscription.product.yearly" = "プレミアム年額";
+
+// MARK: - Usage Limits
+"usage.storiesCount" = "今月の物語：%d/%d";
+"usage.unlimited" = "無制限の物語";
+"usage.limitReached.title" = "今月の無料物語をすべて使い切りました！";
+"usage.limitReached.message" = "無制限の魔法の冒険と限定機能にはプレミアムにアップグレードしてください";
+"usage.limitReached.header" = "利用制限に達しました";
+"usage.upgrade.button" = "プレミアムにアップグレード";
+"usage.maybeLater" = "後で";
+"usage.reset.tomorrow" = "物語の制限は明日リセットされます";
+"usage.reset.oneDay" = "物語の制限は1日でリセットされます";
+"usage.reset.days" = "物語の制限は%d日でリセットされます";
+"usage.feature.unlimited.desc" = "好きなだけ物語を作成";
+"usage.feature.collections.desc" = "発達のための物語セット";
+"usage.feature.profiles.desc" = "家族に最適";
+"usage.feature.priority.desc" = "待ち時間をスキップ";
+
+// MARK: - Illustrations
+"illustration.generating" = "イラストを生成中...";
+"illustration.error" = "イラストの生成に失敗しました";
+"illustration.retry" = "イラストを再試行";
+"illustration.style.whimsical" = "気まぐれ";
+"illustration.style.realistic" = "リアル";
+"illustration.style.cartoon" = "漫画";
+"illustration.style.watercolor" = "水彩";
+"illustration.style.sketchy" = "スケッチ風";
+"illustration.placeholder" = "イラストは近日公開...";
+"illustration.loading" = "魔法のアートワークを作成中...";
+"illustration.complete" = "イラスト準備完了！";
+"illustration.settings" = "イラスト設定";
+"illustration.quality" = "品質";
+"illustration.style" = "スタイル";
+
+// MARK: - Error Handling
+"error.network.title" = "接続エラー";
+"error.network.message" = "インターネット接続を確認してもう一度お試しください。";
+"error.ai.title" = "AIサービスエラー";
+"error.ai.message" = "現在コンテンツを生成できません。後でもう一度お試しください。";
+"error.storage.title" = "ストレージエラー";
+"error.storage.message" = "物語を保存できません。もう一度お試しください。";
+"error.subscription.title" = "サブスクリプションエラー";
+"error.subscription.message" = "サブスクリプションに問題が発生しました。もう一度お試しください。";
+"error.storyGeneration" = "物語の生成に失敗しました。もう一度お試しください。";
+"error.invalidParameters" = "指定されたパラメーターが無効でした。";
+"error.persistence" = "物語の保存または読み込みに失敗しました。";
+"error.productNotFound" = "App Storeで製品が見つかりません";
+"error.purchaseFailed" = "購入に失敗しました：%@";
+"error.verificationFailed" = "トランザクションの検証に失敗しました：%@";
+"error.pending" = "購入は承認待ちです";
+"error.unknown" = "不明なエラーが発生しました";
+"error.cancelled" = "購入がキャンセルされました";
+"error.notAllowed" = "購入が許可されていません";
+"error.retry" = "再試行";
+"error.dismiss" = "閉じる";
+"error.contactSupport" = "サポートに連絡";
+
+// MARK: - Loading & Success States
+"loading.creatingStory" = "魔法の物語を作成中...";
+"loading.generatingIllustration" = "美しいアートワークを生成中...";
+"loading.savingStory" = "物語を保存中...";
+"loading.loadingLibrary" = "物語を読み込み中...";
+"loading.processing" = "処理中...";
+"loading.pleaseWait" = "お待ちください...";
+"success.storyCreated" = "物語が正常に作成されました！";
+"success.storySaved" = "物語がライブラリに保存されました";
+"success.storyShared" = "物語が正常に共有されました";
+"success.subscriptionActivated" = "プレミアムサブスクリプションが有効になりました！";
+"success.purchaseComplete" = "購入が正常に完了しました";
+"success.restored" = "購入が正常に復元されました";
+
+// MARK: - Accessibility Labels
+"accessibility.homeTab" = "ホームタブ";
+"accessibility.libraryTab" = "ライブラリタブ";
+"accessibility.collectionsTab" = "コレクションタブ";
+"accessibility.settingsTab" = "設定タブ";
+"accessibility.storyCard" = "物語：%@";
+"accessibility.collectionCard" = "コレクション：%@";
+"accessibility.pageProgress" = "%d/%dページ";
+"accessibility.clearCharacter" = "好きなキャラクターをクリア";
+"accessibility.clearChildName" = "お子様の名前をクリア";
+"accessibility.clearCharacters" = "キャラクターをクリア";
+"accessibility.clearInterests" = "興味をクリア";
+"accessibility.viewAllStories" = "すべての物語を見る";
+"accessibility.playStory" = "物語を再生";
+"accessibility.pauseStory" = "物語を一時停止";
+"accessibility.nextPage" = "次のページ";
+"accessibility.previousPage" = "前のページ";
+"accessibility.closeStory" = "物語を閉じる";
+
+// MARK: - Date & Time
+"time.now" = "今";
+"time.today" = "今日";
+"time.yesterday" = "昨日";
+"time.thisWeek" = "今週";
+"time.lastWeek" = "先週";
+"time.thisMonth" = "今月";
+"time.lastMonth" = "先月";
+"time.minutesAgo" = "%d分前";
+
+// MARK: - Validation Messages
+"validation.required" = "このフィールドは必須です";
+"validation.tooShort" = "少なくとも%d文字必要です";
+"validation.tooLong" = "%d文字以下である必要があります";
+"validation.invalidEmail" = "有効なメールアドレスを入力してください";
+"validation.invalidName" = "有効な名前を入力してください";
+"validation.noSpecialCharacters" = "特殊文字は使用できません";
+"validation.numbersOnly" = "数字のみ";
+"validation.lettersOnly" = "文字のみ";
+"validation.alphanumeric" = "文字と数字のみ";
+
+// MARK: - Confirmation Dialogs
+"confirm.deleteStory.title" = "物語を削除";
+"confirm.deleteStory.message" = "この物語を削除してもよろしいですか？この操作は元に戻せません。";
+"confirm.deleteCollection.title" = "コレクションを削除";
+"confirm.deleteCollection.message" = "このコレクションを削除してもよろしいですか？このコレクション内のすべての物語も削除されます。";
+"confirm.signOut.title" = "サインアウト";
+"confirm.signOut.message" = "サインアウトしてもよろしいですか？";
+"confirm.deleteAccount.title" = "アカウントを削除";
+"confirm.deleteAccount.message" = "アカウントを完全に削除してもよろしいですか？この操作は元に戻せません。";
+
+// MARK: - Premium Feature Gates
+"premium.required" = "プレミアムサブスクリプションが必要です";
+"premium.upgradeToAccess" = "この機能にアクセスするにはプレミアムにアップグレードしてください";
+"premium.trialAvailable" = "無料トライアルを開始";
+"premium.learnMore" = "プレミアムについて詳しく知る";
+"premium.features" = "プレミアム機能";
+"premium.benefits" = "プレミアム特典";
+
+// MARK: - Search & Filters
+"search.placeholder" = "検索...";
+"search.noResults" = "結果が見つかりません";
+"search.clearSearch" = "検索をクリア";
+"search.recentSearches" = "最近の検索";
+"filter.all" = "すべて";
+"filter.favorites" = "お気に入り";
+"filter.recent" = "最近";
+"filter.unread" = "未読";
+"filter.completed" = "完了";
+"filter.inProgress" = "進行中";
+
+// MARK: - Sharing
+"share.story" = "この魔法の物語をチェック！";
+"share.app" = "この素晴らしいアプリで魔法の物語を作ろう！";
+"share.collection" = "この成長コレクションを発見";
+"share.via" = "共有元";
+
+// MARK: - Notifications
+"notification.storyReady" = "物語の準備ができました！";
+"notification.newStoryAvailable" = "新しい物語があなたを待っています";
+"notification.reminderToRead" = "魔法の物語の時間だよ！";
+"notification.collectionComplete" = "コレクションが完了しました！";
+"notification.subscriptionExpiring" = "サブスクリプションの期限が間もなく切れます";
+"notification.subscriptionRenewed" = "サブスクリプションが正常に更新されました";
+
+// MARK: - App Metadata
+"app.name" = "Magical Stories";
+"app.tagline" = "AIを活用したお子様向けパーソナライズ物語";
+"app.description" = "お子様の成長に合わせて、魔法のようなパーソナライズされた物語を作成";
+"app.keywords" = "物語、子供、AI、教育、おやすみ";
+"app.category" = "教育＆エンターテイメント";
+"app.developer" = "Magical Storiesチーム";
+
+// MARK: - Subscription Savings
+"subscription.savings.percentage" = "月額プランより%d%%お得";
+"subscription.savings.fallback" = "月額プランより16%お得";
+
+// MARK: - Premium Features
+"premium.feature.unlimitedStories.title" = "物語を無制限に作成";
+"premium.feature.unlimitedStories.description" = "想像力の赴くままに、魔法の物語を好きなだけ作成できます";
+"premium.feature.unlimitedStories.unlock" = "魔法の物語を無制限に作成";
+"premium.feature.growthCollections.title" = "成長パスコレクション";
+"premium.feature.growthCollections.description" = "児童発達の専門家が考案した、成長を促す物語コレクションにアクセス";
+"premium.feature.growthCollections.unlock" = "成長を促す物語コレクションにアクセス";
+"premium.feature.profiles.title" = "複数のお子様プロフィール";
+"premium.feature.profiles.description" = "すべてのお子様向けに、パーソナライズされたプロフィールを作成";
+"premium.feature.profiles.unlock" = "すべてのお子様のプロフィールを追加";
+"premium.feature.illustrations.title" = "高度なイラスト";
+"premium.feature.illustrations.description" = "プレミアムな視覚的統一性と、強化されたイラスト品質";
+"premium.feature.illustrations.unlock" = "プレミアムな視覚的統一性を得る";
+"premium.feature.priority.title" = "優先生成";
+"premium.feature.priority.description" = "より速い物語生成で、待ち時間をスキップ";
+"premium.feature.priority.unlock" = "優先生成で待ち時間をスキップ";
+"premium.feature.offline.title" = "オフライン読書";
+"premium.feature.offline.description" = "インターネット接続なしで、お気に入りの物語を読む";
+"premium.feature.offline.unlock" = "インターネットなしで物語を読む";
+"premium.feature.analytics.title" = "保護者向け分析";
+"premium.feature.analytics.description" = "お子様の読書進捗と発達のマイルストーンを追跡";
+"premium.feature.analytics.unlock" = "お子様の読書進捗を追跡";
+"premium.feature.themes.title" = "カスタムテーマ";
+"premium.feature.themes.description" = "お子様の興味に合わせて、カスタム物語テーマを作成";
+"premium.feature.themes.unlock" = "カスタム物語テーマを作成";
+
+// MARK: - Free Tier Features
+"freeTier.feature.basicGeneration.title" = "基本の物語生成";
+"freeTier.feature.basicGeneration.description" = "月に%d個の物語を生成";
+"freeTier.feature.library.title" = "物語ライブラリ";
+"freeTier.feature.library.description" = "あなたの個人物語ライブラリにアクセス";
+"freeTier.feature.reading.title" = "基本の読書";
+"freeTier.feature.reading.description" = "標準機能で物語を読む";
+"freeTier.feature.profile.title" = "お子様プロフィール（1人分）";
+"freeTier.feature.profile.description" = "基本的なカスタマイズが可能な、お子様プロフィール（1人分）";
+"freeTier.feature.settings.title" = "基本設定";
+"freeTier.feature.settings.description" = "必須の保護者管理とアプリ設定";
+
+// MARK: - Error Recovery Suggestions
+"error.recovery.productNotFound" = "インターネット接続を確認して、もう一度お試しください";
+"error.recovery.purchaseFailed" = "お支払い方法を確認して、もう一度お試しください";
+"error.recovery.verificationFailed" = "この問題が解決しない場合は、サポートにお問い合わせください";
+"error.recovery.pending" = "購入処理中です。しばらくお待ちください";
+"error.recovery.unknown" = "もう一度お試しいただくか、サポートにお問い合わせください";
+"error.recovery.cancelled" = "購入はいつでも完了できます";
+"error.recovery.notAllowed" = "デバイスの制限または支払い設定を確認してください";
+
+// MARK: - Paywall Promotions
+"paywall.homePromotion.title" = "もっと魔法をアンロック";
+"paywall.homePromotion.message" = "プレミアムで物語を無制限に作成";
+"paywall.libraryPromotion.title" = "ライブラリを拡張";
+"paywall.libraryPromotion.message" = "無制限の物語生成で、より大きなライブラリを構築";

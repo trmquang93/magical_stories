@@ -1,0 +1,314 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:ios)
+
+platform :ios do
+  before_all do
+    setup_app_store_connect_api_key
+  end
+
+  # Custom function to handle App Store Connect API key setup with token validation
+  private_lane :setup_app_store_connect_api_key do
+    begin
+      # First, try to set up the API key
+      app_store_connect_api_key(
+        key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"],
+        issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
+        key_content: ENV["APP_STORE_CONNECT_API_KEY_KEY"],
+        is_key_content_base64: true,
+        duration: 1200, # 20 minutes
+        in_house: false
+      )
+      
+      # Test the API key by making a simple API call
+      UI.message "🔐 Testing App Store Connect API authentication..."
+      
+      # Try to fetch app information to validate the token
+      app_info = Spaceship::ConnectAPI::App.find(ENV["BUNDLE_IDENTIFIER"] || "com.qtm.magicalstories")
+      
+      if app_info
+        UI.success "✅ App Store Connect API authentication successful"
+        UI.message "📱 Found app: #{app_info.name} (#{app_info.bundle_id})"
+      else
+        UI.important "⚠️  App not found, but API key is valid"
+      end
+      
+    rescue => error
+      UI.error "❌ App Store Connect API authentication failed: #{error.message}"
+      
+      # Check if it's a token expiration or invalid key error
+      if error.message.include?("401") || error.message.include?("403") || error.message.include?("JWT")
+        UI.important "🔄 Attempting to refresh authentication..."
+        
+        # Clear any cached credentials
+        CredentialsManager::AppfileConfig.try_fetch_value(:app_store_connect_api_key_path)
+        
+        # Retry authentication with fresh token
+        app_store_connect_api_key(
+          key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"],
+          issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
+          key_content: ENV["APP_STORE_CONNECT_API_KEY_KEY"],
+          is_key_content_base64: true,
+          duration: 1200,
+          in_house: false
+        )
+        
+        UI.success "✅ Authentication refreshed successfully"
+      else
+        # Re-raise the error if it's not authentication-related
+        raise error
+      end
+    end
+  end
+
+  # Helper function to check if API key configuration is valid
+  private_lane :validate_api_key_config do
+    required_vars = [
+      "APP_STORE_CONNECT_API_KEY_KEY_ID",
+      "APP_STORE_CONNECT_API_KEY_ISSUER_ID", 
+      "APP_STORE_CONNECT_API_KEY_KEY"
+    ]
+    
+    missing_vars = required_vars.select { |var| ENV[var].nil? || ENV[var].empty? }
+    
+    unless missing_vars.empty?
+      UI.user_error! "❌ Missing required environment variables: #{missing_vars.join(', ')}"
+    end
+    
+    UI.success "✅ All required API key environment variables are present"
+  end
+
+  # Advanced token validation with better error handling
+  private_lane :validate_app_store_connect_token do
+    begin
+      UI.message "🔍 Validating App Store Connect token..."
+      
+      # Test multiple API endpoints to ensure full access
+      tests = [
+        { name: "Apps", test: -> { Spaceship::ConnectAPI::App.all.first } },
+        { name: "Users", test: -> { Spaceship::ConnectAPI::User.all.first } },
+        { name: "App Info", test: -> { Spaceship::ConnectAPI::App.find(ENV["BUNDLE_IDENTIFIER"] || "com.qtm.magicalstories") } }
+      ]
+      
+      tests.each do |test_case|
+        begin
+          result = test_case[:test].call
+          if result
+            UI.success "✅ #{test_case[:name]} API access: Valid"
+          else
+            UI.important "⚠️  #{test_case[:name]} API access: No data returned (but token is valid)"
+          end
+        rescue => e
+          if e.message.include?("401") || e.message.include?("403")
+            UI.error "❌ #{test_case[:name]} API access: Unauthorized (token may be expired)"
+            return false
+          else
+            UI.important "⚠️  #{test_case[:name]} API access: #{e.message}"
+          end
+        end
+      end
+      
+      # Check token expiration time if possible
+      begin
+        # Decode JWT token to check expiration (if using JWT)
+        if ENV["APP_STORE_CONNECT_API_KEY_KEY"]
+          require 'base64'
+          require 'json'
+          
+          # This is a basic JWT decode - in production you might want to use the jwt gem
+          jwt_parts = ENV["APP_STORE_CONNECT_API_KEY_KEY"].split('.')
+          if jwt_parts.length >= 2
+            payload = JSON.parse(Base64.decode64(jwt_parts[1]))
+            exp_time = Time.at(payload['exp']) if payload['exp']
+            
+            if exp_time
+              time_until_expiry = exp_time - Time.now
+              if time_until_expiry > 0
+                UI.message "⏰ Token expires in #{(time_until_expiry / 60).round} minutes"
+              else
+                UI.error "❌ Token expired #{(-time_until_expiry / 60).round} minutes ago"
+                return false
+              end
+            end
+          end
+        end
+      rescue => e
+        UI.important "⚠️  Could not decode token expiration: #{e.message}"
+      end
+      
+      true
+    rescue => error
+      UI.error "❌ Token validation failed: #{error.message}"
+      false
+    end
+  end
+
+  desc "Push a new beta build to TestFlight"
+  lane :beta do
+    build_app(
+      project: "magical-stories.xcodeproj",
+      scheme: "magical-stories",
+      export_method: "app-store",
+      export_options: {
+        method: "app-store",
+        teamID: "WVYA86B7LC",
+        provisioningProfiles: {
+          "com.qtm.magicalstories" => "magicalstories_appstore"
+        }
+      }
+    )
+    upload_to_testflight
+  end
+
+  desc "Upload metadata to App Store Connect"
+  lane :upload_metadata do
+    deliver(
+      force: true,
+      skip_screenshots: true,
+      skip_binary_upload: true,
+      metadata_path: "./fastlane/metadata",
+      precheck_include_in_app_purchases: false,
+      run_precheck_before_submit: false,
+      ignore_language_directory_validation: true,
+      app_version: "1.2",
+      skip_app_version_update: true,
+      edit_live: false,
+      use_live_version: false
+    )
+  end
+
+  desc "Upload a new build to App Store Connect"
+  lane :upload_release do
+    build_app(
+      project: "magical-stories.xcodeproj",
+      scheme: "magical-stories",
+      export_method: "app-store",
+      export_options: {
+        method: "app-store",
+        teamID: "WVYA86B7LC",
+        provisioningProfiles: {
+          "com.qtm.magicalstories" => "magicalstories_appstore"
+        }
+      }
+    )
+    upload_to_app_store(
+      force: true,
+      skip_screenshots: true,
+      skip_metadata: true,
+      submit_for_review: false,
+      precheck_include_in_app_purchases: false
+    )
+  end
+
+  desc "Generate and upload screenshots"
+  lane :screenshots do
+    # capture_screenshots
+    upload_to_app_store(
+      force: true,
+      skip_binary_upload: true,
+      skip_metadata: true,
+      ignore_language_directory_validation: true,
+      overwrite_screenshots: true
+    )
+  end
+
+  desc "Submit existing build for App Store review"
+  lane :submit_for_review do
+    upload_to_app_store(
+      force: true,
+      submit_for_review: true,
+      skip_binary_upload: true,
+      skip_metadata: true,
+      skip_screenshots: true,
+      automatic_release: false,
+      run_precheck_before_submit: false,
+      precheck_include_in_app_purchases: false,
+      submission_information: {
+        add_id_info_limits_tracking: false,
+        add_id_info_serves_ads: false,
+        add_id_info_tracks_action: false,
+        add_id_info_tracks_install: false,
+        add_id_info_uses_idfa: false,
+        content_rights_has_rights: true,
+        content_rights_contains_third_party_content: false,
+        export_compliance_platform: 'ios',
+        export_compliance_compliance_required: false,
+        export_compliance_encryption_updated: false,
+        export_compliance_app_type: nil,
+        export_compliance_uses_encryption: false,
+        export_compliance_is_exempt: false,
+        export_compliance_contains_third_party_cryptography: false,
+        export_compliance_contains_proprietary_cryptography: false,
+        export_compliance_available_on_french_store: false
+      }
+    )
+  end
+
+  desc "Complete App Store submission"
+  lane :release do
+    build_app(workspace: "magical-stories.xcodeproj/project.xcworkspace")
+    upload_to_app_store(
+      force: true,
+      submit_for_review: true,
+      automatic_release: false,
+      submission_information: {
+        add_id_info_limits_tracking: false,
+        add_id_info_serves_ads: false,
+        add_id_info_tracks_action: false,
+        add_id_info_tracks_install: false,
+        add_id_info_uses_idfa: false,
+        content_rights_has_rights: true,
+        content_rights_contains_third_party_content: false,
+        export_compliance_platform: 'ios',
+        export_compliance_compliance_required: false,
+        export_compliance_encryption_updated: false,
+        export_compliance_app_type: nil,
+        export_compliance_uses_encryption: false,
+        export_compliance_is_exempt: false,
+        export_compliance_contains_third_party_cryptography: false,
+        export_compliance_contains_proprietary_cryptography: false,
+        export_compliance_available_on_french_store: false
+      }
+    )
+  end
+
+  desc "Sync code signing certificates and provisioning profiles"
+  lane :certificates do
+    match(type: "development")
+    match(type: "appstore")
+  end
+
+  desc "Test App Store Connect API authentication"
+  lane :test_auth do
+    validate_api_key_config
+    setup_app_store_connect_api_key
+    UI.success "🎉 Authentication test completed successfully!"
+  end
+
+  desc "Setup App Store Connect for new app"
+  lane :setup_app_store do
+    produce(
+      app_name: "Magical Stories",
+      language: "English", 
+      app_version: "1.0",
+      sku: "magical-stories-app",
+      app_identifier: ENV["BUNDLE_IDENTIFIER"],
+      skip_devcenter: true,  # Skip Developer Center, only create in App Store Connect
+      skip_itc: false,       # Don't skip iTunes Connect
+      itc_team_id: ENV["ITC_TEAM_ID"]
+    )
+  end
+end

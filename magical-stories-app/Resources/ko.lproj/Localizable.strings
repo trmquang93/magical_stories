@@ -1,0 +1,541 @@
+/* 
+   Localizable.strings
+   Magical Stories
+   
+   Korean localization for R.swift
+   Auto-translated with Gemini CLI - Review and refine as needed
+*/
+
+// MARK: - Navigation & Tabs
+"navigation.home" = "홈";
+"navigation.library" = "라이브러리";
+"navigation.collections" = "컬렉션";
+"navigation.settings" = "설정";
+"navigation.back" = "뒤로";
+"navigation.close" = "닫기";
+"navigation.done" = "완료";
+"navigation.cancel" = "취소";
+"navigation.save" = "저장";
+"navigation.edit" = "편집";
+"navigation.delete" = "삭제";
+
+// MARK: - General Actions
+"action.create" = "생성";
+"action.retry" = "다시 시도";
+"action.tryAgain" = "다시 시도";
+"action.share" = "공유";
+"action.copy" = "복사";
+"action.paste" = "붙여넣기";
+"action.cut" = "잘라내기";
+"action.undo" = "실행 취소";
+"action.redo" = "다시 실행";
+"action.select" = "선택";
+"action.selectAll" = "모두 선택";
+"action.clear" = "지우기";
+"action.reset" = "초기화";
+"action.refresh" = "새로 고침";
+"action.reload" = "다시 로드";
+"action.continue" = "계속";
+"action.skip" = "건너뛰기";
+"action.next" = "다음";
+"action.previous" = "이전";
+"action.start" = "시작";
+"action.stop" = "중지";
+
+// MARK: - Home Screen
+"home.welcomeBack" = "다시 오신 것을 환영해요!";
+"home.welcomeBackWithName" = "다시 오신 것을 환영해요, %@님!";
+"home.subtitle" = "오늘은 어떤 마법 같은 이야기를 만들까요?";
+"home.createStory.title" = "새로운 이야기 만들기";
+"home.createStory.subtitle" = "나만의 잠자리 모험을 만들어 보세요";
+"home.createStory.button" = "시작하기";
+"home.collections.title" = "성장 경로 컬렉션";
+"home.createCollection.title" = "성장 컬렉션 만들기";
+"home.createCollection.subtitle" = "테마별 이야기 세트로 아이의 성장을 이끌어 주세요";
+"home.createCollection.button" = "컬렉션 만들기";
+"home.library.title" = "나의 이야기 라이브러리";
+"home.library.viewAll" = "모든 이야기 보기";
+"home.tip" = "팁: 함께 읽는 시간은 마법 같은 추억을 만들어요!";
+
+// MARK: - Story Form
+"storyForm.title" = "이야기 만들기";
+"storyForm.header" = "마법 이야기 생성기";
+"storyForm.loading.title" = "마법 같은 이야기를 만들고 있어요...";
+"storyForm.loading.subtitle" = "%@님을 위한 마법과 경이로움을 엮고 있어요...";
+"storyForm.error.title" = "이야기 생성 오류";
+"storyForm.error.message" = "이야기를 만들 수 없었어요: %@\n\n나중에 다시 시도해 주세요.";
+"storyForm.create.header" = "마법 만들기";
+"storyForm.create.subtitle" = "나만의 마법 같은 이야기를 만들어 보세요";
+"storyForm.childName.label" = "아이 이름";
+"storyForm.childName.placeholder" = "아이 이름을 입력하세요";
+"storyForm.character.label" = "좋아하는 캐릭터";
+"storyForm.character.placeholder" = "캐릭터를 입력하세요 (용, 공주 등)";
+"storyForm.ageRange.label" = "연령대";
+"storyForm.theme.label" = "이야기 테마";
+"storyForm.length.label" = "이야기 길이";
+"storyForm.length.short" = "짧게";
+"storyForm.length.medium" = "보통";
+"storyForm.length.long" = "길게";
+"storyForm.language.label" = "이야기 언어";
+"storyForm.generating" = "마법을 만들고 있어요...";
+"storyForm.generate.button" = "마법 이야기 생성하기";
+
+// MARK: - Character Options
+"character.dragon" = "용";
+"character.princess" = "공주";
+"character.knight" = "기사";
+"character.wizard" = "마법사";
+"character.fairy" = "요정";
+"character.unicorn" = "유니콘";
+"character.pirate" = "해적";
+"character.astronaut" = "우주비행사";
+"character.detective" = "탐정";
+"character.superhero" = "슈퍼히어로";
+"character.animal" = "동물 친구";
+"character.robot" = "로봇";
+
+// MARK: - Story Themes
+"theme.adventure" = "모험";
+"theme.friendship" = "우정";
+"theme.learning" = "학습";
+"theme.courage" = "용기";
+"theme.kindness" = "친절";
+"theme.mystery" = "미스터리";
+"theme.magic" = "마법";
+"theme.family" = "가족";
+"theme.nature" = "자연";
+"theme.space" = "우주";
+"theme.ocean" = "바다";
+"theme.fantasy" = "판타지";
+
+// MARK: - Age Groups
+"ageGroup.preschool" = "3-5세";
+"ageGroup.earlyReader" = "6-8세";
+"ageGroup.middleGrade" = "9-12세";
+
+// MARK: - Library Screen
+"library.title" = "라이브러리";
+"library.sortBy" = "정렬 기준:";
+"library.sort.newest" = "최신순";
+"library.sort.oldest" = "오래된순";
+"library.sort.alphabetical" = "가나다순";
+"library.sort.mostRead" = "가장 많이 읽은 순";
+"library.search.placeholder" = "이야기 검색...";
+"library.empty.title" = "라이브러리가 비어 있어요";
+"library.empty.message" = "홈 탭에서 첫 번째 마법 이야기를 만들어 보세요";
+"library.noResults.title" = "이야기를 찾을 수 없어요";
+"library.noResults.message" = "검색 또는 필터를 조정해 보세요";
+"library.category.fantasy" = "판타지";
+"library.category.animals" = "동물";
+"library.category.bedtime" = "잠자리";
+"library.category.adventure" = "모험";
+
+// MARK: - Story Detail & Reading
+"storyDetail.title" = "이야기 상세 정보";
+"storyDetail.readingTime" = "읽는 시간: %@분";
+"storyDetail.pages" = "%d페이지";
+"storyDetail.created" = "%@ 생성됨";
+"storyDetail.lastRead" = "마지막으로 읽은 날: %@";
+"storyDetail.read" = "이야기 읽기";
+"storyDetail.share" = "이야기 공유";
+"storyDetail.delete" = "이야기 삭제";
+"storyDetail.edit" = "이야기 편집";
+"storyReading.page" = "%d/%d 페이지";
+"storyReading.nextPage" = "다음 페이지";
+"storyReading.previousPage" = "이전 페이지";
+"storyReading.readAloud" = "소리 내어 읽기";
+"storyReading.pauseReading" = "읽기 일시 중지";
+"storyReading.bookmarkPage" = "이 페이지 북마크";
+"storyReading.fontSize" = "글자 크기";
+"storyReading.nightMode" = "야간 모드";
+"storyReading.fullscreen" = "전체 화면";
+"storyReading.exitFullscreen" = "전체 화면 종료";
+"storyReading.completed" = "이야기 완료!";
+"storyReading.congratulations" = "이야기를 끝까지 읽어주셔서 축하해요!";
+"storyReading.readAnother" = "다른 이야기 읽기";
+"storyReading.backToLibrary" = "라이브러리로 돌아가기";
+
+// MARK: - Collections
+"collections.title" = "컬렉션";
+"collections.progress" = "%d/%d 이야기 완료";
+"collections.unlock" = "컬렉션 잠금 해제";
+"collections.locked" = "프리미엄 컬렉션";
+"collections.complete" = "컬렉션 완료!";
+"collections.inProgress" = "진행 중";
+"collections.notStarted" = "시작 안 함";
+"collectionForm.title" = "성장 컬렉션 만들기";
+"collectionForm.header" = "성장 컬렉션";
+"collectionForm.subtitle" = "성장을 위한 맞춤형 이야기";
+"collectionForm.ageGroup.label" = "연령대";
+"collectionForm.childName.label" = "아이 이름 (선택 사항)";
+"collectionForm.childName.placeholder" = "아이 이름을 입력하세요";
+"collectionForm.characters.label" = "캐릭터 (선택 사항)";
+"collectionForm.characters.placeholder" = "용, 유니콘, 마법사...";
+"collectionForm.characters.hint" = "여러 캐릭터는 쉼표로 구분하세요";
+"collectionForm.interests.label" = "아이의 관심사 (필수)";
+"collectionForm.interests.placeholder" = "우주, 공룡, 발레...";
+"collectionForm.createButton" = "컬렉션 만들기";
+"collectionForm.error.title" = "컬렉션 생성 오류";
+"collectionForm.error.unknown" = "알 수 없는 오류가 발생했어요.";
+"collectionForm.error.interests" = "아이의 관심사를 입력해 주세요.";
+"collectionForm.error.generation" = "컬렉션 생성에 실패했어요: %@";
+
+// MARK: - Growth Categories
+"growthCategory.emotionalIntelligence" = "정서 지능";
+"growthCategory.cognitiveDevelopment" = "인지 발달";
+"growthCategory.socialSkills" = "사회성";
+"growthCategory.creativity" = "창의력 및 상상력";
+"growthCategory.problemSolving" = "문제 해결";
+"growthCategory.resilience" = "회복 탄력성 및 끈기";
+"growthCategory.kindness" = "친절 및 공감";
+"growthCategory.curiosity" = "호기심 및 탐구";
+"growthCategory.cooperation" = "나눔 및 협력";
+"growthCategory.coping" = "회복 탄력성 및 대처";
+
+// MARK: - Settings
+"settings.title" = "설정";
+"settings.profile.title" = "프로필";
+"settings.profile.subtitle" = "계정 관리";
+"settings.subscription.title" = "구독";
+"settings.subscription.subtitle" = "요금제 관리";
+"settings.about.title" = "정보";
+"settings.about.subtitle" = "앱 정보";
+"settings.parentalControls.title" = "자녀 보호 기능";
+"settings.parentalControls.subtitle" = "콘텐츠 필터 및 안전";
+"settings.privacy.title" = "개인 정보 보호";
+"settings.privacy.subtitle" = "데이터 및 개인 정보 보호 설정";
+"settings.support.title" = "지원";
+"settings.support.subtitle" = "도움말 및 피드백";
+"settings.termsOfService" = "서비스 약관";
+"settings.privacyPolicy" = "개인 정보 처리 방침";
+"settings.version" = "버전 %@";
+"settings.build" = "빌드 %@";
+"settings.copyright" = "© 2024 Magical Stories";
+"settings.madeWith" = "가족을 위해 ❤️로 만들었어요";
+"settings.contact" = "문의하기";
+"settings.feedback" = "피드백 보내기";
+"settings.rateApp" = "앱 평가하기";
+"settings.shareApp" = "앱 공유하기";
+"settings.restorePurchases" = "구매 복원";
+"settings.signOut" = "로그아웃";
+"settings.deleteAccount" = "계정 삭제";
+"settings.notifications" = "알림";
+"settings.language" = "언어";
+"settings.accessibility" = "손쉬운 사용";
+"settings.dataUsage" = "데이터 사용량";
+"settings.offlineMode" = "오프라인 모드";
+
+// MARK: - Subscription & Paywall
+"paywall.title" = "요금제를 선택하세요";
+"paywall.subtitle" = "무제한 마법 이야기를 잠금 해제하세요";
+"paywall.loading" = "구독 옵션을 불러오는 중...";
+"paywall.error.loading" = "구독 옵션을 불러올 수 없어요";
+"paywall.feature.unlimitedStories" = "무제한 이야기 생성";
+"paywall.feature.growthCollections" = "성장 경로 컬렉션";
+"paywall.feature.illustrations" = "고급 일러스트 기능";
+"paywall.feature.profiles" = "여러 아이 프로필";
+"paywall.feature.analytics" = "자녀 보호 및 분석";
+"paywall.feature.priority" = "우선 생성 속도";
+"paywall.feature.trial" = "7일 무료 체험";
+"paywall.trust.secure" = "안전한 결제";
+"paywall.trust.cancel" = "언제든지 취소 가능";
+"paywall.trust.noFees" = "숨겨진 수수료 없음";
+"paywall.restore" = "구매 복원";
+"paywall.terms" = "서비스 약관";
+"paywall.privacy" = "개인 정보 처리 방침";
+"paywall.selectPlan" = "플랜 선택";
+"paywall.startTrial" = "%@ 시작하기";
+"paywall.subscribeFor" = "%@ 구독하기";
+"paywall.usageLimit.title" = "월간 사용량 한도에 도달했어요";
+"paywall.usageLimit.message" = "무제한 이야기 생성을 위해 프리미엄으로 업그레이드하세요";
+"paywall.feature.title" = "프리미엄 기능";
+"paywall.feature.message" = "이 기능은 프리미엄 구독으로 이용할 수 있어요";
+"paywall.onboarding.title" = "Magical Stories 프리미엄에 오신 것을 환영해요";
+"paywall.onboarding.message" = "무료 체험을 시작하고 모든 프리미엄 기능을 잠금 해제하세요";
+"paywall.upgrade.title" = "프리미엄으로 업그레이드";
+"paywall.upgrade.message" = "무제한 이야기와 독점 기능을 이용하세요";
+
+// MARK: - Promo Codes
+"promoCode.title" = "프로모션 코드";
+"promoCode.subtitle" = "특별 혜택 사용";
+"promoCode.entry.title" = "프로모션 코드 사용";
+"promoCode.entry.subtitle" = "프리미엄 기능을 잠금 해제하려면 프로모션 코드를 입력하세요";
+"promoCode.entry.placeholder" = "코드 입력";
+"promoCode.entry.help.title" = "도움이 필요하세요?";
+"promoCode.entry.help.format" = "프로모션 코드는 12자리입니다";
+"promoCode.entry.help.pattern" = "형식: XX-XXXX-XXXX-XX";
+"promoCode.entry.help.support" = "도움이 필요하면 지원팀에 문의하세요";
+"promoCode.button.redeem" = "코드 사용";
+"promoCode.button.validating" = "유효성 검사 중...";
+"promoCode.button.addAnother" = "다른 코드 추가";
+"promoCode.haveCode" = "프로모션 코드가 있으신가요?";
+"promoCode.description" = "프로모션 코드로 프리미엄 기능을 잠금 해제하세요";
+"promoCode.success.title" = "코드 사용 완료!";
+"promoCode.success.message" = "이제 다음 기능에 접근할 수 있어요: %@";
+"promoCode.active.title" = "활성 프로모션 코드";
+"promoCode.remove.title" = "프로모션 코드 제거";
+"promoCode.remove.message" = "이 프로모션 코드를 제거하시겠어요? 이 코드가 제공하는 기능에 대한 접근 권한을 잃게 됩니다.";
+"promoCode.remove.button" = "제거";
+"promoCode.status.active" = "활성";
+"promoCode.status.expired" = "만료됨";
+"promoCode.status.usageLimitReached" = "사용량 한도 도달";
+"promoCode.timeRemaining.days" = "%d일 남음";
+"promoCode.timeRemaining.neverExpires" = "만료되지 않음";
+"promoCode.usage.remaining" = "남은 사용 횟수: %d/%d";
+"promoCode.inputHelp.characters" = "%d/%d자";
+"promoCode.inputHelp.ready" = "유효성 검사 준비 완료";
+"promoCode.inputHelp.tooLong" = "너무 김 (%d/%d자)";
+
+// MARK: - Access Code Types
+"accessCode.type.reviewer" = "검토자 접근";
+"accessCode.type.press" = "언론 접근";
+"accessCode.type.demo" = "데모 접근";
+"accessCode.type.unlimited" = "무제한 접근";
+"accessCode.type.specialAccess" = "특별 접근";
+
+// MARK: - Access Code Errors
+"accessCode.error.invalidFormat" = "접근 코드 형식이 유효하지 않아요";
+"accessCode.error.codeNotFound" = "접근 코드를 찾을 수 없거나 유효하지 않아요";
+"accessCode.error.codeExpired" = "접근 코드가 %@에 만료되었어요";
+"accessCode.error.usageLimitReached" = "접근 코드 사용량 한도에 도달했어요 (%d회 사용)";
+"accessCode.error.codeInactive" = "접근 코드가 활성화되어 있지 않아요";
+"accessCode.error.checksumMismatch" = "접근 코드 체크섬 유효성 검사 실패";
+"accessCode.error.networkError" = "네트워크 오류: %@";
+"accessCode.error.unknown" = "알 수 없는 오류: %@";
+
+// MARK: - Access Code Recovery Suggestions
+"accessCode.recovery.invalidFormat" = "접근 코드 형식을 확인하고 다시 시도해 주세요";
+"accessCode.recovery.codeNotFound" = "접근 코드가 올바른지 확인해 주세요";
+"accessCode.recovery.codeExpired" = "새로운 접근 코드를 받으려면 지원팀에 문의해 주세요";
+"accessCode.recovery.usageLimitReached" = "이 접근 코드는 사용량 한도에 도달했어요";
+"accessCode.recovery.codeInactive" = "이 접근 코드는 더 이상 활성화되어 있지 않아요";
+"accessCode.recovery.checksumMismatch" = "접근 코드를 다시 정확히 입력해 주세요";
+"accessCode.recovery.networkError" = "인터넷 연결을 확인하고 다시 시도해 주세요";
+"accessCode.recovery.unknown" = "다시 시도하거나 지원팀에 문의해 주세요";
+"subscription.status.free" = "무료 요금제";
+"subscription.status.monthlyExpires" = "프리미엄 월간 (만료일: %@)";
+"subscription.status.yearlyExpires" = "프리미엄 연간 (만료일: %@)";
+"subscription.status.expired" = "만료됨 (활성 기간: %@까지)";
+"subscription.status.pending" = "구매 대기 중";
+"subscription.renewal" = "%@에 갱신";
+"subscription.expiresOn" = "%@에 만료";
+"subscription.product.monthly" = "프리미엄 월간";
+"subscription.product.yearly" = "프리미엄 연간";
+
+// MARK: - Usage Limits
+"usage.storiesCount" = "이번 달 이야기: %d/%d";
+"usage.unlimited" = "무제한 이야기";
+"usage.limitReached.title" = "이번 달 무료 이야기를 모두 사용했어요!";
+"usage.limitReached.message" = "무제한 마법 모험과 독점 기능을 위해 프리미엄으로 업그레이드하세요";
+"usage.limitReached.header" = "사용량 한도 도달";
+"usage.upgrade.button" = "프리미엄으로 업그레이드";
+"usage.maybeLater" = "나중에";
+"usage.reset.tomorrow" = "이야기 한도는 내일 초기화돼요";
+"usage.reset.oneDay" = "이야기 한도는 1일 후에 초기화돼요";
+"usage.reset.days" = "이야기 한도는 %d일 후에 초기화돼요";
+"usage.feature.unlimited.desc" = "원하는 만큼 이야기를 만들 수 있어요";
+"usage.feature.collections.desc" = "발달 단계별 이야기 세트";
+"usage.feature.profiles.desc" = "가족에게 완벽해요";
+"usage.feature.priority.desc" = "기다릴 필요 없어요";
+
+// MARK: - Illustrations
+"illustration.generating" = "일러스트를 생성 중...";
+"illustration.error" = "일러스트 생성 실패";
+"illustration.retry" = "일러스트 다시 시도";
+"illustration.style.whimsical" = "기발한";
+"illustration.style.realistic" = "사실적인";
+"illustration.style.cartoon" = "만화";
+"illustration.style.watercolor" = "수채화";
+"illustration.style.sketchy" = "스케치";
+"illustration.placeholder" = "일러스트가 곧 제공될 예정이에요...";
+"illustration.loading" = "마법 같은 그림을 만들고 있어요...";
+"illustration.complete" = "일러스트 준비 완료!";
+"illustration.settings" = "일러스트 설정";
+"illustration.quality" = "품질";
+"illustration.style" = "스타일";
+
+// MARK: - Error Handling
+"error.network.title" = "연결 오류";
+"error.network.message" = "인터넷 연결을 확인하고 다시 시도해 주세요.";
+"error.ai.title" = "AI 서비스 오류";
+"error.ai.message" = "지금은 콘텐츠를 생성할 수 없어요. 나중에 다시 시도해 주세요.";
+"error.storage.title" = "저장 공간 오류";
+"error.storage.message" = "이야기를 저장할 수 없어요. 다시 시도해 주세요.";
+"error.subscription.title" = "구독 오류";
+"error.subscription.message" = "구독에 문제가 발생했어요. 다시 시도해 주세요.";
+"error.storyGeneration" = "이야기 생성에 실패했어요. 다시 시도해 주세요.";
+"error.invalidParameters" = "제공된 매개변수가 유효하지 않아요.";
+"error.persistence" = "이야기를 저장하거나 불러오는 데 실패했어요.";
+"error.productNotFound" = "앱 스토어에서 제품을 찾을 수 없어요";
+"error.purchaseFailed" = "구매 실패: %@";
+"error.verificationFailed" = "거래 확인 실패: %@";
+"error.pending" = "구매 승인 대기 중";
+"error.unknown" = "알 수 없는 오류가 발생했어요";
+"error.cancelled" = "구매가 취소되었어요";
+"error.notAllowed" = "구매가 허용되지 않아요";
+"error.retry" = "다시 시도";
+"error.dismiss" = "닫기";
+"error.contactSupport" = "지원팀에 문의";
+
+// MARK: - Loading & Success States
+"loading.creatingStory" = "마법 같은 이야기를 만들고 있어요...";
+"loading.generatingIllustration" = "아름다운 그림을 생성 중...";
+"loading.savingStory" = "이야기를 저장 중...";
+"loading.loadingLibrary" = "이야기를 불러오는 중...";
+"loading.processing" = "처리 중...";
+"loading.pleaseWait" = "잠시 기다려 주세요...";
+"success.storyCreated" = "이야기가 성공적으로 생성되었어요!";
+"success.storySaved" = "이야기가 라이브러리에 저장되었어요";
+"success.storyShared" = "이야기가 성공적으로 공유되었어요";
+"success.subscriptionActivated" = "프리미엄 구독이 활성화되었어요!";
+"success.purchaseComplete" = "구매가 성공적으로 완료되었어요";
+"success.restored" = "구매가 성공적으로 복원되었어요";
+
+// MARK: - Accessibility Labels
+"accessibility.homeTab" = "홈 탭";
+"accessibility.libraryTab" = "라이브러리 탭";
+"accessibility.collectionsTab" = "컬렉션 탭";
+"accessibility.settingsTab" = "설정 탭";
+"accessibility.storyCard" = "이야기: %@";
+"accessibility.collectionCard" = "컬렉션: %@";
+"accessibility.pageProgress" = "%d/%d 페이지";
+"accessibility.clearCharacter" = "좋아하는 캐릭터 지우기";
+"accessibility.clearChildName" = "아이 이름 지우기";
+"accessibility.clearCharacters" = "캐릭터 지우기";
+"accessibility.clearInterests" = "관심사 지우기";
+"accessibility.viewAllStories" = "모든 이야기 보기";
+"accessibility.playStory" = "이야기 재생";
+"accessibility.pauseStory" = "이야기 일시 중지";
+"accessibility.nextPage" = "다음 페이지";
+"accessibility.previousPage" = "이전 페이지";
+"accessibility.closeStory" = "이야기 닫기";
+
+// MARK: - Date & Time
+"time.now" = "지금";
+"time.today" = "오늘";
+"time.yesterday" = "어제";
+"time.thisWeek" = "이번 주";
+"time.lastWeek" = "지난 주";
+"time.thisMonth" = "이번 달";
+"time.lastMonth" = "지난 달";
+"time.minutesAgo" = "%d분 전";
+
+// MARK: - Validation Messages
+"validation.required" = "이 필드는 필수 항목입니다";
+"validation.tooShort" = "최소 %d자 이상이어야 합니다";
+"validation.tooLong" = "최대 %d자 이하여야 합니다";
+"validation.invalidEmail" = "유효한 이메일 주소를 입력해 주세요";
+"validation.invalidName" = "유효한 이름을 입력해 주세요";
+"validation.noSpecialCharacters" = "특수 문자는 허용되지 않습니다";
+"validation.numbersOnly" = "숫자만";
+"validation.lettersOnly" = "문자만";
+"validation.alphanumeric" = "문자와 숫자만";
+
+// MARK: - Confirmation Dialogs
+"confirm.deleteStory.title" = "이야기 삭제";
+"confirm.deleteStory.message" = "이 이야기를 삭제하시겠어요? 이 작업은 되돌릴 수 없어요.";
+"confirm.deleteCollection.title" = "컬렉션 삭제";
+"confirm.deleteCollection.message" = "이 컬렉션을 삭제하시겠어요? 이 컬렉션의 모든 이야기도 삭제됩니다.";
+"confirm.signOut.title" = "로그아웃";
+"confirm.signOut.message" = "로그아웃하시겠어요?";
+"confirm.deleteAccount.title" = "계정 삭제";
+"confirm.deleteAccount.message" = "계정을 영구적으로 삭제하시겠어요? 이 작업은 되돌릴 수 없어요.";
+
+// MARK: - Premium Feature Gates
+"premium.required" = "프리미엄 구독 필요";
+"premium.upgradeToAccess" = "이 기능을 이용하려면 프리미엄으로 업그레이드하세요";
+"premium.trialAvailable" = "무료 체험 시작";
+"premium.learnMore" = "프리미엄에 대해 자세히 알아보기";
+"premium.features" = "프리미엄 기능";
+"premium.benefits" = "프리미엄 혜택";
+
+// MARK: - Search & Filters
+"search.placeholder" = "검색...";
+"search.noResults" = "검색 결과 없음";
+"search.clearSearch" = "검색 지우기";
+"search.recentSearches" = "최근 검색";
+"filter.all" = "전체";
+"filter.favorites" = "즐겨찾기";
+"filter.recent" = "최근";
+"filter.unread" = "읽지 않음";
+"filter.completed" = "완료됨";
+"filter.inProgress" = "진행 중";
+
+// MARK: - Sharing
+"share.story" = "이 마법 같은 이야기를 확인해 보세요!";
+"share.app" = "이 멋진 앱으로 마법 같은 이야기를 만들어 보세요!";
+"share.collection" = "이 성장 컬렉션을 발견해 보세요";
+"share.via" = "공유 방법";
+
+// MARK: - Notifications
+"notification.storyReady" = "이야기가 준비되었어요!";
+"notification.newStoryAvailable" = "새로운 이야기가 기다리고 있어요";
+"notification.reminderToRead" = "마법 같은 이야기를 읽을 시간이에요!";
+"notification.collectionComplete" = "컬렉션 완료!";
+"notification.subscriptionExpiring" = "구독 기간이 곧 만료돼요";
+"notification.subscriptionRenewed" = "구독이 성공적으로 갱신되었어요";
+
+// MARK: - App Metadata
+"app.name" = "Magical Stories";
+"app.tagline" = "AI 기반의 맞춤형 어린이 이야기";
+"app.description" = "아이와 함께 성장하는 마법 같은 맞춤형 이야기를 만들어 보세요";
+"app.keywords" = "이야기, 어린이, AI, 교육, 잠자리";
+"app.category" = "교육 및 엔터테인먼트";
+"app.developer" = "Magical Stories 팀";
+
+// MARK: - Subscription Savings
+"subscription.savings.percentage" = "월간 구독 대비 %d%% 절약";
+"subscription.savings.fallback" = "월간 구독 대비 16% 절약";
+
+// MARK: - Premium Features
+"premium.feature.unlimitedStories.title" = "무제한 이야기";
+"premium.feature.unlimitedStories.description" = "상상하는 만큼 Magical Stories를 무제한으로 만드세요";
+"premium.feature.unlimitedStories.unlock" = "무제한 Magical Stories 만들기";
+"premium.feature.growthCollections.title" = "성장 경로 컬렉션";
+"premium.feature.growthCollections.description" = "아동 발달 전문가가 설계한 발달 이야기 컬렉션에 액세스하세요";
+"premium.feature.growthCollections.unlock" = "발달 이야기 컬렉션 액세스";
+"premium.feature.profiles.title" = "다중 자녀 프로필";
+"premium.feature.profiles.description" = "모든 자녀를 위한 맞춤형 프로필을 만드세요";
+"premium.feature.profiles.unlock" = "모든 자녀 프로필 추가";
+"premium.feature.illustrations.title" = "고급 일러스트레이션";
+"premium.feature.illustrations.description" = "프리미엄 시각적 일관성과 향상된 일러스트레이션 품질을 경험하세요";
+"premium.feature.illustrations.unlock" = "프리미엄 시각적 일관성 확보";
+"premium.feature.priority.title" = "우선 생성";
+"premium.feature.priority.description" = "더 빠른 이야기 생성으로 기다림 없이 즐기세요";
+"premium.feature.priority.unlock" = "우선 생성으로 기다림 건너뛰기";
+"premium.feature.offline.title" = "오프라인 읽기";
+"premium.feature.offline.description" = "인터넷 연결 없이 좋아하는 이야기를 읽으세요";
+"premium.feature.offline.unlock" = "인터넷 없이 이야기 읽기";
+"premium.feature.analytics.title" = "부모님 분석";
+"premium.feature.analytics.description" = "자녀의 독서 진행 상황 및 발달 이정표를 추적하세요";
+"premium.feature.analytics.unlock" = "자녀의 독서 진행 상황 추적";
+"premium.feature.themes.title" = "맞춤 테마";
+"premium.feature.themes.description" = "자녀의 관심사에 맞춰 맞춤형 이야기 테마를 만드세요";
+"premium.feature.themes.unlock" = "맞춤 이야기 테마 만들기";
+
+// MARK: - Free Tier Features
+"freeTier.feature.basicGeneration.title" = "기본 이야기 생성";
+"freeTier.feature.basicGeneration.description" = "매월 %d개의 이야기 생성";
+"freeTier.feature.library.title" = "이야기 라이브러리";
+"freeTier.feature.library.description" = "개인 이야기 라이브러리에 액세스하세요";
+"freeTier.feature.reading.title" = "기본 읽기";
+"freeTier.feature.reading.description" = "표준 기능으로 이야기 읽기";
+"freeTier.feature.profile.title" = "단일 자녀 프로필";
+"freeTier.feature.profile.description" = "기본 맞춤 설정이 가능한 자녀 프로필 1개";
+"freeTier.feature.settings.title" = "기본 설정";
+"freeTier.feature.settings.description" = "필수 자녀 보호 기능 및 앱 설정";
+
+// MARK: - Error Recovery Suggestions
+"error.recovery.productNotFound" = "인터넷 연결을 확인하고 다시 시도해주세요";
+"error.recovery.purchaseFailed" = "결제 수단을 확인하고 다시 시도해주세요";
+"error.recovery.verificationFailed" = "문제가 계속되면 지원팀에 문의해주세요";
+"error.recovery.pending" = "구매가 처리 중입니다. 잠시 기다려주세요";
+"error.recovery.unknown" = "다시 시도하거나 지원팀에 문의해주세요";
+"error.recovery.cancelled" = "언제든지 구매를 완료할 수 있습니다";
+"error.recovery.notAllowed" = "기기 제한 또는 결제 설정을 확인해주세요";
+
+// MARK: - Paywall Promotions
+"paywall.homePromotion.title" = "더 많은 마법 잠금 해제";
+"paywall.homePromotion.message" = "프리미엄으로 무제한 이야기 만들기";
+"paywall.libraryPromotion.title" = "라이브러리 확장";
+"paywall.libraryPromotion.message" = "무제한 이야기 생성으로 더 큰 라이브러리 구축";

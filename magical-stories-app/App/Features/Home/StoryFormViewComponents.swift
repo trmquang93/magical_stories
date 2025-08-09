@@ -1,0 +1,384 @@
+import SwiftUI
+
+// MARK: - Form Field Components
+struct FormHeader: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @Binding var animateBackground: Bool
+
+    private var primaryGradient: LinearGradient {
+        UITheme.Colors.primaryGradient
+    }
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(R.string.localizable.storyFormCreateHeader())
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(
+                        colorScheme == .light
+                            ? Color(hex: "#7B61FF") : Color(hex: "#a78bfa"))
+
+                Text(R.string.localizable.storyFormCreateSubtitle())
+                    .font(.system(size: 16))
+                    .foregroundColor(
+                        Color(colorScheme == .light ? .black : .white).opacity(0.6))
+            }
+
+            Spacer()
+
+            // Animated magic wand icon
+            Image(systemName: "wand.and.stars")
+                .font(.system(size: 32))
+                .foregroundStyle(primaryGradient)
+                .rotationEffect(Angle(degrees: animateBackground ? 5 : -5))
+                .animation(
+                    Animation.easeInOut(duration: 2).repeatForever(
+                        autoreverses: true),
+                    value: animateBackground
+                )
+        }
+        .padding(.horizontal, UITheme.Spacing.lg)
+    }
+}
+
+struct ChildNameField: View {
+    @Binding var childName: String?
+
+    var body: some View {
+        FormFieldContainer {
+            Text(R.string.localizable.storyFormChildNameLabel())
+                .formSectionLabel(iconName: "person.fill")
+
+            TextField(
+                R.string.localizable.storyFormChildNamePlaceholder(),
+                text: Binding(
+                    get: { childName ?? "" },
+                    set: { childName = $0.isEmpty ? nil : $0 }
+                )
+            )
+            .formFieldStyle()
+            .submitLabel(.next)
+            .autocorrectionDisabled()
+            .accessibilityIdentifier("childNameTextField")
+        }
+    }
+}
+
+struct CharacterField: View {
+    @Binding var favoriteCharacter: String
+    let characterSuggestions: [String]
+    var focusedField: FocusState<StoryFormView.FormField?>.Binding? = nil
+
+    var body: some View {
+        FormFieldContainer {
+            Text(R.string.localizable.storyFormCharacterLabel())
+                .formSectionLabel(iconName: "heart.fill")
+
+            HStack {
+                TextField(R.string.localizable.storyFormCharacterPlaceholder(), text: $favoriteCharacter)
+                    .formFieldStyle()
+                    .submitLabel(.next)
+                    .autocorrectionDisabled()
+                    .accessibilityIdentifier("favoriteCharacterTextField")
+
+                if !favoriteCharacter.isEmpty {
+                    Button(action: {
+                        favoriteCharacter = ""
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                    }
+                    .buttonStyle(BorderlessButtonStyle())
+                    .transition(.opacity)
+                    .accessibilityLabel("Clear favorite character")
+                }
+            }
+
+            // Character suggestions
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: UITheme.Spacing.sm) {
+                    ForEach(characterSuggestions, id: \.self) { character in
+                        Button {
+                            favoriteCharacter = character
+                            focusedField?.wrappedValue = nil  // Dismiss keyboard when suggestion selected
+                        } label: {
+                            Text(character)
+                                .characterSuggestionStyle(
+                                    isSelected: favoriteCharacter == character)
+                        }
+                        .accessibilityIdentifier("character_\(character)")
+                    }
+                }
+                .padding(.vertical, 8)
+            }
+        }
+    }
+}
+
+struct AgeRangeField: View {
+    @Binding var selectedAgeRange: String
+    let ageRanges: [String]
+
+    var body: some View {
+        FormFieldContainer {
+            Text(R.string.localizable.storyFormAgeRangeLabel())
+                .formSectionLabel(iconName: "person.2.fill")
+
+            Picker(R.string.localizable.storyFormAgeRangeLabel(), selection: $selectedAgeRange) {
+                ForEach(ageRanges, id: \.self) { range in
+                    Text(range).tag(range)
+                }
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            .padding(.vertical, 8)
+        }
+    }
+}
+
+struct ThemeField: View {
+    @Binding var selectedTheme: StoryTheme
+    let storyThemes: [StoryTheme]
+
+    var body: some View {
+        FormFieldContainer {
+            Text(R.string.localizable.storyFormThemeLabel())
+                .formSectionLabel(iconName: "book.fill")
+
+            themeGrid
+        }
+    }
+
+    private var themeGrid: some View {
+        LazyVGrid(
+            columns: [GridItem(.flexible()), GridItem(.flexible())],
+            spacing: UITheme.Spacing.md
+        ) {
+            ForEach(storyThemes) { theme in
+                Button {
+                    selectedTheme = theme
+                } label: {
+                    themeGridItem(theme: theme)
+                }
+            }
+        }
+    }
+
+    private func themeGridItem(theme: StoryTheme) -> some View {
+        VStack {
+            Image(systemName: getIconName(for: theme))
+                .font(.system(size: 24))
+                .foregroundColor(.white)
+                .frame(width: 48, height: 48)
+                .background(
+                    Circle()
+                        .fill(
+                            selectedTheme == theme
+                                ? AnyShapeStyle(UITheme.Colors.primaryGradient)
+                                : AnyShapeStyle(Color(hex: "#A3AED0")))
+                )
+            Text(theme.rawValue.capitalized)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(
+                    selectedTheme == theme
+                        ? Color(hex: "#7B61FF")
+                        : Color(hex: "#4A5568"))
+        }
+        .themeItemStyle(isSelected: selectedTheme == theme)
+    }
+}
+
+struct StoryLengthField: View {
+    @Binding var storyLength: Double
+    let storyLengthLabels: [String]
+
+    var body: some View {
+        FormFieldContainer {
+            Text(R.string.localizable.storyFormLengthLabel())
+                .formSectionLabel(iconName: "text.book.closed.fill")
+
+            storyLengthSlider
+        }
+    }
+
+    private var storyLengthSlider: some View {
+        VStack(spacing: 12) {
+            Slider(value: $storyLength, in: 1...3, step: 1)
+                .accentColor(Color(hex: "#7B61FF"))
+
+            // Labels
+            HStack {
+                ForEach(0..<storyLengthLabels.count, id: \.self) { index in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            storyLength = Double(index + 1)
+                        }
+                    } label: {
+                        Text(storyLengthLabels[index])
+                            .font(
+                                .system(
+                                    size: 14,
+                                    weight: Int(storyLength) == index + 1
+                                        ? .semibold : .regular)
+                            )
+                            .foregroundColor(
+                                Int(storyLength) == index + 1
+                                    ? Color(hex: "#7B61FF")
+                                    : Color(hex: "#6B7280")
+                            )
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+        }
+        .formFieldStyle()
+    }
+}
+
+struct LanguageField: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @Binding var selectedLanguage: String
+    let languages: [(String, String)]
+    
+    private var selectedLanguageName: String {
+        languages.first { $0.0 == selectedLanguage }?.1 ?? "English"
+    }
+
+    var body: some View {
+        FormFieldContainer {
+            Text(R.string.localizable.storyFormLanguageLabel())
+                .formSectionLabel(iconName: "globe")
+
+            Menu {
+                ForEach(languages, id: \.0) { code, name in
+                    Button {
+                        selectedLanguage = code
+                    } label: {
+                        HStack {
+                            Text(name)
+                            if code == selectedLanguage {
+                                Spacer()
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(Color(hex: "#7B61FF"))
+                            }
+                        }
+                    }
+                }
+            } label: {
+                HStack {
+                    Text(selectedLanguageName)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(
+                            colorScheme == .light 
+                                ? Color(hex: "#374151") 
+                                : Color(hex: "#E5E7EB")
+                        )
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(Color(hex: "#9CA3AF"))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(
+                            colorScheme == .light 
+                                ? Color.white 
+                                : Color(hex: "#1F2937")
+                        )
+                        .shadow(
+                            color: Color.black.opacity(colorScheme == .light ? 0.05 : 0.2),
+                            radius: 4,
+                            y: 2
+                        )
+                )
+            }
+        }
+    }
+}
+
+struct GenerateButton: View {
+    @Environment(\.colorScheme) private var colorScheme
+    let isGenerating: Bool
+    let childName: String?
+    let action: () -> Void
+
+    private var primaryGradient: LinearGradient {
+        UITheme.Colors.primaryGradient
+    }
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Button {
+                action()
+            } label: {
+                ZStack {
+                    // Gradient background
+                    RoundedRectangle(cornerRadius: 28)
+                        .fill(primaryGradient)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 28)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                        )
+
+                    // Button content
+                    HStack(spacing: 16) {
+                        if isGenerating {
+                            ProgressView()
+                                .tint(.white)
+                                .scaleEffect(0.8)
+                        } else {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.white.opacity(0.15))
+                                    .frame(width: 36, height: 36)
+
+                                Image(systemName: "wand.and.stars.inverse")
+                                    .font(.system(size: 18, weight: .medium))
+                                    .foregroundColor(.white)
+                            }
+                        }
+
+                        Text(
+                            isGenerating
+                                ? R.string.localizable.storyFormGenerating() : R.string.localizable.storyFormGenerateButton()
+                        )
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.white)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 64)
+                .shadow(
+                    color: Color(hex: "#7B61FF").opacity(0.4), radius: 15, x: 0,
+                    y: 8)
+            }
+            .disabled(isGenerating)
+            .animation(
+                .spring(response: 0.3, dampingFraction: 0.7),
+                value: isGenerating)
+        }
+        .padding(.horizontal, UITheme.Spacing.lg)
+        .padding(.top, UITheme.Spacing.md)
+        .padding(.bottom, UITheme.Spacing.xxl)
+    }
+}
+
+// Add proper struct if needed
+#if DEBUG
+    struct StoryFormViewComponents_Previews: PreviewProvider {
+        static var previews: some View {
+            VStack {
+                FormHeader(animateBackground: .constant(true))
+                ChildNameField(childName: .constant("Alex"))
+                // Add other preview components as needed
+            }
+            .padding()
+            .previewLayout(.sizeThatFits)
+        }
+    }
+#endif
