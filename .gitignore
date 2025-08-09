@@ -184,3 +184,6 @@ marketing-plan/scripts/*.png
 marketing-plan/scripts/__pycache__/
 marketing-plan/scripts/*.pyc
 marketing-plan/scripts/*.pyo
+
+# Certificate folder
+certificate/
